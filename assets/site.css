@@ -1,7 +1,7 @@
 /* Steady Path Careers. Brand: Midnight #10213A, Navy #1F3A5F, Gold #C9A227, Dawn #F2D98A, Cream #FBF6EE, Ink #17233A. One typeface (Manrope), Newsreader italic for one warm line. */
 :root { --midnight: #10213A; --navy: #1F3A5F; --gold: #C9A227; --dawn: #F2D98A; --cream: #FBF6EE; --ink: #17233A; --muted: #5c6b84; --line: #ece4d2; --sunk: #F6EDD9;
   --ok: #1f7a46; --ok-soft: #dff3e6; --bad: #b23a2f; --bad-soft: #fbe2de; --info: #2b5aa8; --info-soft: #e1eafb; --gold-soft: #F6ECC9;
-  --display: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; --serif: "Newsreader", Georgia, serif; color-scheme: light; }
+  --display: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; --serif: "Newsreader", Georgia, serif; color-scheme: only light; }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--cream); color: var(--ink); font: 16px/1.5 var(--display); -webkit-font-smoothing: antialiased; }
