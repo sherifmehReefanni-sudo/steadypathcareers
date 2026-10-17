@@ -47,7 +47,7 @@ img, svg { max-width: 100%; }
 }
 
 /* content */
-.pbody { padding: 24px 0 48px; display: flex; flex-direction: column; gap: 18px; }
+.pbody { padding-block: 24px 48px; display: flex; flex-direction: column; gap: 18px; }
 .ph { font: 800 24px/1.15 var(--display); letter-spacing: -0.02em; color: var(--navy); margin: 0; }
 .psub { color: var(--muted); margin: 0; }
 .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
