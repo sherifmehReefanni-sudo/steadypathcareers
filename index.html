@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#10213A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
-<link rel="stylesheet" href="assets/site.css?v=20261017e">
+<link rel="stylesheet" href="assets/site.css?v=20261017f">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://steadypathcareers.com/">
 <meta property="og:title" content="Steady Path Careers">
@@ -82,7 +82,7 @@
       <div><b>Tell us about you</b><span>A 10-minute intake: what you do, what you want, what you won't take, and your current resume.</span></div>
       <div><b>We read your resume first</b><span>Before any search runs, we read your resume, fix what's holding it back, and agree on the titles to go after.</span></div>
       <div><b>You pick from verified jobs</b><span>5 to 10 jobs a week with pay, why each one fits, and the posting link. Mark Yes, No or Question from your portal or right from the email.</span></div>
-      <div><b>We handle the rest</b><span>Tailored resume and cover letter per Yes, application tracking, follow-up reminders, interview prep, and a weekly note on where you stand.</span></div>
+      <div><b>We handle the rest</b><span>Tailored resume and cover letter per Yes, application tracking, follow-up reminders, interview prep, help with your offer, and a weekly note on where you stand.</span></div>
     </div>
   </div></section>
 
@@ -130,10 +130,16 @@
     </div>
   </div></section>
 
+  <section class="section" id="clients" hidden style="padding-top:0"><div class="wrap">
+    <h2>What clients say</h2>
+    <p class="lead">In their own words, shared with their permission.</p>
+    <div class="quotes" id="quotes"></div>
+  </div></section>
+
   <section class="section" style="padding-top:0"><div class="wrap">
     <div class="price">
       <div><h2>Pricing</h2><div class="big">Free</div><p>while we're in our pilot. You'll know the price before your trial ends, and nothing renews or charges on its own.</p></div>
-      <ul><li>No card needed to start</li><li>Weekly verified matches with pay</li><li>Tailored resume and cover letter for every Yes</li><li>Application tracking and interview prep</li><li>Your own private portal</li></ul>
+      <ul><li>No card needed to start</li><li>Weekly verified matches with pay</li><li>Tailored resume and cover letter for every Yes</li><li>Application tracking and interview prep</li><li>Offer review and negotiation help</li><li>Your own private portal</li></ul>
     </div>
   </div></section>
 
@@ -144,6 +150,7 @@
       <details><summary>What does it cost?</summary><p>Nothing during our pilot. Before your trial ends you'll see the price in writing, and you choose whether to continue. Nothing renews or charges automatically, and we never ask for a card to start.</p></details>
       <details><summary>Do you apply to jobs for me?</summary><p>No. You submit every application yourself, with the tailored resume and cover letter we prepare. We never log into your accounts or contact employers as you.</p></details>
       <details><summary>Can you guarantee me a job?</summary><p>No one honestly can. What we promise is the process: real openings, real pay, documents that only say what's true, and a person keeping track of every step.</p></details>
+      <details><summary>Will you help me negotiate my offer?</summary><p>Yes. Send the offer and we'll go through pay, benefits and start date together. If asking for more makes sense, you'll get a short counter email or call script in your own words. There's no guarantee an employer will move, and the decision is always yours. <a href="/services/#offer">See an example</a>.</p></details>
       <details><summary>Do you redo my LinkedIn profile?</summary><p>On request. Sherif rewrites your headline, About section and job entries to match your resume, and you paste them in yourself. It isn't part of the standard service and may carry a separate fee; you'll know the price before any work starts. <a href="/services/#linkedin">See an example</a>.</p></details>
       <details><summary>Who sees my information?</summary><p>You and Sherif. Your resume is stored privately in our files, your portal is behind a sign-in link sent to your email, and we never share or sell your information.</p></details>
       <details><summary>How many jobs will I get?</summary><p>Usually 5 to 10 a week, after we've agreed on the titles to chase. Fewer if the market is thin for your field, because we only send jobs that pass a live check.</p></details>
@@ -187,6 +194,19 @@
     if (es[0].isIntersecting) { setTimeout(press, 900); loop = setInterval(function () { reset(); setTimeout(press, 1200); }, 6000); io.disconnect(); }
   }, { threshold: .5 }) : null;
   if (io) io.observe(yes); else press();
+})();
+</script>
+<script>
+(function () {
+  fetch('/testimonials.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : []; }).then(function (list) {
+    list = (Array.isArray(list) ? list : []).filter(function (t) { return t && t.quote && t.approved === true; });
+    if (!list.length) return;
+    var esc = function (x) { return String(x || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    document.getElementById('quotes').innerHTML = list.map(function (t) {
+      return '<figure class="card"><blockquote>' + esc(t.quote) + '</blockquote><figcaption>' + esc(t.name || 'Steady Path client') + (t.detail ? '<span>' + esc(t.detail) + '</span>' : '') + '</figcaption></figure>';
+    }).join('');
+    document.getElementById('clients').hidden = false;
+  }).catch(function () {});
 })();
 </script>
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6f62d1e0e28847dcab6b431376defda9"}'></script><!-- End Cloudflare Web Analytics -->

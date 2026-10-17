@@ -222,3 +222,10 @@ footer a { color: var(--navy); font-weight: 700; text-decoration: none; }
 .fields .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
 .fields .card .more { margin-top: auto; padding-top: 8px; font-weight: 700; font-size: 13px; color: var(--navy); }
 @media (prefers-reduced-motion: reduce) { .fields .card { transition: none; } .fields .card:hover { transform: none; } }
+
+/* client quotes (only shown when testimonials.json has approved entries) */
+.quotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.quotes figure { margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.quotes blockquote { margin: 0; font: italic 400 18px/1.45 "Newsreader", Georgia, serif; color: var(--navy); }
+.quotes figcaption { font-weight: 800; color: var(--ink); font-size: 14px; }
+.quotes figcaption span { display: block; font-weight: 600; color: var(--muted); }
