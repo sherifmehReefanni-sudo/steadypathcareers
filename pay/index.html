@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="darkreader-lock">
+<meta name="color-scheme" content="only light">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What does this job pay in NJ and NY? · Steady Path Careers</title>
+<meta name="description" content="Look up typical pay for common jobs in New Jersey and New York, from U.S. Bureau of Labor Statistics wage data. Free, no sign-up.">
+<link rel="canonical" href="https://steadypathcareers.com/pay/">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
+<link rel="stylesheet" href="/assets/site.css?v=20261017c">
+<meta property="og:title" content="What does this job pay in NJ and NY?">
+<meta property="og:image" content="https://steadypathcareers.com/img/og.jpg">
+<style>
+.tool { max-width: 820px; }
+.search { display: flex; gap: 10px; flex-wrap: wrap; }
+.search input { flex: 1 1 260px; min-width: 0; padding: 14px 16px; font: inherit; font-size: 17px; border: 2px solid #cfd6e3; border-radius: 12px; }
+.seg { display: inline-flex; border: 2px solid #cfd6e3; border-radius: 12px; overflow: hidden; }
+.seg button { border: 0; background: #fff; padding: 12px 16px; font: inherit; font-weight: 700; cursor: pointer; color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--navy); color: var(--cream); }
+.sugg { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.sugg button { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 6px 12px; font: inherit; font-size: 14px; cursor: pointer; }
+.res { display: grid; gap: 14px; margin-top: 18px; }
+.rcard { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+.rcard h3 { margin: 0 0 4px; color: var(--navy); }
+.rcard .mid { font: 800 34px/1.1 var(--display, inherit); color: var(--ink); margin: 6px 0 2px; }
+.bar { position: relative; height: 14px; border-radius: 99px; background: linear-gradient(90deg, #e9eef6, var(--gold-soft)); margin: 18px 0 8px; }
+.bar .span { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, var(--navy), var(--gold)); }
+.bar .dot { position: absolute; top: -5px; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 4px solid var(--gold); transform: translateX(-50%); }
+.scale { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 18px; font-size: 14px; color: var(--muted); margin-top: 6px; }
+.legend b { color: var(--ink); }
+.none { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="sky">
+  <div class="wrap"><nav class="topbar"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a>
+    <div class="links"><a href="/#how">How it works</a><a href="/sample/">Sample report</a><a href="/guides/" aria-current="true">Guides</a></div>
+    <div class="right"><a href="/start/" class="btn gold">Start free</a></div></nav>
+    <div class="heroText"><p class="kicker">Free pay lookup</p><h1>What does this job pay?</h1><p>Typical yearly pay for common jobs in New Jersey and New York, from government wage data. No sign-up.</p></div>
+  </div>
+  <div id="scene"></div>
+</div>
+<main class="wrap pbody tool">
+  <div class="search">
+    <label for="q" class="psub" style="flex-basis:100%;font-weight:700;color:var(--ink)">Type a job title</label>
+    <input id="q" type="search" placeholder="e.g. payroll, receptionist, IT support" autocomplete="off">
+    <div class="seg" role="group" aria-label="State"><button type="button" data-st="NJ" aria-pressed="true">New Jersey</button><button type="button" data-st="NY" aria-pressed="false">New York</button></div>
+  </div>
+  <div class="sugg" id="sugg"></div>
+  <div class="res" id="res" aria-live="polite"></div>
+  <p class="psub" id="src" style="margin-top:18px;font-size:14px"></p>
+  <div class="card" style="margin-top:12px"><h3>Want jobs that actually pay this?</h3><p class="psub" style="margin:0 0 12px">We only send jobs with posted pay, checked live by a person. Free during our pilot.</p><a class="btn gold" href="/start/">Start your free trial</a></div>
+</main>
+<footer class="wrap"><span>Steady Path Careers · Tinton Falls, New Jersey</span><span>hello@steadypathcareers.com · <a href="/guides/">Guides</a></span></footer>
+<script src="/assets/site.js?v=20261017c"></script>
+<script>
+document.getElementById('scene').innerHTML = SP.scene(180, 's');
+var D = null, st = 'NJ', esc = SP.esc;
+var money = function (n) { return n == null ? 'n/a' : '$' + Math.round(n).toLocaleString('en-US'); };
+function score(j, q) {
+  var t = (j.title + ' ' + (j.aka || []).join(' ')).toLowerCase(), words = q.toLowerCase().split(/\s+/).filter(String), s = 0;
+  words.forEach(function (w) { if (t.indexOf(w) >= 0) s += j.title.toLowerCase().indexOf(w) >= 0 ? 2 : 1; });
+  return words.length && s >= words.length ? s : 0;
+}
+function card(j) {
+  var v = j[st] || {}, lo = v.p25, mid = v.p50, hi = v.p75;
+  if (mid == null) return '<div class="rcard"><h3>' + esc(j.title) + '</h3><p class="none">Not published for ' + (st === 'NJ' ? 'New Jersey' : 'New York') + '.</p></div>';
+  var min = Math.min(lo || mid, mid) * 0.8, max = Math.max(hi || mid, mid) * 1.1, pct = function (x) { return ((x - min) / (max - min) * 100).toFixed(1) + '%'; };
+  return '<div class="rcard"><h3>' + esc(j.title) + '</h3><div class="psub">Typical yearly pay in ' + (st === 'NJ' ? 'New Jersey' : 'New York') + '</div><div class="mid">' + money(mid) + '</div><div class="psub">Middle of the pack (median)</div>' +
+    (lo != null && hi != null ? '<div class="bar" aria-hidden="true"><div class="span" style="left:' + pct(lo) + ';right:calc(100% - ' + pct(hi) + ')"></div><div class="dot" style="left:' + pct(mid) + '"></div></div>' +
+    '<div class="legend"><span>Lower quarter earn under <b>' + money(lo) + '</b></span><span>Top quarter earn over <b>' + money(hi) + '</b></span></div>' : '') + '</div>';
+}
+function run() {
+  var q = document.getElementById('q').value.trim(), out = document.getElementById('res');
+  if (!D) return;
+  if (!q) { out.innerHTML = ''; return; }
+  var hits = D.jobs.map(function (j) { return [score(j, q), j]; }).filter(function (x) { return x[0]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, 4).map(function (x) { return x[1]; });
+  out.innerHTML = hits.length ? hits.map(card).join('') : '<div class="rcard"><p class="none" style="margin:0">No match yet for "' + esc(q) + '". Try a simpler word, like "clerk", "analyst" or "sales".</p></div>';
+}
+fetch('/pay/data.json').then(function (r) { return r.json(); }).then(function (d) {
+  D = d;
+  document.getElementById('src').textContent = 'Source: ' + d.source + '. Figures are yearly wages for all workers in the job statewide, not offers for any specific posting. Pay varies by employer, experience and region.';
+  var picks = ['Customer service', 'Payroll', 'Receptionist', 'IT support', 'Medical assistant', 'Insurance sales'];
+  document.getElementById('sugg').innerHTML = picks.map(function (p) { return '<button type="button" data-s="' + p + '">' + p + '</button>'; }).join('');
+  var q0 = new URLSearchParams(location.search).get('q'); if (q0) { document.getElementById('q').value = q0; }
+  run();
+}).catch(function () { document.getElementById('res').innerHTML = '<div class="rcard"><p class="none" style="margin:0">Pay data could not load. Try again in a minute.</p></div>'; });
+document.getElementById('q').addEventListener('input', run);
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.st) { st = b.dataset.st; document.querySelectorAll('[data-st]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); run(); }
+  if (b.dataset.s) { document.getElementById('q').value = b.dataset.s; run(); }
+});
+</script>
+</body>
+</html>
