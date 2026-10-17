@@ -10,7 +10,7 @@
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
-<link rel="stylesheet" href="../assets/site.css?v=20261017c">
+<link rel="stylesheet" href="../assets/site.css?v=20261017d">
 <style>
 .iform { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px 22px 26px; min-width: 0; }
 .steps-bar { display: flex; gap: 6px; margin: 0 0 18px; }
@@ -74,7 +74,8 @@ function save() { try { var c = Object.assign({}, D); localStorage.setItem('sp_i
 
 var OPT = {
   contactBy: ['Text', 'Call', 'Email', 'WhatsApp'], times: ['Mornings', 'Afternoons', 'Evenings', 'Weekends'],
-  types: ['Healthcare admin or front desk', 'Customer service', 'Sales', 'Insurance', 'Office and admin', 'IT support', 'Payroll, HR or finance', 'Retail', 'Warehouse and logistics', 'Licensed professional (dental, nursing, etc.)', 'Other'],
+  types: ['Office and admin', 'Customer service', 'Sales', 'Insurance', 'Payroll, HR or finance', 'Healthcare admin or front desk', 'Nursing (RN or LPN)', 'Healthcare support (CNA, medical assistant, techs, aides)', 'Dental', 'IT and tech', 'Construction and skilled trades', 'Facilities and maintenance', 'Warehouse and logistics', 'Driving (CDL or delivery)', 'Retail', 'Hospitality and food service', 'Education and school jobs', 'Government and civil service', 'Social and human services', 'Security', 'Other'],
+  relocating: ['No, I already live here', 'Yes, to New Jersey', 'Yes, to New York', 'Yes, either one'],
   notWant: ['Call center', 'Door-to-door or cold-call sales', 'Commission-only pay', 'Healthcare', 'Retail', 'Warehouse', 'Driving or delivery'],
   settings: ['On site', 'Hybrid', 'Remote'], getThere: ['Car', 'Public transit', 'Either'], nycHybrid: ['Yes', 'Maybe', 'No'],
   commute: ['Up to 15 min', 'Up to 30 min', 'Up to 45 min', 'Up to 1 hour', '1 hour or more', 'Any distance'],
@@ -104,7 +105,8 @@ function chips(k, label, opts, o) { o = o || {}; var multi = Array.isArray(D[k])
 
 function body() {
   if (step === 0) return '<div class="two">' + inp('name', 'First and last name, as it should appear on your resume', 'text', { req: 1, ac: 'name' }) + inp('phone', 'Phone', 'tel', { req: 1, ac: 'tel' }) + '</div>' +
-    '<div class="two">' + inp('email', 'Email you check daily', 'email', { req: 1, ac: 'email', help: 'This is also how you sign in to your portal.' }) + inp('city', 'Home city, state, ZIP', 'text', { req: 1, ph: 'Maplewood, NJ 07040' }) + '</div>' +
+    '<div class="two">' + inp('email', 'Email you check daily', 'email', { req: 1, ac: 'email', help: 'This is also how you sign in to your portal.' }) + inp('city', 'Home city, state, ZIP', 'text', { req: 1, ph: 'Maplewood, NJ 07040', help: 'Moving here? Enter where you live now.' }) + '</div>' +
+    chips('relocating', 'Are you moving to New Jersey or New York?', OPT.relocating) + (/^Yes/.test(D.relocating || '') ? inp('moveWhen', 'When are you moving, and to what town or area?', 'text', { ph: 'March 2027, Jersey City or Hoboken' }) : '') +
     inp('linkedin', 'LinkedIn profile link (optional)', 'url', { ph: 'https://www.linkedin.com/in/...' }) + chips('contactBy', 'Best way to reach you', OPT.contactBy, { req: 1 }) + chips('times', 'Best times to reach you', OPT.times, { multi: 1 });
   if (step === 1) return chips('types', 'Type of work you want', OPT.types, { req: 1, multi: 1 }) +
     inp('titles', 'Job titles you want, 2 to 5, one per line', 'textarea', { req: 1, ph: 'Payroll Analyst\nHR Operations Analyst', help: 'At least two, so the search casts wide enough.' }) +
@@ -175,7 +177,7 @@ function submit() {
 document.addEventListener('change', function (e) {
   var t = e.target;
   if (t.id === 'f_resume') { var f = t.files[0]; if (f && f.size > 10 * 1024 * 1024) { err = 'That file is over 10 MB.'; t.value = ''; file = null; } else { file = f || null; D.resumeName = f ? f.name : ''; err = ''; } grab(); render(); return; }
-  if (t.dataset.c) { grab(); var k = t.dataset.c; if (t.type === 'checkbox') { var a = D[k] || []; if (t.checked) { if (a.indexOf(t.value) < 0) a.push(t.value); } else a = a.filter(function (x) { return x !== t.value; }); D[k] = a; } else D[k] = t.value; save(); if (k === 'gaps') render(); return; }
+  if (t.dataset.c) { grab(); var k = t.dataset.c; if (t.type === 'checkbox') { var a = D[k] || []; if (t.checked) { if (a.indexOf(t.value) < 0) a.push(t.value); } else a = a.filter(function (x) { return x !== t.value; }); D[k] = a; } else D[k] = t.value; save(); if (k === 'gaps' || k === 'relocating') render(); return; }
   grab();
 });
 document.addEventListener('input', function (e) { if (e.target.dataset.k) { D[e.target.dataset.k] = e.target.value; save(); } });

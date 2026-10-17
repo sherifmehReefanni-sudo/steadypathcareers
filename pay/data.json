@@ -1,1 +1,1257 @@
-{"source":"U.S. Bureau of Labor Statistics, Occupational Employment and Wage Statistics (OEWS), May 2025 state estimates","source_url":"https://www.bls.gov/oes/","retrieved":"2026-10-17","jobs":[{"soc":"43-4051","title":"Customer Service Representatives","aka":["customer service","call center","client service","customer support","help desk rep"],"NJ":{"p25":39410,"p50":47740,"p75":59070},"NY":{"p25":40360,"p50":48000,"p75":60280}},{"soc":"43-6014","title":"Secretaries and Administrative Assistants (except legal, medical, executive)","aka":["administrative assistant","admin assistant","secretary","office assistant","office administrator"],"NJ":{"p25":43200,"p50":50260,"p75":61370},"NY":{"p25":43920,"p50":49600,"p75":59100}},{"soc":"43-9061","title":"Office Clerks, General","aka":["office clerk","clerical","general office","data entry","front office"],"NJ":{"p25":39510,"p50":48570,"p75":59190},"NY":{"p25":36840,"p50":45890,"p75":54280}},{"soc":"43-3051","title":"Payroll and Timekeeping Clerks","aka":["payroll","payroll clerk","timekeeping","payroll specialist"],"NJ":{"p25":50440,"p50":60750,"p75":73350},"NY":{"p25":50700,"p50":61040,"p75":73220}},{"soc":"13-1071","title":"Human Resources Specialists","aka":["hr","human resources","recruiter","hr generalist","talent acquisition"],"NJ":{"p25":65890,"p50":80690,"p75":103160},"NY":{"p25":65260,"p50":84380,"p75":118380}},{"soc":"13-1111","title":"Management Analysts","aka":["management consultant","business analyst","consultant","process improvement","operations analyst"],"NJ":{"p25":81680,"p50":105820,"p75":135790},"NY":{"p25":85670,"p50":112250,"p75":165460}},{"soc":"13-2011","title":"Accountants and Auditors","aka":["accountant","auditor","cpa","staff accountant","tax accountant"],"NJ":{"p25":80320,"p50":100830,"p75":129280},"NY":{"p25":79760,"p50":102640,"p75":134820}},{"soc":"43-3031","title":"Bookkeeping, Accounting, and Auditing Clerks","aka":["bookkeeper","bookkeeping","accounts payable","accounts receivable","accounting clerk"],"NJ":{"p25":48400,"p50":58300,"p75":67270},"NY":{"p25":47400,"p50":58160,"p75":69330}},{"soc":"41-3021","title":"Insurance Sales Agents","aka":["insurance agent","insurance sales","insurance producer","insurance broker","account executive insurance"],"NJ":{"p25":60060,"p50":81640,"p75":124460},"NY":{"p25":55810,"p50":78110,"p75":125350}},{"soc":"13-1031","title":"Claims Adjusters, Examiners, and Investigators","aka":["claims adjuster","insurance claims","claims examiner","claims investigator","adjuster"],"NJ":{"p25":76170,"p50":95690,"p75":107450},"NY":{"p25":66770,"p50":87130,"p75":105160}},{"soc":"41-4012","title":"Sales Representatives, Wholesale and Manufacturing (except technical)","aka":["sales rep","outside sales","b2b sales","account manager","territory sales"],"NJ":{"p25":59950,"p50":79410,"p75":123920},"NY":{"p25":59860,"p50":79590,"p75":106010}},{"soc":"41-2031","title":"Retail Salespersons","aka":["retail","sales associate","store associate","retail sales"],"NJ":{"p25":34230,"p50":36520,"p75":44400},"NY":{"p25":35670,"p50":37720,"p75":44130}},{"soc":"41-1011","title":"First-Line Supervisors of Retail Sales Workers","aka":["retail manager","store manager","assistant store manager","retail supervisor","shift supervisor"],"NJ":{"p25":46490,"p50":57320,"p75":70460},"NY":{"p25":45800,"p50":58300,"p75":71950}},{"soc":"43-6013","title":"Medical Secretaries and Administrative Assistants","aka":["medical secretary","medical receptionist","medical office assistant","patient coordinator","medical admin"],"NJ":{"p25":44080,"p50":48660,"p75":57400},"NY":{"p25":44160,"p50":47710,"p75":56310}},{"soc":"43-4171","title":"Receptionists and Information Clerks","aka":["receptionist","front desk","information clerk","greeter"],"NJ":{"p25":36600,"p50":41650,"p75":46980},"NY":{"p25":37470,"p50":43080,"p75":49080}},{"soc":"29-2052","title":"Pharmacy Technicians","aka":["pharmacy tech","pharmacy technician","pharmacy","pharmacy assistant"],"NJ":{"p25":36710,"p50":39610,"p75":49600},"NY":{"p25":37740,"p50":43930,"p75":49980}},{"soc":"31-9092","title":"Medical Assistants","aka":["medical assistant","ma","clinical assistant","doctor's office"],"NJ":{"p25":42150,"p50":47210,"p75":49920},"NY":{"p25":43600,"p50":48000,"p75":55120}},{"soc":"29-1021","title":"Dentists, General","aka":["dentist","general dentist","dental","dds"],"NJ":{"p25":132710,"p50":171330,"p75":260000},"NY":{"p25":109220,"p50":183060,"p75":221910}},{"soc":"15-1232","title":"Computer User Support Specialists","aka":["help desk","it support","desktop support","tech support","service desk"],"NJ":{"p25":52000,"p50":64470,"p75":82090},"NY":{"p25":56510,"p50":72560,"p75":91150}},{"soc":"15-1244","title":"Network and Computer Systems Administrators","aka":["network administrator","system administrator","sysadmin","network admin","it administrator"],"NJ":{"p25":90440,"p50":116420,"p75":137990},"NY":{"p25":83630,"p50":105810,"p75":134390}},{"soc":"15-1212","title":"Information Security Analysts","aka":["cybersecurity","security analyst","infosec","soc analyst","cyber security"],"NJ":{"p25":104110,"p50":134820,"p75":171240},"NY":{"p25":102930,"p50":134660,"p75":173920}},{"soc":"15-1211","title":"Computer Systems Analysts","aka":["systems analyst","it analyst","business systems analyst","computer analyst"],"NJ":{"p25":91500,"p50":122890,"p75":161000},"NY":{"p25":85450,"p50":109610,"p75":137690}},{"soc":"13-1161","title":"Market Research Analysts and Marketing Specialists","aka":["marketing","market research","marketing specialist","digital marketing","marketing analyst"],"NJ":{"p25":68150,"p50":88190,"p75":113480},"NY":{"p25":72600,"p50":98580,"p75":129430}},{"soc":"11-3121","title":"Human Resources Managers","aka":["hr manager","human resources manager","hr director","people manager"],"NJ":{"p25":135940,"p50":172440,"p75":218050},"NY":{"p25":133180,"p50":176650,"p75":231380}},{"soc":"11-1021","title":"General and Operations Managers","aka":["operations manager","general manager","gm","business manager","operations director"],"NJ":{"p25":111580,"p50":173690,"p75":284250},"NY":{"p25":85770,"p50":130860,"p75":209110}},{"soc":"53-7065","title":"Stockers and Order Fillers","aka":["stocker","warehouse","order picker","stock clerk","order filler"],"NJ":{"p25":34880,"p50":37250,"p75":44720},"NY":{"p25":35760,"p50":39030,"p75":46080}},{"soc":"53-3032","title":"Heavy and Tractor-Trailer Truck Drivers","aka":["truck driver","cdl driver","tractor trailer","semi driver","trucking"],"NJ":{"p25":57400,"p50":63570,"p75":76450},"NY":{"p25":55550,"p50":62050,"p75":74040}},{"soc":"43-5071","title":"Shipping, Receiving, and Inventory Clerks","aka":["shipping clerk","receiving clerk","inventory clerk","warehouse clerk","logistics clerk"],"NJ":{"p25":39660,"p50":45440,"p75":53550},"NY":{"p25":39800,"p50":47100,"p75":56430}},{"soc":"13-2072","title":"Loan Officers","aka":["loan officer","mortgage loan officer","mortgage","lending","loan originator"],"NJ":{"p25":62740,"p50":92920,"p75":131870},"NY":{"p25":62670,"p50":95710,"p75":148890}},{"soc":"43-4131","title":"Loan Interviewers and Clerks","aka":["loan processor","loan clerk","mortgage processor","loan interviewer","loan assistant"],"NJ":{"p25":48620,"p50":58760,"p75":63040},"NY":{"p25":48570,"p50":58120,"p75":64640}}]}
+{
+ "source": "U.S. Bureau of Labor Statistics, Occupational Employment and Wage Statistics (OEWS), May 2025 state estimates",
+ "source_url": "https://www.bls.gov/oes/",
+ "retrieved": "2026-10-17",
+ "jobs": [
+  {
+   "soc": "43-4051",
+   "title": "Customer Service Representatives",
+   "aka": [
+    "customer service",
+    "call center",
+    "client service",
+    "customer support",
+    "help desk rep"
+   ],
+   "NJ": {
+    "p25": 39410,
+    "p50": 47740,
+    "p75": 59070
+   },
+   "NY": {
+    "p25": 40360,
+    "p50": 48000,
+    "p75": 60280
+   }
+  },
+  {
+   "soc": "43-6014",
+   "title": "Secretaries and Administrative Assistants (except legal, medical, executive)",
+   "aka": [
+    "administrative assistant",
+    "admin assistant",
+    "secretary",
+    "office assistant",
+    "office administrator"
+   ],
+   "NJ": {
+    "p25": 43200,
+    "p50": 50260,
+    "p75": 61370
+   },
+   "NY": {
+    "p25": 43920,
+    "p50": 49600,
+    "p75": 59100
+   }
+  },
+  {
+   "soc": "43-9061",
+   "title": "Office Clerks, General",
+   "aka": [
+    "office clerk",
+    "clerical",
+    "general office",
+    "data entry",
+    "front office"
+   ],
+   "NJ": {
+    "p25": 39510,
+    "p50": 48570,
+    "p75": 59190
+   },
+   "NY": {
+    "p25": 36840,
+    "p50": 45890,
+    "p75": 54280
+   }
+  },
+  {
+   "soc": "43-3051",
+   "title": "Payroll and Timekeeping Clerks",
+   "aka": [
+    "payroll",
+    "payroll clerk",
+    "timekeeping",
+    "payroll specialist"
+   ],
+   "NJ": {
+    "p25": 50440,
+    "p50": 60750,
+    "p75": 73350
+   },
+   "NY": {
+    "p25": 50700,
+    "p50": 61040,
+    "p75": 73220
+   }
+  },
+  {
+   "soc": "13-1071",
+   "title": "Human Resources Specialists",
+   "aka": [
+    "hr",
+    "human resources",
+    "recruiter",
+    "hr generalist",
+    "talent acquisition"
+   ],
+   "NJ": {
+    "p25": 65890,
+    "p50": 80690,
+    "p75": 103160
+   },
+   "NY": {
+    "p25": 65260,
+    "p50": 84380,
+    "p75": 118380
+   }
+  },
+  {
+   "soc": "13-1111",
+   "title": "Management Analysts",
+   "aka": [
+    "management consultant",
+    "business analyst",
+    "consultant",
+    "process improvement",
+    "operations analyst"
+   ],
+   "NJ": {
+    "p25": 81680,
+    "p50": 105820,
+    "p75": 135790
+   },
+   "NY": {
+    "p25": 85670,
+    "p50": 112250,
+    "p75": 165460
+   }
+  },
+  {
+   "soc": "13-2011",
+   "title": "Accountants and Auditors",
+   "aka": [
+    "accountant",
+    "auditor",
+    "cpa",
+    "staff accountant",
+    "tax accountant"
+   ],
+   "NJ": {
+    "p25": 80320,
+    "p50": 100830,
+    "p75": 129280
+   },
+   "NY": {
+    "p25": 79760,
+    "p50": 102640,
+    "p75": 134820
+   }
+  },
+  {
+   "soc": "43-3031",
+   "title": "Bookkeeping, Accounting, and Auditing Clerks",
+   "aka": [
+    "bookkeeper",
+    "bookkeeping",
+    "accounts payable",
+    "accounts receivable",
+    "accounting clerk"
+   ],
+   "NJ": {
+    "p25": 48400,
+    "p50": 58300,
+    "p75": 67270
+   },
+   "NY": {
+    "p25": 47400,
+    "p50": 58160,
+    "p75": 69330
+   }
+  },
+  {
+   "soc": "41-3021",
+   "title": "Insurance Sales Agents",
+   "aka": [
+    "insurance agent",
+    "insurance sales",
+    "insurance producer",
+    "insurance broker",
+    "account executive insurance"
+   ],
+   "NJ": {
+    "p25": 60060,
+    "p50": 81640,
+    "p75": 124460
+   },
+   "NY": {
+    "p25": 55810,
+    "p50": 78110,
+    "p75": 125350
+   }
+  },
+  {
+   "soc": "13-1031",
+   "title": "Claims Adjusters, Examiners, and Investigators",
+   "aka": [
+    "claims adjuster",
+    "insurance claims",
+    "claims examiner",
+    "claims investigator",
+    "adjuster"
+   ],
+   "NJ": {
+    "p25": 76170,
+    "p50": 95690,
+    "p75": 107450
+   },
+   "NY": {
+    "p25": 66770,
+    "p50": 87130,
+    "p75": 105160
+   }
+  },
+  {
+   "soc": "41-4012",
+   "title": "Sales Representatives, Wholesale and Manufacturing (except technical)",
+   "aka": [
+    "sales rep",
+    "outside sales",
+    "b2b sales",
+    "account manager",
+    "territory sales"
+   ],
+   "NJ": {
+    "p25": 59950,
+    "p50": 79410,
+    "p75": 123920
+   },
+   "NY": {
+    "p25": 59860,
+    "p50": 79590,
+    "p75": 106010
+   }
+  },
+  {
+   "soc": "41-2031",
+   "title": "Retail Salespersons",
+   "aka": [
+    "retail",
+    "sales associate",
+    "store associate",
+    "retail sales"
+   ],
+   "NJ": {
+    "p25": 34230,
+    "p50": 36520,
+    "p75": 44400
+   },
+   "NY": {
+    "p25": 35670,
+    "p50": 37720,
+    "p75": 44130
+   }
+  },
+  {
+   "soc": "41-1011",
+   "title": "First-Line Supervisors of Retail Sales Workers",
+   "aka": [
+    "retail manager",
+    "store manager",
+    "assistant store manager",
+    "retail supervisor",
+    "shift supervisor"
+   ],
+   "NJ": {
+    "p25": 46490,
+    "p50": 57320,
+    "p75": 70460
+   },
+   "NY": {
+    "p25": 45800,
+    "p50": 58300,
+    "p75": 71950
+   }
+  },
+  {
+   "soc": "43-6013",
+   "title": "Medical Secretaries and Administrative Assistants",
+   "aka": [
+    "medical secretary",
+    "medical receptionist",
+    "medical office assistant",
+    "patient coordinator",
+    "medical admin"
+   ],
+   "NJ": {
+    "p25": 44080,
+    "p50": 48660,
+    "p75": 57400
+   },
+   "NY": {
+    "p25": 44160,
+    "p50": 47710,
+    "p75": 56310
+   }
+  },
+  {
+   "soc": "43-4171",
+   "title": "Receptionists and Information Clerks",
+   "aka": [
+    "receptionist",
+    "front desk",
+    "information clerk",
+    "greeter"
+   ],
+   "NJ": {
+    "p25": 36600,
+    "p50": 41650,
+    "p75": 46980
+   },
+   "NY": {
+    "p25": 37470,
+    "p50": 43080,
+    "p75": 49080
+   }
+  },
+  {
+   "soc": "29-2052",
+   "title": "Pharmacy Technicians",
+   "aka": [
+    "pharmacy tech",
+    "pharmacy technician",
+    "pharmacy",
+    "pharmacy assistant"
+   ],
+   "NJ": {
+    "p25": 36710,
+    "p50": 39610,
+    "p75": 49600
+   },
+   "NY": {
+    "p25": 37740,
+    "p50": 43930,
+    "p75": 49980
+   }
+  },
+  {
+   "soc": "31-9092",
+   "title": "Medical Assistants",
+   "aka": [
+    "medical assistant",
+    "ma",
+    "clinical assistant",
+    "doctor's office"
+   ],
+   "NJ": {
+    "p25": 42150,
+    "p50": 47210,
+    "p75": 49920
+   },
+   "NY": {
+    "p25": 43600,
+    "p50": 48000,
+    "p75": 55120
+   }
+  },
+  {
+   "soc": "29-1021",
+   "title": "Dentists, General",
+   "aka": [
+    "dentist",
+    "general dentist",
+    "dental",
+    "dds"
+   ],
+   "NJ": {
+    "p25": 132710,
+    "p50": 171330,
+    "p75": 260000
+   },
+   "NY": {
+    "p25": 109220,
+    "p50": 183060,
+    "p75": 221910
+   }
+  },
+  {
+   "soc": "15-1232",
+   "title": "Computer User Support Specialists",
+   "aka": [
+    "help desk",
+    "it support",
+    "desktop support",
+    "tech support",
+    "service desk"
+   ],
+   "NJ": {
+    "p25": 52000,
+    "p50": 64470,
+    "p75": 82090
+   },
+   "NY": {
+    "p25": 56510,
+    "p50": 72560,
+    "p75": 91150
+   }
+  },
+  {
+   "soc": "15-1244",
+   "title": "Network and Computer Systems Administrators",
+   "aka": [
+    "network administrator",
+    "system administrator",
+    "sysadmin",
+    "network admin",
+    "it administrator"
+   ],
+   "NJ": {
+    "p25": 90440,
+    "p50": 116420,
+    "p75": 137990
+   },
+   "NY": {
+    "p25": 83630,
+    "p50": 105810,
+    "p75": 134390
+   }
+  },
+  {
+   "soc": "15-1212",
+   "title": "Information Security Analysts",
+   "aka": [
+    "cybersecurity",
+    "security analyst",
+    "infosec",
+    "soc analyst",
+    "cyber security"
+   ],
+   "NJ": {
+    "p25": 104110,
+    "p50": 134820,
+    "p75": 171240
+   },
+   "NY": {
+    "p25": 102930,
+    "p50": 134660,
+    "p75": 173920
+   }
+  },
+  {
+   "soc": "15-1211",
+   "title": "Computer Systems Analysts",
+   "aka": [
+    "systems analyst",
+    "it analyst",
+    "business systems analyst",
+    "computer analyst"
+   ],
+   "NJ": {
+    "p25": 91500,
+    "p50": 122890,
+    "p75": 161000
+   },
+   "NY": {
+    "p25": 85450,
+    "p50": 109610,
+    "p75": 137690
+   }
+  },
+  {
+   "soc": "13-1161",
+   "title": "Market Research Analysts and Marketing Specialists",
+   "aka": [
+    "marketing",
+    "market research",
+    "marketing specialist",
+    "digital marketing",
+    "marketing analyst"
+   ],
+   "NJ": {
+    "p25": 68150,
+    "p50": 88190,
+    "p75": 113480
+   },
+   "NY": {
+    "p25": 72600,
+    "p50": 98580,
+    "p75": 129430
+   }
+  },
+  {
+   "soc": "11-3121",
+   "title": "Human Resources Managers",
+   "aka": [
+    "hr manager",
+    "human resources manager",
+    "hr director",
+    "people manager"
+   ],
+   "NJ": {
+    "p25": 135940,
+    "p50": 172440,
+    "p75": 218050
+   },
+   "NY": {
+    "p25": 133180,
+    "p50": 176650,
+    "p75": 231380
+   }
+  },
+  {
+   "soc": "11-1021",
+   "title": "General and Operations Managers",
+   "aka": [
+    "operations manager",
+    "general manager",
+    "gm",
+    "business manager",
+    "operations director"
+   ],
+   "NJ": {
+    "p25": 111580,
+    "p50": 173690,
+    "p75": 284250
+   },
+   "NY": {
+    "p25": 85770,
+    "p50": 130860,
+    "p75": 209110
+   }
+  },
+  {
+   "soc": "53-7065",
+   "title": "Stockers and Order Fillers",
+   "aka": [
+    "stocker",
+    "warehouse",
+    "order picker",
+    "stock clerk",
+    "order filler"
+   ],
+   "NJ": {
+    "p25": 34880,
+    "p50": 37250,
+    "p75": 44720
+   },
+   "NY": {
+    "p25": 35760,
+    "p50": 39030,
+    "p75": 46080
+   }
+  },
+  {
+   "soc": "53-3032",
+   "title": "Heavy and Tractor-Trailer Truck Drivers",
+   "aka": [
+    "truck driver",
+    "cdl driver",
+    "tractor trailer",
+    "semi driver",
+    "trucking"
+   ],
+   "NJ": {
+    "p25": 57400,
+    "p50": 63570,
+    "p75": 76450
+   },
+   "NY": {
+    "p25": 55550,
+    "p50": 62050,
+    "p75": 74040
+   }
+  },
+  {
+   "soc": "43-5071",
+   "title": "Shipping, Receiving, and Inventory Clerks",
+   "aka": [
+    "shipping clerk",
+    "receiving clerk",
+    "inventory clerk",
+    "warehouse clerk",
+    "logistics clerk"
+   ],
+   "NJ": {
+    "p25": 39660,
+    "p50": 45440,
+    "p75": 53550
+   },
+   "NY": {
+    "p25": 39800,
+    "p50": 47100,
+    "p75": 56430
+   }
+  },
+  {
+   "soc": "13-2072",
+   "title": "Loan Officers",
+   "aka": [
+    "loan officer",
+    "mortgage loan officer",
+    "mortgage",
+    "lending",
+    "loan originator"
+   ],
+   "NJ": {
+    "p25": 62740,
+    "p50": 92920,
+    "p75": 131870
+   },
+   "NY": {
+    "p25": 62670,
+    "p50": 95710,
+    "p75": 148890
+   }
+  },
+  {
+   "soc": "43-4131",
+   "title": "Loan Interviewers and Clerks",
+   "aka": [
+    "loan processor",
+    "loan clerk",
+    "mortgage processor",
+    "loan interviewer",
+    "loan assistant"
+   ],
+   "NJ": {
+    "p25": 48620,
+    "p50": 58760,
+    "p75": 63040
+   },
+   "NY": {
+    "p25": 48570,
+    "p50": 58120,
+    "p75": 64640
+   }
+  },
+  {
+   "soc": "29-1141",
+   "title": "Registered Nurses",
+   "aka": [
+    "registered nurse",
+    "rn",
+    "nurse",
+    "staff nurse",
+    "charge nurse"
+   ],
+   "NJ": {
+    "p25": 99710,
+    "p50": 106500,
+    "p75": 127730
+   },
+   "NY": {
+    "p25": 94840,
+    "p50": 109440,
+    "p75": 129660
+   }
+  },
+  {
+   "soc": "29-2061",
+   "title": "Licensed Practical and Licensed Vocational Nurses",
+   "aka": [
+    "lpn",
+    "licensed practical nurse",
+    "lvn",
+    "practical nurse"
+   ],
+   "NJ": {
+    "p25": 66890,
+    "p50": 75160,
+    "p75": 79980
+   },
+   "NY": {
+    "p25": 61400,
+    "p50": 67180,
+    "p75": 76960
+   }
+  },
+  {
+   "soc": "31-1131",
+   "title": "Nursing Assistants",
+   "aka": [
+    "cna",
+    "nursing assistant",
+    "certified nursing assistant",
+    "patient care tech"
+   ],
+   "NJ": {
+    "p25": 43950,
+    "p50": 46830,
+    "p75": 48760
+   },
+   "NY": {
+    "p25": 43760,
+    "p50": 48590,
+    "p75": 51980
+   }
+  },
+  {
+   "soc": "31-1120",
+   "title": "Home Health and Personal Care Aides",
+   "aka": [
+    "home health aide",
+    "hha",
+    "personal care aide",
+    "caregiver",
+    "pca"
+   ],
+   "NJ": {
+    "p25": 34680,
+    "p50": 37090,
+    "p75": 44580
+   },
+   "NY": {
+    "p25": 38660,
+    "p50": 39620,
+    "p75": 43780
+   }
+  },
+  {
+   "soc": "31-9097",
+   "title": "Phlebotomists",
+   "aka": [
+    "phlebotomist",
+    "phlebotomy"
+   ],
+   "NJ": {
+    "p25": 45690,
+    "p50": 48650,
+    "p75": 50080
+   },
+   "NY": {
+    "p25": 44990,
+    "p50": 50530,
+    "p75": 60320
+   }
+  },
+  {
+   "soc": "29-2055",
+   "title": "Surgical Technologists",
+   "aka": [
+    "surgical tech",
+    "surgical technologist",
+    "scrub tech"
+   ],
+   "NJ": {
+    "p25": 64440,
+    "p50": 77200,
+    "p75": 85700
+   },
+   "NY": {
+    "p25": 64390,
+    "p50": 79550,
+    "p75": 98140
+   }
+  },
+  {
+   "soc": "31-9093",
+   "title": "Medical Equipment Preparers",
+   "aka": [
+    "sterile processing",
+    "sterile processing tech",
+    "spd tech",
+    "central sterile"
+   ],
+   "NJ": {
+    "p25": 48060,
+    "p50": 50280,
+    "p75": 60260
+   },
+   "NY": {
+    "p25": 46890,
+    "p50": 57320,
+    "p75": 62250
+   }
+  },
+  {
+   "soc": "29-2072",
+   "title": "Medical Records Specialists",
+   "aka": [
+    "medical coder",
+    "medical billing",
+    "coding specialist",
+    "health information"
+   ],
+   "NJ": {
+    "p25": 35640,
+    "p50": 50240,
+    "p75": 64700
+   },
+   "NY": {
+    "p25": 49010,
+    "p50": 61720,
+    "p75": 79120
+   }
+  },
+  {
+   "soc": "29-2042",
+   "title": "Emergency Medical Technicians",
+   "aka": [
+    "emt",
+    "emergency medical technician"
+   ],
+   "NJ": {
+    "p25": 48010,
+    "p50": 53610,
+    "p75": 60900
+   },
+   "NY": {
+    "p25": 43270,
+    "p50": 48400,
+    "p75": 63870
+   }
+  },
+  {
+   "soc": "29-1292",
+   "title": "Dental Hygienists",
+   "aka": [
+    "dental hygienist",
+    "hygienist"
+   ],
+   "NJ": {
+    "p25": 101270,
+    "p50": 107040,
+    "p75": 115470
+   },
+   "NY": {
+    "p25": 89960,
+    "p50": 106130,
+    "p75": 121740
+   }
+  },
+  {
+   "soc": "31-9091",
+   "title": "Dental Assistants",
+   "aka": [
+    "dental assistant"
+   ],
+   "NJ": {
+    "p25": 45970,
+    "p50": 49390,
+    "p75": 61290
+   },
+   "NY": {
+    "p25": 44730,
+    "p50": 48110,
+    "p75": 58630
+   }
+  },
+  {
+   "soc": "15-1252",
+   "title": "Software Developers",
+   "aka": [
+    "software developer",
+    "software engineer",
+    "programmer",
+    "developer"
+   ],
+   "NJ": {
+    "p25": 107020,
+    "p50": 135940,
+    "p75": 170130
+   },
+   "NY": {
+    "p25": 127160,
+    "p50": 166180,
+    "p75": 205540
+   }
+  },
+  {
+   "soc": "15-1253",
+   "title": "Software Quality Assurance Analysts and Testers",
+   "aka": [
+    "qa analyst",
+    "qa tester",
+    "quality assurance",
+    "test engineer"
+   ],
+   "NJ": {
+    "p25": 91370,
+    "p50": 119470,
+    "p75": 138690
+   },
+   "NY": {
+    "p25": 86260,
+    "p50": 121240,
+    "p75": 153680
+   }
+  },
+  {
+   "soc": "15-1254",
+   "title": "Web Developers",
+   "aka": [
+    "web developer",
+    "front end developer"
+   ],
+   "NJ": {
+    "p25": 55580,
+    "p50": 95180,
+    "p75": 124560
+   },
+   "NY": {
+    "p25": 56320,
+    "p50": 98580,
+    "p75": 132820
+   }
+  },
+  {
+   "soc": "15-1231",
+   "title": "Computer Network Support Specialists",
+   "aka": [
+    "network support",
+    "network technician",
+    "noc technician"
+   ],
+   "NJ": {
+    "p25": 66710,
+    "p50": 87440,
+    "p75": 108610
+   },
+   "NY": {
+    "p25": 61430,
+    "p50": 77540,
+    "p75": 99550
+   }
+  },
+  {
+   "soc": "15-1241",
+   "title": "Computer Network Architects",
+   "aka": [
+    "network architect",
+    "network engineer",
+    "cloud architect"
+   ],
+   "NJ": {
+    "p25": 129110,
+    "p50": 162350,
+    "p75": 185710
+   },
+   "NY": {
+    "p25": 108230,
+    "p50": 140390,
+    "p75": 173220
+   }
+  },
+  {
+   "soc": "15-1242",
+   "title": "Database Administrators",
+   "aka": [
+    "database administrator",
+    "dba"
+   ],
+   "NJ": {
+    "p25": 94020,
+    "p50": 125860,
+    "p75": 159880
+   },
+   "NY": {
+    "p25": 78610,
+    "p50": 105900,
+    "p75": 141570
+   }
+  },
+  {
+   "soc": "47-2061",
+   "title": "Construction Laborers",
+   "aka": [
+    "construction laborer",
+    "laborer",
+    "general laborer"
+   ],
+   "NJ": {
+    "p25": 46710,
+    "p50": 64060,
+    "p75": 94510
+   },
+   "NY": {
+    "p25": 43950,
+    "p50": 55930,
+    "p75": 79420
+   }
+  },
+  {
+   "soc": "47-2111",
+   "title": "Electricians",
+   "aka": [
+    "electrician",
+    "electrical apprentice"
+   ],
+   "NJ": {
+    "p25": 62400,
+    "p50": 77250,
+    "p75": 121110
+   },
+   "NY": {
+    "p25": 60480,
+    "p50": 78750,
+    "p75": 106420
+   }
+  },
+  {
+   "soc": "47-2152",
+   "title": "Plumbers, Pipefitters, and Steamfitters",
+   "aka": [
+    "plumber",
+    "pipefitter",
+    "steamfitter"
+   ],
+   "NJ": {
+    "p25": 61810,
+    "p50": 78240,
+    "p75": 106830
+   },
+   "NY": {
+    "p25": 59960,
+    "p50": 77490,
+    "p75": 101230
+   }
+  },
+  {
+   "soc": "49-9021",
+   "title": "Heating, Air Conditioning, and Refrigeration Mechanics and Installers",
+   "aka": [
+    "hvac technician",
+    "hvac",
+    "refrigeration mechanic"
+   ],
+   "NJ": {
+    "p25": 56700,
+    "p50": 74450,
+    "p75": 96910
+   },
+   "NY": {
+    "p25": 59720,
+    "p50": 74430,
+    "p75": 88130
+   }
+  },
+  {
+   "soc": "47-2031",
+   "title": "Carpenters",
+   "aka": [
+    "carpenter"
+   ],
+   "NJ": {
+    "p25": 51220,
+    "p50": 64010,
+    "p75": 80430
+   },
+   "NY": {
+    "p25": 57330,
+    "p50": 72330,
+    "p75": 89820
+   }
+  },
+  {
+   "soc": "47-1011",
+   "title": "First-Line Supervisors of Construction Trades and Extraction Workers",
+   "aka": [
+    "construction foreman",
+    "site supervisor",
+    "foreman"
+   ],
+   "NJ": {
+    "p25": 79970,
+    "p50": 105510,
+    "p75": 131710
+   },
+   "NY": {
+    "p25": 74920,
+    "p50": 95700,
+    "p75": 121860
+   }
+  },
+  {
+   "soc": "11-9021",
+   "title": "Construction Managers",
+   "aka": [
+    "construction manager",
+    "project manager construction",
+    "superintendent"
+   ],
+   "NJ": {
+    "p25": 110230,
+    "p50": 138230,
+    "p75": 177150
+   },
+   "NY": {
+    "p25": 108890,
+    "p50": 155360,
+    "p75": 197010
+   }
+  },
+  {
+   "soc": "13-1051",
+   "title": "Cost Estimators",
+   "aka": [
+    "estimator",
+    "cost estimator"
+   ],
+   "NJ": {
+    "p25": 62530,
+    "p50": 80570,
+    "p75": 109060
+   },
+   "NY": {
+    "p25": 60290,
+    "p50": 80430,
+    "p75": 106820
+   }
+  },
+  {
+   "soc": "49-9071",
+   "title": "Maintenance and Repair Workers, General",
+   "aka": [
+    "maintenance technician",
+    "maintenance worker",
+    "building maintenance",
+    "handyman"
+   ],
+   "NJ": {
+    "p25": 45600,
+    "p50": 54810,
+    "p75": 66700
+   },
+   "NY": {
+    "p25": 45590,
+    "p50": 57790,
+    "p75": 69650
+   }
+  },
+  {
+   "soc": "25-9045",
+   "title": "Teaching Assistants, Except Postsecondary",
+   "aka": [
+    "teaching assistant",
+    "paraprofessional",
+    "teacher aide",
+    "para"
+   ],
+   "NJ": {
+    "p25": 34040,
+    "p50": 37290,
+    "p75": 45350
+   },
+   "NY": {
+    "p25": 35670,
+    "p50": 38240,
+    "p75": 46700
+   }
+  },
+  {
+   "soc": "25-2021",
+   "title": "Elementary School Teachers, Except Special Education",
+   "aka": [
+    "elementary teacher",
+    "teacher",
+    "school teacher"
+   ],
+   "NJ": {
+    "p25": 64060,
+    "p50": 78200,
+    "p75": 98670
+   },
+   "NY": {
+    "p25": 66100,
+    "p50": 85760,
+    "p75": 126930
+   }
+  },
+  {
+   "soc": "33-9032",
+   "title": "Security Guards",
+   "aka": [
+    "security guard",
+    "security officer"
+   ],
+   "NJ": {
+    "p25": 34770,
+    "p50": 38880,
+    "p75": 48120
+   },
+   "NY": {
+    "p25": 37210,
+    "p50": 44240,
+    "p75": 51850
+   }
+  },
+  {
+   "soc": "21-1093",
+   "title": "Social and Human Service Assistants",
+   "aka": [
+    "case aide",
+    "human services assistant",
+    "social services assistant"
+   ],
+   "NJ": {
+    "p25": 41240,
+    "p50": 48420,
+    "p75": 58530
+   },
+   "NY": {
+    "p25": 39790,
+    "p50": 47190,
+    "p75": 56140
+   }
+  },
+  {
+   "soc": "21-1021",
+   "title": "Child, Family, and School Social Workers",
+   "aka": [
+    "social worker",
+    "case worker",
+    "caseworker"
+   ],
+   "NJ": {
+    "p25": 59530,
+    "p50": 76280,
+    "p75": 97500
+   },
+   "NY": {
+    "p25": 56230,
+    "p50": 65100,
+    "p75": 79510
+   }
+  },
+  {
+   "soc": "53-3033",
+   "title": "Light Truck Drivers",
+   "aka": [
+    "delivery driver",
+    "van driver",
+    "light truck driver"
+   ],
+   "NJ": {
+    "p25": 41000,
+    "p50": 46820,
+    "p75": 53250
+   },
+   "NY": {
+    "p25": 39390,
+    "p50": 46330,
+    "p75": 55240
+   }
+  },
+  {
+   "soc": "53-7062",
+   "title": "Laborers and Freight, Stock, and Material Movers, Hand",
+   "aka": [
+    "warehouse associate",
+    "material handler",
+    "mover",
+    "warehouse worker"
+   ],
+   "NJ": {
+    "p25": 35910,
+    "p50": 39540,
+    "p75": 46770
+   },
+   "NY": {
+    "p25": 38450,
+    "p50": 44630,
+    "p75": 49200
+   }
+  }
+ ]
+}

@@ -11,7 +11,7 @@
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
-<link rel="stylesheet" href="/assets/site.css?v=20261017c">
+<link rel="stylesheet" href="/assets/site.css?v=20261017d">
 <meta property="og:title" content="What does this job pay in NJ and NY?">
 <meta property="og:image" content="https://steadypathcareers.com/img/og.jpg">
 <style>
@@ -48,7 +48,7 @@
 <main class="wrap pbody tool">
   <div class="search">
     <label for="q" class="psub" style="flex-basis:100%;font-weight:700;color:var(--ink)">Type a job title</label>
-    <input id="q" type="search" placeholder="e.g. payroll, receptionist, IT support" autocomplete="off">
+    <input id="q" type="search" placeholder="e.g. nurse, electrician, payroll, IT support" autocomplete="off">
     <div class="seg" role="group" aria-label="State"><button type="button" data-st="NJ" aria-pressed="true">New Jersey</button><button type="button" data-st="NY" aria-pressed="false">New York</button></div>
   </div>
   <div class="sugg" id="sugg"></div>
@@ -64,7 +64,8 @@ var D = null, st = 'NJ', esc = SP.esc;
 var money = function (n) { return n == null ? 'n/a' : '$' + Math.round(n).toLocaleString('en-US'); };
 function score(j, q) {
   var t = (j.title + ' ' + (j.aka || []).join(' ')).toLowerCase(), words = q.toLowerCase().split(/\s+/).filter(String), s = 0;
-  words.forEach(function (w) { if (t.indexOf(w) >= 0) s += j.title.toLowerCase().indexOf(w) >= 0 ? 2 : 1; });
+  var at = function (txt, w) { return new RegExp('(^|[^a-z0-9])' + w.replace(/[^a-z0-9]/g, '\\$&')).test(txt); };
+  words.forEach(function (w) { if (at(t, w)) s += at(j.title.toLowerCase(), w) ? 2 : 1; });
   return words.length && s >= words.length ? s : 0;
 }
 function card(j) {
@@ -80,12 +81,12 @@ function run() {
   if (!D) return;
   if (!q) { out.innerHTML = ''; return; }
   var hits = D.jobs.map(function (j) { return [score(j, q), j]; }).filter(function (x) { return x[0]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, 4).map(function (x) { return x[1]; });
-  out.innerHTML = hits.length ? hits.map(card).join('') : '<div class="rcard"><p class="none" style="margin:0">No match yet for "' + esc(q) + '". Try a simpler word, like "clerk", "analyst" or "sales".</p></div>';
+  out.innerHTML = hits.length ? hits.map(card).join('') : '<div class="rcard"><p class="none" style="margin:0">No match yet for "' + esc(q) + '". Try a simpler word, like "nurse", "technician", "clerk" or "sales".</p></div>';
 }
 fetch('/pay/data.json').then(function (r) { return r.json(); }).then(function (d) {
   D = d;
   document.getElementById('src').textContent = 'Source: ' + d.source + '. Figures are yearly wages for all workers in the job statewide, not offers for any specific posting. Pay varies by employer, experience and region.';
-  var picks = ['Customer service', 'Payroll', 'Receptionist', 'IT support', 'Medical assistant', 'Insurance sales'];
+  var picks = ['Nurse', 'CNA', 'Medical assistant', 'IT support', 'Software developer', 'Electrician', 'HVAC', 'Customer service', 'Payroll', 'Teacher', 'Security guard', 'Warehouse'];
   document.getElementById('sugg').innerHTML = picks.map(function (p) { return '<button type="button" data-s="' + p + '">' + p + '</button>'; }).join('');
   var q0 = new URLSearchParams(location.search).get('q'); if (q0) { document.getElementById('q').value = q0; }
   run();
