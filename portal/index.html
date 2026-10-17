@@ -8,6 +8,11 @@
 <title>Your portal · Steady Path Careers</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/img/icon-192.png">
+<meta name="theme-color" content="#10213A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Steady Path">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
 <link rel="stylesheet" href="../assets/site.css">
@@ -22,6 +27,23 @@
 .fbq textarea { width: 100%; min-height: 84px; padding: 10px 12px; border: 1px solid #cfd6e3; border-radius: 10px; font: inherit; resize: vertical; box-sizing: border-box; }
 .fbask { background: var(--gold-soft); border: 1px solid var(--gold); border-radius: 14px; padding: 14px 18px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .fbask p { margin: 0; color: var(--ink); min-width: 0; }
+.nextcard { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 14px; align-items: center; background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--navy); border-radius: 14px; padding: 14px 18px; }
+.nextcard .n { width: 44px; height: 44px; border-radius: 50%; background: var(--navy); color: var(--cream); display: grid; place-items: center; font-weight: 800; }
+.nextcard b { display: block; color: var(--navy); }
+.nextcard span { color: var(--muted); }
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.col { background: var(--sunk); border-radius: 14px; padding: 12px; min-width: 0; }
+.col h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
+.app { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0 0 10px; }
+.app b { color: var(--navy); }
+.flipbox { margin-top: 10px; }
+.flip { border: 2px solid var(--navy); border-radius: 14px; padding: 18px; min-height: 120px; background: #fff; cursor: pointer; display: grid; align-content: center; gap: 8px; text-align: center; }
+.flip.back { background: var(--navy); color: var(--cream); }
+.flip small { color: var(--muted); }
+.flip.back small { color: #d7e0ee; }
+.fliprow { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
+.commute { font-weight: 700; }
+@media (max-width: 760px) { .board { grid-template-columns: minmax(0, 1fr); } .nextcard { grid-template-columns: 44px minmax(0, 1fr); } .nextcard .btn { grid-column: 1 / -1; } }
 </style>
 </head>
 <body>
@@ -147,6 +169,17 @@ function sendFeedback() {
     render();
   }).catch(function () { S.fbBusy = false; S.fbErr = 'Not sent. Check your connection and try again.'; render(); });
 }
+function nextStep(d) {
+  var c = counts(), first = d.client.firstName;
+  var waitDoc = (d.docs || []).filter(function (x) { return /ready|review/i.test(x.status || ''); })[0];
+  var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0; }).sort(function (a, b) { return daysFrom(a.interview) - daysFrom(b.interview); })[0];
+  if (soon) return { t: 'Interview ' + (daysFrom(soon.interview) === 0 ? 'today' : 'on ' + fmtDate(soon.interview)) + ' at ' + soon.company, s: 'Your prep sheet and practice cards are ready.', go: 'apps', b: 'Practice now' };
+  if (waitDoc) return { t: 'Review ' + waitDoc.name, s: 'Approve it or ask for changes. Applications go out after you approve.', go: 'docs', b: 'Open documents' };
+  if (c.wait) return { t: 'Mark your ' + c.wait + ' waiting job' + (c.wait === 1 ? '' : 's'), s: 'Yes, No or Question. Each Yes gets a tailored resume and cover letter.', go: 'jobs', b: 'Review jobs' };
+  if (!d.jobs.length) return { t: 'Sherif is reading your resume', s: 'Expect a short note with any questions within one business day. Your first matches follow once titles are agreed.', go: '', b: '' };
+  if (c.yes && !(d.apps || []).length) return { t: 'Your tailored documents are being written', s: 'You will see them in Documents to approve, usually within 2 business days.', go: 'docs', b: 'Documents' };
+  return { t: 'All caught up, ' + first, s: 'New matches arrive each week. Sherif is following up on everything in progress.', go: 'apps', b: 'Applications' };
+}
 function vHome() {
   var d = S.data, c = counts(), cl = d.client;
   var pl = function (n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); };
@@ -154,6 +187,7 @@ function vHome() {
   return hero('home', esc(SP.greeting(cl.firstName)), title, 'Every job here was checked on the employer\'s own posting, and every one shows pay.') +
     '<main class="wrap narrow pbody">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
     (fbDue(cl) ? '<div class="fbask"><p><b>Two minutes?</b> Tell us how your search is going and what you would change.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
+    (function () { var n = nextStep(d); return '<div class="nextcard"><div class="n">Next</div><div><b>' + esc(n.t) + '</b><span>' + esc(n.s) + '</span></div>' + (n.go ? '<button class="btn gold" data-go="' + n.go + '">' + esc(n.b) + '</button>' : '') + '</div>'; })() +
     (cl.weeklyNote ? '<div class="note"><div class="av">S</div><div><div class="from">A note from Sherif' + (cl.lastTouch ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p class="q" style="font-size:17px">' + esc(cl.weeklyNote) + '</p></div></div>' : '') +
     '<div class="stats"><div class="stat"><div class="v">' + c.wait + '</div><div class="l">Jobs waiting for you</div></div><div class="stat"><div class="v">' + c.yes + '</div><div class="l">Yes, apply</div></div><div class="stat"><div class="v">' + d.apps.length + '</div><div class="l">Applications sent</div></div><div class="stat"><div class="v">' + (daysFrom(cl.trialEnds) != null && daysFrom(cl.trialEnds) >= 0 ? daysFrom(cl.trialEnds) : '–') + '</div><div class="l">Days left in your trial</div></div></div>' +
     (d.jobs.length ? '<div><button class="btn gold" data-go="jobs" style="font-size:15px;padding:12px 20px">Review your ' + d.jobs.length + ' job matches</button></div>' : '') +
@@ -170,7 +204,8 @@ function jobCard(j) {
     (j.why ? '<p class="why">' + esc(j.why) + '</p>' : '') + (j.notes ? '<p class="heads">' + esc(j.notes) + '</p>' : heads ? '<p class="heads">' + heads + '</p>' : '') +
     '<div class="answer"><button class="yes" data-ans="yes" data-j="' + esc(j.id) + '" aria-pressed="' + (ans === 'yes') + '" ' + (busy ? 'disabled' : '') + '>Yes, apply</button><button class="no" data-ans="no" data-j="' + esc(j.id) + '" aria-pressed="' + (ans === 'no') + '" ' + (busy ? 'disabled' : '') + '>No</button><button class="q" data-ans="q" data-j="' + esc(j.id) + '" aria-pressed="' + (ans === 'q') + '" ' + (busy ? 'disabled' : '') + '>Question</button>' +
     (busy ? '<span class="saved" style="color:var(--muted)">Saving…</span>' : ans ? '<span class="saved">Saved</span>' : '') + (S.errJob === j.id && S.err ? '<span class="err">' + esc(S.err) + '</span>' : '') +
-    (j.link ? '<a href="' + esc(j.link) + '" target="_blank" rel="noopener">See the posting</a>' : '') + '</div>' +
+    (j.link ? '<a href="' + esc(j.link) + '" target="_blank" rel="noopener">See the posting</a>' : '') +
+    (S.data.client.home && j.location && !/^\s*remote/i.test(j.location) ? '<a class="commute" href="https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(S.data.client.home) + '&destination=' + encodeURIComponent(j.company + ', ' + j.location) + '" target="_blank" rel="noopener">Commute from home</a>' : '') + '</div>' +
     (ans === 'q' || ans === 'no' ? '<div class="notebox"><textarea placeholder="' + (ans === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps me aim the next ones.') + '" data-note="' + esc(j.id) + '">' + esc(S.notes[j.id] != null ? S.notes[j.id] : (j.note || '')) + '</textarea><button data-savenote="' + esc(j.id) + '" data-a="' + ans + '">Send</button></div>' : '') +
     '</div></div>';
 }
@@ -190,13 +225,29 @@ function vDocs() {
         (S.changesFor === x.id ? '<div class="notebox" style="width:100%"><textarea placeholder="What should change?" id="changesText"></textarea><button data-sendchanges="' + esc(x.id) + '">Send</button></div>' : '') + '</div>';
     }).join('') : '<p class="psub" style="margin:0">Your resume draft will show up here with a button to approve it or ask for changes.</p>') + '</div></main>' + mobnav('docs');
 }
+function stageOf(x) { var t = String(x.status || '').toLowerCase(); if (/offer|hired|accepted/.test(t)) return 3; if (x.interview || /interview/.test(t)) return 2; if (/reply|heard|screen|call|contact/.test(t)) return 1; if (/reject|declin|closed|no longer/.test(t)) return 3; return 0; }
+function lines(t) { return String(t || '').split(/\n|;|(?:\s\d+\.\s)/).map(function (z) { return z.trim(); }).filter(String); }
 function vApps() {
-  var d = S.data;
-  return hero('apps', 'Applications and interviews', d.apps.length ? d.apps.length + ' sent so far.' : 'Nothing submitted yet.', 'For every job we submit: the date, when to follow up, and a prep sheet the moment an interview is booked.') +
-    '<main class="wrap narrow pbody"><div class="card">' + (d.apps.length ? d.apps.map(function (x) {
-      return '<div class="approw"><div><b>' + esc(x.company) + '</b> · ' + esc(x.role) + '<div class="psub">Applied ' + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + (x.interview ? ' · <span class="pill info">Interview ' + esc(fmtDate(x.interview)) + '</span>' : '') + (String(x.followUpDue).toLowerCase() === 'yes' ? ' · <span class="pill gold">Follow-up due</span>' : '') + '</div>' +
-        (x.prepBring || x.prepExpect || x.prepAsk ? '<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700;color:var(--navy)">Interview prep</summary>' + (x.prepBring ? '<p><b>Bring up:</b> ' + esc(x.prepBring) + '</p>' : '') + (x.prepExpect ? '<p><b>Expect to be asked:</b> ' + esc(x.prepExpect) + '</p>' : '') + (x.prepAsk ? '<p><b>Ask them:</b> ' + esc(x.prepAsk) + '</p>' : '') + '</details>' : '') + '</div></div>';
-    }).join('') : '<p class="psub" style="margin:0">Your first application goes out within 2 business days of your first Yes, after you\'ve approved the tailored resume.</p>') + '</div></main>' + mobnav('apps');
+  var d = S.data, cols = ['Applied', 'Heard back', 'Interview', 'Offer or closed'], by = [[], [], [], []];
+  d.apps.forEach(function (x) { by[stageOf(x)].push(x); });
+  var prepApp = S.prep ? d.apps.filter(function (x) { return x.id === S.prep; })[0] : null;
+  var practice = '';
+  if (prepApp) {
+    var qs = lines(prepApp.prepExpect); var i = Math.min(S.card || 0, Math.max(qs.length - 1, 0));
+    practice = '<div class="card"><h3>Practice: ' + esc(prepApp.company) + '</h3>' + (qs.length ? '<p class="psub" style="margin:0">Say your answer out loud, then tap the card to see what to bring up.</p><div class="flipbox"><div class="flip' + (S.flipped ? ' back' : '') + '" data-flip role="button" tabindex="0">' +
+      (S.flipped ? '<small>Bring up</small><div>' + esc(prepApp.prepBring || 'Use a real example with a number in it.') + '</div>' : '<small>Question ' + (i + 1) + ' of ' + qs.length + '</small><div style="font-weight:800;font-size:18px">' + esc(qs[i]) + '</div>') +
+      '</div><div class="fliprow"><button class="btn ghost" data-card="-1"' + (i ? '' : ' disabled') + '>Previous</button><button class="btn" data-card="1"' + (i < qs.length - 1 ? '' : ' disabled') + '>Next question</button></div></div>' : '<p class="psub">Questions will appear here once your prep sheet is ready.</p>') +
+      (prepApp.prepAsk ? '<p style="margin:12px 0 0"><b>Questions to ask them:</b> ' + esc(prepApp.prepAsk) + '</p>' : '') + '<p style="margin:12px 0 0"><button class="btn ghost" data-prep="">Close practice</button></p></div>';
+  }
+  return hero('apps', 'Applications and interviews', d.apps.length ? d.apps.length + ' sent so far.' : 'Nothing submitted yet.', 'Every application, where it stands, and a prep sheet the moment an interview is booked.') +
+    '<main class="wrap narrow pbody" style="max-width:1100px">' + practice + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
+      return '<div class="col"><h3>' + c + '<span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
+        var hasPrep = x.prepBring || x.prepExpect || x.prepAsk;
+        return '<div class="app"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">Applied ' + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
+          (x.interview ? '<div style="margin-top:6px"><span class="pill info">Interview ' + esc(fmtDate(x.interview)) + '</span></div>' : '') + (String(x.followUpDue).toLowerCase() === 'yes' ? '<div style="margin-top:6px"><span class="pill gold">Follow-up due</span></div>' : '') +
+          (hasPrep ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : '') + '</div>';
+      }).join('') + '</div>';
+    }).join('') + '</div>' : '<div class="card"><p class="psub" style="margin:0">Your first application goes out within 2 business days of your first Yes, after you\'ve approved the tailored resume.</p></div>') + '</main>' + mobnav('apps');
 }
 
 function render() {
@@ -211,10 +262,13 @@ function render() {
 
 document.addEventListener('submit', function (e) { if (e.target.id === 'linkForm') { e.preventDefault(); requestLink($('#email').value.trim()); } });
 document.addEventListener('click', function (e) {
+  if (e.target.closest('[data-flip]')) { S.flipped = !S.flipped; render(); return; }
   var lk = e.target.closest('[data-gofb]'); if (lk) { e.preventDefault(); S.view = 'feedback'; render(); window.scrollTo(0, 0); return; }
   var b = e.target.closest('button'); if (!b) return; var d = b.dataset;
   if (d.fb) { ['#fbHelp', '#fbChange', '#fbWhy'].forEach(function (id, i) { var el = $(id); if (el) S.fbText[['help', 'change', 'why'][i]] = el.value; }); var v = /^\d+$/.test(d.v) ? Number(d.v) : d.v; S.fb[d.fb] = S.fb[d.fb] === v ? null : v; render(); return; }
   if (d.fbsubmit != null) { sendFeedback(); return; }
+  if (d.prep != null) { S.prep = d.prep || null; S.card = 0; S.flipped = false; render(); if (S.prep) window.scrollTo(0, 0); return; }
+  if (d.card) { S.card = (S.card || 0) + Number(d.card); S.flipped = false; render(); return; }
   if (d.go) { S.view = d.go; S.flash = ''; render(); window.scrollTo(0, 0); return; }
   if (d.retry != null) { load(); return; }
   if (d.signout != null) { try { localStorage.removeItem('sp_token'); } catch (x) {} S.token = null; S.data = null; S.status = 'signin'; S.sent = false; S.err = ''; render(); return; }
@@ -224,6 +278,7 @@ document.addEventListener('click', function (e) {
   if (d.changes) { S.changesFor = d.changes; render(); return; }
   if (d.sendchanges) { var t = $('#changesText'); S.changesFor = null; docStatus(d.sendchanges, 'Changes requested', t ? t.value : ''); return; }
 });
+document.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-flip]')) { e.preventDefault(); S.flipped = !S.flipped; render(); var f = document.querySelector('[data-flip]'); if (f) f.focus(); } });
 document.addEventListener('input', function (e) { if (e.target.dataset.note) S.notes[e.target.dataset.note] = e.target.value; });
 load();
 </script>
