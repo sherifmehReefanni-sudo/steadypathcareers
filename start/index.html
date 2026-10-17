@@ -46,7 +46,7 @@
   <div class="wrap"><nav class="topbar"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a>
     <div class="links"><a href="/#how">How it works</a><a href="/start/" aria-current="true">Start</a></div>
     <div class="right"><a href="/portal/" style="color:#d7e0ee;font-weight:700;text-decoration:none">Already a client? Sign in</a></div></nav>
-    <div class="heroText"><p class="kicker">Step one of four</p><h1>Tell us about you.</h1><p>About 10 minutes. Have your current resume handy; a rough one is fine, fixing it is part of the job.</p></div>
+    <div class="heroText"><p class="kicker">Getting started</p><h1>Tell us about you.</h1><p>About 10 minutes. Have your current resume handy. A rough one is fine; fixing it is part of what I do.</p></div>
   </div>
   <div id="scene"></div>
 </div>
@@ -54,7 +54,7 @@
 <main class="wrap intake">
   <aside>
     <div class="card"><h3>What happens next</h3>
-      <p style="margin:0 0 8px">Within one business day you'll get a short note from Sherif with any questions about your resume. Your first verified job matches follow once we've agreed on the titles to chase.</p>
+      <p style="margin:0 0 8px">Next, you'll get a short note from Sherif with any questions about your resume. Your first verified job matches follow once we've agreed on the job titles to go after.</p>
       <p class="psub" style="margin:0">Your trial is free. No card needed.</p></div>
     <div class="card"><h3>What I never do</h3>
       <p class="psub" style="margin:0">Ask for passwords, log in as you, submit anything for you, or contact employers. You approve every document, and nothing goes on your resume unless you told me it is true.</p></div>
@@ -89,9 +89,9 @@ var OPT = {
 var STEPS = [
   { t: 'About you', s: 'So I can reach you and put the right name on your resume.', req: ['name', 'phone', 'email', 'city', 'contactBy'] },
   { t: 'What you want', s: 'The more specific, the better the matches.', req: ['types', 'titles', 'settings', 'payFloor'] },
-  { t: 'Your work so far', s: 'Your resume decides the titles we chase, so this part matters most.', req: [] },
+  { t: 'Your work so far', s: 'Your resume shapes the job titles I search for, so this part matters most.', req: [] },
   { t: 'Rules for your search', s: 'Hard rules I check on every document and every job.', req: [] },
-  { t: 'Confirm and send', s: 'Last step.', req: ['agreeTrue', 'agreeTrial', 'signature'] }
+  { t: 'Confirm and send', s: 'Last step. Please review and confirm.', req: ['agreeTrue', 'agreeTrial', 'signature'] }
 ];
 var LABEL = { name: 'your name', phone: 'phone', email: 'email', city: 'city, state and ZIP', contactBy: 'best way to reach you', types: 'type of work', titles: 'job titles (at least 2)', settings: 'work settings', payFloor: 'lowest yearly pay', agreeTrue: 'the first box', agreeTrial: 'the second box', signature: 'your signature' };
 
@@ -114,10 +114,10 @@ function body() {
     chips('settings', 'Work settings you are open to', OPT.settings, { req: 1, multi: 1 }) +
     '<div class="two">' + sel('commute', 'How far will you commute?', OPT.commute) + sel('getThere', 'How do you get to work?', OPT.getThere) + '</div>' +
     chips('nycHybrid', 'Open to a hybrid job in NYC, 2 to 3 days a week?', OPT.nycHybrid) +
-    '<div class="two">' + inp('payFloor', 'Lowest yearly pay you would accept', 'text', { req: 1, ph: '85000', help: 'Jobs below this will not be shown to you.' }) + sel('payAim', 'Pay you are aiming for', OPT.payAim) + '</div>' +
+    '<div class="two">' + inp('payFloor', 'Lowest yearly pay you would accept', 'text', { req: 1, ph: '85000', help: 'I only send jobs whose posted range reaches at least this amount.' }) + sel('payAim', 'Pay you are aiming for', OPT.payAim) + '</div>' +
     sel('start', 'Earliest start date', OPT.start) + chips('shifts', 'Shifts you CAN work', OPT.shifts, { multi: 1 });
   if (step === 2) return '<div class="q"><div class="lab">Upload your current resume</div><div class="help">PDF or Word, up to 10 MB. Any version is fine. No resume? Skip this and paste your work history below.</div>' +
-    '<div class="drop"><input type="file" id="f_resume" accept=".pdf,.doc,.docx,.rtf,.txt"><div style="margin-top:6px">' + (file ? '<b>' + esc(file.name) + '</b> attached' : (D.resumeName ? 'Choose the file again: <b>' + esc(D.resumeName) + '</b>' : '')) + '</div></div></div>' +
+    '<div class="drop"><input type="file" id="f_resume" accept=".pdf,.doc,.docx,.rtf,.txt"><div style="margin-top:6px">' + (file ? '<b>' + esc(file.name) + '</b> attached' : (D.resumeName ? 'Please attach this file again: <b>' + esc(D.resumeName) + '</b>' : '')) + '</div></div></div>' +
     inp('history', 'Or paste your work history: employer, title, dates, what you did', 'textarea') +
     '<div class="two">' + inp('jobNow', 'Current or most recent job: employer and title', 'text', { ph: 'AT&T, Business Operations Analyst' }) + chips('stillThere', 'Still in that job?', OPT.yesno) + '</div>' +
     inp('endedOn', 'If not, month and year it ended', 'text', { ph: 'September 2026' }) +
@@ -128,7 +128,7 @@ function body() {
     chips('gaps', 'Any gaps of 3 months or more in your work history?', OPT.yesno) + (D.gaps === 'Yes' ? inp('gapWords', 'How do you want the gap described? (your words)', 'textarea', { help: 'I use your wording, not mine.' }) : '');
   if (step === 3) return inp('neverMention', 'Anything you do NOT want mentioned anywhere', 'textarea', { help: 'A hard rule. I check it on every document.' }) +
     inp('excludeEmployers', 'Employers you do not want in your search', 'textarea') +
-    chips('privateSearch', 'Should your search stay private?', OPT.yesno, { help: 'Private means I skip public job-board profiles and only use postings.' }) +
+    chips('privateSearch', 'Should your search stay private?', OPT.yesno, { help: 'Private means I won\'t use public job-board profiles for you. I\'ll search job postings only.' }) +
     inp('referred', 'Who referred you, if anyone', 'text') + inp('anythingElse', 'Anything else I should know', 'textarea');
   return '<label class="agree"><input type="checkbox" data-b="agreeTrue"' + (D.agreeTrue ? ' checked' : '') + '>Everything I entered is true. I understand nothing goes on a document unless I said it is true, and that I approve every document before it is used.</label><div style="height:10px"></div>' +
     '<label class="agree"><input type="checkbox" data-b="agreeTrial"' + (D.agreeTrial ? ' checked' : '') + '>I understand this trial is free, that I submit all applications myself, and that no job, interview, or pay is promised.</label><div style="height:14px"></div>' +
@@ -168,15 +168,15 @@ function submit() {
     busy = false;
     if (d.ok) { try { localStorage.removeItem('sp_intake'); if (d.token) localStorage.setItem('sp_token', d.token); } catch (e) {} step = 5; render();
       setTimeout(function () { location.href = '/portal/' + (d.token ? '?t=' + encodeURIComponent(d.token) : ''); }, 1200); return; }
-    err = d.error === 'recent' ? 'This email was just used to send an intake. If that was you, you are all set; check your portal.' :
-      d.error === 'missing' ? 'Some required answers are missing: ' + (d.fields || []).join(', ') + '.' :
-      d.error === 'file too large' ? 'That resume file is over 10 MB. Try a PDF, or paste your history instead.' : 'Something went wrong on our side. Try again in a minute, or email hello@steadypathcareers.com.';
+    err = d.error === 'recent' ? 'We just received an intake from this email. If that was you, you\'re all set. You can check your portal anytime.' :
+      d.error === 'missing' ? 'A few required answers are missing. Please fill in: ' + (d.fields || []).join(', ') + '.' :
+      d.error === 'file too large' ? 'That resume file is over 10 MB. Try a PDF, or paste your history instead.' : 'Sorry, something went wrong on our side. Please try again in a minute, or email hello@steadypathcareers.com.';
     render();
-  }).catch(function () { busy = false; err = 'Could not send. Check your connection and try again. Your answers are saved on this device.'; render(); });
+  }).catch(function () { busy = false; err = 'We couldn\'t send your intake. Please check your connection and try again. Your answers are saved on this device.'; render(); });
 }
 document.addEventListener('change', function (e) {
   var t = e.target;
-  if (t.id === 'f_resume') { var f = t.files[0]; if (f && f.size > 10 * 1024 * 1024) { err = 'That file is over 10 MB.'; t.value = ''; file = null; } else { file = f || null; D.resumeName = f ? f.name : ''; err = ''; } grab(); render(); return; }
+  if (t.id === 'f_resume') { var f = t.files[0]; if (f && f.size > 10 * 1024 * 1024) { err = 'That file is over 10 MB. Please choose a smaller file, or paste your work history below.'; t.value = ''; file = null; } else { file = f || null; D.resumeName = f ? f.name : ''; err = ''; } grab(); render(); return; }
   if (t.dataset.c) { grab(); var k = t.dataset.c; if (t.type === 'checkbox') { var a = D[k] || []; if (t.checked) { if (a.indexOf(t.value) < 0) a.push(t.value); } else a = a.filter(function (x) { return x !== t.value; }); D[k] = a; } else D[k] = t.value; save(); if (k === 'gaps' || k === 'relocating') render(); return; }
   grab();
 });

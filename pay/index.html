@@ -54,7 +54,7 @@
   <div class="sugg" id="sugg"></div>
   <div class="res" id="res" aria-live="polite"></div>
   <p class="psub" id="src" style="margin-top:18px;font-size:14px"></p>
-  <div class="card" style="margin-top:12px"><h3>Want jobs that actually pay this?</h3><p class="psub" style="margin:0 0 12px">We only send jobs with posted pay, checked live by a person. Free during our pilot.</p><a class="btn gold" href="/start/">Start your free trial</a></div>
+  <div class="card" style="margin-top:12px"><h3>Want jobs that actually pay this?</h3><p class="psub" style="margin:0 0 12px">Every job we send shows pay, from the employer's posting or as a clearly labeled estimate, and a person checks each one live. Free during our pilot.</p><a class="btn gold" href="/start/">Start your free trial</a></div>
 </main>
 <footer class="wrap"><span>Steady Path Careers · Monmouth County, New Jersey</span><span>hello@steadypathcareers.com · <a href="/guides/">Guides</a></span></footer>
 <script src="/assets/site.js?v=20261017c"></script>
@@ -70,11 +70,11 @@ function score(j, q) {
 }
 function card(j) {
   var v = j[st] || {}, lo = v.p25, mid = v.p50, hi = v.p75;
-  if (mid == null) return '<div class="rcard"><h3>' + esc(j.title) + '</h3><p class="none">Not published for ' + (st === 'NJ' ? 'New Jersey' : 'New York') + '.</p></div>';
+  if (mid == null) return '<div class="rcard"><h3>' + esc(j.title) + '</h3><p class="none">No pay data is published for this job in ' + (st === 'NJ' ? 'New Jersey' : 'New York') + '.</p></div>';
   var min = Math.min(lo || mid, mid) * 0.8, max = Math.max(hi || mid, mid) * 1.1, pct = function (x) { return ((x - min) / (max - min) * 100).toFixed(1) + '%'; };
   return '<div class="rcard"><h3>' + esc(j.title) + '</h3><div class="psub">Typical yearly pay in ' + (st === 'NJ' ? 'New Jersey' : 'New York') + '</div><div class="mid">' + money(mid) + '</div><div class="psub">Middle of the pack (median)</div>' +
     (lo != null && hi != null ? '<div class="bar" aria-hidden="true"><div class="span" style="left:' + pct(lo) + ';right:calc(100% - ' + pct(hi) + ')"></div><div class="dot" style="left:' + pct(mid) + '"></div></div>' +
-    '<div class="legend"><span>Lower quarter earn under <b>' + money(lo) + '</b></span><span>Top quarter earn over <b>' + money(hi) + '</b></span></div>' : '') + '</div>';
+    '<div class="legend"><span>The lowest-paid 25% earn under <b>' + money(lo) + '</b></span><span>The highest-paid 25% earn over <b>' + money(hi) + '</b></span></div>' : '') + '</div>';
 }
 function run() {
   var q = document.getElementById('q').value.trim(), out = document.getElementById('res');
@@ -90,7 +90,7 @@ fetch('/pay/data.json').then(function (r) { return r.json(); }).then(function (d
   document.getElementById('sugg').innerHTML = picks.map(function (p) { return '<button type="button" data-s="' + p + '">' + p + '</button>'; }).join('');
   var q0 = new URLSearchParams(location.search).get('q'); if (q0) { document.getElementById('q').value = q0; }
   run();
-}).catch(function () { document.getElementById('res').innerHTML = '<div class="rcard"><p class="none" style="margin:0">Pay data could not load. Try again in a minute.</p></div>'; });
+}).catch(function () { document.getElementById('res').innerHTML = '<div class="rcard"><p class="none" style="margin:0">Sorry, the pay data didn\'t load. Please try again in a minute.</p></div>'; });
 document.getElementById('q').addEventListener('input', run);
 document.addEventListener('click', function (e) {
   var b = e.target.closest('button'); if (!b) return;
