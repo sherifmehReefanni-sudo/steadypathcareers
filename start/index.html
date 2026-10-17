@@ -6,11 +6,40 @@
 <meta name="color-scheme" content="only light">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Start your trial · Steady Path Careers</title>
-<meta name="description" content="Tell us about you and upload your resume. Ten minutes, and your first verified job matches follow.">
+<meta name="description" content="Tell us about you and upload your resume. About 10 minutes, and your first verified job matches follow.">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
 <link rel="stylesheet" href="../assets/site.css">
+<style>
+.iform { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px 22px 26px; min-width: 0; }
+.steps-bar { display: flex; gap: 6px; margin: 0 0 18px; }
+.steps-bar span { flex: 1; height: 6px; border-radius: 99px; background: var(--sunk); }
+.steps-bar span.on { background: var(--gold); }
+.iform h2 { font: 800 22px/1.2 var(--display, inherit); color: var(--navy); margin: 0 0 4px; }
+.iform .lead2 { color: var(--muted); margin: 0 0 18px; }
+.q { display: grid; gap: 7px; margin: 0 0 18px; }
+.q > label, .q > .lab { font-weight: 800; color: var(--ink); }
+.q .help { font-size: 13px; color: var(--muted); margin-top: -3px; }
+.q input[type=text], .q input[type=email], .q input[type=tel], .q input[type=url], .q input[type=number], .q select, .q textarea {
+  width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #cfd6e3; border-radius: 10px; font: inherit; background: #fff; color: var(--ink); }
+.q textarea { min-height: 86px; resize: vertical; }
+.req { color: var(--bad); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips label { display: inline-flex; align-items: center; gap: 7px; border: 2px solid #cfd6e3; border-radius: 99px; padding: 7px 13px; cursor: pointer; font-weight: 600; background: #fff; }
+.chips input { accent-color: var(--navy); }
+.chips label:has(input:checked) { border-color: var(--navy); background: #eef2f8; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 16px; }
+.nav2 { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.err2 { background: var(--bad-soft); color: var(--bad); border-radius: 10px; padding: 10px 12px; margin: 0 0 14px; font-weight: 600; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.drop { border: 2px dashed #cfd6e3; border-radius: 12px; padding: 16px; text-align: center; color: var(--muted); }
+.drop b { color: var(--navy); }
+.agree { display: flex; gap: 10px; align-items: flex-start; background: var(--sunk); border-radius: 10px; padding: 12px; font-weight: 600; }
+.agree input { margin-top: 4px; accent-color: var(--navy); }
+.done { text-align: center; padding: 20px 6px; }
+.done h2 { font-size: 26px; }
+</style>
 </head>
 <body>
 <div class="sky">
@@ -27,22 +56,136 @@
     <div class="card"><h3>What happens next</h3>
       <p style="margin:0 0 8px">Within one business day you'll get a short note from Sherif with any questions about your resume. Your first verified job matches follow once we've agreed on the titles to chase.</p>
       <p class="psub" style="margin:0">Your trial is free. No card needed.</p></div>
-    <div class="card"><h3>What we ask and why</h3>
-      <ul style="margin:0;padding-left:18px;color:var(--muted)">
-        <li>Titles you want, at least two, so the search casts wide enough.</li>
-        <li>Your lowest acceptable pay, so we never send you below it.</li>
-        <li>How you get to work and whether NYC hybrid is on the table, so commute is real, not guessed.</li>
-        <li>Numbers from your current job (people, accounts, dollars), because they make a resume believable.</li>
-      </ul></div>
+    <div class="card"><h3>What I never do</h3>
+      <p class="psub" style="margin:0">Ask for passwords, log in as you, submit anything for you, or contact employers. You approve every document, and nothing goes on your resume unless you told me it is true.</p></div>
     <p class="psub">Questions before you start? Email <a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a>.</p>
   </aside>
-  <section class="frame">
-    <iframe data-tally-src="https://tally.so/embed/PdMo9e?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1" loading="lazy" width="100%" height="900" frameborder="0" marginheight="0" marginwidth="0" title="Steady Path intake form"></iframe>
-  </section>
+  <section class="iform" id="form" aria-live="polite"></section>
 </main>
 <footer class="wrap"><span>Steady Path Careers · Tinton Falls, New Jersey</span><span>hello@steadypathcareers.com</span></footer>
 <script src="../assets/site.js"></script>
-<script>document.getElementById('scene').innerHTML = SP.scene(220, 's');</script>
-<script async src="https://tally.so/widgets/embed.js"></script>
+<script>
+document.getElementById('scene').innerHTML = SP.scene(220, 's');
+var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
+var esc = SP.esc;
+var D = { types: [], notWant: [], settings: [], shifts: [], software: [], times: [] }, step = 0, err = '', busy = false, file = null;
+try { var saved = JSON.parse(localStorage.getItem('sp_intake') || 'null'); if (saved) D = Object.assign(D, saved); } catch (e) {}
+function save() { try { var c = Object.assign({}, D); localStorage.setItem('sp_intake', JSON.stringify(c)); } catch (e) {} }
+
+var OPT = {
+  contactBy: ['Text', 'Call', 'Email', 'WhatsApp'], times: ['Mornings', 'Afternoons', 'Evenings', 'Weekends'],
+  types: ['Healthcare admin or front desk', 'Customer service', 'Sales', 'Insurance', 'Office and admin', 'IT support', 'Payroll, HR or finance', 'Retail', 'Warehouse and logistics', 'Licensed professional (dental, nursing, etc.)', 'Other'],
+  notWant: ['Call center', 'Door-to-door or cold-call sales', 'Commission-only pay', 'Healthcare', 'Retail', 'Warehouse', 'Driving or delivery'],
+  settings: ['On site', 'Hybrid', 'Remote'], getThere: ['Car', 'Public transit', 'Either'], nycHybrid: ['Yes', 'Maybe', 'No'],
+  commute: ['Up to 15 min', 'Up to 30 min', 'Up to 45 min', 'Up to 1 hour', '1 hour or more', 'Any distance'],
+  payAim: ['Under $40,000', '$40,000 to $50,000', '$50,000 to $60,000', '$60,000 to $75,000', '$75,000 to $90,000', '$90,000 or more'],
+  start: ['Immediately', 'Within 2 weeks', 'Within a month', '1 to 3 months'],
+  shifts: ['Weekday days', 'Evenings', 'Overnights', 'Weekends', 'Rotating shifts'],
+  software: ['Microsoft Office (Word, Excel, Outlook)', 'Google Workspace', 'Workday', 'ADP', 'UKG', 'SAP', 'Oracle', 'Dayforce', 'NetSuite', 'QuickBooks', 'Salesforce or another CRM', 'Epic or another medical records system', 'Zendesk or another help desk tool', 'Point of sale (POS)', 'Power BI, Tableau or SQL', 'None of these'],
+  education: ['High school or GED', 'Some college', "Associate's degree", "Bachelor's degree", "Master's or higher", 'Trade or certificate program', 'Prefer not to show'],
+  yesno: ['Yes', 'No']
+};
+var STEPS = [
+  { t: 'About you', s: 'So I can reach you and put the right name on your resume.', req: ['name', 'phone', 'email', 'city', 'contactBy'] },
+  { t: 'What you want', s: 'The more specific, the better the matches.', req: ['types', 'titles', 'settings', 'payFloor'] },
+  { t: 'Your work so far', s: 'Your resume decides the titles we chase, so this part matters most.', req: [] },
+  { t: 'Rules for your search', s: 'Hard rules I check on every document and every job.', req: [] },
+  { t: 'Confirm and send', s: 'Last step.', req: ['agreeTrue', 'agreeTrial', 'signature'] }
+];
+var LABEL = { name: 'your name', phone: 'phone', email: 'email', city: 'city, state and ZIP', contactBy: 'best way to reach you', types: 'type of work', titles: 'job titles (at least 2)', settings: 'work settings', payFloor: 'lowest yearly pay', agreeTrue: 'the first box', agreeTrial: 'the second box', signature: 'your signature' };
+
+function inp(k, label, type, o) { o = o || {}; return '<div class="q"><label for="f_' + k + '">' + label + (o.req ? ' <span class="req">*</span>' : '') + '</label>' + (o.help ? '<div class="help">' + o.help + '</div>' : '') +
+  (type === 'textarea' ? '<textarea id="f_' + k + '" data-k="' + k + '" placeholder="' + (o.ph || '') + '">' + esc(D[k] || '') + '</textarea>'
+   : '<input id="f_' + k + '" data-k="' + k + '" type="' + type + '" value="' + esc(D[k] || '') + '" placeholder="' + (o.ph || '') + '"' + (o.ac ? ' autocomplete="' + o.ac + '"' : '') + '>') + '</div>'; }
+function sel(k, label, opts, o) { o = o || {}; return '<div class="q"><label for="f_' + k + '">' + label + (o.req ? ' <span class="req">*</span>' : '') + '</label><select id="f_' + k + '" data-k="' + k + '"><option value="">Choose one</option>' +
+  opts.map(function (x) { return '<option' + (D[k] === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div>'; }
+function chips(k, label, opts, o) { o = o || {}; var multi = Array.isArray(D[k]) || o.multi; return '<div class="q"><div class="lab">' + label + (o.req ? ' <span class="req">*</span>' : '') + '</div>' + (o.help ? '<div class="help">' + o.help + '</div>' : '') + '<div class="chips">' +
+  opts.map(function (x) { var on = multi ? (D[k] || []).indexOf(x) >= 0 : D[k] === x; return '<label><input type="' + (multi ? 'checkbox' : 'radio') + '" name="' + k + '" data-c="' + k + '" value="' + esc(x) + '"' + (on ? ' checked' : '') + '>' + esc(x) + '</label>'; }).join('') + '</div></div>'; }
+
+function body() {
+  if (step === 0) return '<div class="two">' + inp('name', 'First and last name, as it should appear on your resume', 'text', { req: 1, ac: 'name' }) + inp('phone', 'Phone', 'tel', { req: 1, ac: 'tel' }) + '</div>' +
+    '<div class="two">' + inp('email', 'Email you check daily', 'email', { req: 1, ac: 'email', help: 'This is also how you sign in to your portal.' }) + inp('city', 'Home city, state, ZIP', 'text', { req: 1, ph: 'Maplewood, NJ 07040' }) + '</div>' +
+    inp('linkedin', 'LinkedIn profile link (optional)', 'url', { ph: 'https://www.linkedin.com/in/...' }) + chips('contactBy', 'Best way to reach you', OPT.contactBy, { req: 1 }) + chips('times', 'Best times to reach you', OPT.times, { multi: 1 });
+  if (step === 1) return chips('types', 'Type of work you want', OPT.types, { req: 1, multi: 1 }) +
+    inp('titles', 'Job titles you want, 2 to 5, one per line', 'textarea', { req: 1, ph: 'Payroll Analyst\nHR Operations Analyst', help: 'At least two, so the search casts wide enough.' }) +
+    chips('notWant', 'Work you do NOT want', OPT.notWant, { multi: 1 }) + inp('notWantOther', 'Anything else you do not want (optional)', 'text') +
+    chips('settings', 'Work settings you are open to', OPT.settings, { req: 1, multi: 1 }) +
+    '<div class="two">' + sel('commute', 'How far will you commute?', OPT.commute) + sel('getThere', 'How do you get to work?', OPT.getThere) + '</div>' +
+    chips('nycHybrid', 'Open to a hybrid job in NYC, 2 to 3 days a week?', OPT.nycHybrid) +
+    '<div class="two">' + inp('payFloor', 'Lowest yearly pay you would accept', 'text', { req: 1, ph: '85000', help: 'Jobs below this will not be shown to you.' }) + sel('payAim', 'Pay you are aiming for', OPT.payAim) + '</div>' +
+    sel('start', 'Earliest start date', OPT.start) + chips('shifts', 'Shifts you CAN work', OPT.shifts, { multi: 1 });
+  if (step === 2) return '<div class="q"><div class="lab">Upload your current resume</div><div class="help">PDF or Word, up to 10 MB. Any version is fine. No resume? Skip this and paste your work history below.</div>' +
+    '<div class="drop"><input type="file" id="f_resume" accept=".pdf,.doc,.docx,.rtf,.txt"><div style="margin-top:6px">' + (file ? '<b>' + esc(file.name) + '</b> attached' : (D.resumeName ? 'Choose the file again: <b>' + esc(D.resumeName) + '</b>' : '')) + '</div></div></div>' +
+    inp('history', 'Or paste your work history: employer, title, dates, what you did', 'textarea') +
+    '<div class="two">' + inp('jobNow', 'Current or most recent job: employer and title', 'text', { ph: 'AT&T, Business Operations Analyst' }) + chips('stillThere', 'Still in that job?', OPT.yesno) + '</div>' +
+    inp('endedOn', 'If not, month and year it ended', 'text', { ph: 'September 2026' }) +
+    inp('numbers', 'Your numbers: people, accounts, dollars, volume', 'textarea', { help: 'For example: payroll for about 3,000 employees in 6 states, biweekly. Numbers make a resume believable.' }) +
+    chips('software', 'Software you have really used, not just seen', OPT.software, { multi: 1 }) + inp('softwareOther', 'Other software (optional)', 'text') +
+    '<div class="two">' + sel('education', 'Highest education to show', OPT.education) + inp('school', 'School or program, and years if you want them shown', 'text') + '</div>' +
+    inp('licenses', 'Licenses and certifications: exact name, state, active or expired', 'textarea', { help: 'Only ones you hold, written exactly as issued.' }) +
+    chips('gaps', 'Any gaps of 3 months or more in your work history?', OPT.yesno) + (D.gaps === 'Yes' ? inp('gapWords', 'How do you want the gap described? (your words)', 'textarea', { help: 'I use your wording, not mine.' }) : '');
+  if (step === 3) return inp('neverMention', 'Anything you do NOT want mentioned anywhere', 'textarea', { help: 'A hard rule. I check it on every document.' }) +
+    inp('excludeEmployers', 'Employers you do not want in your search', 'textarea') +
+    chips('privateSearch', 'Should your search stay private?', OPT.yesno, { help: 'Private means I skip public job-board profiles and only use postings.' }) +
+    inp('referred', 'Who referred you, if anyone', 'text') + inp('anythingElse', 'Anything else I should know', 'textarea');
+  return '<label class="agree"><input type="checkbox" data-b="agreeTrue"' + (D.agreeTrue ? ' checked' : '') + '>Everything I entered is true. I understand nothing goes on a document unless I said it is true, and that I approve every document before it is used.</label><div style="height:10px"></div>' +
+    '<label class="agree"><input type="checkbox" data-b="agreeTrial"' + (D.agreeTrial ? ' checked' : '') + '>I understand this trial is free, that I submit all applications myself, and that no job, interview, or pay is promised.</label><div style="height:14px"></div>' +
+    inp('signature', 'Type your name as a signature', 'text', { req: 1 }) + '<div class="hp" aria-hidden="true"><label>Website<input tabindex="-1" autocomplete="off" data-k="website"></label></div>';
+}
+function render() {
+  var f = document.getElementById('form');
+  if (step === 5) { f.innerHTML = '<div class="done"><h2>Got it. Thank you.</h2><p class="lead2">Taking you to your portal…</p></div>'; return; }
+  f.innerHTML = '<div class="steps-bar">' + STEPS.map(function (s, i) { return '<span class="' + (i <= step ? 'on' : '') + '"></span>'; }).join('') + '</div>' +
+    '<p class="kicker" style="margin:0;color:var(--muted);font-weight:700">Part ' + (step + 1) + ' of 5</p><h2>' + STEPS[step].t + '</h2><p class="lead2">' + STEPS[step].s + '</p>' +
+    (err ? '<div class="err2" role="alert">' + esc(err) + '</div>' : '') + body() +
+    '<div class="nav2">' + (step ? '<button class="btn ghost" data-nav="back" type="button">Back</button>' : '<span></span>') +
+    '<button class="btn gold" data-nav="next" type="button"' + (busy ? ' disabled' : '') + '>' + (step === 4 ? (busy ? 'Sending…' : 'Send my intake') : 'Continue') + '</button></div>';
+}
+function grab() {
+  document.querySelectorAll('[data-k]').forEach(function (el) { D[el.dataset.k] = el.value; });
+  document.querySelectorAll('[data-b]').forEach(function (el) { D[el.dataset.b] = el.checked; });
+  save();
+}
+function missing() {
+  var lines = String(D.titles || '').split(/\n/).map(function (s) { return s.trim(); }).filter(String);
+  return STEPS[step].req.filter(function (k) {
+    if (k === 'titles') return lines.length < 2;
+    if (k === 'email') return !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(D.email || '');
+    if (k === 'payFloor') return !Number(String(D.payFloor || '').replace(/[^0-9.]/g, ''));
+    var v = D[k]; return Array.isArray(v) ? !v.length : !v;
+  });
+}
+function toB64(f) { return new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(',')[1]); }; r.onerror = no; r.readAsDataURL(f); }); }
+function submit() {
+  busy = true; err = ''; render();
+  (file ? toB64(file) : Promise.resolve(null)).then(function (data) {
+    var b = Object.assign({ action: 'intake' }, D);
+    if (data) b.resume = { name: file.name, type: file.type, data: data };
+    return fetch(API, { method: 'POST', body: JSON.stringify(b), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(function (r) { return r.json(); });
+  }).then(function (d) {
+    busy = false;
+    if (d.ok) { try { localStorage.removeItem('sp_intake'); if (d.token) localStorage.setItem('sp_token', d.token); } catch (e) {} step = 5; render();
+      setTimeout(function () { location.href = '/portal/' + (d.token ? '?t=' + encodeURIComponent(d.token) : ''); }, 1200); return; }
+    err = d.error === 'recent' ? 'This email was just used to send an intake. If that was you, you are all set; check your portal.' :
+      d.error === 'missing' ? 'Some required answers are missing: ' + (d.fields || []).join(', ') + '.' :
+      d.error === 'file too large' ? 'That resume file is over 10 MB. Try a PDF, or paste your history instead.' : 'Something went wrong on our side. Try again in a minute, or email hello@steadypathcareers.com.';
+    render();
+  }).catch(function () { busy = false; err = 'Could not send. Check your connection and try again. Your answers are saved on this device.'; render(); });
+}
+document.addEventListener('change', function (e) {
+  var t = e.target;
+  if (t.id === 'f_resume') { var f = t.files[0]; if (f && f.size > 10 * 1024 * 1024) { err = 'That file is over 10 MB.'; t.value = ''; file = null; } else { file = f || null; D.resumeName = f ? f.name : ''; err = ''; } grab(); render(); return; }
+  if (t.dataset.c) { grab(); var k = t.dataset.c; if (t.type === 'checkbox') { var a = D[k] || []; if (t.checked) { if (a.indexOf(t.value) < 0) a.push(t.value); } else a = a.filter(function (x) { return x !== t.value; }); D[k] = a; } else D[k] = t.value; save(); if (k === 'gaps') render(); return; }
+  grab();
+});
+document.addEventListener('input', function (e) { if (e.target.dataset.k) { D[e.target.dataset.k] = e.target.value; save(); } });
+document.addEventListener('click', function (e) {
+  var b = e.target.closest('[data-nav]'); if (!b) return; grab();
+  if (b.dataset.nav === 'back') { step = Math.max(0, step - 1); err = ''; render(); window.scrollTo(0, document.getElementById('form').offsetTop - 20); return; }
+  var m = missing(); if (m.length) { err = 'Please fill in: ' + m.map(function (k) { return LABEL[k]; }).join(', ') + '.'; render(); return; }
+  err = ''; if (step < 4) { step++; render(); window.scrollTo(0, document.getElementById('form').offsetTop - 20); } else submit();
+});
+render();
+</script>
 </body>
 </html>
