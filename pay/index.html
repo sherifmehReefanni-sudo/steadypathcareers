@@ -65,8 +65,8 @@ var money = function (n) { return n == null ? 'n/a' : '$' + Math.round(n).toLoca
 function score(j, q) {
   var t = (j.title + ' ' + (j.aka || []).join(' ')).toLowerCase(), words = q.toLowerCase().split(/\s+/).filter(String), s = 0;
   var at = function (txt, w) { return new RegExp('(^|[^a-z0-9])' + w.replace(/[^a-z0-9]/g, '\\$&')).test(txt); };
-  words.forEach(function (w) { if (at(t, w)) s += at(j.title.toLowerCase(), w) ? 2 : 1; });
-  return words.length && s >= words.length ? s : 0;
+  var hit = 0; words.forEach(function (w) { if (at(t, w)) { hit++; s += at(j.title.toLowerCase(), w) ? 2 : 1; } });
+  return words.length && hit === words.length ? s : 0;
 }
 function card(j) {
   var v = j[st] || {}, lo = v.p25, mid = v.p50, hi = v.p75;

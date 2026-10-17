@@ -769,8 +769,9 @@
    "title": "Medical Records Specialists",
    "aka": [
     "medical coder",
-    "medical billing",
+    "medical coding",
     "coding specialist",
+    "medical records",
     "health information"
    ],
    "NJ": {
@@ -864,7 +865,7 @@
     "qa analyst",
     "qa tester",
     "quality assurance",
-    "test engineer"
+    "software tester"
    ],
    "NJ": {
     "p25": 91370,
@@ -919,8 +920,7 @@
    "title": "Computer Network Architects",
    "aka": [
     "network architect",
-    "network engineer",
-    "cloud architect"
+    "network engineer"
    ],
    "NJ": {
     "p25": 129110,
@@ -975,7 +975,7 @@
    "title": "Electricians",
    "aka": [
     "electrician",
-    "electrical apprentice"
+    "journeyman electrician"
    ],
    "NJ": {
     "p25": 62400,
@@ -1067,8 +1067,7 @@
    "title": "Construction Managers",
    "aka": [
     "construction manager",
-    "project manager construction",
-    "superintendent"
+    "general contractor manager"
    ],
    "NJ": {
     "p25": 110230,
@@ -1144,8 +1143,8 @@
    "title": "Elementary School Teachers, Except Special Education",
    "aka": [
     "elementary teacher",
-    "teacher",
-    "school teacher"
+    "elementary school teacher",
+    "grade school teacher"
    ],
    "NJ": {
     "p25": 64060,
