@@ -62,7 +62,7 @@
   </aside>
   <section class="iform" id="form" aria-live="polite"></section>
 </main>
-<footer class="wrap"><span>Steady Path Careers · Monmouth County, New Jersey</span><span>hello@steadypathcareers.com</span></footer>
+<footer class="wrap"><span>Steady Path Careers · Monmouth County, New Jersey</span><span>hello@steadypathcareers.com · <a href="/privacy/">Privacy</a></span></footer>
 <script src="../assets/site.js?v=20261017c"></script>
 <script>
 document.getElementById('scene').innerHTML = SP.scene(220, 's');
@@ -132,7 +132,7 @@ function body() {
     inp('referred', 'Who referred you, if anyone', 'text') + inp('anythingElse', 'Anything else I should know', 'textarea');
   return '<label class="agree"><input type="checkbox" data-b="agreeTrue"' + (D.agreeTrue ? ' checked' : '') + '>Everything I entered is true. I understand nothing goes on a document unless I said it is true, and that I approve every document before it is used.</label><div style="height:10px"></div>' +
     '<label class="agree"><input type="checkbox" data-b="agreeTrial"' + (D.agreeTrial ? ' checked' : '') + '>I understand this trial is free, that I submit all applications myself, and that no job, interview, or pay is promised.</label><div style="height:14px"></div>' +
-    inp('signature', 'Type your name as a signature', 'text', { req: 1 }) + '<div class="hp" aria-hidden="true"><label>Website<input tabindex="-1" autocomplete="off" data-k="website"></label></div>';
+    inp('signature', 'Type your name as a signature', 'text', { req: 1 }) + '<p class="psub" style="font-size:14px;margin:6px 0 0">How I handle your information: <a href="/privacy/" target="_blank" rel="noopener">privacy policy</a>.</p>' + '<div class="hp" aria-hidden="true"><label>Website<input tabindex="-1" autocomplete="off" data-k="website"></label></div>';
 }
 function render() {
   var f = document.getElementById('form');
