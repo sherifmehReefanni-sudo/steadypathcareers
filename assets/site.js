@@ -20,5 +20,27 @@ window.SP = (function () {
   function toast(t) { var el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(function () { el.remove(); }, 2200); }
   function greeting(name) { var h = new Date().getHours(); var g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; return g + (name ? ', ' + name : '') + '.'; }
   document.querySelectorAll('[data-logo]').forEach(function (el) { el.innerHTML = LOGO; });
+  if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('/sw.js'); } catch (e) {} }
+  // Mobile menu on public pages: built from the top bar's own links.
+  (function () {
+    var bar = document.querySelector('.topbar'), links = bar && bar.querySelector('.links');
+    if (!bar || !links) return;
+    var btn = document.createElement('button');
+    btn.className = 'mnav-btn'; btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-label', 'Menu');
+    btn.innerHTML = '<span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>';
+    bar.appendChild(btn);
+    var panel = document.createElement('nav');
+    panel.className = 'mnav wrap'; panel.setAttribute('aria-label', 'Menu');
+    var h = '';
+    links.querySelectorAll('a').forEach(function (a) { h += '<a href="' + esc(a.getAttribute('href')) + '">' + esc(a.textContent) + '</a>'; });
+    if (!/\/portal\//.test(location.pathname)) h += '<a class="signin" href="/portal/">Client sign in</a>';
+    h += '<a class="gold" href="/start/">Start your free trial</a>';
+    panel.innerHTML = h;
+    bar.parentNode.insertBefore(panel, bar.nextSibling);
+    btn.addEventListener('click', function () {
+      var open = panel.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  })();
   return { LOGO: LOGO, scene: scene, esc: esc, fmtDate: fmtDate, daysFrom: daysFrom, toast: toast, greeting: greeting };
 })();
