@@ -34,6 +34,11 @@
 .board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .col { background: var(--sunk); border-radius: 14px; padding: 12px; min-width: 0; }
 .col h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
+.logbox { display: grid; gap: 6px; margin-bottom: 14px; }
+.logbox label { font-weight: 700; font-size: 14px; color: var(--ink); margin-top: 6px; }
+.logbox input, .logbox select { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font: inherit; background: #fff; }
+.logbox .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.linkbtn { border: 0; background: transparent; padding: 0; color: var(--navy); font-weight: 700; text-decoration: underline; cursor: pointer; font: inherit; font-size: 14px; }
 .app { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0 0 10px; }
 .app b { color: var(--navy); }
 .flipbox { margin-top: 10px; }
@@ -228,6 +233,21 @@ function vDocs() {
 }
 function stageOf(x) { var t = String(x.status || '').toLowerCase(); if (/offer|hired|accepted/.test(t)) return 3; if (x.interview || /interview/.test(t)) return 2; if (/reply|heard|screen|call|contact/.test(t)) return 1; if (/reject|declin|closed|no longer/.test(t)) return 3; return 0; }
 function lines(t) { return String(t || '').split(/\n|;|(?:\s\d+\.\s)/).map(function (z) { return z.trim(); }).filter(String); }
+var APP_STATUS = ['Applied', 'Heard back', 'Interview scheduled', 'Offer', 'Declined', 'Withdrew'];
+function logForm() {
+  if (!S.logOpen) return '<p style="margin:0"><button class="btn gold" data-logopen>Log an application</button></p>' + (S.logMsg ? '<p class="psub" role="status" style="margin:8px 0 0">' + esc(S.logMsg) + '</p>' : '');
+  var today = new Date(); var iso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  return '<div class="card logbox"><h3>Log an application</h3><p class="psub" style="margin:0">Applied somewhere on your own? Add it here so everything is in one place.</p>' +
+    '<label for="lgCompany">Company</label><input id="lgCompany" maxlength="120" autocomplete="off">' +
+    '<label for="lgRole">Job title</label><input id="lgRole" maxlength="160" autocomplete="off">' +
+    '<div class="two"><div><label for="lgDate">Date applied</label><input id="lgDate" type="date" value="' + iso + '"></div><div><label for="lgStatus">Where it stands</label><select id="lgStatus">' + APP_STATUS.map(function (o) { return '<option>' + o + '</option>'; }).join('') + '</select></div></div>' +
+    '<label for="lgIv">Interview date (if any)</label><input id="lgIv" type="date">' +
+    (S.logErr ? '<div class="warn" style="margin-top:10px">' + esc(S.logErr) + '</div>' : '') +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn gold" data-logsave ' + (S.logBusy ? 'disabled' : '') + '>' + (S.logBusy ? 'Saving…' : 'Save') + '</button><button class="btn ghost" data-logclose>Cancel</button></div></div>';
+}
+function saveApp(body, done) {
+  post(Object.assign({ action: 'app', t: S.token }, body)).then(function (r) { done(r && r.ok ? r : { ok: false, error: (r && r.error) || 'error' }); }).catch(function () { done({ ok: false, error: 'network' }); });
+}
 function vApps() {
   var d = S.data, cols = ['Applied', 'Heard back', 'Interview', 'Offer or closed'], by = [[], [], [], []];
   d.apps.forEach(function (x) { by[stageOf(x)].push(x); });
@@ -241,12 +261,14 @@ function vApps() {
       (prepApp.prepAsk ? '<p style="margin:12px 0 0"><b>Questions to ask them:</b> ' + esc(prepApp.prepAsk) + '</p>' : '') + '<p style="margin:12px 0 0"><button class="btn ghost" data-prep="">Close practice</button></p></div>';
   }
   return hero('apps', 'Applications and interviews', d.apps.length ? d.apps.length + ' sent so far.' : 'Nothing submitted yet.', 'Every application, where it stands, and a prep sheet before each interview.') +
-    '<main class="wrap narrow pbody" style="max-width:1100px">' + practice + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
+    '<main class="wrap narrow pbody" style="max-width:1100px">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col"><h3>' + c + '<span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
         var hasPrep = x.prepBring || x.prepExpect || x.prepAsk;
         return '<div class="app"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">Applied ' + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
           (x.interview ? '<div style="margin-top:6px"><span class="pill info">Interview ' + esc(fmtDate(x.interview)) + '</span></div>' : '') + (String(x.followUpDue).toLowerCase() === 'yes' ? '<div style="margin-top:6px"><span class="pill gold">Follow-up due</span></div>' : '') +
-          (hasPrep ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : '') + '</div>';
+          (hasPrep ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : '') +
+          (S.updFor === x.id ? '<div class="logbox" style="margin-top:8px"><label for="upStatus">New status</label><select id="upStatus">' + APP_STATUS.map(function (o) { return '<option>' + o + '</option>'; }).join('') + '</select><label for="upIv">Interview date (if any)</label><input id="upIv" type="date" value="' + esc(x.interview || '') + '"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-upsave="' + esc(x.id) + '">Save</button><button class="btn ghost" data-upd="">Cancel</button></div></div>'
+            : '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p>') + '</div>';
       }).join('') + '</div>';
     }).join('') + '</div>' : '<div class="card"><p class="psub" style="margin:0">Once you approve the tailored resume for a job you said Yes to, you submit the application and it shows up here.</p></div>') + '</main>' + mobnav('apps');
 }
@@ -275,6 +297,23 @@ document.addEventListener('click', function (e) {
   if (d.signout != null) { try { localStorage.removeItem('sp_token'); } catch (x) {} S.token = null; S.data = null; S.status = 'signin'; S.sent = false; S.err = ''; render(); return; }
   if (d.ans) { var j = S.data.jobs.filter(function (x) { return x.id === d.j; })[0]; var cur = String(j.answer || '').toLowerCase(); var same = (d.ans === 'yes' && cur.indexOf('yes') === 0) || (d.ans === 'no' && cur.indexOf('no') === 0) || (d.ans === 'q' && cur && cur.indexOf('yes') !== 0 && cur.indexOf('no') !== 0); answer(d.j, same ? '' : d.ans); return; }
   if (d.savenote) { var ta = document.querySelector('[data-note="' + d.savenote + '"]'); S.notes[d.savenote] = ta ? ta.value : ''; answer(d.savenote, d.a, S.notes[d.savenote]); return; }
+  if (d.logopen != null) { S.logOpen = true; S.logErr = ''; S.logMsg = ''; render(); var c = $('#lgCompany'); if (c) c.focus(); return; }
+  if (d.logclose != null) { S.logOpen = false; S.logErr = ''; render(); return; }
+  if (d.logsave != null) {
+    var v = function (id) { var el = $(id); return el ? el.value.trim() : ''; };
+    var body = { company: v('#lgCompany'), role: v('#lgRole'), applied: v('#lgDate'), status: v('#lgStatus'), interview: v('#lgIv') };
+    if (!body.company || !body.role) { S.logErr = 'Please add the company and the job title.'; render(); return; }
+    S.logBusy = true; S.logErr = ''; render();
+    saveApp(body, function (r) { S.logBusy = false;
+      if (r.ok) { S.data.apps.unshift({ id: r.id, company: body.company, role: body.role, applied: body.applied, status: body.status, interview: body.interview }); S.logOpen = false; S.logMsg = 'Saved. ' + body.company + ' is on your board.'; }
+      else S.logErr = r.error === 'expired' ? 'Your sign-in has expired. Please sign in again, then add it.' : 'Sorry, that didn\'t save. Please check your connection and try again.';
+      render(); });
+    return;
+  }
+  if (d.upd != null) { S.updFor = d.upd || null; render(); return; }
+  if (d.upsave) { var st = $('#upStatus'), iv = $('#upIv'), id = d.upsave, body2 = { id: id, status: st ? st.value : '', interview: iv ? iv.value : '' };
+    saveApp(body2, function (r) { if (r.ok) { S.data.apps.forEach(function (x) { if (x.id === id) { x.status = body2.status; x.interview = body2.interview; } }); S.updFor = null; S.logMsg = 'Updated.'; } else S.logMsg = 'Sorry, that update didn\'t save. Please try again.'; render(); });
+    return; }
   if (d.approve) { docStatus(d.approve, 'Approved', ''); return; }
   if (d.changes) { S.changesFor = d.changes; render(); return; }
   if (d.sendchanges) { var t = $('#changesText'); S.changesFor = null; docStatus(d.sendchanges, 'Changes requested', t ? t.value : ''); return; }
