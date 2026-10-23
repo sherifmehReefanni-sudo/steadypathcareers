@@ -15,98 +15,359 @@
 <meta name="apple-mobile-web-app-title" content="Steady Path">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
-<link rel="stylesheet" href="../assets/site.css?v=20261018a">
+<link rel="stylesheet" href="../assets/site.css?v=20261023a">
 <style>
-.fbq { display: grid; gap: 10px; }
-.fbq + .fbq { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
-.fbq label, .fbq .lab { font-weight: 800; color: var(--navy); }
-.scale { display: flex; flex-wrap: wrap; gap: 6px; }
-.scale button { min-width: 42px; padding: 9px 10px; border-radius: 10px; border: 2px solid #cfd6e3; background: #fff; color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
-.scale button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--cream); }
-.scale-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); max-width: 520px; }
-.fbq textarea { width: 100%; min-height: 84px; padding: 10px 12px; border: 1px solid #cfd6e3; border-radius: 10px; font: inherit; resize: vertical; box-sizing: border-box; }
-.fbask { background: var(--gold-soft); border: 1px solid var(--gold); border-radius: 14px; padding: 14px 18px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-.fbask p { margin: 0; color: var(--ink); min-width: 0; }
-.nextcard { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 14px; align-items: center; background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--navy); border-radius: 14px; padding: 14px 18px; }
-.nextcard .n { width: 44px; height: 44px; border-radius: 50%; background: var(--navy); color: var(--cream); display: grid; place-items: center; font-weight: 800; }
-.nextcard b { display: block; color: var(--navy); }
-.nextcard span { color: var(--muted); }
-.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-.col { background: var(--sunk); border-radius: 14px; padding: 12px; min-width: 0; }
-.col h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; }
-.logbox { display: grid; gap: 6px; margin-bottom: 14px; }
-.logbox label { font-weight: 700; font-size: 14px; color: var(--ink); margin-top: 6px; }
-.logbox input, .logbox select { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font: inherit; background: #fff; }
-.logbox .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
-.linkbtn { border: 0; background: transparent; padding: 0; color: var(--navy); font-weight: 700; text-decoration: underline; cursor: pointer; font: inherit; font-size: 14px; }
-.app { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0 0 10px; }
-.app b { color: var(--navy); }
-.flipbox { margin-top: 10px; }
-.flip { border: 2px solid var(--navy); border-radius: 14px; padding: 18px; min-height: 120px; background: #fff; cursor: pointer; display: grid; align-content: center; gap: 8px; text-align: center; }
-.flip.back { background: var(--navy); color: var(--cream); }
-.flip small { color: var(--muted); }
-.flip.back small { color: #d7e0ee; }
-.fliprow { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
-.commute { font-weight: 700; }
-.col h3 { cursor: pointer; user-select: none; }
-.col h3 .tw { transition: transform .15s; display: inline-block; margin-right: 6px; color: var(--gold); }
-.col.closed h3 .tw { transform: rotate(-90deg); }
-.col.closed .app, .col.closed > p { display: none; }
-.codebox { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
-.codebox label { font-weight: 700; font-size: 14px; }
-.codebox input { border: 1.5px solid #d3dae6; border-radius: 10px; padding: 12px 13px; font: 800 22px/1 Consolas, Menlo, monospace; letter-spacing: 8px; text-align: center; color: var(--ink); background: #fff; width: 100%; box-sizing: border-box; }
-.a2hs { background: linear-gradient(135deg, var(--midnight), var(--navy)); color: var(--cream); border-radius: 14px; padding: 16px 18px; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: center; }
-.a2hs .ic { width: 44px; height: 44px; border-radius: 12px; background: rgba(251,246,238,.12); display: grid; place-items: center; }
+/* ---- portal tokens ---- */
+:root { --yes: #1f7a46; --yes-bg: #edf8f1; --yes-line: #9fd3b2; --q: #8a6400; --q-bg: #fff6df; --q-line: #e6c66d; --no-bg: #f2f2ef; --no-line: #d6d6d0; --no-ink: #5f6470; --tabh: 64px; }
+body { overflow-x: hidden; }
+.pmain { max-width: 760px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-left, 0px)) 40px max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 14px; }
+.pmain.wide { max-width: 1100px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---- header ---- */
+.sky { overflow: visible; }
+.ptop { display: flex; align-items: center; gap: 10px; padding: 12px 0; min-height: 60px; }
+.ptop .brand { font-size: 16px; min-width: 0; }
+.ptop .brand svg { width: 32px; height: 32px; flex: none; }
+.ptop .brand .bname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo-badge { background: var(--dawn); color: var(--midnight); font-weight: 800; font-size: 12px; border-radius: 99px; padding: 3px 10px; letter-spacing: .03em; flex: none; }
+.ptabs { display: flex; gap: 2px; margin-left: 10px; }
+.ptabs button { border: 0; background: transparent; color: #d7e0ee; padding: 9px 14px; border-radius: 9px; font-weight: 800; font-size: 15px; display: inline-flex; gap: 7px; align-items: center; min-height: 44px; }
+.ptabs button svg { width: 18px; height: 18px; }
+.ptabs button[aria-current="true"] { background: rgba(251,246,238,.14); color: #fff; }
+.ptabs .cnt, .tabbar .cnt { background: var(--gold); color: var(--midnight); border-radius: 99px; font-size: 11.5px; font-weight: 800; padding: 1px 7px; line-height: 1.5; }
+.acct { margin-left: auto; position: relative; flex: none; }
+.acct > button { border: 0; background: rgba(251,246,238,.12); color: var(--cream); border-radius: 99px; min-height: 44px; padding: 6px 12px 6px 6px; display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; }
+.acct .av { width: 32px; height: 32px; border-radius: 50%; background: var(--gold); color: var(--midnight); display: grid; place-items: center; font-weight: 800; }
+.acct .menu { position: absolute; right: 0; top: calc(100% + 6px); background: #fff; color: var(--ink); border-radius: 14px; box-shadow: 0 16px 40px rgba(16,33,58,.25); padding: 6px; min-width: 200px; z-index: 30; display: grid; }
+.acct .menu button { border: 0; background: transparent; text-align: left; padding: 12px 14px; min-height: 44px; border-radius: 10px; font-weight: 700; font-size: 15px; color: var(--navy); }
+.acct .menu button:hover { background: var(--sunk); }
+.ptitle { padding: 2px 0 18px; }
+.ptitle h1 { font: 800 clamp(24px, 3.6vw, 34px)/1.1 var(--display); letter-spacing: -0.02em; margin: 0; color: var(--cream); }
+.ptitle p { margin: 4px 0 0; color: #d7e0ee; font-size: 15px; }
+.sky svg.scene { margin-top: -6px; }
+
+/* ---- bottom tab bar (phones) ---- */
+.tabbar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: #fff; border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(16,33,58,.08); padding: 4px max(6px, env(safe-area-inset-right, 0px)) max(6px, env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px)); }
+.tabbar nav { display: grid; grid-template-columns: repeat(3, 1fr); }
+.tabbar button { border: 0; background: transparent; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--muted); font-weight: 800; font-size: 13px; position: relative; border-radius: 12px; }
+.tabbar button svg { width: 26px; height: 26px; }
+.tabbar button[aria-current="true"] { color: var(--navy); }
+.tabbar button[aria-current="true"]::before { content: ""; position: absolute; top: 0; width: 36px; height: 3px; border-radius: 3px; background: var(--gold); }
+.tabbar .cnt { position: absolute; top: 4px; left: calc(50% + 8px); }
+
+/* ---- top of Jobs ---- */
+.hello { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.hello b { font-size: 20px; color: var(--navy); }
+.hello span { color: var(--muted); font-size: 14px; font-weight: 700; }
+.prog { display: grid; gap: 6px; }
+.prog .lbl { font-weight: 800; font-size: 16px; color: var(--ink); }
+.prog .bar { height: 8px; border-radius: 99px; background: #e7e1d3; overflow: hidden; }
+.prog .bar i { display: block; height: 100%; background: var(--gold); border-radius: 99px; }
+.nextc { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; background: var(--navy); color: var(--cream); border-radius: 16px; padding: 14px 16px; }
+.nextc small { display: block; color: var(--dawn); font-weight: 800; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+.nextc b { display: block; font-size: 17px; line-height: 1.25; }
+.nextc span { display: block; color: #d7e0ee; font-size: 14px; margin-top: 2px; }
+.nextc .btn { min-height: 44px; }
+.wnote { background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--gold); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 10px; }
+.wnote .av { width: 36px; height: 36px; border-radius: 50%; background: var(--navy); color: var(--dawn); display: grid; place-items: center; font-weight: 800; }
+.wnote .from { font-size: 13px; color: var(--muted); font-weight: 700; }
+.wnote p { margin: 2px 0 0; font: italic 500 17px/1.4 var(--serif); color: var(--ink); }
+.wnote.clamp p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.wnote .more { border: 0; background: none; padding: 6px 0 0; min-height: 32px; color: var(--navy); font-weight: 800; font-size: 14px; text-decoration: underline; }
+.fbask { background: var(--gold-soft); border: 1px solid var(--gold); border-radius: 14px; padding: 12px 14px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.fbask p { margin: 0; font-weight: 700; }
+.a2hs { background: linear-gradient(135deg, var(--midnight), var(--navy)); color: var(--cream); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 10px; align-items: center; }
 .a2hs .ic svg { width: 30px; height: 30px; }
 .a2hs b { color: var(--dawn); }
 .a2hs p { margin: 2px 0 0; font-size: 14px; color: #d7e0ee; }
 .a2hs .row { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
 .a2hs .row .btn.ghost { background: transparent; color: var(--cream); border-color: rgba(251,246,238,.45); }
+.sec-h { font: 800 13px var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 8px 0 -4px; }
+
+/* ---- job cards ---- */
+.jlist { display: flex; flex-direction: column; gap: 14px; }
+.jc { position: relative; background: #fff; border: 1.5px solid var(--line); border-radius: 18px; overflow: hidden; touch-action: pan-y; box-shadow: 0 2px 10px rgba(16,33,58,.05); }
+.jc::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--navy); }
+.jc .in { padding: 16px 16px 14px 22px; display: flex; flex-direction: column; gap: 10px; }
+.jc .jst { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; }
+.jc .jst svg { width: 22px; height: 22px; flex: none; }
+.jc .ttl { font: 800 21px/1.2 var(--display); letter-spacing: -0.015em; color: var(--navy); margin: 0; }
+.jc .pay { font: 800 22px/1.15 var(--display); color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.jc .pay small { display: inline-block; font: 700 13px var(--display); color: var(--muted); margin-left: 6px; letter-spacing: 0; }
+.jc .pay.est { font-size: 18px; color: #6f5300; }
+.jc .where { color: var(--muted); font-size: 15.5px; font-weight: 600; }
+.jc .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.jc .ans3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px 16px 14px 22px; border-top: 1px solid rgba(0,0,0,.06); background: rgba(255,255,255,.6); }
+.jc .ans3 button { min-height: 48px; border-radius: 12px; border: 2px solid #cfd6e3; background: #fff; font-weight: 800; font-size: 16px; color: var(--navy); display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 6px; }
+.jc .ans3 button svg { width: 18px; height: 18px; flex: none; }
+.jc .ans3 button.yes[aria-pressed="true"] { background: var(--yes); border-color: var(--yes); color: #fff; }
+.jc .ans3 button.q[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--midnight); }
+.jc .ans3 button.no[aria-pressed="true"] { background: var(--no-ink); border-color: var(--no-ink); color: #fff; }
+.jc .ans3 button[disabled] { opacity: .6; cursor: wait; }
+.jc .dtog { align-self: flex-start; border: 0; background: none; padding: 6px 0; min-height: 40px; font-weight: 800; font-size: 15px; color: var(--navy); display: inline-flex; gap: 6px; align-items: center; }
+.jc .dtog svg { width: 16px; height: 16px; transition: transform .15s; }
+.jc .dtog[aria-expanded="true"] svg { transform: rotate(180deg); }
+.jc .det { display: grid; gap: 10px; padding: 12px 14px; background: rgba(246,237,217,.55); border-radius: 12px; font-size: 15.5px; line-height: 1.5; }
+.jc .det p { margin: 0; }
+.jc .det .lab { font-weight: 800; color: var(--navy); display: block; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+.jc .det .heads { background: var(--gold-soft); border-radius: 10px; padding: 8px 10px; }
+.jc .det .dlinks { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; }
+.jc .det .dlinks a, .jc .det .dlinks button { font-weight: 800; color: var(--navy); font-size: 15px; min-height: 36px; display: inline-flex; align-items: center; }
+.jc .det .dlinks button { border: 0; background: none; padding: 0; text-decoration: underline; color: var(--muted); }
+.jc .note2 { display: grid; gap: 8px; }
+.jc .note2 textarea { width: 100%; border: 1.5px solid #d3dae6; border-radius: 12px; padding: 10px 12px; font: 16px var(--display); min-height: 70px; resize: vertical; color: var(--ink); background: #fff; }
+.jc .note2 .row { display: flex; gap: 8px; align-items: center; }
+.jc .note2 .btn { min-height: 44px; }
+.jc .err { color: var(--bad); font-weight: 700; font-size: 14px; margin: 0; }
+.jc .saving { color: var(--muted); font-weight: 700; font-size: 14px; }
+.jc .nstep { margin: 0; font-weight: 700; font-size: 15px; }
+.hint { margin: 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--info-soft); color: var(--info); border-radius: 10px; padding: 6px 6px 6px 12px; font-weight: 800; font-size: 14px; }
+.hint button { border: 0; background: none; color: var(--info); min-width: 36px; min-height: 36px; font-size: 20px; line-height: 1; }
+
+/* status colors */
+.jc.s-yes { background: var(--yes-bg); border-color: var(--yes-line); }
+.jc.s-yes::before { background: var(--yes); }
+.jc.s-yes .jst { color: var(--yes); }
+.jc.s-q { background: var(--q-bg); border-color: var(--q-line); }
+.jc.s-q::before { background: var(--gold); }
+.jc.s-q .jst { color: var(--q); }
+.jc.s-no { background: var(--no-bg); border-color: var(--no-line); box-shadow: none; }
+.jc.s-no::before { background: #c4c4bd; }
+.jc.s-no .jst, .jc.s-no .ttl, .jc.s-no .pay, .jc.s-no .where { color: var(--no-ink); }
+.jc.s-no .ttl { font-size: 18px; }
+.jc.s-no .pay { font-size: 17px; }
+
+/* tracker */
+.trk { list-style: none; margin: 2px 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: relative; }
+.trk::before { content: ""; position: absolute; top: 9px; left: 10%; right: 10%; height: 3px; background: #cfe5d7; }
+.trk::after { content: ""; position: absolute; top: 9px; left: 10%; width: var(--p, 0%); height: 3px; background: var(--yes); }
+.trk li { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; font-size: 12.5px; font-weight: 700; color: var(--muted); line-height: 1.2; }
+.trk .d { width: 21px; height: 21px; border-radius: 50%; background: #fff; border: 3px solid #b9d9c4; display: grid; place-items: center; z-index: 1; }
+.trk .d svg { width: 12px; height: 12px; }
+.trk li.done .d { background: var(--yes); border-color: var(--yes); }
+.trk li.now .d { background: #fff; border-color: var(--yes); box-shadow: 0 0 0 4px rgba(31,122,70,.2); }
+.trk li.now, .trk li.done { color: var(--ink); }
+.trk .full { display: inline; }
+.trk .short { display: none; }
+.trknow { margin: 0; font-size: 15px; font-weight: 800; color: var(--yes); }
+
+/* apply kit */
+.kit { background: #fff; border: 1.5px solid var(--yes-line); border-radius: 14px; padding: 14px; display: grid; gap: 12px; }
+.kit h3 { margin: 0; font: 800 18px var(--display); color: var(--navy); display: flex; gap: 8px; align-items: center; }
+.kit h3 svg { width: 22px; height: 22px; }
+.kit .wait { margin: 0; color: var(--muted); font-weight: 700; }
+.kit .pdfs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.kbtn { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 12px; border: 2px solid var(--navy); background: #fff; color: var(--navy); font-weight: 800; font-size: 15.5px; text-decoration: none; padding: 6px 12px; text-align: center; }
+.kbtn svg { width: 20px; height: 20px; flex: none; }
+.kbtn.solid { background: var(--navy); color: #fff; }
+.kans { display: grid; gap: 8px; }
+.kans .a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; background: var(--sunk); border-radius: 12px; padding: 10px 10px 10px 12px; }
+.kans .a b { display: block; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.kans .a p { margin: 2px 0 0; font-size: 15.5px; }
+.kans .a button { border: 2px solid var(--navy); background: #fff; color: var(--navy); border-radius: 10px; min-height: 40px; min-width: 64px; font-weight: 800; font-size: 14px; }
+.kcheck { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: k; }
+.kcheck label { display: flex; align-items: center; gap: 12px; min-height: 44px; font-weight: 700; font-size: 15.5px; cursor: pointer; }
+.kcheck input { width: 24px; height: 24px; accent-color: var(--yes); }
+.kcheck input:checked + span { color: var(--muted); text-decoration: line-through; }
+.kdone { min-height: 52px; width: 100%; border: 0; border-radius: 14px; background: var(--yes); color: #fff; font-weight: 800; font-size: 17px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.kdone svg { width: 22px; height: 22px; }
+.kdone[disabled] { opacity: .6; cursor: wait; }
+.kapplied { margin: 0; font-weight: 800; color: var(--yes); }
+
+/* passed section */
+.passed { border-top: 1px dashed #d0cbbd; padding-top: 6px; }
+.passed > button { width: 100%; border: 0; background: transparent; display: flex; justify-content: space-between; align-items: center; min-height: 52px; padding: 0 4px; font-weight: 800; font-size: 16px; color: var(--no-ink); }
+.passed > button svg { width: 20px; height: 20px; transition: transform .15s; }
+.passed > button[aria-expanded="true"] svg { transform: rotate(180deg); }
+.passed .jlist { margin-top: 6px; }
+
+/* swipe */
+.jc .sl { position: absolute; top: 18px; z-index: 3; font: 800 26px var(--display); letter-spacing: .06em; padding: 4px 14px; border-radius: 10px; border: 3px solid; opacity: 0; pointer-events: none; }
+.jc .sl.y { left: 22px; color: var(--yes); border-color: var(--yes); background: rgba(237,248,241,.92); transform: rotate(-8deg); }
+.jc .sl.p { right: 16px; color: var(--no-ink); border-color: var(--no-ink); background: rgba(242,242,239,.92); transform: rotate(8deg); }
+.jc.dragging { box-shadow: 0 16px 40px rgba(16,33,58,.2); z-index: 4; }
+.jc.spring { transition: transform .25s cubic-bezier(.2,.9,.3,1.2); }
+.jc.fly { transition: transform .2s ease-in, opacity .2s ease-in; }
+.jc.leave { transition: opacity .2s, transform .2s; opacity: 0; transform: scale(.97); }
+@media (prefers-reduced-motion: reduce) { .jc.spring, .jc.fly, .jc.leave { transition: none; } .jc .dtog svg, .passed > button svg { transition: none; } }
+
+/* undo toast */
+.toast { bottom: max(84px, calc(env(safe-area-inset-bottom, 0px) + 84px)); font-size: 15px; padding: 12px 20px; max-width: calc(100vw - 32px); }
+.toast.undo { display: flex; align-items: center; gap: 14px; padding: 8px 8px 8px 18px; white-space: nowrap; }
+.toast.undo button { border: 0; background: var(--gold); color: var(--midnight); border-radius: 99px; min-height: 40px; padding: 0 16px; font-weight: 800; font-size: 15px; }
+
+/* documents */
+.dgrp { display: grid; gap: 10px; }
+.dgrp h2 { margin: 6px 0 0; font: 800 17px var(--display); color: var(--navy); }
+.dgrp h2 span { display: block; font-weight: 600; font-size: 14px; color: var(--muted); }
+.dc { background: #fff; border: 1.5px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; }
+.dc.ok { border-color: var(--yes-line); }
+.dc.ready { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,162,39,.15); }
+.dc .top { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.dc .nm { font-weight: 800; font-size: 17px; color: var(--ink); display: flex; gap: 10px; align-items: center; min-width: 0; }
+.dc .nm svg { width: 26px; height: 26px; flex: none; }
+.dc .meta { color: var(--muted); font-size: 14px; margin: 0; }
+.dc .acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.dc .acts .kbtn.ok { background: var(--yes); border-color: var(--yes); color: #fff; }
+.dc .notebox { display: grid; gap: 8px; }
+.dc .notebox textarea { width: 100%; border: 1.5px solid #d3dae6; border-radius: 12px; padding: 10px 12px; font: 16px var(--display); min-height: 80px; }
+.dc .notebox button { justify-self: start; min-height: 44px; }
+
+/* applied tab (kept from the old page, tightened) */
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.col { background: var(--sunk); border-radius: 14px; padding: 12px; min-width: 0; }
+.col h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; cursor: pointer; user-select: none; min-height: 32px; align-items: center; }
+.col h3 .tw { transition: transform .15s; display: inline-block; margin-right: 6px; color: var(--gold); }
+.col.closed h3 .tw { transform: rotate(-90deg); }
+.col.closed .app, .col.closed > p { display: none; }
+.app { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0 0 10px; }
+.app b { color: var(--navy); font-size: 16px; }
+.logbox { display: grid; gap: 6px; margin-bottom: 4px; }
+.logbox label { font-weight: 700; font-size: 14px; color: var(--ink); margin-top: 6px; }
+.logbox input, .logbox select { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #cfd6e3; border-radius: 10px; font: inherit; background: #fff; min-height: 44px; }
+.logbox .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.linkbtn { border: 0; background: transparent; padding: 0; color: var(--navy); font-weight: 700; text-decoration: underline; cursor: pointer; font: inherit; font-size: 14px; min-height: 36px; }
+.flipbox { margin-top: 10px; }
+.flip { border: 2px solid var(--navy); border-radius: 14px; padding: 18px; min-height: 140px; background: #fff; cursor: pointer; display: grid; align-content: center; gap: 8px; text-align: center; }
+.flip.back { background: var(--navy); color: var(--cream); }
+.flip small { color: var(--muted); }
+.flip.back small { color: #d7e0ee; }
+.fliprow { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
+.fliprow .btn { min-height: 44px; }
+
+/* feedback + sign in bits (kept) */
+.fbq { display: grid; gap: 10px; }
+.fbq + .fbq { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+.fbq label, .fbq .lab { font-weight: 800; color: var(--navy); }
+.scale { display: flex; flex-wrap: wrap; gap: 6px; }
+.scale button { min-width: 44px; min-height: 44px; padding: 9px 10px; border-radius: 10px; border: 2px solid #cfd6e3; background: #fff; color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.scale button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: var(--cream); }
+.scale-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); max-width: 520px; }
+.fbq textarea { width: 100%; min-height: 84px; padding: 10px 12px; border: 1px solid #cfd6e3; border-radius: 10px; font: inherit; resize: vertical; box-sizing: border-box; }
+.codebox { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+.codebox label { font-weight: 700; font-size: 14px; }
+.codebox input { border: 1.5px solid #d3dae6; border-radius: 10px; padding: 12px 13px; font: 800 22px/1 Consolas, Menlo, monospace; letter-spacing: 8px; text-align: center; color: var(--ink); background: #fff; width: 100%; box-sizing: border-box; }
 .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 99; overflow: hidden; }
 .confetti i { position: absolute; top: -14px; width: 9px; height: 14px; border-radius: 2px; animation: cfall var(--d) ease-in forwards; }
 @keyframes cfall { to { transform: translateY(105vh) rotate(var(--r)); opacity: .9; } }
 @media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
-.howto { background: #fff8e6; border: 1px solid #ecd9a6; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 15px; line-height: 1.45; }
-.answer button.clear { border: 0; background: none; padding: 4px 6px; font-size: 13px; font-weight: 700; color: var(--muted); text-decoration: underline; }
-.nextstep { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #eaf6ee; color: #1e5b33; font-weight: 700; font-size: 14px; }
-.toast { bottom: max(84px, calc(env(safe-area-inset-bottom, 0px) + 84px)); font-size: 15px; padding: 12px 20px; }
-@media (max-width: 760px) { .board { grid-template-columns: minmax(0, 1fr); } .nextcard { grid-template-columns: 44px minmax(0, 1fr); } .nextcard .btn { grid-column: 1 / -1; } }
+.btn { min-height: 44px; }
+.btn.ghost { min-height: 44px; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+@media (max-width: 760px) {
+  .ptabs { display: none; }
+  .tabbar { display: block; }
+  .pmain { padding-bottom: calc(var(--tabh) + 36px + env(safe-area-inset-bottom, 0px)); }
+  .sky svg.scene { display: none; }
+  .ptitle { padding: 0 0 14px; }
+  .ptitle h1 { font-size: 23px; }
+  .ptitle p { font-size: 14px; }
+  .acct .nm { display: none; }
+  .acct > button { padding: 6px; }
+  .board { grid-template-columns: minmax(0, 1fr); }
+  .nextc { grid-template-columns: minmax(0, 1fr); }
+  .nextc .btn { width: 100%; text-align: center; }
+  .trk .full { display: none; }
+  .trk .short { display: inline; }
+}
+@media (max-width: 380px) {
+  .jc .ans3 { gap: 6px; padding-left: 18px; padding-right: 12px; }
+  .jc .ans3 button { font-size: 15px; }
+  .jc .ans3 button svg { display: none; }
+  .ptop .brand .bname { font-size: 15px; }
+}
 </style>
 </head>
 <body>
 <div id="app"><div class="skel">Opening your portal…</div></div>
-<script src="../assets/site.js?v=20261018a"></script>
+<script src="../assets/site.js?v=20261023a"></script>
 <script>
 /* Set after the Apps Script web app is deployed. */
 var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
 
-var S = { token: null, view: 'home', data: null, status: 'boot', err: '', sent: false, pending: {}, notes: {}, fb: {}, fbText: {} };
+var S = { token: null, view: 'jobs', data: null, status: 'boot', err: '', sent: false, pending: {}, notes: {}, fb: {}, fbText: {}, open: {}, demo: false };
 var $ = function (s) { return document.querySelector(s); };
 var esc = SP.esc, fmtDate = SP.fmtDate, daysFrom = SP.daysFrom;
+var REDUCED = false; try { REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function lsDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+function todayISO() { var d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
+function safeUrl(u) { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : ''; }
 
 /* ---- token handling ---- */
 (function () {
   var q = new URLSearchParams(location.search);
+  if (q.get('demo') === '1') { S.demo = true; S.token = 'demo'; if (q.get('v')) S.view = q.get('v'); return; }
   var t = q.get('t');
-  if (t) { try { localStorage.setItem('sp_token', t); } catch (e) {} S.token = t; }
-  else { try { S.token = localStorage.getItem('sp_token'); } catch (e) {} }
-  if (q.get('expired')) { S.status = 'signin'; S.err = 'That link has expired. Enter your email and we\'ll send you a new one.'; try { localStorage.removeItem('sp_token'); } catch (e) {} }
-  if (q.get('answered')) S.flash = 'Saved your answer for ' + q.get('answered') + '. Thank you.';
+  if (t) { lsSet('sp_token', t); S.token = t; }
+  else S.token = lsGet('sp_token');
+  if (q.get('expired')) { S.status = 'signin'; S.err = 'That link has expired. Enter your email and we\'ll send you a new one.'; lsDel('sp_token'); }
+  if (q.get('answered')) S.flash = 'Saved your answer for ' + q.get('answered') + '.';
   if (q.get('v')) S.view = q.get('v');
   if (t || q.get('expired') || q.get('answered')) history.replaceState({}, '', location.pathname);
 })();
+if (S.view === 'home') S.view = 'jobs';
+
+/* ---- demo data (?demo=1): no network at all ---- */
+function demoData() {
+  var iso = function (n) { var d = new Date(); d.setDate(d.getDate() + n); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+  var gd = function (id) { return 'https://docs.google.com/document/d/' + id + '/edit'; };
+  return {
+    ok: true,
+    client: { id: 'C-DEMO', name: 'Sabrina K.', firstName: 'Sabrina', stage: 'Trial', startDate: iso(-8), trialEnds: iso(9), payFloor: '$190,000', lastTouch: iso(-1), lastFeedback: '', home: 'Hicksville, NY',
+      weeklyNote: 'Good week, Sabrina. Massapequa Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. I am also asking Smithtown about loan repayment for you and expect an answer by Friday. Two new Nassau County openings came in on Monday.' },
+    jobs: [
+      { id: 'J-101', added: iso(-1), company: 'Bright Smiles Family Dental', title: 'Associate Dentist', location: 'Garden City, NY', setting: 'On-site', pay: '$195,000 - $235,000 a year', payLow: 195000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Family practice with 4 chairs and a full hygiene team. Mostly restorative and some cosmetic work, which matches your last 5 years.', link: 'https://example.com/jobs/bright-smiles-associate', notes: 'Four days a week, no Sundays.', answer: '', note: '', answeredOn: '', kit: { pay: '', start: '', why: '' } },
+      { id: 'J-102', added: iso(-1), company: 'Long Island Dental Partners', title: 'General Dentist', location: 'Huntington, NY', setting: 'On-site', pay: '$90 - $115 an hour', payLow: 90, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Busy group practice with in-house lab. Open to dentists who want to build implant skills.', link: 'https://example.com/jobs/lidp-general', notes: '', answer: '', note: '', answeredOn: '' },
+      { id: 'J-103', added: iso(-6), company: 'Massapequa Dental Arts', title: 'Associate Dentist', location: 'Massapequa, NY', setting: 'On-site', pay: '$200,000 - $250,000 a year', payLow: 200000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Patient education is a big part of how they work, which is how you described your own style. Path to partnership after 2 years.', link: 'https://example.com/jobs/massapequa-associate', notes: 'They answer applications within a week.', answer: 'Yes', note: '', answeredOn: iso(-5),
+        kit: { pay: 'I am looking for $220,000 to $240,000, in line with the posted range.', start: 'I can start two weeks after an offer.', why: 'I like that your team puts real time into patient education. That is how I practice, and my patients stay with me because of it.' } },
+      { id: 'J-104', added: iso(-9), company: 'North Shore Smiles', title: 'General Dentist', location: 'Port Washington, NY', setting: 'On-site', pay: '$185,000 - $225,000 a year', payLow: 185000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Calm, modern office with digital scanners. Many family patients, good fit for your pediatric experience.', link: 'https://example.com/jobs/north-shore-general', notes: '', answer: 'Yes', note: '', answeredOn: iso(-8), kit: { pay: 'Within the posted range, around $210,000.', start: 'Two weeks after an offer.', why: '' } },
+      { id: 'J-105', added: iso(-4), company: 'Smithtown Community Dental Center', title: 'Staff Dentist', location: 'Smithtown, NY', setting: 'On-site', pay: '$175,000 - $205,000 a year', payLow: 175000, paySource: 'Posted by employer', floor: 'Below your floor at the low end', why: 'Community health center with set hours and full benefits. Loan repayment may be available.', link: 'https://example.com/jobs/smithtown-staff', notes: '', answer: 'Question', note: 'Do they offer loan repayment or a sign-on bonus?', answeredOn: iso(-3) },
+      { id: 'J-106', added: iso(-5), company: 'Bay Shore Dental Group', title: 'Associate Dentist', location: 'Bay Shore, NY', setting: 'On-site', pay: '$160,000 - $180,000 a year', payLow: 160000, paySource: 'Posted by employer', floor: 'Below your floor', why: 'Steady patient base and short drive from the train.', link: 'https://example.com/jobs/bay-shore-associate', notes: '', answer: 'No', note: 'Pay is too low.', answeredOn: iso(-4) },
+      { id: 'J-107', added: iso(-7), company: 'East End Family Dentistry', title: 'Dentist', location: 'Riverhead, NY', setting: 'On-site', pay: '$190,000 - $215,000 a year', payLow: 190000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Small practice, owner plans to retire in 3 years.', link: 'https://example.com/jobs/east-end-dentist', notes: '', answer: 'No', note: 'Too far to drive.', answeredOn: iso(-6) }
+    ],
+    docs: [
+      { id: 'D-1', jobId: '', name: 'Your resume', link: gd('demo-base-resume'), status: 'Approved', request: '', updated: iso(-7) },
+      { id: 'D-2', jobId: 'J-103', name: 'Resume for Massapequa Dental Arts', link: gd('demo-resume-103'), status: 'Approved', request: '', updated: iso(-2) },
+      { id: 'D-3', jobId: 'J-103', name: 'Cover letter for Massapequa Dental Arts', link: gd('demo-cover-103'), status: 'Approved', request: '', updated: iso(-2) },
+      { id: 'D-4', jobId: 'J-104', name: 'Resume for North Shore Smiles', link: gd('demo-resume-104'), status: 'Approved', request: '', updated: iso(-7) },
+      { id: 'D-5', jobId: 'J-104', name: 'Cover letter for North Shore Smiles', link: gd('demo-cover-104'), status: 'Approved', request: '', updated: iso(-7) },
+      { id: 'D-6', jobId: 'J-104', name: 'Thank-you note for North Shore Smiles', link: gd('demo-thanks-104'), status: 'Ready for review', request: '', updated: iso(-1) }
+    ],
+    apps: [
+      { id: 'A-1', jobId: 'J-104', company: 'North Shore Smiles', role: 'General Dentist', applied: iso(-6), status: 'Interview scheduled', followUpDue: '', interview: iso(3),
+        prepBring: 'Your pediatric work: about 30 kids a week at your last practice, with very few needing a second visit.', prepExpect: 'Tell us about yourself; How do you handle an anxious patient?; Walk us through a case you are proud of; Why North Shore Smiles?', prepAsk: 'How are new patients split between dentists? What does a normal day look like?' }
+    ]
+  };
+}
+var demoN = 0;
+function demoApi(b) {
+  var r = { ok: true };
+  if (b.action === 'me') r = demoData();
+  else if (b.action === 'answer') r = { ok: true, answer: { yes: 'Yes', no: 'No', q: 'Question' }[b.a] || '' };
+  else if (b.action === 'app') r = b.id ? { ok: true, id: b.id } : { ok: true, id: 'A-D' + (++demoN) };
+  else if (b.action === 'redeem') r = { ok: true, t: 'demo' };
+  return new Promise(function (res) { setTimeout(function () { res(r); }, 120); });
+}
 
 /* ---- API ---- */
-function get(params) { var u = API + '?' + new URLSearchParams(params).toString(); return fetch(u, { redirect: 'follow' }).then(function (r) { return r.json(); }); }
-function post(body) { return fetch(API, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(function (r) { return r.json(); }); }
+function get(params) { if (S.demo) return demoApi(params); var u = API + '?' + new URLSearchParams(params).toString(); return fetch(u, { redirect: 'follow' }).then(function (r) { return r.json(); }); }
+function post(body) { if (S.demo) return demoApi(body); return fetch(API, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(function (r) { return r.json(); }); }
+function ansOf(j) { var a = String((j && j.answer) || '').toLowerCase(); return a.indexOf('yes') === 0 ? 'yes' : a.indexOf('no') === 0 ? 'no' : a ? 'q' : ''; }
 function load() {
   if (!S.token) { S.status = 'signin'; render(); return; }
   S.status = 'loading'; render();
   get({ action: 'me', t: S.token }).then(function (d) {
-    if (!d.ok) { S.status = 'signin'; S.err = d.error === 'expired' ? 'Your sign-in link has expired. Enter your email and we\'ll send you a new one.' : 'Sorry, we couldn\'t open your portal. Please sign in again. (' + d.error + ')'; try { localStorage.removeItem('sp_token'); } catch (e) {} S.token = null; render(); return; }
+    if (!d.ok) { S.status = 'signin'; S.err = d.error === 'expired' ? 'Your sign-in link has expired. Enter your email and we\'ll send you a new one.' : 'Sorry, we couldn\'t open your portal. Please sign in again. (' + d.error + ')'; lsDel('sp_token'); S.token = null; render(); return; }
+    d.jobs = d.jobs || []; d.docs = d.docs || []; d.apps = d.apps || [];
     S.data = d; S.status = 'ready';
-    /* Fix the job order once per load so a card never jumps away while the client is answering it. */
-    S.order = d.jobs.slice().sort(function (a, b) { return (a.answer ? 1 : 0) - (b.answer ? 1 : 0) || String(b.added).localeCompare(String(a.added)); }).map(function (x) { return x.id; });
+    /* Fix the job order once per load so a card never jumps away while the client is answering it:
+       unanswered first, then Yes and Question, then No (shown in Passed). */
+    var grp = function (x) { var a = ansOf(x); return !a ? 0 : a === 'no' ? 2 : 1; };
+    S.order = d.jobs.slice().sort(function (a, b) { return grp(a) - grp(b) || String(b.added).localeCompare(String(a.added)); }).map(function (x) { return x.id; });
     render();
   }).catch(function () { S.status = 'error'; render(); });
 }
@@ -115,71 +376,86 @@ function requestLink(email) {
   post({ action: 'requestLink', email: email }).then(function () { S.sent = email; S.err = ''; render(); }).catch(function () { S.err = 'We couldn\'t send the link. Please check your connection and try again.'; render(); });
 }
 var ANS_WORD = { yes: 'Yes', no: 'No', q: 'Question' };
-function answer(jobId, a, note) {
+var ANS_TOAST = { yes: 'Saved. Sherif starts your documents.', no: 'Saved. Moved to Passed.', q: 'Saved. Add your question below.' };
+function answer(jobId, a, note, quiet) {
   var j = S.data.jobs.filter(function (x) { return x.id === jobId; })[0]; if (!j) return;
-  /* Show the choice right away (button fills in), then confirm once the sheet has it. */
+  /* Show the choice right away (card color changes), then confirm once the sheet has it. */
   var before = { answer: j.answer, note: j.note };
   j.answer = a ? ANS_WORD[a] : ''; S.pending[jobId] = true; S.justSaved = null; if (S.errJob === jobId) { S.errJob = null; S.err = ''; } render();
   post({ action: 'answer', t: S.token, job: jobId, a: a, note: note }).then(function (d) {
     delete S.pending[jobId];
-    if (d.ok) { j.answer = d.answer; j.answeredOn = new Date().toISOString().slice(0, 10); if (note !== undefined) j.note = note; S.justSaved = jobId; SP.toast(d.answer ? 'Saved. Sherif can see your answer now.' : 'Answer cleared.'); }
+    if (d.ok) { j.answer = d.answer; j.answeredOn = todayISO(); if (note !== undefined) j.note = note; S.justSaved = jobId; if (!quiet) { if (note !== undefined) SP.toast('Sent. Sherif can see it now.'); else if (a === 'no') undoToast(ANS_TOAST.no, undoTo(jobId, before.answer)); else SP.toast(d.answer ? ANS_TOAST[a] || 'Saved.' : 'Answer cleared.'); } }
     else { j.answer = before.answer; j.note = before.note; S.errJob = jobId; S.err = d.error === 'expired' ? 'Your sign-in has expired. Please sign in again.' : 'Not saved: ' + d.error; }
     render();
   }).catch(function () { delete S.pending[jobId]; j.answer = before.answer; j.note = before.note; S.errJob = jobId; S.err = 'That didn\'t save. Please check your connection and try again.'; render(); });
 }
-function answerNextStep(ans) {
-  if (ans === 'yes') return 'Saved. Next, Sherif tailors your resume and a cover letter for this job. They will show up in Documents for you to approve before you apply.';
-  if (ans === 'no') return 'Saved. This job is set aside. If you want, add a quick reason below so your next matches fit better.';
-  if (ans === 'q') return 'Saved. Type your question below and tap Send. Sherif will get back to you.';
-  return '';
+function undoTo(jobId, prevWord) { var code = ansOf({ answer: prevWord }); return function () { answer(jobId, code, undefined, true); SP.toast(code ? 'Back to ' + ANS_WORD[code] + '.' : 'Undone.'); }; }
+function undoToast(msg, fn) {
+  document.querySelectorAll('.toast').forEach(function (t) { t.remove(); });
+  var el = document.createElement('div'); el.className = 'toast undo'; el.setAttribute('role', 'status');
+  el.innerHTML = '<span>' + esc(msg) + '</span><button type="button">Undo</button>';
+  el.querySelector('button').addEventListener('click', function () { el.remove(); fn(); });
+  document.body.appendChild(el); setTimeout(function () { el.remove(); }, 6000);
 }
 function docStatus(docId, status, request) {
   post({ action: 'docStatus', t: S.token, doc: docId, status: status, request: request }).then(function (d) {
-    if (d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; } SP.toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent to Sherif.'); }
+    if (d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } SP.toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent to Sherif.'); }
     else SP.toast('Not saved: ' + d.error);
     render();
-  });
+  }).catch(function () { SP.toast('That didn\'t save. Please try again.'); });
 }
+function track(what, job) { try { post({ action: 'track', t: S.token, what: what, job: job || '' }).catch(function () {}); } catch (e) {} }
 
-/* ---- views ---- */
-function counts() { var j = (S.data && S.data.jobs) || []; var c = { yes: 0, no: 0, q: 0, wait: 0 }; j.forEach(function (x) { var a = String(x.answer || '').toLowerCase(); if (a.indexOf('yes') === 0) c.yes++; else if (a.indexOf('no') === 0) c.no++; else if (a) c.q++; else c.wait++; }); return c; }
-function topbar(active) {
-  var items = [['home', 'Home'], ['jobs', 'Job matches'], ['docs', 'Documents'], ['apps', 'Applications']];
-  var c = counts();
-  return '<div class="wrap"><nav class="topbar"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a><div class="links">' +
-    items.map(function (i) { return '<button data-go="' + i[0] + '" aria-current="' + (active === i[0]) + '">' + i[1] + (i[0] === 'jobs' && c.wait ? ' (' + c.wait + ')' : '') + '</button>'; }).join('') +
-    '</div><div class="right">' + esc(S.data.client.name) + ' · <button data-signout style="border:0;background:transparent;color:#d7e0ee;font-weight:700;padding:0">Sign out</button></div></nav></div>';
-}
-function hero(active, kicker, title, text) {
-  var d = S.data, c = counts();
-  var resumeDoc = (d.docs || []).filter(function (x) { return /resume/i.test(x.name) && !x.jobId; })[0];
-  var resumeDone = resumeDoc && /approved/i.test(resumeDoc.status);
-  var appsN = (d.apps || []).length;
-  var ms = [
-    { t: 'Intake', d: 'Done ' + fmtDate(d.client.startDate), s: 'done' },
-    { t: 'Resume', d: resumeDone ? 'Approved ' + fmtDate(resumeDoc.updated) : resumeDoc ? 'Waiting for your OK' : 'In review', s: resumeDone ? 'done' : 'now' },
-    { t: 'Pick your jobs', d: !d.jobs.length ? 'Coming soon' : c.wait ? c.wait + ' of ' + d.jobs.length + ' waiting' : 'All answered', s: !d.jobs.length ? '' : c.wait ? 'now' : 'done' },
-    { t: 'Applications', d: appsN ? appsN + ' submitted' : c.yes ? c.yes + ' in progress' : 'After your first Yes', s: appsN ? 'done' : c.yes ? 'now' : '' },
-  ];
-  return '<div class="sky">' + topbar(active) + '<div class="wrap"><div class="heroText"><p class="kicker">' + kicker + '</p><h2>' + title + '</h2>' + (text ? '<p>' + text + '</p>' : '') + '</div></div>' + SP.scene(250, active) + '</div>' +
-    '<div class="milestones"><div class="wrap">' + ms.map(function (m) { return '<div class="ms ' + m.s + '"><div class="dot"></div><div class="t">' + m.t + '</div><div class="d">' + esc(m.d) + '</div></div>'; }).join('') + '</div></div>';
-}
-function mobnav(active) { return '<div class="mob-nav">' + [['home', 'Home'], ['jobs', 'Jobs'], ['docs', 'Docs'], ['apps', 'Apps']].map(function (i) { return '<button data-go="' + i[0] + '" aria-current="' + (active === i[0]) + '">' + i[1] + '</button>'; }).join('') + '</div>'; }
-function floorPill(f) { f = String(f || '').toLowerCase(); if (f.indexOf('at or above') === 0) return '<span class="pill ok">Meets your floor</span>'; if (f.indexOf('below') === 0) return '<span class="pill bad">Below your floor</span>'; if (!f) return ''; return '<span class="pill gold">Pay not posted</span>'; }
-function trialText(c) { var dl = daysFrom(c.trialEnds); if (dl == null) return 'Trial starts with your first jobs'; if (dl < 0) return 'Trial ended ' + fmtDate(c.trialEnds); return dl + ' days left in your trial'; }
+/* ---- icons ---- */
+var IC = {
+  jobs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 12.5h18"/></svg>',
+  docs: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg>',
+  apps: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  checkc: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M6.8 12.4l3.4 3.4 7-7.2" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  q: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 9a3 3 0 0 1 5.8 1c0 2-3 2.6-3 4.5M12 18.2v.1"/></svg>',
+  qc: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.3-2.7 4.1M12 17.6v.1" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+  pdf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>',
+  ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>',
+  kit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M12 11v5M9.5 13.5h5"/></svg>'
+};
 
+/* ---- shell ---- */
+function counts() { var j = (S.data && S.data.jobs) || []; var c = { yes: 0, no: 0, q: 0, wait: 0 }; j.forEach(function (x) { var a = ansOf(x); if (a) c[a]++; else c.wait++; }); return c; }
+function docsReady() { return ((S.data && S.data.docs) || []).filter(function (x) { return /ready|review/i.test(x.status || '') && !/approved/i.test(x.status || ''); }).length; }
+var TABS = [['jobs', 'Jobs'], ['docs', 'Documents'], ['apps', 'Applied']];
+function tabCount(k) { var c = counts(); return k === 'jobs' ? c.wait : k === 'docs' ? docsReady() : 0; }
+function shell(active, title, sub) {
+  var cl = S.data.client, first = cl.firstName || String(cl.name || '').split(' ')[0] || 'You';
+  var tabs = TABS.map(function (t) { var n = tabCount(t[0]); return '<button data-go="' + t[0] + '" aria-current="' + (active === t[0]) + '">' + IC[t[0]] + t[1] + (n ? '<span class="cnt" aria-label="' + n + ' waiting">' + n + '</span>' : '') + '</button>'; }).join('');
+  return '<header class="sky"><div class="wrap"><div class="ptop"><a class="brand" href="/"><span>' + SP.LOGO + '</span><span class="bname">Steady Path</span></a>' + (S.demo ? '<span class="demo-badge">Demo</span>' : '') +
+    '<nav class="ptabs" aria-label="Portal">' + tabs + '</nav>' +
+    '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
+    (S.menu ? '<div class="menu" role="menu"><button role="menuitem" data-go="feedback">Give feedback</button><button role="menuitem" data-signout>Sign out</button></div>' : '') + '</div></div>' +
+    '<div class="ptitle"><h1>' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div></div>' + SP.scene(150, active) + '</header>';
+}
+function tabbar(active) {
+  return '<div class="tabbar"><nav aria-label="Portal">' + TABS.map(function (t) { var n = tabCount(t[0]); return '<button data-go="' + t[0] + '" aria-current="' + (active === t[0]) + '">' + IC[t[0]] + '<span>' + t[1] + '</span>' + (n ? '<span class="cnt" aria-label="' + n + ' waiting">' + n + '</span>' : '') + '</button>'; }).join('') + '</nav></div>';
+}
+function trialText(c) { var dl = daysFrom(c.trialEnds); if (dl == null) return ''; if (dl < 0) return 'Trial ended ' + fmtDate(c.trialEnds); return dl + (dl === 1 ? ' day' : ' days') + ' left in your trial'; }
+
+/* ---- sign in ---- */
 function vSignin() {
   return '<div class="login"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a><h1>Your next job, one honest step at a time.</h1><p>Real openings. Posted pay. A person who checked every one.</p><ul><li>Pay shown on every match</li><li>Each posting checked live before it reaches you</li><li>Your resume and cover letter tailored for every Yes</li></ul></div>' +
     '<div class="box"><div><h2>Welcome back</h2><p class="tag">Sign in with your email.</p></div>' +
-    (S.sent ? '<div class="sent">Your link is on its way to ' + esc(S.sent) + '. Open it on this device to stay signed in for 30 days.</div>' +
+    (S.sent ? '<div class="sent">Your link is on its way to ' + esc(S.sent) + '. Open it on this device to stay signed in for 90 days.</div>' +
       '<div class="codebox"><label for="code">Or type the 6-digit code from that email</label>' + (S.codeErr ? '<div class="warn">' + esc(S.codeErr) + '</div>' : '') +
       '<form id="codeForm"><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" aria-label="6-digit code"><button class="btn" id="codeBtn" type="submit" style="width:100%;margin-top:8px">Sign in with the code</button></form>' +
-      '<p class="fine" style="margin:0">Best when you opened Steady Path from your home screen: the code signs you in right here.</p></div>' +
-      '<p class="fine">Nothing in your inbox after a few minutes? Check spam, or email hello@steadypathcareers.com.</p>' :
+      '<p class="fine" style="margin:0">Opened Steady Path from your home screen? The code signs you in right here.</p></div>' +
+      '<p class="fine">Nothing after a few minutes? Check spam, or email hello@steadypathcareers.com.</p>' :
       '<p class="psub">We\'ll send a one-time link. No password to remember.</p>' + (S.err ? '<div class="warn">' + esc(S.err) + '</div>' : '') +
       '<form id="linkForm"><input type="email" id="email" required placeholder="you@example.com" aria-label="Email" autocomplete="email"><button class="btn gold" id="linkBtn" type="submit" style="width:100%;margin-top:10px">Email me a sign-in link</button></form>') +
-    '<p class="fine">Not a client yet? <a href="/start/">Start your free trial</a>. Your information is shown only to you and to Sherif.</p></div></div>';
+    '<p class="fine">Not a client yet? <a href="/start/">Start your free trial</a>. Only you and Sherif can see your information.</p></div></div>';
 }
+
+/* ---- feedback ---- */
 function fbDue(cl) {
   if (cl.lastFeedback && daysFrom(cl.lastFeedback) != null && daysFrom(cl.lastFeedback) > -10) return false;
   var since = cl.startDate ? -daysFrom(cl.startDate) : null, left = daysFrom(cl.trialEnds);
@@ -189,19 +465,19 @@ function vFeedback() {
   var f = S.fb;
   var scale = function (key, from, to) { var out = ''; for (var i = from; i <= to; i++) out += '<button type="button" data-fb="' + key + '" data-v="' + i + '" aria-pressed="' + (f[key] === i) + '">' + i + '</button>'; return '<div class="scale">' + out + '</div>'; };
   var pick = function (key, opts) { return '<div class="scale">' + opts.map(function (o) { return '<button type="button" data-fb="' + key + '" data-v="' + o + '" aria-pressed="' + (f[key] === o) + '">' + o + '</button>'; }).join('') + '</div>'; };
-  if (S.fbDone) return hero('home', 'Your feedback', 'Thank you.', 'Sherif reads every answer himself.') + '<main class="wrap narrow pbody"><div class="card"><p style="margin:0">Got it. If you wrote something that needs a reply, Sherif will get back to you.</p><p style="margin:12px 0 0"><button class="btn gold" data-go="home">Back to your portal</button></p></div></main>' + mobnav('home');
-  return hero('home', 'Your feedback', 'How is it going so far?', 'A few quick questions, about two minutes. Be blunt; it only helps.') +
-    '<main class="wrap narrow pbody"><div class="card">' +
+  if (S.fbDone) return shell('feedback', 'Thank you.', 'Sherif reads every answer himself.') + '<main class="pmain"><div class="card"><p style="margin:0">Got it. If you asked something, Sherif will get back to you.</p><p style="margin:12px 0 0"><button class="btn gold" data-go="jobs">Back to your jobs</button></p></div></main>' + tabbar('');
+  return shell('feedback', 'How is it going?', 'About two minutes. Be blunt; it helps.') +
+    '<main class="pmain"><div class="card">' +
     '<div class="fbq"><div class="lab">How likely are you to recommend Steady Path to a friend?</div>' + scale('rec', 0, 10) + '<div class="scale-ends"><span>Not at all</span><span>Definitely</span></div></div>' +
     '<div class="fbq"><div class="lab">How useful have your job matches been?</div>' + scale('jobs', 1, 5) + '<div class="scale-ends" style="max-width:250px"><span>Not useful</span><span>Very useful</span></div></div>' +
     '<div class="fbq"><label for="fbHelp">What has helped you most?</label><textarea id="fbHelp" maxlength="1500">' + esc(S.fbText.help || '') + '</textarea></div>' +
     '<div class="fbq"><label for="fbChange">What is one thing you would change?</label><textarea id="fbChange" maxlength="1500">' + esc(S.fbText.change || '') + '</textarea></div>' +
     '<div class="fbq"><div class="lab">Would you pay to keep going after your free trial?</div>' + pick('pay', ['Yes', 'Maybe', 'No']) + '<label for="fbWhy" style="font-weight:600;color:var(--muted)">Why? (optional)</label><textarea id="fbWhy" maxlength="1500" style="min-height:60px">' + esc(S.fbText.why || '') + '</textarea></div>' +
-    '<div class="fbq"><label for="fbQuote">Optional: a sentence or two about your experience that we could share on our website</label><textarea id="fbQuote" maxlength="600" style="min-height:60px">' + esc(S.fbText.quote || '') + '</textarea>' +
+    '<div class="fbq"><label for="fbQuote">Optional: a sentence or two we could share on our website</label><textarea id="fbQuote" maxlength="600" style="min-height:60px">' + esc(S.fbText.quote || '') + '</textarea>' +
     '<div class="lab" style="margin-top:10px">May we share it?</div>' + pick('share', ['Yes, with my first name and last initial', 'Yes, but without my name', 'No, keep it private']) + '<div class="scale-ends" style="justify-content:flex-start"><span>We never share anything without a yes here.</span></div></div>' +
     (S.fbErr ? '<div class="warn" style="margin-top:14px">' + esc(S.fbErr) + '</div>' : '') +
     '<p style="margin:18px 0 0"><button class="btn gold" data-fbsubmit ' + (S.fbBusy ? 'disabled' : '') + '>' + (S.fbBusy ? 'Sending…' : 'Send feedback') + '</button></p>' +
-    '</div></main>' + mobnav('home');
+    '</div></main>' + tabbar('');
 }
 function sendFeedback() {
   var f = S.fb, tx = function (id) { var el = $(id); return el ? el.value.trim() : ''; };
@@ -210,108 +486,193 @@ function sendFeedback() {
   S.fbBusy = true; S.fbErr = ''; render();
   post({ action: 'feedback', t: S.token, recommend: f.rec, jobsUseful: f.jobs, mostHelpful: S.fbText.help, oneChange: S.fbText.change, wouldPay: f.pay || '', why: S.fbText.why, quote: S.fbText.quote, share: S.fbText.quote ? (f.share || 'No, keep it private') : '' }).then(function (d) {
     S.fbBusy = false;
-    if (d.ok) { S.fbDone = true; S.data.client.lastFeedback = new Date().toISOString().slice(0, 10); window.scrollTo(0, 0); }
+    if (d.ok) { S.fbDone = true; S.data.client.lastFeedback = todayISO(); window.scrollTo(0, 0); }
     else S.fbErr = d.error === 'expired' ? 'Your sign-in expired. Request a new link from the sign-in page, then send this again.' : 'Sorry, that didn\'t send. Please try again in a minute.';
     render();
   }).catch(function () { S.fbBusy = false; S.fbErr = 'That didn\'t send. Please check your connection and try again.'; render(); });
 }
+
+/* ---- next step ---- */
 function nextStep(d) {
   var c = counts(), first = d.client.firstName;
-  var waitDoc = (d.docs || []).filter(function (x) { return /ready|review/i.test(x.status || ''); })[0];
+  var waitDoc = (d.docs || []).filter(function (x) { return /ready|review/i.test(x.status || '') && !/approved/i.test(x.status || ''); })[0];
   var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0; }).sort(function (a, b) { return daysFrom(a.interview) - daysFrom(b.interview); })[0];
-  if (soon) { var dd = daysFrom(soon.interview); return { t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' at ' + soon.company, s: fmtDate(soon.interview) + ' · Your prep sheet and practice cards are ready.', go: 'apps', b: 'Practice now' }; }
-  if (waitDoc) return { t: 'Review ' + waitDoc.name, s: 'Approve it or ask for changes. Once you approve, you can apply.', go: 'docs', b: 'Open documents' };
-  if (c.wait) return { t: 'Mark your ' + c.wait + ' waiting job' + (c.wait === 1 ? '' : 's'), s: 'Yes, No or Question. Each Yes gets a tailored resume and cover letter.', go: 'jobs', b: 'Review jobs' };
-  if (!d.jobs.length) return { t: 'Sherif is reading your resume', s: 'You\'ll get a short note with any questions about your resume. Your first matches follow once we agree on your job titles.', go: '', b: '' };
-  if (c.yes && !(d.apps || []).length) return { t: 'Your tailored documents are being written', s: 'You\'ll see them in Documents, ready for you to approve.', go: 'docs', b: 'Documents' };
-  return { t: 'All caught up, ' + first, s: 'New matches arrive each week. Sherif is following up on everything in progress.', go: 'apps', b: 'Applications' };
+  if (soon) { var dd = daysFrom(soon.interview); return { t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days'), s: soon.company + ' · ' + fmtDate(soon.interview) + '. Practice cards are ready.', go: 'apps', b: 'Practice' }; }
+  if (waitDoc) return { t: 'Check: ' + waitDoc.name, s: 'Approve it or ask for changes.', go: 'docs', b: 'Open' };
+  if (c.wait) return { t: c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer', s: 'Yes, No or Question.', go: 'first', b: 'Start' };
+  if (!d.jobs.length) return { t: 'Sherif is reading your resume', s: 'Your first matches come next.', go: '', b: '' };
+  if (c.yes && !(d.apps || []).length) return { t: 'Your documents are being written', s: 'They show up in Documents for your OK.', go: 'docs', b: 'Documents' };
+  return { t: 'All caught up, ' + first, s: 'New matches come each week.', go: '', b: '' };
 }
-function vHome() {
-  var d = S.data, c = counts(), cl = d.client;
-  var pl = function (n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); };
-  var title = !d.jobs.length ? 'Your search is being set up.' : c.wait ? (c.wait === d.jobs.length ? pl(d.jobs.length, 'job') + (d.jobs.length === 1 ? ' is' : ' are') + ' waiting for your answer.' : pl(c.wait, 'job') + (c.wait === 1 ? ' still needs' : ' still need') + ' an answer.') : 'All caught up. Sherif is on it.';
-  return hero('home', esc(SP.greeting(cl.firstName)), title, 'Every job here was checked on the employer\'s own posting, and every one shows pay.') +
-    '<main class="wrap narrow pbody">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
-    (fbDue(cl) ? '<div class="fbask"><p><b>Two minutes?</b> Tell us how your search is going and what you would change.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
-    (function () { var n = nextStep(d); return '<div class="nextcard"><div class="n">Next</div><div><b>' + esc(n.t) + '</b><span>' + esc(n.s) + '</span></div>' + (n.go ? '<button class="btn gold" data-go="' + n.go + '">' + esc(n.b) + '</button>' : '') + '</div>'; })() +
-    (cl.weeklyNote ? '<div class="note"><div class="av">S</div><div><div class="from">A note from Sherif' + (cl.lastTouch ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p class="q" style="font-size:17px">' + esc(cl.weeklyNote) + '</p></div></div>' : '') +
-    '<div class="stats"><div class="stat"><div class="v">' + c.wait + '</div><div class="l">Jobs waiting for you</div></div><div class="stat"><div class="v">' + c.yes + '</div><div class="l">Yes, apply</div></div><div class="stat"><div class="v">' + d.apps.length + '</div><div class="l">Applications sent</div></div><div class="stat"><div class="v">' + (daysFrom(cl.trialEnds) != null && daysFrom(cl.trialEnds) >= 0 ? daysFrom(cl.trialEnds) : '–') + '</div><div class="l">Days left in your trial</div></div></div>' +
-    '<div class="promise"><div><b>Pay on every match</b><span>From the employer\'s posting, or labeled as an estimate.</span></div><div><b>Checked live</b><span>A person opened each posting before it reached you.</span></div><div><b>Tailored per job</b><span>Your resume and cover letter rewritten for every Yes.</span></div></div>' +
-    installCard() +
-    '<div class="card"><h3>Need something?</h3><p class="psub" style="margin:0">Reply to any email from hello@steadypathcareers.com, or text Sherif. Thoughts on how this is going? <a href="#" data-gofb>Tell us here</a>.</p><p style="margin:10px 0 0"><button class="linkbtn" data-signout>Sign out on this device</button></p></div></main>' + mobnav('home');
-}
-/* ---- put it on your home screen ---- */
+
+/* ---- home screen card ---- */
 var installEvt = null;
-window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvt = e; if (S.status === 'ready' && S.view === 'home') render(); });
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvt = e; if (S.status === 'ready' && S.view === 'jobs') render(); });
 function standalone() { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } }
 function installCard() {
   if (standalone()) return '';
-  try { var hid = localStorage.getItem('sp_a2hs'); if (hid && Date.now() - Number(hid) < 30 * 864e5) return ''; } catch (e) { return ''; }
+  var hid = lsGet('sp_a2hs'); if (hid && Date.now() - Number(hid) < 30 * 864e5) return '';
   var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   if (!installEvt && !isIOS) return '';
   var ic = '<div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#F2D98A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 7 v7 M8.8 10.8 12 14 l3.2 -3.2"/></svg></div>';
   var body = isIOS && !installEvt
-    ? '<div><b>Put Steady Path on your home screen</b><p>In Safari, tap the Share button, then "Add to Home Screen". Your portal opens like an app, one tap away.</p></div><div class="row"><button class="btn ghost" data-a2hs-hide>Maybe later</button></div>'
-    : '<div><b>Put Steady Path on your home screen</b><p>One tap to your jobs, documents and interview prep, like an app.</p></div><div class="row"><button class="btn gold" data-a2hs-go>Add it</button><button class="btn ghost" data-a2hs-hide>Maybe later</button></div>';
+    ? '<div><b>Add to your home screen</b><p>In Safari, tap Share, then "Add to Home Screen".</p></div><div class="row"><button class="btn ghost" data-a2hs-hide>Maybe later</button></div>'
+    : '<div><b>Add to your home screen</b><p>One tap to your jobs, like an app.</p></div><div class="row"><button class="btn gold" data-a2hs-go>Add it</button><button class="btn ghost" data-a2hs-hide>Maybe later</button></div>';
   return '<div class="a2hs">' + ic + body + '</div>';
 }
-/* ---- a little celebration for an offer ---- */
 function celebrate() {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (REDUCED) return;
   var box = document.createElement('div'); box.className = 'confetti'; box.setAttribute('aria-hidden', 'true');
   var colors = ['#C9A227', '#F2D98A', '#1F3A5F', '#2E4C78', '#FBF6EE'];
   for (var i = 0; i < 44; i++) {
     var p = document.createElement('i');
-    p.style.left = (Math.random() * 100) + 'vw';
-    p.style.background = colors[i % colors.length];
-    p.style.setProperty('--d', (1 + Math.random() * 1.2) + 's');
-    p.style.setProperty('--r', (Math.random() > .5 ? '' : '-') + (360 + Math.random() * 540) + 'deg');
-    p.style.animationDelay = (Math.random() * .4) + 's';
-    box.appendChild(p);
+    p.style.left = (Math.random() * 100) + 'vw'; p.style.background = colors[i % colors.length];
+    p.style.setProperty('--d', (1 + Math.random() * 1.2) + 's'); p.style.setProperty('--r', (Math.random() > .5 ? '' : '-') + (360 + Math.random() * 540) + 'deg');
+    p.style.animationDelay = (Math.random() * .4) + 's'; box.appendChild(p);
   }
-  document.body.appendChild(box);
-  setTimeout(function () { box.remove(); }, 3200);
+  document.body.appendChild(box); setTimeout(function () { box.remove(); }, 3200);
 }
-function jobCard(j) {
-  var a = String(j.answer || '').toLowerCase(); var ans = a.indexOf('yes') === 0 ? 'yes' : a.indexOf('no') === 0 ? 'no' : a ? 'q' : '';
-  var est = /estimate/i.test(j.paySource) || /not posted/i.test(j.pay); var busy = S.pending[j.id];
-  var heads = /below/i.test(j.floor) ? 'Heads-up: this one is below your pay floor. Aim for the top of the range if you go for it.' : '';
-  return '<div class="jobcard ' + (ans ? 'answered' : '') + '"><div class="band"></div><div class="in">' +
-    '<div class="top"><div><div class="title">' + esc(j.title) + '</div><div class="co">' + esc(j.company) + ' · ' + esc(j.location) + '</div></div><div class="paybox ' + (est ? 'est' : '') + '"><div class="amt">' + esc(String(j.pay).split(';')[0]) + '</div><div class="src">' + (est ? 'Estimate. Employer did not post pay.' : 'Posted by the employer') + '</div></div></div>' +
-    '<div class="tags">' + floorPill(j.floor) + (j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '') + '<span class="pill check">Checked live ' + esc(fmtDate(j.added)) + '</span></div>' +
-    (j.why ? '<p class="why">' + esc(j.why) + '</p>' : '') + (j.notes ? '<p class="heads">' + esc(j.notes) + '</p>' : heads ? '<p class="heads">' + heads + '</p>' : '') +
-    '<div class="answer"><button class="yes" data-ans="yes" data-j="' + esc(j.id) + '" aria-pressed="' + (ans === 'yes') + '" ' + (busy ? 'disabled' : '') + '>Yes, apply</button><button class="no" data-ans="no" data-j="' + esc(j.id) + '" aria-pressed="' + (ans === 'no') + '" ' + (busy ? 'disabled' : '') + '>No</button><button class="q" data-ans="q" data-j="' + esc(j.id) + '" aria-pressed="' + (ans === 'q') + '" ' + (busy ? 'disabled' : '') + '>Question</button>' +
-    (busy ? '<span class="saved" style="color:var(--muted)">Saving…</span>' : ans ? '<span class="saved">&#10003; Saved</span> <button class="clear" data-clear="' + esc(j.id) + '">Clear</button>' : '') + (S.errJob === j.id && S.err ? '<span class="err">' + esc(S.err) + '</span>' : '') +
-    (j.link ? '<a href="' + esc(j.link) + '" target="_blank" rel="noopener">See the posting</a>' : '') +
-    (S.data.client.home && j.location && !/remote/i.test(j.location) && !/^\s*remote/i.test(j.setting || '') ? '<a class="commute" href="https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(S.data.client.home) + '&destination=' + encodeURIComponent(String(j.company).replace(/\s*\(.*?\)/g, '') + ', ' + j.location) + '" target="_blank" rel="noopener">Commute from home</a>' : '') + '</div>' +
-    (ans === 'q' || ans === 'no' ? '<div class="notebox"><textarea placeholder="' + (ans === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps Sherif aim your next matches.') + '" data-note="' + esc(j.id) + '">' + esc(S.notes[j.id] != null ? S.notes[j.id] : (j.note || '')) + '</textarea><button data-savenote="' + esc(j.id) + '" data-a="' + ans + '">Send</button></div>' : '') +
-    (ans && !busy && S.justSaved === j.id ? '<p class="nextstep">' + answerNextStep(ans) + '</p>' : '') +
-    '</div></div>';
+
+/* ---- job stage + apply kit ---- */
+var STAGES = ['Yes', 'Writing your documents', 'Ready for you', 'Applied', 'Interview'];
+var STAGES_SHORT = ['Yes', 'Writing', 'Ready', 'Applied', 'Interview'];
+function jobDocs(j) { return (S.data.docs || []).filter(function (x) { return x.jobId && String(x.jobId) === String(j.id); }); }
+function jobApp(j) { return (S.data.apps || []).filter(function (x) { return x.jobId && String(x.jobId) === String(j.id); })[0]; }
+function stageFor(j) {
+  var app = jobApp(j);
+  if (app && (app.interview || /interview/i.test(app.status || ''))) return 4;
+  if (app) return 3;
+  if (jobDocs(j).some(function (x) { return /approved/i.test(x.status || '') || /ready|review/i.test(x.status || ''); })) return 2;
+  return 1;
 }
+function tracker(st) {
+  var pct = (st / 4) * 80;
+  return '<ol class="trk" style="--p:' + pct + '%" aria-label="Progress: ' + esc(STAGES[st]) + '">' + STAGES.map(function (s, i) {
+    var cls = i < st ? 'done' : i === st ? 'now' : '';
+    return '<li class="' + cls + '"' + (i === st ? ' aria-current="step"' : '') + '><span class="d">' + (i < st ? '<span style="color:#fff">' + IC.check + '</span>' : '') + '</span><span class="full">' + s + '</span><span class="short">' + STAGES_SHORT[i] + '</span></li>';
+  }).join('') + '</ol>';
+}
+function pdfLink(link) { var m = String(link || '').match(/^https:\/\/docs\.google\.com\/document\/d\/([\w-]+)/); return m ? 'https://docs.google.com/document/d/' + m[1] + '/export?format=pdf' : safeUrl(link); }
+function kitChecks(id) { try { var v = JSON.parse(lsGet('sp_kit_' + id) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+var KIT_STEPS = ['Open the posting', 'Upload your resume PDF', 'Upload your cover letter PDF', 'Paste your ready answers', 'Submit, then come back here'];
+function applyKit(j, st) {
+  var docs = jobDocs(j), ok = function (x) { return /approved/i.test(x.status || ''); };
+  var cover = docs.filter(function (x) { return /cover/i.test(x.name) && ok(x); })[0];
+  var resume = docs.filter(function (x) { return !/cover/i.test(x.name) && /resume|cv/i.test(x.name) && ok(x); })[0];
+  var pending = docs.some(function (x) { return /ready|review/i.test(x.status || '') && !ok(x) && /resume|cover|cv/i.test(x.name); });
+  var app = jobApp(j), kit = j.kit || {}, link = safeUrl(j.link);
+  var answers = [['pay', 'Pay you want'], ['start', 'When you can start'], ['why', 'Why this office']].filter(function (a) { return String(kit[a[0]] || '').trim(); });
+  var checks = kitChecks(j.id);
+  var h = '<section class="kit" aria-label="Apply kit"><h3>' + IC.kit + 'Apply kit</h3>';
+  if (resume || cover) {
+    h += '<div class="pdfs">' + (resume && pdfLink(resume.link) ? '<a class="kbtn solid" href="' + esc(pdfLink(resume.link)) + '" target="_blank" rel="noopener" data-track="resume_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Resume (PDF)</a>' : '') +
+      (cover && pdfLink(cover.link) ? '<a class="kbtn solid" href="' + esc(pdfLink(cover.link)) + '" target="_blank" rel="noopener" data-track="cover_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Cover letter (PDF)</a>' : '') + '</div>';
+    if (!resume || !cover) h += '<p class="wait">' + (resume ? 'Your cover letter' : 'Your resume') + (pending ? ' is ready to check in Documents.' : ' is being written.') + '</p>';
+  } else if (pending) {
+    h += '<p class="wait">Your tailored resume and cover letter are ready to check. Approve them to get the PDFs.</p><button class="kbtn" data-go="docs">' + IC.docs + 'Open Documents</button>';
+  } else {
+    h += '<p class="wait">Your tailored resume and cover letter are being written.</p>';
+  }
+  if (link) h += '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener" data-track="posting" data-job="' + esc(j.id) + '">' + IC.ext + 'Open the posting</a>';
+  if (answers.length) h += '<div class="kans">' + answers.map(function (a) { return '<div class="a"><div><b>' + a[1] + '</b><p>' + esc(kit[a[0]]) + '</p></div><button type="button" data-copy="' + esc(kit[a[0]]) + '" aria-label="Copy: ' + a[1] + '">Copy</button></div>'; }).join('') + '</div>';
+  h += '<ol class="kcheck">' + KIT_STEPS.map(function (s, i) { var id = 'kc-' + esc(j.id) + '-' + i; return '<li><label for="' + id + '"><input type="checkbox" id="' + id + '" data-kc="' + esc(j.id) + '" data-i="' + i + '"' + (checks[i] ? ' checked' : '') + '><span>' + (i + 1) + '. ' + s + '</span></label></li>'; }).join('') + '</ol>';
+  h += app ? '<p class="kapplied">' + IC.check.replace('<svg', '<svg width="18" height="18" style="vertical-align:-3px"') + ' Applied ' + esc(fmtDate(app.applied)) + '. It is on your Applied tab.</p>'
+    : '<button class="kdone" data-applied="' + esc(j.id) + '"' + (S.applyBusy === j.id ? ' disabled' : '') + '>' + IC.check + (S.applyBusy === j.id ? 'Saving…' : 'I applied') + '</button>';
+  return h + '</section>';
+}
+
+/* ---- job card ---- */
+function floorPill(f) { f = String(f || '').toLowerCase(); if (f.indexOf('at or above') === 0) return '<span class="pill ok">Meets your floor</span>'; if (f.indexOf('below') === 0) return '<span class="pill gold">Below your floor</span>'; return ''; }
+function commuteUrl(j) { var h = S.data.client.home; if (!h || !j.location || /remote/i.test(j.location) || /^\s*remote/i.test(j.setting || '')) return ''; return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(h) + '&destination=' + encodeURIComponent(String(j.company).replace(/\s*\(.*?\)/g, '') + ', ' + j.location); }
+function jobCard(j, hint) {
+  var ans = ansOf(j), busy = S.pending[j.id], open = !!S.open[j.id], id = esc(j.id);
+  var est = /estimate/i.test(j.paySource || '') || /not posted/i.test(j.pay || '');
+  var heads = /below/i.test(j.floor || '') ? 'Heads-up: this is below your pay floor. Aim for the top of the range.' : '';
+  var link = safeUrl(j.link), cm = commuteUrl(j), st = ans === 'yes' ? stageFor(j) : 0;
+  var pills = [floorPill(j.floor), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : ''].filter(String).slice(0, 2).join('');
+  var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes</div>' : ans === 'q' ? '<div class="jst">' + IC.qc + 'Sherif is finding out</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
+  var h = '<article class="jc' + (ans ? ' s-' + ans : '') + '" data-jc="' + id + '"' + (ans !== 'no' ? ' data-swipe="1"' : '') + ' aria-label="' + esc(j.title + ', ' + j.company) + '">' +
+    (ans !== 'no' ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
+    (hint ? '<p class="hint"><span>Tip: swipe right for Yes, left to pass</span><button type="button" data-hidehint aria-label="Hide tip">&times;</button></p>' : '') +
+    status + '<h2 class="ttl">' + esc(j.title) + '</h2>' +
+    '<div class="pay' + (est ? ' est' : '') + '">' + esc(String(j.pay || 'Pay not posted').split(';')[0]) + (est ? '<small>Estimate</small>' : '') + '</div>' +
+    '<div class="where">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</div>' +
+    (pills ? '<div class="pills">' + pills + '</div>' : '');
+  if (ans === 'yes') h += tracker(st) + (st >= 2 ? applyKit(j, st) : '<p class="trknow">Next: Sherif writes your resume and cover letter.</p>');
+  if (ans === 'q' || ans === 'no') {
+    var nv = S.notes[j.id] != null ? S.notes[j.id] : (j.note || '');
+    h += '<div class="note2"><label class="sr" for="nt-' + id + '">' + (ans === 'q' ? 'Your question' : 'Why not') + '</label><textarea id="nt-' + id + '" placeholder="' + (ans === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps your next matches.') + '" data-note="' + id + '">' + esc(nv) + '</textarea>' +
+      '<div class="row"><button class="btn' + (ans === 'q' ? ' gold' : '') + '" data-savenote="' + id + '" data-a="' + ans + '">Send</button>' + (j.note && nv === j.note ? '<span class="saving">Sent</span>' : '') + '</div></div>';
+  }
+  if (busy) h += '<span class="saving">Saving…</span>';
+  if (S.errJob === j.id && S.err) h += '<p class="err" role="alert">' + esc(S.err) + '</p>';
+  h += '<button class="dtog" data-det="' + id + '" aria-expanded="' + open + '" aria-controls="det-' + id + '">Details ' + IC.chev + '</button>';
+  if (open) {
+    h += '<div class="det" id="det-' + id + '">' + (j.why ? '<p><span class="lab">Why it fits</span>' + esc(j.why) + '</p>' : '') +
+      (j.notes ? '<p><span class="lab">Our notes</span>' + esc(j.notes) + '</p>' : '') + (heads ? '<p class="heads">' + heads + '</p>' : '') +
+      '<p class="dlinks">' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener" data-track="posting" data-job="' + id + '">See the posting</a>' : '') +
+      (cm ? '<a href="' + esc(cm) + '" target="_blank" rel="noopener">Commute from home</a>' : '') +
+      (ans ? '<button type="button" data-clear="' + id + '">Clear my answer</button>' : '') + '</p></div>';
+  }
+  h += '</div><div class="ans3" role="group" aria-label="Your answer">' +
+    '<button class="yes" data-ans="yes" data-j="' + id + '" aria-pressed="' + (ans === 'yes') + '"' + (busy ? ' disabled' : '') + '>' + IC.check + 'Yes</button>' +
+    '<button class="no" data-ans="no" data-j="' + id + '" aria-pressed="' + (ans === 'no') + '"' + (busy ? ' disabled' : '') + '>' + IC.x + 'No</button>' +
+    '<button class="q" data-ans="q" data-j="' + id + '" aria-pressed="' + (ans === 'q') + '"' + (busy ? ' disabled' : '') + '>' + IC.q + 'Question</button></div></article>';
+  return h;
+}
+function hintOn() { if (lsGet('sp_swipehint')) return false; try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } }
 function vJobs() {
-  var d = S.data, c = counts();
+  var d = S.data, c = counts(), cl = d.client, total = d.jobs.length, decided = total - c.wait;
   var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; });
   var sorted = d.jobs.slice().sort(function (a, b) { var pa = pos[a.id] != null ? pos[a.id] : -1, pb = pos[b.id] != null ? pos[b.id] : -1; return pa - pb; });
-  return hero('jobs', 'Your job matches', !d.jobs.length ? 'Your first matches are on the way.' : c.wait ? c.wait + (c.wait === 1 ? ' still needs' : ' still need') + ' an answer.' : 'All answered. Sherif is on it.', 'Pay comes from the employer\'s posting unless marked as an estimate.') +
-    '<main class="wrap narrow pbody">' + (sorted.length ? '<div class="howto"><b>How to answer:</b> tap <b>Yes, apply</b>, <b>No</b> or <b>Question</b> once on each job. There is no Save button; your answer saves on its own and the card shows <b>&#10003; Saved</b>. Changed your mind? Tap a different answer.</div>' : '') +(sorted.length ? sorted.map(jobCard).join('') : '<div class="card"><p class="psub" style="margin:0">Nothing here yet. Jobs appear once your resume is set and the search has run; you\'ll get an email the moment they do.</p></div>') + '</main>' + mobnav('jobs');
+  var main = sorted.filter(function (j) { return ansOf(j) !== 'no'; }), passed = sorted.filter(function (j) { return ansOf(j) === 'no'; });
+  var hintId = hintOn() ? (main.filter(function (j) { return !ansOf(j); })[0] || {}).id : null;
+  var n = nextStep(d), longNote = String(cl.weeklyNote || '').length > 110;
+  var title = !total ? 'Your first matches are on the way.' : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : 'All answered. Nice work.';
+  return shell('jobs', esc(title), 'Pay is from the employer\'s posting.') +
+    '<main class="pmain">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
+    '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b><span>' + esc(trialText(cl)) + '</span></div>' +
+    (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
+    '<div class="nextc"><div><small>Next</small><b>' + esc(n.t) + '</b><span>' + esc(n.s) + '</span></div>' + (n.go === 'first' ? '<button class="btn gold" data-first>' + esc(n.b) + '</button>' : n.go ? '<button class="btn gold" data-go="' + n.go + '">' + esc(n.b) + '</button>' : '') + '</div>' +
+    (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Sherif' + (cl.lastTouch ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
+    (fbDue(cl) ? '<div class="fbask"><p>Two minutes? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
+    installCard() +
+    (main.length ? '<h2 class="sec-h">Your matches</h2><div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card"><p class="psub" style="margin:0">Nothing here yet. You will get an email when your first jobs arrive.</p></div>') +
+    (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '') +
+    '</main>' + tabbar('jobs');
 }
+
+/* ---- documents ---- */
 function vDocs() {
-  var d = S.data;
-  return hero('docs', 'Your documents', d.docs.length ? 'Open, comment, approve.' : 'Your resume review is in progress.', 'Tailored versions appear here for every job you say Yes to.') +
-    '<main class="wrap narrow pbody"><div class="card">' + (d.docs.length ? d.docs.map(function (x) {
-      var st = String(x.status || ''); var pillCls = /approved/i.test(st) ? 'ok' : /changes/i.test(st) ? 'gold' : 'info';
-      return '<div class="docrow"><div><b>' + esc(x.name) + '</b><div class="psub">' + (x.updated ? 'Updated ' + esc(fmtDate(x.updated)) + ' · ' : '') + '<span class="pill ' + pillCls + '">' + esc(st || 'In progress') + '</span></div>' + (x.request ? '<div class="psub" style="margin-top:4px">Your note: ' + esc(x.request) + '</div>' : '') + '</div>' +
-        '<div style="display:flex;gap:8px;flex-wrap:wrap">' + (x.link ? '<a class="btn ghost" href="' + esc(x.link) + '" target="_blank" rel="noopener">Open</a>' : '') + (/ready|review/i.test(st) ? '<button class="btn" data-approve="' + esc(x.id) + '">Approve</button><button class="btn ghost" data-changes="' + esc(x.id) + '">Ask for changes</button>' : '') + '</div>' +
-        (S.changesFor === x.id ? '<div class="notebox" style="width:100%"><textarea placeholder="What should change?" id="changesText"></textarea><button data-sendchanges="' + esc(x.id) + '">Send</button></div>' : '') + '</div>';
-    }).join('') : '<p class="psub" style="margin:0">Your resume draft will show up here with a button to approve it or ask for changes.</p>') + '</div></main>' + mobnav('docs');
+  var d = S.data, jobsById = {}; d.jobs.forEach(function (j) { jobsById[j.id] = j; });
+  var groups = [], gi = {};
+  d.docs.forEach(function (x) { var k = x.jobId && jobsById[x.jobId] ? x.jobId : (x.jobId || ''); if (gi[k] == null) { gi[k] = groups.length; groups.push({ k: k, job: jobsById[k], docs: [] }); } groups[gi[k]].docs.push(x); });
+  groups.sort(function (a, b) { var ra = a.docs.some(isReady) ? 0 : 1, rb = b.docs.some(isReady) ? 0 : 1; return (a.k ? 1 : 0) - (b.k ? 1 : 0) || ra - rb; });
+  var n = docsReady();
+  return shell('docs', n ? n + (n === 1 ? ' document needs' : ' documents need') + ' your OK' : 'Your documents', 'Open, approve or ask for changes.') +
+    '<main class="pmain">' + (d.docs.length ? groups.map(function (g) {
+      return '<section class="dgrp"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' + g.docs.map(docCard).join('') + '</section>';
+    }).join('') : '<div class="card"><p class="psub" style="margin:0">Your resume draft will show up here for your OK.</p></div>') + '</main>' + tabbar('docs');
 }
-function stageOf(x) { var t = String(x.status || '').toLowerCase(); if (/offer|hired|accepted/.test(t)) return 3; if (x.interview || /interview/.test(t)) return 2; if (/reply|heard|screen|call|contact/.test(t)) return 1; if (/reject|declin|closed|no longer/.test(t)) return 3; return 0; }
+function isReady(x) { var st = String(x.status || ''); return /ready|review/i.test(st) && !/approved/i.test(st); }
+function docCard(x) {
+  var st = String(x.status || ''), ok = /approved/i.test(st), ready = isReady(x), link = safeUrl(x.link), id = esc(x.id);
+  var pillCls = ok ? 'ok' : /changes/i.test(st) ? 'gold' : ready ? 'gold' : 'info';
+  return '<div class="dc' + (ok ? ' ok' : ready ? ' ready' : '') + '" data-doc="' + id + '"><div class="top"><div class="nm">' + IC.docs + '<span>' + esc(x.name) + '</span></div><span class="pill ' + pillCls + '">' + (ok ? '&#10003; ' : '') + esc(st || 'In progress') + '</span></div>' +
+    (x.updated ? '<p class="meta">Updated ' + esc(fmtDate(x.updated)) + '</p>' : '') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') +
+    '<div class="acts">' + (link ? '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener">' + IC.ext + 'Open</a>' : '') +
+    (ready ? '<button class="kbtn ok" data-approve="' + id + '">' + IC.check + 'Approve</button><button class="kbtn" data-changes="' + id + '">Ask for changes</button>' : '') + '</div>' +
+    (S.changesFor === x.id ? '<div class="notebox"><label class="sr" for="changesText">What should change?</label><textarea placeholder="What should change?" id="changesText"></textarea><button class="btn" data-sendchanges="' + id + '">Send</button></div>' : '') + '</div>';
+}
+
+/* ---- applied ---- */
+function stageOf(x) { var t = String(x.status || '').toLowerCase(); if (/offer|hired|accepted/.test(t)) return 3; if (x.interview || /interview/.test(t)) return 2; if (/reply|heard|screen|call|contact/.test(t)) return 1; if (/reject|declin|closed|no longer|withdr/.test(t)) return 3; return 0; }
 function lines(t) { return String(t || '').split(/\n|;|(?:\s\d+\.\s)/).map(function (z) { return z.trim(); }).filter(String); }
 var APP_STATUS = ['Applied', 'Heard back', 'Interview scheduled', 'Offer', 'Declined', 'Withdrew'];
 function logForm() {
-  if (!S.logOpen) return '<p style="margin:0"><button class="btn gold" data-logopen>Log an application</button></p>' + (S.logMsg ? '<p class="psub" role="status" style="margin:8px 0 0">' + esc(S.logMsg) + '</p>' : '');
-  var today = new Date(); var iso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-  return '<div class="card logbox"><h3>Log an application</h3><p class="psub" style="margin:0">Applied somewhere on your own? Add it here so everything is in one place.</p>' +
+  if (!S.logOpen) return '<p style="margin:0"><button class="btn gold" data-logopen>+ Log an application</button></p>' + (S.logMsg ? '<p class="psub" role="status" style="margin:0">' + esc(S.logMsg) + '</p>' : '');
+  var iso = todayISO();
+  return '<div class="card logbox"><h3>Log an application</h3><p class="psub" style="margin:0">Applied on your own? Add it here.</p>' +
     '<label for="lgCompany">Company</label><input id="lgCompany" maxlength="120" autocomplete="off">' +
     '<label for="lgRole">Job title</label><input id="lgRole" maxlength="160" autocomplete="off">' +
     '<div class="two"><div><label for="lgDate">Date applied</label><input id="lgDate" type="date" value="' + iso + '"></div><div><label for="lgStatus">Where it stands</label><select id="lgStatus">' + APP_STATUS.map(function (o) { return '<option>' + o + '</option>'; }).join('') + '</select></div></div>' +
@@ -329,72 +690,150 @@ function vApps() {
   var practice = '';
   if (prepApp) {
     var qs = lines(prepApp.prepExpect); var i = Math.min(S.card || 0, Math.max(qs.length - 1, 0));
-    practice = '<div class="card"><h3>Practice: ' + esc(prepApp.company) + '</h3>' + (qs.length ? '<p class="psub" style="margin:0">Say your answer out loud, then tap the card to see what to bring up.</p><div class="flipbox"><div class="flip' + (S.flipped ? ' back' : '') + '" data-flip role="button" tabindex="0">' +
-      (S.flipped ? '<small>Bring up</small><div>' + esc(prepApp.prepBring || 'Use a real example with a number in it.') + '</div>' : '<small>Question ' + (i + 1) + ' of ' + qs.length + '</small><div style="font-weight:800;font-size:18px">' + esc(qs[i]) + '</div>') +
-      '</div><div class="fliprow"><button class="btn ghost" data-card="-1"' + (i ? '' : ' disabled') + '>Previous</button><button class="btn" data-card="1"' + (i < qs.length - 1 ? '' : ' disabled') + '>Next question</button></div></div>' : '<p class="psub">Questions will appear here once your prep sheet is ready.</p>') +
-      (prepApp.prepAsk ? '<p style="margin:12px 0 0"><b>Questions to ask them:</b> ' + esc(prepApp.prepAsk) + '</p>' : '') + '<p style="margin:12px 0 0"><button class="btn ghost" data-prep="">Close practice</button></p></div>';
+    practice = '<div class="card"><h3>Practice: ' + esc(prepApp.company) + '</h3>' + (qs.length ? '<p class="psub" style="margin:0">Answer out loud, then tap the card.</p><div class="flipbox"><div class="flip' + (S.flipped ? ' back' : '') + '" data-flip role="button" tabindex="0" aria-label="Flip card">' +
+      (S.flipped ? '<small>Bring up</small><div>' + esc(prepApp.prepBring || 'Use a real example with a number in it.') + '</div>' : '<small>Question ' + (i + 1) + ' of ' + qs.length + '</small><div style="font-weight:800;font-size:19px">' + esc(qs[i]) + '</div>') +
+      '</div><div class="fliprow"><button class="btn ghost" data-card="-1"' + (i ? '' : ' disabled') + '>Back</button><button class="btn" data-card="1"' + (i < qs.length - 1 ? '' : ' disabled') + '>Next</button></div></div>' : '<p class="psub">Questions show up here once your prep sheet is ready.</p>') +
+      (prepApp.prepAsk ? '<p style="margin:12px 0 0"><b>Ask them:</b> ' + esc(prepApp.prepAsk) + '</p>' : '') + '<p style="margin:12px 0 0"><button class="btn ghost" data-prep="">Close practice</button></p></div>';
   }
-  var mob = matchMedia('(max-width: 760px)').matches;
+  var mob = false; try { mob = matchMedia('(max-width: 760px)').matches; } catch (e) {}
   if (!S.colOpen) { S.colOpen = {}; cols.forEach(function (c, k) { S.colOpen[k] = mob ? by[k].length > 0 && by[k].length <= 6 : true; }); }
-  return hero('apps', 'Applications and interviews', d.apps.length ? d.apps.length + ' sent so far.' : 'Nothing submitted yet.', 'Every application, where it stands, and a prep sheet before each interview.') +
-    '<main class="wrap narrow pbody" style="max-width:1100px">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
-      return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
+  return shell('apps', d.apps.length ? d.apps.length + ' sent so far' : 'Nothing sent yet', 'Where each one stands.') +
+    '<main class="pmain wide">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
+      return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
         var hasPrep = x.prepBring || x.prepExpect || x.prepAsk;
-        return '<div class="app"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">Applied ' + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
+        return '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">Applied ' + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
           (x.interview ? '<div style="margin-top:6px"><span class="pill info">Interview ' + esc(fmtDate(x.interview)) + '</span></div>' : '') + (String(x.followUpDue).toLowerCase() === 'yes' ? '<div style="margin-top:6px"><span class="pill gold">Follow-up due</span></div>' : '') +
           (hasPrep ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : '') +
-          (S.updFor === x.id ? '<div class="logbox" style="margin-top:8px"><label for="upStatus">New status</label><select id="upStatus">' + APP_STATUS.map(function (o) { return '<option>' + o + '</option>'; }).join('') + '</select><label for="upIv">Interview date (if any)</label><input id="upIv" type="date" value="' + esc(x.interview || '') + '"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-upsave="' + esc(x.id) + '">Save</button><button class="btn ghost" data-upd="">Cancel</button></div></div>'
+          (S.updFor === x.id ? '<div class="logbox" style="margin-top:8px"><label for="upStatus">New status</label><select id="upStatus">' + APP_STATUS.map(function (o) { return '<option' + (o === x.status ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select><label for="upIv">Interview date (if any)</label><input id="upIv" type="date" value="' + esc(x.interview || '') + '"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-upsave="' + esc(x.id) + '">Save</button><button class="btn ghost" data-upd="">Cancel</button></div></div>'
             : '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p>') + '</div>';
       }).join('') + '</div>';
-    }).join('') + '</div>' : '<div class="card"><p class="psub" style="margin:0">Once you approve the tailored resume for a job you said Yes to, you submit the application and it shows up here.</p></div>') + '</main>' + mobnav('apps');
+    }).join('') + '</div>' : '<div class="card"><p class="psub" style="margin:0">Say Yes to a job, approve your documents, and apply. It shows up here.</p></div>') + '</main>' + tabbar('apps');
 }
 
 function render() {
   var app = $('#app');
   if (S.status === 'signin') { app.innerHTML = vSignin(); return; }
   if (S.status === 'loading' || S.status === 'boot') { app.innerHTML = '<div class="skel">Opening your portal…</div>'; return; }
-  if (S.status === 'error') { app.innerHTML = '<div class="wrap narrow pbody"><div class="warn">We couldn\'t reach your portal. Please check your connection and <button class="btn ghost" data-retry>try again</button>.</div></div>'; return; }
+  if (S.status === 'error') { app.innerHTML = '<div class="pmain"><div class="warn">We couldn\'t reach your portal. Please check your connection and <button class="btn ghost" data-retry>try again</button>.</div></div>'; return; }
   var y = window.scrollY;
-  app.innerHTML = ({ home: vHome, jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback }[S.view] || vHome)();
+  app.innerHTML = ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback }[S.view] || vJobs)();
   window.scrollTo(0, y);
 }
 
 function redeemCode(code) {
   var b = $('#codeBtn'); if (b) { b.disabled = true; b.textContent = 'Checking…'; }
   post({ action: 'redeem', email: S.sent, code: code }).then(function (d) {
-    if (d.ok && d.t) { S.token = d.t; try { localStorage.setItem('sp_token', d.t); } catch (e) {} S.sent = false; S.codeErr = ''; load(); }
+    if (d.ok && d.t) { S.token = d.t; if (!S.demo) lsSet('sp_token', d.t); S.sent = false; S.codeErr = ''; load(); }
     else { S.codeErr = d.error === 'expired code' ? 'That code has expired. Request a new link below.' : 'That code didn\'t match. Check the newest email and try again.'; render(); }
   }).catch(function () { S.codeErr = 'We couldn\'t check the code. Please check your connection and try again.'; render(); });
 }
+function copyText(t) {
+  var fallback = function () { var ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); SP.toast(ok ? 'Copied.' : 'Press and hold to copy.'); };
+  try { if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(t).then(function () { SP.toast('Copied.'); }, fallback); return; } } catch (e) {}
+  fallback();
+}
+function markApplied(jobId) {
+  var j = S.data.jobs.filter(function (x) { return x.id === jobId; })[0]; if (!j || S.applyBusy) return;
+  var body = { jobId: j.id, company: j.company, role: j.title, applied: todayISO(), status: 'Applied' };
+  S.applyBusy = j.id; render();
+  saveApp(body, function (r) {
+    S.applyBusy = null;
+    if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' }); SP.toast('Nice work. It is on your Applied tab.'); }
+    else SP.toast(r.error === 'expired' ? 'Your sign-in has expired. Please sign in again.' : 'That didn\'t save. Please try again.');
+    render();
+  });
+}
+function scrollToFirst() { var el = document.querySelector('.jc:not(.s-yes):not(.s-q):not(.s-no)'); if (el) el.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); }
+function hideHint() { lsSet('sp_swipehint', '1'); }
+
+/* ---- swipe (touch and pen only; vertical scrolling stays with the browser via touch-action: pan-y) ---- */
+var SW = null, blockClickUntil = 0;
+function swLabels(card, dx, w) { var p = Math.min(1, Math.abs(dx) / (w * 0.35)); var y = card.querySelector('.sl.y'), n = card.querySelector('.sl.p'); if (y) y.style.opacity = dx > 0 ? p : 0; if (n) n.style.opacity = dx < 0 ? p : 0; }
+function swReset(card) { if (!card) return; card.classList.remove('dragging'); if (!REDUCED) { card.classList.add('spring'); setTimeout(function () { card.classList.remove('spring'); }, 300); } card.style.transform = ''; swLabels(card, 0, 1); }
+document.addEventListener('pointerdown', function (e) {
+  if (e.pointerType === 'mouse' || !e.isPrimary) return;
+  var card = e.target.closest('.jc[data-swipe]'); if (!card || S.pending[card.dataset.jc]) return;
+  if (e.target.closest('textarea, input, select, label')) return;
+  SW = { card: card, id: card.dataset.jc, x0: e.clientX, y0: e.clientY, dx: 0, mode: null, pid: e.pointerId, w: card.offsetWidth || 1 };
+});
+document.addEventListener('pointermove', function (e) {
+  if (!SW || e.pointerId !== SW.pid) return;
+  var dx = e.clientX - SW.x0, dy = e.clientY - SW.y0;
+  if (!SW.mode) {
+    if (Math.abs(dy) > 10 && Math.abs(dy) >= Math.abs(dx)) { SW = null; return; }
+    if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 2) { SW.mode = 'h'; SW.card.classList.add('dragging'); try { SW.card.setPointerCapture(SW.pid); } catch (x) {} }
+    else return;
+  }
+  e.preventDefault(); SW.dx = dx;
+  SW.card.style.transform = 'translateX(' + dx + 'px) rotate(' + (REDUCED ? 0 : dx / 40) + 'deg)';
+  swLabels(SW.card, dx, SW.w);
+}, { passive: false });
+function swEnd(e, cancelled) {
+  if (!SW || (e && e.pointerId !== SW.pid)) return;
+  var s = SW; SW = null; if (s.mode !== 'h') return;
+  blockClickUntil = Date.now() + 400;
+  var j = S.data.jobs.filter(function (x) { return x.id === s.id; })[0];
+  var code = s.dx > 0 ? 'yes' : 'no';
+  if (cancelled || !j || Math.abs(s.dx) < s.w * 0.35 || ansOf(j) === code) { swReset(s.card); return; }
+  var prev = j.answer;
+  var go = function () {
+    hideHint();
+    answer(s.id, code, undefined, true);
+    undoToast(code === 'yes' ? 'Saved as Yes.' : 'Saved. Moved to Passed.', undoTo(s.id, prev));
+  };
+  if (REDUCED) { go(); return; }
+  s.card.classList.remove('dragging'); s.card.classList.add('fly');
+  s.card.style.transform = 'translateX(' + (s.dx > 0 ? 120 : -120) + '%) rotate(' + (s.dx > 0 ? 8 : -8) + 'deg)'; s.card.style.opacity = '0';
+  setTimeout(go, 200);
+}
+document.addEventListener('pointerup', function (e) { swEnd(e, false); });
+document.addEventListener('pointercancel', function (e) { swEnd(e, true); });
+document.addEventListener('click', function (e) { if (Date.now() < blockClickUntil && e.target.closest('.jc')) { e.preventDefault(); e.stopPropagation(); } }, true);
+
 document.addEventListener('submit', function (e) {
   if (e.target.id === 'linkForm') { e.preventDefault(); requestLink($('#email').value.trim()); }
   if (e.target.id === 'codeForm') { e.preventDefault(); redeemCode($('#code').value.trim()); }
 });
+document.addEventListener('change', function (e) {
+  var cb = e.target.closest('[data-kc]'); if (!cb) return;
+  var c = kitChecks(cb.dataset.kc); c[Number(cb.dataset.i)] = cb.checked; lsSet('sp_kit_' + cb.dataset.kc, JSON.stringify(c));
+});
 document.addEventListener('click', function (e) {
+  var tr = e.target.closest('[data-track]'); if (tr) { track(tr.dataset.track, tr.dataset.job); return; }
+  if (S.menu && !e.target.closest('.acct')) { S.menu = false; render(); }
   if (e.target.closest('[data-flip]')) { S.flipped = !S.flipped; render(); return; }
   var ch = e.target.closest('[data-col]'); if (ch) { var ck = ch.dataset.col; S.colOpen[ck] = !S.colOpen[ck]; render(); return; }
   if (e.target.closest('[data-a2hs-go]')) { if (installEvt) { installEvt.prompt(); installEvt.userChoice.then(function () { installEvt = null; render(); }); } return; }
-  if (e.target.closest('[data-a2hs-hide]')) { try { localStorage.setItem('sp_a2hs', String(Date.now())); } catch (x) {} render(); return; }
-  var lk = e.target.closest('[data-gofb]'); if (lk) { e.preventDefault(); S.view = 'feedback'; render(); window.scrollTo(0, 0); return; }
+  if (e.target.closest('[data-a2hs-hide]')) { lsSet('sp_a2hs', String(Date.now())); render(); return; }
   var b = e.target.closest('button'); if (!b) return; var d = b.dataset;
+  if (d.menu != null) { S.menu = !S.menu; render(); var m = document.querySelector('.acct .menu button'); if (m) m.focus(); return; }
   if (d.fb) { ['#fbHelp', '#fbChange', '#fbWhy', '#fbQuote'].forEach(function (id, i) { var el = $(id); if (el) S.fbText[['help', 'change', 'why', 'quote'][i]] = el.value; }); var v = /^\d+$/.test(d.v) ? Number(d.v) : d.v; S.fb[d.fb] = S.fb[d.fb] === v ? null : v; render(); return; }
   if (d.fbsubmit != null) { sendFeedback(); return; }
   if (d.prep != null) { S.prep = d.prep || null; S.card = 0; S.flipped = false; render(); if (S.prep) window.scrollTo(0, 0); return; }
   if (d.card) { S.card = (S.card || 0) + Number(d.card); S.flipped = false; render(); return; }
-  if (d.go) { S.view = d.go; S.flash = ''; render(); window.scrollTo(0, 0); return; }
+  if (d.go) { S.view = d.go; S.flash = ''; S.menu = false; if (d.go === 'feedback') S.fbDone = false; render(); window.scrollTo(0, 0); return; }
+  if (d.first != null) { scrollToFirst(); return; }
   if (d.retry != null) { load(); return; }
-  if (d.signout != null) { try { localStorage.removeItem('sp_token'); } catch (x) {} S.token = null; S.data = null; S.status = 'signin'; S.sent = false; S.err = ''; render(); return; }
-  if (d.ans) { var j = S.data.jobs.filter(function (x) { return x.id === d.j; })[0]; var cur = String(j.answer || '').toLowerCase(); var same = (d.ans === 'yes' && cur.indexOf('yes') === 0) || (d.ans === 'no' && cur.indexOf('no') === 0) || (d.ans === 'q' && cur && cur.indexOf('yes') !== 0 && cur.indexOf('no') !== 0);
+  if (d.signout != null) { lsDel('sp_token'); S.token = null; S.data = null; S.status = 'signin'; S.sent = false; S.err = ''; S.menu = false; render(); return; }
+  if (d.hidehint != null) { hideHint(); render(); return; }
+  if (d.morenote != null) { S.noteOpen = !S.noteOpen; render(); return; }
+  if (d.passed != null) { S.passedOpen = !S.passedOpen; render(); return; }
+  if (d.det) { S.open[d.det] = !S.open[d.det]; render(); return; }
+  if (d.copy != null) { copyText(d.copy); return; }
+  if (d.applied) { markApplied(d.applied); return; }
+  if (d.ans) { var j = S.data.jobs.filter(function (x) { return x.id === d.j; })[0]; if (!j) return; var cur = ansOf(j);
+    hideHint();
     /* Tapping the answer that is already chosen keeps it (it used to clear it, which undid answers when clients tapped twice). */
-    if (same) { S.justSaved = d.j; SP.toast('Already saved as ' + (d.ans === 'q' ? 'Question' : d.ans === 'yes' ? 'Yes' : 'No') + '.'); render(); return; }
+    if (cur === d.ans) { S.justSaved = d.j; SP.toast('Already saved as ' + ANS_WORD[d.ans] + '.'); render(); return; }
+    if (d.ans === 'no' && !REDUCED) { var card = b.closest('.jc'); if (card && card.closest('.passed') == null) { card.classList.add('leave'); setTimeout(function () { answer(d.j, 'no'); }, 200); return; } }
     answer(d.j, d.ans); return; }
   if (d.clear) { answer(d.clear, ''); return; }
   if (d.savenote) { var ta = document.querySelector('[data-note="' + d.savenote + '"]'); S.notes[d.savenote] = ta ? ta.value : ''; answer(d.savenote, d.a, S.notes[d.savenote]); return; }
   if (d.logopen != null) { S.logOpen = true; S.logErr = ''; S.logMsg = ''; render(); var c = $('#lgCompany'); if (c) c.focus(); return; }
   if (d.logclose != null) { S.logOpen = false; S.logErr = ''; render(); return; }
   if (d.logsave != null) {
-    var v = function (id) { var el = $(id); return el ? el.value.trim() : ''; };
-    var body = { company: v('#lgCompany'), role: v('#lgRole'), applied: v('#lgDate'), status: v('#lgStatus'), interview: v('#lgIv') };
+    var val = function (id) { var el = $(id); return el ? el.value.trim() : ''; };
+    var body = { company: val('#lgCompany'), role: val('#lgRole'), applied: val('#lgDate'), status: val('#lgStatus'), interview: val('#lgIv') };
     if (!body.company || !body.role) { S.logErr = 'Please add the company and the job title.'; render(); return; }
     S.logBusy = true; S.logErr = ''; render();
     saveApp(body, function (r) { S.logBusy = false;
@@ -408,14 +847,15 @@ document.addEventListener('click', function (e) {
     saveApp(body2, function (r) { if (r.ok) { S.data.apps.forEach(function (x) { if (x.id === id) { x.status = body2.status; x.interview = body2.interview; } }); S.updFor = null; S.logMsg = 'Updated.'; if (body2.status === 'Offer') { celebrate(); SP.toast('An offer! Congratulations.'); } } else S.logMsg = 'Sorry, that update didn\'t save. Please try again.'; render(); });
     return; }
   if (d.approve) { docStatus(d.approve, 'Approved', ''); return; }
-  if (d.changes) { S.changesFor = d.changes; render(); return; }
+  if (d.changes) { S.changesFor = d.changes; render(); var t0 = $('#changesText'); if (t0) t0.focus(); return; }
   if (d.sendchanges) { var t = $('#changesText'); S.changesFor = null; docStatus(d.sendchanges, 'Changes requested', t ? t.value : ''); return; }
 });
 document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && S.menu) { S.menu = false; render(); var mb = document.querySelector('[data-menu]'); if (mb) mb.focus(); return; }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-flip]')) { e.preventDefault(); S.flipped = !S.flipped; render(); var f = document.querySelector('[data-flip]'); if (f) f.focus(); }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-col]')) { e.preventDefault(); var ck = e.target.closest('[data-col]').dataset.col; S.colOpen[ck] = !S.colOpen[ck]; render(); }
 });
-document.addEventListener('input', function (e) { if (e.target.dataset.note) S.notes[e.target.dataset.note] = e.target.value; });
+document.addEventListener('input', function (e) { if (e.target.dataset && e.target.dataset.note) S.notes[e.target.dataset.note] = e.target.value; });
 load();
 </script>
 </body>
