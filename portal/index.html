@@ -309,6 +309,8 @@ body.deck-lock { overflow: hidden; }
 .dk-card.asking .dk-q { flex: none; }
 .dk-q textarea { resize: none; }
 @media (max-height: 600px) { .dk-card.asking .dk-q textarea { min-height: 56px; } .dk-card.asking .dk-ttl { font-size: 21px; } .dk-card.asking .dk-pay { font-size: 19px; } }
+.dk-alert { margin-top: 10px; background: var(--gold-soft); color: #4a3800; border-radius: 12px; padding: 8px 10px 8px 14px; font-weight: 800; font-size: 14.5px; display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.dk-alert .btn.sm { margin-left: 0; }
 .dk-fail { background: #fff; color: var(--ink); border-radius: 20px; padding: 20px; max-width: 340px; display: grid; gap: 8px; border-left: 6px solid var(--gold); text-align: left; }
 .dk-fail h2 { margin: 0; font: 800 22px var(--display); color: var(--navy); }
 .dk-fail p { margin: 0; color: var(--ink); }
@@ -1039,7 +1041,7 @@ document.addEventListener('click', function (e) { if (Date.now() < blockClickUnt
    A full-screen stack of the unanswered jobs, one big card at a time.
    Right = Yes, left = Pass, up = Question (note box first, Skip allowed). Buttons and arrow keys do the same.
    Every decision goes through decide() (undo window). To switch the deck off, set DECK_ENABLED = false. */
-var DECK_ENABLED = true;
+var DECK_ENABLED = false; // off for clients until the deck fixes pass review; on in the preview
 function deckButton(c) {
   if (!DECK_ENABLED || !coarse() || c.wait < 2) return '';
   return '<button class="deckbtn" data-deck>' + IC.cards + 'Swipe through ' + c.wait + ' new jobs</button>';
@@ -1103,11 +1105,14 @@ function vDeck() {
     '<div class="dk-bar" aria-hidden="true"><i style="width:' + Math.round(Math.min(D.i, total) / total * 100) + '%"></i></div></div>';
   if (!j) {
     var st = deckState(), nf = st.failed.length;
-    if (st.waiting) return h + '<div class="dk-done"><div class="dk-spin" aria-hidden="true"></div><h2>That was the last one</h2><p role="status">Saving your answers…' + (nf ? ' ' + nf + ' didn\'t save so far.' : '') + '</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
+    if (st.waiting && !st.expired) return h + '<div class="dk-done"><div class="dk-spin" aria-hidden="true"></div><h2>That was the last one</h2><p role="status">Saving your answers…' + (nf ? ' ' + nf + ' didn\'t save so far.' : '') + '</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
     if (nf) return h + '<div class="dk-done"><div class="dk-fail" role="alert"><h2>' + nf + (nf === 1 ? ' answer didn\'t save' : ' answers didn\'t save') + '</h2><p>' + (st.expired ? 'Your sign-in has expired. Sign in again, then answer ' + (nf === 1 ? 'it' : 'them') + ' from your list.' : 'Check your connection, then try again. Your list shows which ones.') + '</p>' +
       '<div class="row">' + (st.expired ? '<button class="btn gold" data-reauth>Sign in again</button>' : '<button class="btn gold" data-dkretry>Retry</button>') + '<button class="btn ghost" data-deckclose>Back to the list</button></div></div></div></div>';
     return h + '<div class="dk-done"><div class="dk-doneic">' + IC.checkc + '</div><h2>All caught up</h2><p role="status">Your answers are saved and on your list, in color.</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
   }
+  var ds = deckState();
+  if (ds.expired) h += '<div class="dk-alert" role="alert">Your sign-in has expired, so answers are not saving.<button class="btn gold sm" data-reauth>Sign in again</button></div>';
+  else if (ds.failed.length) h += '<div class="dk-alert" role="alert">' + ds.failed.length + (ds.failed.length === 1 ? ' answer didn\'t save.' : ' answers didn\'t save.') + '<button class="btn gold sm" data-dkretry>Retry</button></div>';
   h += '<div class="dk-stack">' + (nxt && !D.qFor ? dkCard(nxt, false) : '') + dkCard(j, true) + '</div>';
   if (D.qFor) return h + '</div>';
   h += '<div class="dk-acts" role="group" aria-label="Your answer">' +
