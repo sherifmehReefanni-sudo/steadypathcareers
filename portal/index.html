@@ -66,6 +66,10 @@
 .confetti i { position: absolute; top: -14px; width: 9px; height: 14px; border-radius: 2px; animation: cfall var(--d) ease-in forwards; }
 @keyframes cfall { to { transform: translateY(105vh) rotate(var(--r)); opacity: .9; } }
 @media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
+.howto { background: #fff8e6; border: 1px solid #ecd9a6; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 15px; line-height: 1.45; }
+.answer button.clear { border: 0; background: none; padding: 4px 6px; font-size: 13px; font-weight: 700; color: var(--muted); text-decoration: underline; }
+.nextstep { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; background: #eaf6ee; color: #1e5b33; font-weight: 700; font-size: 14px; }
+.toast { bottom: max(84px, calc(env(safe-area-inset-bottom, 0px) + 84px)); font-size: 15px; padding: 12px 20px; }
 @media (max-width: 760px) { .board { grid-template-columns: minmax(0, 1fr); } .nextcard { grid-template-columns: 44px minmax(0, 1fr); } .nextcard .btn { grid-column: 1 / -1; } }
 </style>
 </head>
@@ -100,21 +104,34 @@ function load() {
   S.status = 'loading'; render();
   get({ action: 'me', t: S.token }).then(function (d) {
     if (!d.ok) { S.status = 'signin'; S.err = d.error === 'expired' ? 'Your sign-in link has expired. Enter your email and we\'ll send you a new one.' : 'Sorry, we couldn\'t open your portal. Please sign in again. (' + d.error + ')'; try { localStorage.removeItem('sp_token'); } catch (e) {} S.token = null; render(); return; }
-    S.data = d; S.status = 'ready'; render();
+    S.data = d; S.status = 'ready';
+    /* Fix the job order once per load so a card never jumps away while the client is answering it. */
+    S.order = d.jobs.slice().sort(function (a, b) { return (a.answer ? 1 : 0) - (b.answer ? 1 : 0) || String(b.added).localeCompare(String(a.added)); }).map(function (x) { return x.id; });
+    render();
   }).catch(function () { S.status = 'error'; render(); });
 }
 function requestLink(email) {
   var b = $('#linkBtn'); if (b) { b.disabled = true; b.textContent = 'Sending…'; }
   post({ action: 'requestLink', email: email }).then(function () { S.sent = email; S.err = ''; render(); }).catch(function () { S.err = 'We couldn\'t send the link. Please check your connection and try again.'; render(); });
 }
+var ANS_WORD = { yes: 'Yes', no: 'No', q: 'Question' };
 function answer(jobId, a, note) {
-  S.pending[jobId] = true; render();
+  var j = S.data.jobs.filter(function (x) { return x.id === jobId; })[0]; if (!j) return;
+  /* Show the choice right away (button fills in), then confirm once the sheet has it. */
+  var before = { answer: j.answer, note: j.note };
+  j.answer = a ? ANS_WORD[a] : ''; S.pending[jobId] = true; S.justSaved = null; if (S.errJob === jobId) { S.errJob = null; S.err = ''; } render();
   post({ action: 'answer', t: S.token, job: jobId, a: a, note: note }).then(function (d) {
     delete S.pending[jobId];
-    if (d.ok) { var j = S.data.jobs.filter(function (x) { return x.id === jobId; })[0]; if (j) { j.answer = d.answer; j.answeredOn = new Date().toISOString().slice(0, 10); if (note !== undefined) j.note = note; } SP.toast(d.answer ? 'Saved. Sherif can see this now.' : 'Answer cleared.'); }
-    else { S.errJob = jobId; S.err = d.error === 'expired' ? 'Your sign-in has expired. Please sign in again.' : 'Not saved: ' + d.error; }
+    if (d.ok) { j.answer = d.answer; j.answeredOn = new Date().toISOString().slice(0, 10); if (note !== undefined) j.note = note; S.justSaved = jobId; SP.toast(d.answer ? 'Saved. Sherif can see your answer now.' : 'Answer cleared.'); }
+    else { j.answer = before.answer; j.note = before.note; S.errJob = jobId; S.err = d.error === 'expired' ? 'Your sign-in has expired. Please sign in again.' : 'Not saved: ' + d.error; }
     render();
-  }).catch(function () { delete S.pending[jobId]; S.errJob = jobId; S.err = 'That didn\'t save. Please check your connection and try again.'; render(); });
+  }).catch(function () { delete S.pending[jobId]; j.answer = before.answer; j.note = before.note; S.errJob = jobId; S.err = 'That didn\'t save. Please check your connection and try again.'; render(); });
+}
+function answerNextStep(ans) {
+  if (ans === 'yes') return 'Saved. Next, Sherif tailors your resume and a cover letter for this job. They will show up in Documents for you to approve before you apply.';
+  if (ans === 'no') return 'Saved. This job is set aside. If you want, add a quick reason below so your next matches fit better.';
+  if (ans === 'q') return 'Saved. Type your question below and tap Send. Sherif will get back to you.';
+  return '';
 }
 function docStatus(docId, status, request) {
   post({ action: 'docStatus', t: S.token, doc: docId, status: status, request: request }).then(function (d) {
@@ -264,17 +281,19 @@ function jobCard(j) {
     '<div class="tags">' + floorPill(j.floor) + (j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '') + '<span class="pill check">Checked live ' + esc(fmtDate(j.added)) + '</span></div>' +
     (j.why ? '<p class="why">' + esc(j.why) + '</p>' : '') + (j.notes ? '<p class="heads">' + esc(j.notes) + '</p>' : heads ? '<p class="heads">' + heads + '</p>' : '') +
     '<div class="answer"><button class="yes" data-ans="yes" data-j="' + esc(j.id) + '" aria-pressed="' + (ans === 'yes') + '" ' + (busy ? 'disabled' : '') + '>Yes, apply</button><button class="no" data-ans="no" data-j="' + esc(j.id) + '" aria-pressed="' + (ans === 'no') + '" ' + (busy ? 'disabled' : '') + '>No</button><button class="q" data-ans="q" data-j="' + esc(j.id) + '" aria-pressed="' + (ans === 'q') + '" ' + (busy ? 'disabled' : '') + '>Question</button>' +
-    (busy ? '<span class="saved" style="color:var(--muted)">Saving…</span>' : ans ? '<span class="saved">Saved</span>' : '') + (S.errJob === j.id && S.err ? '<span class="err">' + esc(S.err) + '</span>' : '') +
+    (busy ? '<span class="saved" style="color:var(--muted)">Saving…</span>' : ans ? '<span class="saved">&#10003; Saved</span> <button class="clear" data-clear="' + esc(j.id) + '">Clear</button>' : '') + (S.errJob === j.id && S.err ? '<span class="err">' + esc(S.err) + '</span>' : '') +
     (j.link ? '<a href="' + esc(j.link) + '" target="_blank" rel="noopener">See the posting</a>' : '') +
     (S.data.client.home && j.location && !/remote/i.test(j.location) && !/^\s*remote/i.test(j.setting || '') ? '<a class="commute" href="https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(S.data.client.home) + '&destination=' + encodeURIComponent(String(j.company).replace(/\s*\(.*?\)/g, '') + ', ' + j.location) + '" target="_blank" rel="noopener">Commute from home</a>' : '') + '</div>' +
     (ans === 'q' || ans === 'no' ? '<div class="notebox"><textarea placeholder="' + (ans === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps Sherif aim your next matches.') + '" data-note="' + esc(j.id) + '">' + esc(S.notes[j.id] != null ? S.notes[j.id] : (j.note || '')) + '</textarea><button data-savenote="' + esc(j.id) + '" data-a="' + ans + '">Send</button></div>' : '') +
+    (ans && !busy && S.justSaved === j.id ? '<p class="nextstep">' + answerNextStep(ans) + '</p>' : '') +
     '</div></div>';
 }
 function vJobs() {
   var d = S.data, c = counts();
-  var sorted = d.jobs.slice().sort(function (a, b) { return (a.answer ? 1 : 0) - (b.answer ? 1 : 0) || String(b.added).localeCompare(String(a.added)); });
+  var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; });
+  var sorted = d.jobs.slice().sort(function (a, b) { var pa = pos[a.id] != null ? pos[a.id] : -1, pb = pos[b.id] != null ? pos[b.id] : -1; return pa - pb; });
   return hero('jobs', 'Your job matches', !d.jobs.length ? 'Your first matches are on the way.' : c.wait ? c.wait + (c.wait === 1 ? ' still needs' : ' still need') + ' an answer.' : 'All answered. Sherif is on it.', 'Pay comes from the employer\'s posting unless marked as an estimate.') +
-    '<main class="wrap narrow pbody">' + (sorted.length ? sorted.map(jobCard).join('') : '<div class="card"><p class="psub" style="margin:0">Nothing here yet. Jobs appear once your resume is set and the search has run; you\'ll get an email the moment they do.</p></div>') + '</main>' + mobnav('jobs');
+    '<main class="wrap narrow pbody">' + (sorted.length ? '<div class="howto"><b>How to answer:</b> tap <b>Yes, apply</b>, <b>No</b> or <b>Question</b> once on each job. There is no Save button; your answer saves on its own and the card shows <b>&#10003; Saved</b>. Changed your mind? Tap a different answer.</div>' : '') +(sorted.length ? sorted.map(jobCard).join('') : '<div class="card"><p class="psub" style="margin:0">Nothing here yet. Jobs appear once your resume is set and the search has run; you\'ll get an email the moment they do.</p></div>') + '</main>' + mobnav('jobs');
 }
 function vDocs() {
   var d = S.data;
@@ -365,7 +384,11 @@ document.addEventListener('click', function (e) {
   if (d.go) { S.view = d.go; S.flash = ''; render(); window.scrollTo(0, 0); return; }
   if (d.retry != null) { load(); return; }
   if (d.signout != null) { try { localStorage.removeItem('sp_token'); } catch (x) {} S.token = null; S.data = null; S.status = 'signin'; S.sent = false; S.err = ''; render(); return; }
-  if (d.ans) { var j = S.data.jobs.filter(function (x) { return x.id === d.j; })[0]; var cur = String(j.answer || '').toLowerCase(); var same = (d.ans === 'yes' && cur.indexOf('yes') === 0) || (d.ans === 'no' && cur.indexOf('no') === 0) || (d.ans === 'q' && cur && cur.indexOf('yes') !== 0 && cur.indexOf('no') !== 0); answer(d.j, same ? '' : d.ans); return; }
+  if (d.ans) { var j = S.data.jobs.filter(function (x) { return x.id === d.j; })[0]; var cur = String(j.answer || '').toLowerCase(); var same = (d.ans === 'yes' && cur.indexOf('yes') === 0) || (d.ans === 'no' && cur.indexOf('no') === 0) || (d.ans === 'q' && cur && cur.indexOf('yes') !== 0 && cur.indexOf('no') !== 0);
+    /* Tapping the answer that is already chosen keeps it (it used to clear it, which undid answers when clients tapped twice). */
+    if (same) { S.justSaved = d.j; SP.toast('Already saved as ' + (d.ans === 'q' ? 'Question' : d.ans === 'yes' ? 'Yes' : 'No') + '.'); render(); return; }
+    answer(d.j, d.ans); return; }
+  if (d.clear) { answer(d.clear, ''); return; }
   if (d.savenote) { var ta = document.querySelector('[data-note="' + d.savenote + '"]'); S.notes[d.savenote] = ta ? ta.value : ''; answer(d.savenote, d.a, S.notes[d.savenote]); return; }
   if (d.logopen != null) { S.logOpen = true; S.logErr = ''; S.logMsg = ''; render(); var c = $('#lgCompany'); if (c) c.focus(); return; }
   if (d.logclose != null) { S.logOpen = false; S.logErr = ''; render(); return; }
