@@ -274,7 +274,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .deckbtn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; border: 0; border-radius: 16px; background: var(--gold); color: var(--midnight); font-weight: 800; font-size: 17px; box-shadow: 0 6px 18px rgba(201,162,39,.35); }
 .deckbtn svg { width: 24px; height: 24px; }
 body.deck-lock { overflow: hidden; }
-.deck { position: fixed; inset: 0; z-index: 40; background: linear-gradient(180deg, var(--midnight), var(--navy)); display: flex; flex-direction: column; padding: max(10px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); overscroll-behavior: contain; }
+.deck { position: fixed; left: 0; right: 0; top: var(--vvt, 0px); height: var(--vvh, 100%); z-index: 40; background: linear-gradient(180deg, var(--midnight), var(--navy)); display: flex; flex-direction: column; padding: max(10px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); overscroll-behavior: contain; }
 .dk-top { display: grid; grid-template-columns: 48px 1fr; align-items: center; gap: 10px; color: var(--cream); }
 .dk-close { width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(251,246,238,.14); color: var(--cream); display: grid; place-items: center; }
 .dk-close svg { width: 22px; height: 22px; }
@@ -282,7 +282,7 @@ body.deck-lock { overflow: hidden; }
 .dk-bar { grid-column: 1 / -1; height: 6px; border-radius: 99px; background: rgba(251,246,238,.18); overflow: hidden; }
 .dk-bar i { display: block; height: 100%; background: var(--gold); border-radius: 99px; }
 .dk-stack { position: relative; flex: 1; min-height: 0; margin: 14px 0 12px; }
-.dk-card { position: absolute; inset: 0; background: #fff; border-radius: 24px; padding: 22px 20px; display: flex; flex-direction: column; gap: 10px; overflow: auto; touch-action: none; box-shadow: 0 20px 50px rgba(0,0,0,.35); user-select: none; -webkit-user-select: none; }
+.dk-card { position: absolute; inset: 0; background: #fff; border-radius: 24px; padding: 22px 20px; display: flex; flex-direction: column; gap: 10px; overflow: auto; touch-action: none; overscroll-behavior: contain; box-shadow: 0 20px 50px rgba(0,0,0,.35); user-select: none; -webkit-user-select: none; }
 .dk-card.peek { transform: translateY(14px) scale(.95); opacity: .7; overflow: hidden; pointer-events: none; }
 .dk-card.dragging { transition: none; }
 .dk-card.spring { transition: transform .25s cubic-bezier(.2,.9,.3,1.2); }
@@ -300,6 +300,22 @@ body.deck-lock { overflow: hidden; }
 .dk-moretext { background: var(--sunk); border-radius: 12px; padding: 10px 12px; font-size: 15.5px; }
 .dk-moretext p { margin: 0 0 6px; }
 .dk-moretext a { font-weight: 800; display: inline-flex; min-height: 44px; align-items: center; }
+.dk-body { display: flex; flex-direction: column; gap: 10px; flex: none; }
+.dk-card.expanded { touch-action: pan-y; }
+.dk-card.asking { overflow: hidden; touch-action: auto; padding: 16px 16px 14px; gap: 10px; }
+.dk-card.asking .dk-body { flex: 1 1 auto; min-height: 0; overflow: auto; touch-action: pan-y; overscroll-behavior: contain; }
+.dk-card.asking .dk-why { -webkit-line-clamp: unset; display: block; }
+.deck.asking .dk-stack { margin-bottom: 0; }
+.dk-card.asking .dk-q { flex: none; }
+.dk-q textarea { resize: none; }
+@media (max-height: 600px) { .dk-card.asking .dk-q textarea { min-height: 56px; } .dk-card.asking .dk-ttl { font-size: 21px; } .dk-card.asking .dk-pay { font-size: 19px; } }
+.dk-fail { background: #fff; color: var(--ink); border-radius: 20px; padding: 20px; max-width: 340px; display: grid; gap: 8px; border-left: 6px solid var(--gold); text-align: left; }
+.dk-fail h2 { margin: 0; font: 800 22px var(--display); color: var(--navy); }
+.dk-fail p { margin: 0; color: var(--ink); }
+.dk-fail .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.dk-spin { width: 64px; height: 64px; border-radius: 50%; border: 6px solid rgba(251,246,238,.25); border-top-color: var(--gold); animation: dkspin 1s linear infinite; }
+@keyframes dkspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .dk-spin { animation: none; border-color: var(--gold); } }
 .dk-q { display: grid; gap: 8px; background: var(--q-bg); border: 1.5px solid var(--q-line); border-radius: 14px; padding: 12px; }
 .dk-q label { font-weight: 800; color: var(--navy); }
 .dk-q textarea { width: 100%; min-height: 80px; border: 1.5px solid #d3dae6; border-radius: 12px; padding: 10px 12px; font: 16px var(--display); }
@@ -351,7 +367,7 @@ body.deck-lock { overflow: hidden; }
 }
 </style>
 <script>
-/* Sample data for the portal preview (?demo=1). Loaded only in demo mode; real clients never download it. */
+/* Sample data for the portal preview (?demo=1). It ships inside this page but is only read in demo mode; real clients never see it. */
 window.SP_DEMO = function () {
   var iso = function (n) { var d = new Date(); d.setDate(d.getDate() + n); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
   var gd = function (id) { return 'https://docs.google.com/document/d/' + id + '/edit'; };
@@ -392,7 +408,7 @@ window.SP_DEMO = function () {
 /* Set after the Apps Script web app is deployed. */
 var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
 
-var S = { token: null, view: 'jobs', data: null, status: 'boot', err: '', errRe: false, sent: false, pending: {}, notes: {}, fb: {}, fbText: {}, open: {}, demo: false,
+var S = { token: null, view: 'jobs', data: null, status: 'boot', err: '', jobErr: {}, noteQ: {}, sent: false, pending: {}, notes: {}, fb: {}, fbText: {}, open: {}, demo: false,
   q: {}, conf: {}, deferred: {}, leaving: {}, docBusy: {}, logDraft: {}, deck: null };
 var $ = function (s) { return document.querySelector(s); };
 var esc = SP.esc, fmtDate = SP.fmtDate, daysFrom = SP.daysFrom;
@@ -450,7 +466,7 @@ function errText(e, thing) {
   e = String(e || '');
   if (e === 'expired') return 'Your sign-in has expired.';
   if (e === 'network') return 'That didn\'t save. Please check your connection and try again.';
-  if (/not found/i.test(e)) return 'Not saved. That ' + (thing || 'item') + ' was updated. Pull down to refresh or reopen the portal.';
+  if (/not found/i.test(e)) return 'Not saved. That ' + (thing || 'item') + ' was updated. Reopen the portal to refresh.';
   return 'Not saved. Please try again in a minute.';
 }
 function load() {
@@ -490,33 +506,36 @@ function sendAnswer(id, a, note, opts) {
 function pump(id) {
   var q = S.q[id], it = q && q.next; if (!it) return;
   q.next = null; q.busy = true; var seq = ++q.seq; S.pending[id] = true; render();
-  var body = { action: 'answer', t: S.token, job: id, a: it.a }; if (it.note !== undefined) body.note = it.note;
+  var body = { action: 'answer', t: S.token, job: id, a: it.a }; if (it.note !== undefined) body.note = it.note; q.noteInFlight = it.note !== undefined;
   post(body, it.opts.keepalive).then(function (d) {
     if (seq !== q.seq) return; q.busy = false;
     var j = jobById(id); if (!j) { delete S.pending[id]; return; }
     if (d && d.ok) {
       S.conf[id] = { answer: d.answer || '', note: it.note !== undefined ? it.note : (S.conf[id] || {}).note || '' };
       if (q.next) { pump(id); return; }
+      if (S.noteQ[id] != null && it.a === 'q') { var nq = S.noteQ[id]; delete S.noteQ[id]; sendAnswer(id, 'q', nq, {}); return; }
       delete S.pending[id];
       if (!S.deferred[id]) { j.answer = d.answer || ''; if (it.note !== undefined) j.note = it.note; }
       j.answeredOn = d.answer ? todayISO() : '';
       S.justSaved = id;
-      if (!it.opts.quiet) toast(it.a === 'yes' ? 'Saved. Sherif starts your documents.' : it.a === 'q' ? (it.note ? 'Sent. Sherif can see your question.' : 'Got it. Add your question below.') : it.a === 'no' ? (it.note ? 'Sent. Thank you.' : 'Moved to Passed.') : 'Answer cleared.');
+      if (it.opts.keepalive) toast('Saved.'); /* app switch inside the undo window: the card stays answered, say it saved */
+      else if (!it.opts.quiet) toast(it.a === 'yes' ? 'Saved. Sherif starts your documents.' : it.a === 'q' ? (it.note ? 'Sent. Sherif can see your question.' : 'Got it. Add your question below.') : it.a === 'no' ? (it.note ? 'Sent. Thank you.' : 'Moved to Passed.') : 'Answer cleared.');
     } else fail(d && d.error);
     render();
   }).catch(function () { if (seq !== q.seq) return; q.busy = false; fail('network'); render(); });
   function fail(e) {
-    q.next = null; delete S.pending[id];
+    q.next = null; delete S.pending[id]; delete S.noteQ[id];
     var j = jobById(id), c = S.conf[id] || { answer: '', note: '' };
     if (j && !S.deferred[id]) { j.answer = c.answer; j.note = c.note; }
-    S.errJob = id; S.err = errText(e, 'job'); S.errRe = e === 'expired';
+    S.jobErr[id] = { msg: errText(e, 'job'), re: e === 'expired', a: it.a, note: it.note };
+    if (it.opts.quiet) toast(e === 'expired' ? 'Your sign-in has expired. Answers not saved.' : 'An answer didn\'t save. See the card.');
   }
 }
 function answer(jobId, a, note, quiet) {
   var j = jobById(jobId); if (!j) return;
   cancelDeferred(jobId);
   j.answer = a ? ANS_WORD[a] : ''; if (note !== undefined) j.note = note;
-  S.justSaved = null; if (S.errJob === jobId) { S.errJob = null; S.err = ''; S.errRe = false; }
+  S.justSaved = null; delete S.jobErr[jobId];
   sendAnswer(jobId, a, note, { quiet: quiet });
 }
 function undoTo(jobId, prevWord) { var code = ansOf({ answer: prevWord }); return function () { answer(jobId, code, undefined, true); toast(code ? 'Back to ' + ANS_WORD[code] + '.' : 'Undone.'); }; }
@@ -527,7 +546,7 @@ function decide(id, a, note, src) {
   flushDeferred();
   var prev = { answer: j.answer || '', note: j.note || '' };
   j.answer = ANS_WORD[a]; if (note !== undefined) j.note = note;
-  if (S.errJob === id) { S.errJob = null; S.err = ''; S.errRe = false; }
+  delete S.jobErr[id];
   var D = S.deferred[id] = { a: a, note: note, prev: prev, src: src || 'list' };
   D.timer = setTimeout(function () { commitDeferred(id); }, UNDO_MS);
   D.toastEl = undoToast(a === 'yes' ? 'Yes.' : a === 'no' ? 'Passed.' : 'Question.', function () { undoDeferred(id); }, UNDO_MS);
@@ -551,7 +570,9 @@ function commitDeferred(id, keepalive) {
 }
 function cancelDeferred(id) { var D = S.deferred[id]; if (!D) return; clearTimeout(D.timer); delete S.deferred[id]; delete S.leaving[id]; if (D.toastEl && D.toastEl.parentNode) D.toastEl.remove(); }
 function flushDeferred(keepalive) { Object.keys(S.deferred).forEach(function (id) { commitDeferred(id, keepalive); }); }
-document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushDeferred(true); });
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'hidden') flushDeferred(true);
+});
 window.addEventListener('pagehide', function () { flushDeferred(true); });
 
 /* ---- toasts (one at a time so they never stack) ---- */
@@ -786,10 +807,10 @@ function jobCard(j, hint) {
     var nv = S.notes[j.id] != null ? S.notes[j.id] : (j.note || '');
     var conf = S.conf[j.id] || {};
     h += '<div class="note2"><label class="sr" for="nt-' + id + '">' + (ans === 'q' ? 'Your question' : 'Why not') + '</label><textarea id="nt-' + id + '" placeholder="' + (ans === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps your next matches.') + '" data-note="' + id + '">' + esc(nv) + '</textarea>' +
-      '<div class="row"><button class="btn' + (ans === 'q' ? ' gold' : '') + '" data-savenote="' + id + '" data-a="' + ans + '"' + (busy ? ' aria-disabled="true"' : '') + '>Send</button>' + (conf.note && nv === conf.note && !busy ? '<span class="saving">Sent</span>' : '') + '</div></div>';
+      '<div class="row"><button class="btn' + (ans === 'q' ? ' gold' : '') + '" data-savenote="' + id + '" data-a="' + ans + '">' + (S.noteQ[j.id] != null || (S.pending[j.id] && S.q[j.id] && S.q[j.id].noteInFlight) ? 'Sending…' : 'Send') + '</button>' + (conf.note && nv === conf.note && !busy ? '<span class="saving" role="status">Sent</span>' : '') + '</div></div>';
   }
   if (S.pending[j.id]) h += '<span class="saving" role="status">Saving…</span>';
-  if (S.errJob === j.id && S.err) h += '<p class="err" role="alert">' + esc(S.err) + (S.errRe ? reauthBtn() : '') + '</p>';
+  var je = S.jobErr[j.id]; if (je) h += '<p class="err" role="alert">' + esc(je.msg) + (je.re ? reauthBtn() : '') + '</p>';
   h += '<button class="dtog" data-det="' + id + '" aria-expanded="' + open + '" aria-controls="det-' + id + '">Details ' + IC.chev + '</button>';
   if (open) {
     h += '<div class="det" id="det-' + id + '">' + (j.why ? '<p><span class="lab">Why it fits</span>' + esc(j.why) + '</p>' : '') +
@@ -902,7 +923,8 @@ function vApps() {
 function focusKey(el) {
   if (!el || el === document.body || !el.closest || !el.closest('#app')) return null;
   var sel;
-  if (el.id) sel = '#' + cssq(el.id);
+  if (el.matches('.ptitle h1')) sel = '.ptitle h1';
+  else if (el.id) sel = '#' + cssq(el.id);
   else {
     var parts = [el.tagName.toLowerCase()];
     [].forEach.call(el.attributes, function (a) { if (/^data-/.test(a.name)) parts.push('[' + a.name + '="' + cssq(a.value) + '"]'); });
@@ -960,7 +982,7 @@ function markApplied(jobId) {
   saveApp(body, function (r) {
     S.applyBusy = null;
     if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' }); toast('Nice work. It is on your Applied tab.'); }
-    else { if (r.error === 'expired') { S.errJob = j.id; S.err = errText('expired'); S.errRe = true; } toast(errText(r.error, 'job')); }
+    else { if (r.error === 'expired') S.jobErr[j.id] = { msg: errText('expired'), re: true }; toast(errText(r.error, 'job')); }
     render();
   });
 }
@@ -1017,7 +1039,7 @@ document.addEventListener('click', function (e) { if (Date.now() < blockClickUnt
    A full-screen stack of the unanswered jobs, one big card at a time.
    Right = Yes, left = Pass, up = Question (note box first, Skip allowed). Buttons and arrow keys do the same.
    Every decision goes through decide() (undo window). To switch the deck off, set DECK_ENABLED = false. */
-var DECK_ENABLED = false; // off for clients until the deck fixes pass review; on in the preview
+var DECK_ENABLED = true;
 function deckButton(c) {
   if (!DECK_ENABLED || !coarse() || c.wait < 2) return '';
   return '<button class="deckbtn" data-deck>' + IC.cards + 'Swipe through ' + c.wait + ' new jobs</button>';
@@ -1026,36 +1048,49 @@ function deckOpen() {
   var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; });
   var ids = S.data.jobs.filter(function (j) { return !ansOf(j) && !locked(j.id); }).sort(function (a, b) { return (pos[a.id] || 0) - (pos[b.id] || 0); }).map(function (j) { return j.id; });
   if (!ids.length) return;
-  S.deck = { ids: ids, i: 0, more: false, qFor: null, y: window.scrollY };
+  S.deck = { ids: ids, i: 0, more: false, qFor: null, y: window.scrollY, tried: {} };
   document.body.classList.add('deck-lock'); S.focusTo = '.dk-acts .dk-yes'; render(); window.scrollTo(0, 0);
 }
 function deckClose() {
   if (!S.deck) return;
   flushDeferred();
   var y = S.deck.y; S.deck = null; document.body.classList.remove('deck-lock');
-  S.focusTo = '[data-deck]'; render(); if (!document.activeElement || document.activeElement === document.body) { var h = document.querySelector('.ptitle h1'); if (h) h.focus({ preventScroll: true }); }
+  S.focusTo = '[data-deck]'; render();
+  var fe = document.activeElement; if (!fe || fe === document.body || !fe.closest('#app')) { var h = document.querySelector('.ptitle h1'); if (h) h.focus({ preventScroll: true }); }
   window.scrollTo(0, y);
 }
 function deckCur() { var D = S.deck; return D && D.i < D.ids.length ? jobById(D.ids[D.i]) : null; }
 function deckDecide(a, note) {
   var D = S.deck, j = deckCur(); if (!j) return;
   if (!decide(j.id, a, note, 'deck')) return;
-  if (S.deck) { D.i++; D.more = false; D.qFor = null; S.focusTo = deckCur() ? '.dk-acts .dk-yes' : '[data-deckclose]'; render(); }
+  if (S.deck) { D.tried[j.id] = true; D.i++; D.more = false; D.qFor = null; S.focusTo = deckCur() ? '.dk-acts .dk-yes' : '[data-deckclose]'; render(); }
 }
-function deckAsk() { var j = deckCur(); if (!j) return; S.deck.qFor = j.id; S.focusTo = '.dk-q textarea'; render(); }
+function deckAsk() { var j = deckCur(); if (!j) return; S.deck.qFor = j.id; S.deck.more = false; S.focusTo = '.dk-q textarea'; render(); }
+/* Where each deck decision stands: waiting in its undo window or in flight, failed, or saved. */
+function deckState() {
+  var D = S.deck, st = { waiting: 0, failed: [], expired: false };
+  D.ids.forEach(function (id) { if (S.deferred[id] || S.pending[id]) st.waiting++; else if (S.jobErr[id] && D.tried[id]) { st.failed.push(id); if (S.jobErr[id].re) st.expired = true; } });
+  return st;
+}
+function deckRetry() {
+  deckState().failed.forEach(function (id) { var e = S.jobErr[id]; if (e && e.a) { delete S.jobErr[id]; var j = jobById(id); if (j) { j.answer = ANS_WORD[e.a]; if (e.note !== undefined) j.note = e.note; } sendAnswer(id, e.a, e.note, { quiet: true }); } });
+  render();
+}
 function dkCard(j, top) {
   var est = isEst(j), pill = floorPill(j.floor), link = safeUrl(j.link), id = esc(j.id), D = S.deck;
-  var h = '<div class="dk-card' + (top ? ' top' : ' peek') + '"' + (top ? ' data-dk="' + id + '"' : ' aria-hidden="true"') + '>';
-  if (top) h += '<span class="dk-stamp y" aria-hidden="true">YES</span><span class="dk-stamp p" aria-hidden="true">PASS</span><span class="dk-stamp q" aria-hidden="true">QUESTION</span>';
-  h += '<h2 class="dk-ttl" id="dk-ttl">' + esc(j.title) + '</h2><div class="dk-pay' + (est ? ' est' : '') + '">' + esc(payText(j)) + (est ? '<small>Estimate</small>' : '') + '</div>' +
+  var asking = top && D.qFor === j.id;
+  var h = '<div class="dk-card' + (top ? ' top' : ' peek') + (top && D.more ? ' expanded' : '') + (asking ? ' asking' : '') + '"' + (top ? ' data-dk="' + id + '"' : ' aria-hidden="true"') + '>';
+  if (top && !asking) h += '<span class="dk-stamp y" aria-hidden="true">YES</span><span class="dk-stamp p" aria-hidden="true">PASS</span><span class="dk-stamp q" aria-hidden="true">QUESTION</span>';
+  h += '<div class="dk-body"><h2 class="dk-ttl" id="dk-ttl">' + esc(j.title) + '</h2><div class="dk-pay' + (est ? ' est' : '') + '">' + esc(payText(j)) + (est ? '<small>Estimate</small>' : '') + '</div>' +
     '<div class="dk-where">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</div>' +
     '<div class="pills">' + pill + (j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '') + '</div>';
-  if (!top) return h + '</div>';
+  if (!top) return h + '</div></div>';
   if (j.why) h += '<p class="dk-why">' + esc(j.why) + '</p>';
   var more = (j.notes || link);
-  if (more) h += '<button class="dk-more" data-dkmore aria-expanded="' + !!D.more + '">' + (D.more ? 'Less' : 'More') + IC.chev + '</button>' +
+  if (more && !asking) h += '<button class="dk-more" data-dkmore aria-expanded="' + !!D.more + '">' + (D.more ? 'Less' : 'More') + IC.chev + '</button>' +
     (D.more ? '<div class="dk-moretext">' + (j.notes ? '<p>' + esc(j.notes) + '</p>' : '') + (link ? '<p><a href="' + esc(link) + '" target="_blank" rel="noopener" data-track="posting" data-job="' + id + '">See the posting</a></p>' : '') + '</div>' : '');
-  if (D.qFor === j.id) {
+  h += '</div>';
+  if (asking) {
     h += '<div class="dk-q"><label for="dkq-' + id + '">Your question for Sherif</label><textarea id="dkq-' + id + '" data-note="' + id + '" placeholder="For example: is parking free?">' + esc(S.notes[j.id] || '') + '</textarea>' +
       '<div class="row"><button class="btn gold" data-dkq="send">Send question</button><button class="btn ghost" data-dkq="skip">Skip</button></div></div>';
   }
@@ -1063,13 +1098,18 @@ function dkCard(j, top) {
 }
 function vDeck() {
   var D = S.deck, j = deckCur(), total = D.ids.length, nxt = D.i + 1 < total ? jobById(D.ids[D.i + 1]) : null;
-  var h = '<div class="deck" role="dialog" aria-modal="true" aria-label="Swipe through your jobs">' +
+  var h = '<div class="deck' + (D.qFor ? ' asking' : '') + '" role="dialog" aria-modal="true" aria-label="Swipe through your jobs">' +
     '<div class="dk-top"><button class="dk-close" data-deckclose aria-label="Close and go back to the list">' + IC.x + '</button><div class="dk-prog" aria-live="polite">' + (j ? (D.i + 1) + ' of ' + total : total + ' of ' + total) + '</div>' +
     '<div class="dk-bar" aria-hidden="true"><i style="width:' + Math.round(Math.min(D.i, total) / total * 100) + '%"></i></div></div>';
   if (!j) {
-    return h + '<div class="dk-done"><div class="dk-doneic">' + IC.checkc + '</div><h2>All caught up</h2><p>Your answers are on your list, in color.</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
+    var st = deckState(), nf = st.failed.length;
+    if (st.waiting) return h + '<div class="dk-done"><div class="dk-spin" aria-hidden="true"></div><h2>That was the last one</h2><p role="status">Saving your answers…' + (nf ? ' ' + nf + ' didn\'t save so far.' : '') + '</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
+    if (nf) return h + '<div class="dk-done"><div class="dk-fail" role="alert"><h2>' + nf + (nf === 1 ? ' answer didn\'t save' : ' answers didn\'t save') + '</h2><p>' + (st.expired ? 'Your sign-in has expired. Sign in again, then answer ' + (nf === 1 ? 'it' : 'them') + ' from your list.' : 'Check your connection, then try again. Your list shows which ones.') + '</p>' +
+      '<div class="row">' + (st.expired ? '<button class="btn gold" data-reauth>Sign in again</button>' : '<button class="btn gold" data-dkretry>Retry</button>') + '<button class="btn ghost" data-deckclose>Back to the list</button></div></div></div></div>';
+    return h + '<div class="dk-done"><div class="dk-doneic">' + IC.checkc + '</div><h2>All caught up</h2><p role="status">Your answers are saved and on your list, in color.</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
   }
-  h += '<div class="dk-stack">' + (nxt ? dkCard(nxt, false) : '') + dkCard(j, true) + '</div>';
+  h += '<div class="dk-stack">' + (nxt && !D.qFor ? dkCard(nxt, false) : '') + dkCard(j, true) + '</div>';
+  if (D.qFor) return h + '</div>';
   h += '<div class="dk-acts" role="group" aria-label="Your answer">' +
     '<button class="dk-btn dk-no" data-dka="no" aria-label="Pass">' + IC.x + '<span>Pass</span></button>' +
     '<button class="dk-btn dk-qb" data-dka="q" aria-label="Question">' + IC.q + '<span>Question</span></button>' +
@@ -1086,6 +1126,7 @@ function dkStamp(card, dx, dy, w, hgt) {
 function dkReset(card) { card.classList.remove('dragging'); if (!REDUCED) { card.classList.add('spring'); setTimeout(function () { card.classList.remove('spring'); }, 300); } card.style.transform = ''; dkStamp(card, 0, 0, 1, 1); }
 document.addEventListener('pointerdown', function (e) {
   if (!S.deck || !e.isPrimary) return;
+  if (S.deck.qFor) return; /* question box open: no swiping, the card scrolls normally */
   var card = e.target.closest('.dk-card.top'); if (!card || e.target.closest('button, a, textarea, input, label')) return;
   DK = { card: card, x0: e.clientX, y0: e.clientY, t0: Date.now(), dx: 0, dy: 0, mode: null, pid: e.pointerId, w: card.offsetWidth || 1, h: card.offsetHeight || 1 };
   try { card.setPointerCapture(e.pointerId); } catch (x) {}
@@ -1096,6 +1137,8 @@ document.addEventListener('pointermove', function (e) {
   if (!DK.mode) {
     if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
     DK.mode = Math.abs(dx) >= Math.abs(dy) ? 'h' : dy < 0 ? 'v' : 'down';
+    /* Expanded card: vertical drags scroll the notes (touch-action: pan-y), only sideways swipes decide. */
+    if (DK.mode !== 'h' && S.deck && S.deck.more) { try { DK.card.releasePointerCapture(DK.pid); } catch (x) {} DK = null; return; }
     DK.card.classList.add('dragging');
   }
   e.preventDefault(); DK.dx = dx; DK.dy = dy;
@@ -1140,10 +1183,18 @@ function deckClick(b, d) {
   if (!S.deck) return false;
   if (d.deckclose != null) { deckClose(); return true; }
   if (d.dkmore != null) { S.deck.more = !S.deck.more; render(); return true; }
+  if (d.dkretry != null) { deckRetry(); return true; }
   if (d.dka) { if (d.dka === 'q') deckAsk(); else deckDecide(d.dka); return true; }
   if (d.dkq) { var j = deckCur(); if (!j) return true; var ta = document.querySelector('.dk-q textarea'); var note = ta ? ta.value.trim() : ''; S.notes[j.id] = note; deckDecide('q', d.dkq === 'send' && note ? note : undefined); return true; }
   return false;
 }
+/* Size the deck to the visible viewport so Send and Skip stay above the on-screen keyboard. */
+function dkViewport() {
+  var vv = window.visualViewport, r = document.documentElement;
+  if (!vv) return;
+  r.style.setProperty('--vvh', vv.height + 'px'); r.style.setProperty('--vvt', vv.offsetTop + 'px');
+}
+if (window.visualViewport) { visualViewport.addEventListener('resize', dkViewport); visualViewport.addEventListener('scroll', dkViewport); dkViewport(); }
 /* =================== END SWIPE DECK =================== */
 
 document.addEventListener('submit', function (e) {
@@ -1169,7 +1220,7 @@ document.addEventListener('click', function (e) {
   var b = e.target.closest('button'); if (!b) return; var d = b.dataset;
   if (deckClick(b, d)) return;
   if (d.menu != null) { S.menu = !S.menu; S.focusTo = S.menu ? '.acct .menu [role=menuitem]' : '[data-menu]'; render(); return; }
-  if (d.reauth != null) { signOut('Please sign in again. We\'ll email you a new link.'); return; }
+  if (d.reauth != null) { S.deck = null; document.body.classList.remove('deck-lock'); signOut('Please sign in again. We\'ll email you a new link.'); return; }
   if (d.fb) { ['#fbHelp', '#fbChange', '#fbWhy', '#fbQuote'].forEach(function (id, i) { var el = $(id); if (el) S.fbText[['help', 'change', 'why', 'quote'][i]] = el.value; }); var v = /^\d+$/.test(d.v) ? Number(d.v) : d.v; S.fb[d.fb] = S.fb[d.fb] === v ? null : v; render(); return; }
   if (d.fbsubmit != null) { sendFeedback(); return; }
   if (d.prep != null) { S.prep = d.prep || null; S.card = 0; S.flipped = false; render(); if (S.prep) window.scrollTo(0, 0); return; }
@@ -1196,7 +1247,9 @@ document.addEventListener('click', function (e) {
     answer(d.j, d.ans); return;
   }
   if (d.clear) { if (locked(d.clear)) return; S.focusTo = '[data-ans="yes"][data-j="' + cssq(d.clear) + '"]'; answer(d.clear, ''); return; }
-  if (d.savenote) { if (S.pending[d.savenote]) return; var ta = document.querySelector('[data-note="' + cssq(d.savenote) + '"]'); S.notes[d.savenote] = ta ? ta.value : ''; answer(d.savenote, d.a, S.notes[d.savenote]); return; }
+  if (d.savenote) { var ta = document.querySelector('[data-note="' + cssq(d.savenote) + '"]'); S.notes[d.savenote] = ta ? ta.value : '';
+    if (S.pending[d.savenote] || S.deferred[d.savenote]) { if (d.a === 'q' && !S.deferred[d.savenote]) { S.noteQ[d.savenote] = S.notes[d.savenote]; render(); } return; }
+    answer(d.savenote, d.a, S.notes[d.savenote]); return; }
   if (d.logopen != null) { S.logOpen = true; S.logErr = ''; S.logMsg = ''; S.logDraft = {}; S.focusTo = '#lgCompany'; render(); return; }
   if (d.logclose != null) { S.logOpen = false; S.logErr = ''; S.logDraft = {}; render(); return; }
   if (d.logsave != null) {
