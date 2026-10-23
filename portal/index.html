@@ -1041,7 +1041,7 @@ document.addEventListener('click', function (e) { if (Date.now() < blockClickUnt
    A full-screen stack of the unanswered jobs, one big card at a time.
    Right = Yes, left = Pass, up = Question (note box first, Skip allowed). Buttons and arrow keys do the same.
    Every decision goes through decide() (undo window). To switch the deck off, set DECK_ENABLED = false. */
-var DECK_ENABLED = false; // off for clients until the deck fixes pass review; on in the preview
+var DECK_ENABLED = true;
 function deckButton(c) {
   if (!DECK_ENABLED || !coarse() || c.wait < 2) return '';
   return '<button class="deckbtn" data-deck>' + IC.cards + 'Swipe through ' + c.wait + ' new jobs</button>';
