@@ -1,6 +1,6 @@
-/* Steady Path Careers service worker. Pages: network first, offline fallback. Assets: cache first. API calls (script.google.com) are never touched. */
-var V = 'sp-20261018a';
-var ASSETS = ['/offline.html', '/assets/site.css?v=20261018a', '/assets/site.js?v=20261018a', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
+/* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage. Assets: cache first. API calls (script.google.com) are never touched. */
+var V = 'sp-20261023a';
+var ASSETS = ['/offline.html', '/assets/site.css?v=20261023a', '/assets/site.js?v=20261023a', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(V).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); }));
 });
@@ -15,11 +15,12 @@ self.addEventListener('fetch', function (e) {
   var url = new URL(req.url);
   if (url.origin !== location.origin) return; // never intercept the API or fonts
   if (req.mode === 'navigate') {
+    var key = url.origin + url.pathname; // no query string: tokens (?t=) and flags are never cached
     e.respondWith(fetch(req).then(function (res) {
-      var copy = res.clone(); caches.open(V).then(function (c) { c.put(req, copy); });
+      if (res && res.ok) { var copy = res.clone(); caches.open(V).then(function (c) { c.put(key, copy); }); }
       return res;
     }).catch(function () {
-      return caches.match(req).then(function (hit) { return hit || caches.match('/offline.html'); });
+      return caches.match(key).then(function (hit) { return hit || caches.match('/offline.html'); });
     }));
     return;
   }
