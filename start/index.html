@@ -68,7 +68,7 @@
 document.getElementById('scene').innerHTML = SP.scene(220, 's');
 var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
 var esc = SP.esc;
-var D = { types: [], notWant: [], settings: [], shifts: [], software: [], times: [] }, step = 0, err = '', busy = false, file = null;
+var D = { types: [], notWant: [], settings: [], shifts: [], software: [], times: [], standOut: [] }, step = 0, err = '', busy = false, file = null;
 try { var saved = JSON.parse(localStorage.getItem('sp_intake') || 'null'); if (saved) D = Object.assign(D, saved); } catch (e) {}
 function save() { try { var c = Object.assign({}, D); localStorage.setItem('sp_intake', JSON.stringify(c)); } catch (e) {} }
 
@@ -82,18 +82,20 @@ var OPT = {
   payAim: ['Under $40,000', '$40,000 to $50,000', '$50,000 to $60,000', '$60,000 to $75,000', '$75,000 to $90,000', '$90,000 or more'],
   start: ['Immediately', 'Within 2 weeks', 'Within a month', '1 to 3 months'],
   shifts: ['Weekday days', 'Evenings', 'Overnights', 'Weekends', 'Rotating shifts'],
+  hours: ['Full-time only', 'Part-time only', 'Either'],
+  standOut: ['Health insurance', 'Dental and vision coverage', 'Retirement plan or 401(k) match', 'Generous paid time off', 'Flexible hours', 'Ability to work remote', 'Hybrid schedule', 'One location (not split across offices)', 'Guaranteed base pay (not commission or production only)', 'Signing bonus', 'Paid training or continuing education', 'Clear path to promotion', 'Short commute', 'Weekends off', 'Stable, established employer'],
   software: ['Microsoft Office (Word, Excel, Outlook)', 'Google Workspace', 'Workday', 'ADP', 'UKG', 'SAP', 'Oracle', 'Dayforce', 'NetSuite', 'QuickBooks', 'Salesforce or another CRM', 'Epic or another medical records system', 'Zendesk or another help desk tool', 'Point of sale (POS)', 'Power BI, Tableau or SQL', 'None of these'],
   education: ['High school or GED', 'Some college', "Associate's degree", "Bachelor's degree", "Master's or higher", 'Trade or certificate program', 'Prefer not to show'],
   yesno: ['Yes', 'No']
 };
 var STEPS = [
   { t: 'About you', s: 'So I can reach you and put the right name on your resume.', req: ['name', 'phone', 'email', 'city', 'contactBy'] },
-  { t: 'What you want', s: 'The more specific, the better the matches.', req: ['types', 'titles', 'settings', 'payFloor'] },
+  { t: 'What you want', s: 'The more specific, the better the matches.', req: ['types', 'titles', 'settings', 'hours', 'payFloor'] },
   { t: 'Your work so far', s: 'Your resume shapes the job titles I search for, so this part matters most.', req: [] },
   { t: 'Rules for your search', s: 'Hard rules I check on every document and every job.', req: [] },
   { t: 'Confirm and send', s: 'Last step. Please review and confirm.', req: ['agreeTrue', 'agreeTrial', 'signature'] }
 ];
-var LABEL = { name: 'your name', phone: 'phone', email: 'email', city: 'city, state and ZIP', contactBy: 'best way to reach you', types: 'type of work', titles: 'job titles (at least 2)', settings: 'work settings', payFloor: 'lowest yearly pay', agreeTrue: 'the first box', agreeTrial: 'the second box', signature: 'your signature' };
+var LABEL = { name: 'your name', phone: 'phone', email: 'email', city: 'city, state and ZIP', contactBy: 'best way to reach you', types: 'type of work', titles: 'job titles (at least 2)', settings: 'work settings', hours: 'full-time or part-time', payFloor: 'lowest yearly pay', agreeTrue: 'the first box', agreeTrial: 'the second box', signature: 'your signature' };
 
 function inp(k, label, type, o) { o = o || {}; return '<div class="q"><label for="f_' + k + '">' + label + (o.req ? ' <span class="req">*</span>' : '') + '</label>' + (o.help ? '<div class="help">' + o.help + '</div>' : '') +
   (type === 'textarea' ? '<textarea id="f_' + k + '" data-k="' + k + '" placeholder="' + (o.ph || '') + '">' + esc(D[k] || '') + '</textarea>'
@@ -115,7 +117,10 @@ function body() {
     '<div class="two">' + sel('commute', 'How far will you commute?', OPT.commute) + sel('getThere', 'How do you get to work?', OPT.getThere) + '</div>' +
     chips('nycHybrid', 'Open to a hybrid job in NYC, 2 to 3 days a week?', OPT.nycHybrid) +
     '<div class="two">' + inp('payFloor', 'Lowest yearly pay you would accept', 'text', { req: 1, ph: '85000', help: 'I only send jobs whose posted range reaches at least this amount.' }) + sel('payAim', 'Pay you are aiming for', OPT.payAim) + '</div>' +
-    sel('start', 'Earliest start date', OPT.start) + chips('shifts', 'Shifts you CAN work', OPT.shifts, { multi: 1 });
+    sel('start', 'Earliest start date', OPT.start) + chips('hours', 'Full-time or part-time?', OPT.hours, { req: 1 }) + chips('shifts', 'Shifts you CAN work', OPT.shifts, { multi: 1 }) +
+    chips('standOut', 'What would make a job stand out for you?', OPT.standOut, { multi: 1, help: 'Select all that apply. Pay is covered above; these help me rank your matches and point out what each job offers.' }) +
+    ((D.standOut || []).length > 1 ? sel('standOutTop', 'Which one matters most?', D.standOut) : '') +
+    inp('standOutOther', 'Anything else that would make a job stand out? (optional)', 'text', { ph: 'For example: a guaranteed daily rate, a mentor, free parking' });
   if (step === 2) return '<div class="q"><div class="lab">Upload your current resume</div><div class="help">PDF or Word, up to 10 MB. Any version is fine. No resume? Skip this and paste your work history below.</div>' +
     '<div class="drop"><input type="file" id="f_resume" accept=".pdf,.doc,.docx,.rtf,.txt"><div style="margin-top:6px">' + (file ? '<b>' + esc(file.name) + '</b> attached' : (D.resumeName ? 'Please attach this file again: <b>' + esc(D.resumeName) + '</b>' : '')) + '</div></div></div>' +
     inp('history', 'Or paste your work history: employer, title, dates, what you did', 'textarea') +
@@ -162,6 +167,9 @@ function submit() {
   busy = true; err = ''; render();
   (file ? toB64(file) : Promise.resolve(null)).then(function (data) {
     var b = Object.assign({ action: 'intake' }, D);
+    var extra = ['Full-time or part-time: ' + (D.hours || 'not answered'), 'What makes a job stand out: ' + ((D.standOut || []).join(', ') || 'none picked') + (D.standOutTop ? ' (most important: ' + D.standOutTop + ')' : '') + (D.standOutOther ? '; also: ' + D.standOutOther : '')].join('\n');
+    b.anythingElse = (D.anythingElse ? D.anythingElse + '\n\n' : '') + extra;
+    b.standOut = (D.standOut || []).join(', ');
     if (data) b.resume = { name: file.name, type: file.type, data: data };
     return fetch(API, { method: 'POST', body: JSON.stringify(b), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(function (r) { return r.json(); });
   }).then(function (d) {
@@ -177,7 +185,7 @@ function submit() {
 document.addEventListener('change', function (e) {
   var t = e.target;
   if (t.id === 'f_resume') { var f = t.files[0]; if (f && f.size > 10 * 1024 * 1024) { err = 'That file is over 10 MB. Please choose a smaller file, or paste your work history below.'; t.value = ''; file = null; } else { file = f || null; D.resumeName = f ? f.name : ''; err = ''; } grab(); render(); return; }
-  if (t.dataset.c) { grab(); var k = t.dataset.c; if (t.type === 'checkbox') { var a = D[k] || []; if (t.checked) { if (a.indexOf(t.value) < 0) a.push(t.value); } else a = a.filter(function (x) { return x !== t.value; }); D[k] = a; } else D[k] = t.value; save(); if (k === 'gaps' || k === 'relocating') render(); return; }
+  if (t.dataset.c) { grab(); var k = t.dataset.c; if (t.type === 'checkbox') { var a = D[k] || []; if (t.checked) { if (a.indexOf(t.value) < 0) a.push(t.value); } else a = a.filter(function (x) { return x !== t.value; }); D[k] = a; } else D[k] = t.value; save(); if (k === 'standOut' && D.standOutTop && (D.standOut || []).indexOf(D.standOutTop) < 0) D.standOutTop = ''; if (k === 'gaps' || k === 'relocating' || k === 'standOut') render(); return; }
   grab();
 });
 document.addEventListener('input', function (e) { if (e.target.dataset.k) { D[e.target.dataset.k] = e.target.value; save(); } });
