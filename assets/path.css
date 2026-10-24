@@ -292,7 +292,7 @@ main.trail-main { position: relative; isolation: isolate; }
 .finale > .wrap { position: relative; z-index: 2; }
 
 /* footer */
-.foot { background: var(--midnight); color: #DCE6F0; padding: 34px 0 calc(34px + env(safe-area-inset-bottom, 0px)); }
+.foot { position: relative; z-index: 3; background: var(--midnight); color: #DCE6F0; padding: 34px 0 calc(34px + env(safe-area-inset-bottom, 0px)); }
 .foot .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px 30px; align-items: center; }
 .foot .brand { color: var(--cream); }
 .foot nav { display: flex; flex-wrap: wrap; gap: 2px 6px; }
@@ -396,3 +396,5 @@ main.trail-main { position: relative; isolation: isolate; }
 .dark .card p { color: var(--ink2); }
 .dark .card a, .dark .li a, .dark .tw a, .dark .faq2 a { color: var(--navy); }
 .dark .btn.gold { color: var(--midnight); }
+.mk .brand { min-height: 44px; }
+.finale::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--midnight); }
