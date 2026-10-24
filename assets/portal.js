@@ -1,7 +1,8 @@
 /* Steady Path portal: visual layer only. After each render (batched into one animation frame) it reads the portal state,
    never writes it, and adds motion that marks real progress: a burst when a Yes is saved (not on the tap, and not while
    its undo window is open), on "I applied", on an approved document, on a new interview date and when the deck is done;
-   the tracker and progress bar grow as things advance; the header eases in when the tab changes.
+   the tracker and progress bar grow as things advance; the header eases in when the tab changes; a job's marker on the
+   journey map hops to its new stage; the next-step card eases in when the step changes.
    If this file fails or is missing, the portal works exactly as before. Reduced motion (read live): no bursts, no motion. */
 (function () {
   'use strict';
@@ -12,7 +13,7 @@
   var html = document.documentElement, fx = window.SPFX || { burstAt: function () {}, reduced: function () { return true; } };
   var mq = null; try { mq = window.matchMedia('(prefers-reduced-motion: reduce)'); } catch (e) {}
   function RM() { return mq ? mq.matches : true; }
-  var prev = null, prevData = null, lastView = '', wasDone = false, queued = false, bursts = [];
+  var prev = null, prevData = null, lastView = '', wasDone = false, queued = false, bursts = [], lastNx = '', lastTicks = '';
   /* Bursts read layout, so they wait for the next frame and run together. */
   function burst(sel, o) { bursts.push([sel, o]); if (queued) return; queued = true; (window.requestAnimationFrame || setTimeout)(flush); }
   function flush() { queued = false; var b = bursts; bursts = []; if (RM()) return; b.forEach(function (x) { var el = typeof x[0] === 'function' ? x[0]() : typeof x[0] === 'string' ? q(x[0]) : x[0]; fx.burstAt(el, x[1]); }); }
@@ -39,7 +40,7 @@
   }
   function run() {
     var S = window.S;
-    var view = S.status !== 'ready' ? String(S.status) : S.deck ? 'deck' : String(S.view || 'jobs');
+    var view = S.status !== 'ready' ? String(S.status) : S.deck ? 'deck' : S.flow && S.flow.kind ? String(S.flow.kind) : String(S.view || 'jobs');
     if (html.getAttribute('data-pv') !== view) html.setAttribute('data-pv', view);
     if (!RM() && S.status === 'ready' && lastView && view !== lastView) {
       ['.deck', '.sky', '.tabbar'].forEach(function (s) { var el = q(s); if (el) el.classList.add('pv-enter'); });
@@ -49,6 +50,12 @@
     var s = snap(S);
     if (prevData !== S.data || !prev) { prev = s; prevData = S.data; return; }
     var p = prev; prev = s;
+    var nx = q('.nx'), nxk = nx ? nx.getAttribute('data-nx') + '|' + (nx.querySelector('h2') || {}).textContent : '';
+    if (nx && lastNx && nxk !== lastNx && !RM()) nx.classList.add('pv-new');
+    if (nx || view !== 'jobs') lastNx = nxk;
+    var ticks = [].map.call(document.querySelectorAll('.ap-st'), function (el) { return el.classList.contains('done') ? 1 : 0; }).join('');
+    if (ticks && lastTicks && ticks.length === lastTicks.length && !RM()) [].forEach.call(document.querySelectorAll('.ap-st'), function (el, i) { if (ticks[i] === '1' && lastTicks[i] === '0') el.classList.add('pv-tick'); });
+    lastTicks = ticks;
     var done = view === 'deck' && !!q('.dk-done .dk-doneic');
     if (done && !wasDone) burst('.dk-doneic', { n: 12, r: 110 });
     wasDone = done;
@@ -59,13 +66,13 @@
     });
     Object.keys(s.stage).forEach(function (id) {
       var a = p.stage[id] || 0, b = s.stage[id];
-      if (b > a) grow(q('[data-jc="' + esc(id) + '"] .trk'), a / b);
+      if (b > a) { grow(q('[data-jc="' + esc(id) + '"] .trk'), a / b); var m = q('.jm-m[data-jmgo="' + esc(id) + '"]'); if (m) m.classList.add('pv-hop'); }
     });
     if (s.tot === p.tot && s.dec > p.dec) grow(q('.prog .bar i'), p.dec / s.dec);
     Object.keys(s.apps).forEach(function (id) {
       if (id in p.apps) return;
       var jid = s.apps[id];
-      burst(q(jid ? '[data-jc="' + esc(jid) + '"] .kapplied' : '[data-app="' + esc(id) + '"]') || q('[data-app="' + esc(id) + '"]'), { n: 12, r: 100, fallback: true });
+      burst(q('.ap-done .ap-doneic') || q(jid ? '[data-jc="' + esc(jid) + '"] .kapplied' : '[data-app="' + esc(id) + '"]') || q('[data-app="' + esc(id) + '"]'), { n: 12, r: 100, fallback: true });
     });
     Object.keys(s.iv).forEach(function (id) {
       if (p.iv[id] === s.iv[id] || !(id in p.apps)) return;
