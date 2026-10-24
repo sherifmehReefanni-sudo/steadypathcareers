@@ -1,9 +1,10 @@
 /* Steady Path Careers: small celebration bursts (portal and intake). Hand-written, transform and opacity only, about 0.8s,
    then the pieces are removed. Does nothing with reduced motion or without the Web Animations API. */
-window.SPFX = (function () {
+window.SPFX = window.SPFX || (function () {
   'use strict';
-  var RM = false;
-  try { RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  /* Reduced motion is read live, so turning it on mid-session stops bursts at once. */
+  var mq = null; try { mq = window.matchMedia('(prefers-reduced-motion: reduce)'); } catch (e) {}
+  function RM() { return mq ? mq.matches : true; }
   var layer = null;
   var COLORS = ['#C9A227', '#F2D98A', '#1f7a46', '#E9A23B', '#2E4C78', '#D9783F'];
   function getLayer() {
@@ -17,9 +18,9 @@ window.SPFX = (function () {
   }
   function piece(l, cls, x, y) { var p = document.createElement('i'); p.className = cls; p.style.left = x + 'px'; p.style.top = y + 'px'; l.appendChild(p); return p; }
   function burst(x, y, o) {
-    if (RM || !document.body || !document.body.animate) return;
+    if (RM() || !document.body || !document.body.animate) return;
     o = o || {};
-    var n = o.n || 14, r = o.r || 70, cols = o.colors || COLORS, l = getLayer();
+    var n = Math.min(o.n || 8, 12), r = o.r || 70, cols = o.colors || COLORS, l = getLayer();
     var ring = piece(l, 'fx-ring', x, y);
     ring.animate([{ transform: 'translate(-50%,-50%) scale(.3)', opacity: 0.85 }, { transform: 'translate(-50%,-50%) scale(1.7)', opacity: 0 }],
       { duration: 560, easing: 'cubic-bezier(.2,.8,.2,1)' }).onfinish = function () { ring.remove(); };
@@ -39,7 +40,7 @@ window.SPFX = (function () {
   }
   /* Burst from the middle of an element, if it is on screen. */
   function burstAt(el, o) {
-    if (RM || !el || !el.getBoundingClientRect) return;
+    if (RM() || !el || !el.getBoundingClientRect) return;
     var b = el.getBoundingClientRect(), vh = window.innerHeight || 800, vw = window.innerWidth || 400;
     if (!b.width || b.bottom < 0 || b.top > vh) { if (o && o.fallback) burst(vw / 2, vh * 0.7, o); return; }
     burst(b.left + b.width / 2, b.top + b.height / 2, o);

@@ -55,7 +55,8 @@
 .mk .chips input, .mk .agree input { width: 24px; height: 24px; }
 /* intake visual layer: illustrated header per part, a path that fills, a celebration at the end */
 .iwrap { min-width: 0; display: grid; gap: 14px; }
-.ihead:empty { display: none; }
+.ihead { display: none; }
+.has-ihead .ihead { display: block; }
 .ihead { background-color: #10213A; background-image: radial-gradient(80% 140% at 100% 100%, rgba(233,162,59,.4), rgba(233,162,59,0) 60%), linear-gradient(120deg, #10213A, #1F3A5F 60%, #2B3F72); color: #FBF6EE; border-radius: 18px; padding: 14px 18px 8px; box-shadow: 0 16px 36px rgba(16,33,58,.18); }
 .ih-row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; align-items: center; }
 .ih-art { width: 96px; height: 77px; background: rgba(251,246,238,.08); border-radius: 14px; display: grid; place-items: center; }

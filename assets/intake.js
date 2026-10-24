@@ -3,9 +3,12 @@
    or what gets sent. If this file fails, the form works as before. */
 (function () {
   'use strict';
+  if (window.__spIntakeViz) return;
   var form = document.getElementById('form'), head = document.getElementById('ihead');
   if (!form || !head || typeof window.step !== 'number') return;
-  var RM = false; try { RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  window.__spIntakeViz = true;
+  var mq = null; try { mq = window.matchMedia('(prefers-reduced-motion: reduce)'); } catch (e) {}
+  function RM() { return mq ? mq.matches : true; }
   var SPK = function (x, y, s, f) { return '<path transform="translate(' + x + ' ' + y + ') scale(' + s + ')" d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="' + (f || '#C9A227') + '"/>'; };
   var SUN = '<circle cx="96" cy="22" r="20" fill="#F2D98A" opacity=".55"/><circle cx="96" cy="22" r="10" fill="#C9A227"/>';
   var ART = [
@@ -28,27 +31,29 @@
     '<g transform="translate(60 70)">' + [0, 30, 60, 90, 120, 150, 180].map(function (a) { return '<path d="M0 -38 V-50" transform="rotate(' + (a - 90) + ')" stroke="#C9A227" stroke-width="5" stroke-linecap="round"/>'; }).join('') +
       '<circle r="30" fill="#C9A227"/><path d="M-12 0 l8 8 l17 -18" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g><path d="M0 84 C 30 74 90 74 120 84 V96 H0Z" fill="#1F3A5F"/>' + SPK(16, 20, .7) + SPK(106, 16, .6, '#1f7a46')
   ];
-  var CHEER = ['Let’s start with the basics.', 'Nice start. Now, what are you after?', 'Halfway there. Take your time on this one.', 'Almost done. A few ground rules.', 'Last step. Read it over, then send.', 'You’re in. Taking you to your portal.'];
+  var CHEER = ['Let’s start with the basics.', 'Nice start. Now, what are you after?', 'Halfway there. Take your time on this one.', 'Almost done. A few ground rules.', 'Last step. Read it over, then send.', 'You’re in. Nice work.'];
   var PTS = [[20, 26], [135, 22], [250, 22], [365, 20], [480, 18]];
   head.innerHTML = '<div class="ih-row"><div class="ih-art" aria-hidden="true"><svg viewBox="0 0 120 96" focusable="false"></svg></div><div class="ih-text"><p class="ih-cheer"></p><p class="ih-next"></p></div></div>' +
     '<svg class="ih-path" viewBox="0 0 500 44" aria-hidden="true" focusable="false"><path class="ih-track" d="M20 26 C 60 6 95 6 135 22 S 210 40 250 22 S 325 4 365 20 S 440 38 480 18"/>' +
     '<path class="ih-fill" pathLength="1" d="M20 26 C 60 6 95 6 135 22 S 210 40 250 22 S 325 4 365 20 S 440 38 480 18"/>' +
     PTS.map(function (p, i) { return '<g transform="translate(' + p[0] + ' ' + p[1] + ')"><circle class="ih-dot" data-i="' + i + '" r="9"/></g>'; }).join('') + '</svg>';
-  document.documentElement.classList.add('has-ihead');
   var art = head.querySelector('.ih-art'), svg = art.querySelector('svg'), cheer = head.querySelector('.ih-cheer'), next = head.querySelector('.ih-next'), fill = head.querySelector('.ih-fill');
   var dots = [].slice.call(head.querySelectorAll('.ih-dot'));
   var last = -1;
   function paint() {
     var s = window.step; if (typeof s !== 'number' || s === last) return;
     var prev = last; last = s;
+    var back = prev >= 0 && s < prev, steps = window.STEPS || [];
     svg.innerHTML = ART[Math.min(s, 5)];
-    cheer.textContent = CHEER[Math.min(s, 5)];
-    var steps = window.STEPS || [];
-    next.textContent = s < 4 && steps[s + 1] ? 'Up next: ' + steps[s + 1].t : s === 4 ? 'Then you are done.' : '';
+    /* Going back gets a plain label, not the forward cheer again. */
+    cheer.textContent = back && steps[s] ? 'Back to part ' + (s + 1) + ': ' + steps[s].t : CHEER[Math.min(s, 5)];
+    next.textContent = back ? 'Your answers are saved on this device.' : s < 4 && steps[s + 1] ? 'Up next: ' + steps[s + 1].t : s === 4 ? 'Then you are done.' : '';
     fill.style.strokeDashoffset = String(1 - Math.min(1, s / 4));
     dots.forEach(function (d, i) { d.classList.toggle('on', i <= s || s >= 5); d.classList.toggle('now', i === s); });
     head.classList.toggle('done', s >= 5);
-    if (!RM && prev >= 0) { art.classList.remove('in'); void art.offsetWidth; art.classList.add('in'); }
+    /* Show the header (and hide the plain progress bar) only once it has real content. */
+    if (cheer.textContent) document.documentElement.classList.add('has-ihead');
+    if (!RM() && prev >= 0 && !back) { art.classList.remove('in'); void art.offsetWidth; art.classList.add('in'); }
     if (s >= 5) {
       var top = head.getBoundingClientRect().top;
       if (top < 0 || top > (window.innerHeight || 800) * 0.6) window.scrollTo(0, Math.max(0, top + (window.pageYOffset || 0) - 20));

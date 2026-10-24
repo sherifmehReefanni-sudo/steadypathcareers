@@ -15,22 +15,20 @@ html[data-pv="apps"] .sky::after { background-image: url("data:image/svg+xml,%3C
 html[data-pv="feedback"] .sky::after { background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 140 110%22%3E%3Cdefs%3E%3CradialGradient id=%22g%22%3E%3Cstop offset=%220%22 stop-color=%22%23F2D98A%22 stop-opacity=%22.75%22/%3E%3Cstop offset=%221%22 stop-color=%22%23F2D98A%22 stop-opacity=%220%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx=%22108%22 cy=%2226%22 r=%2234%22 fill=%22url(%23g)%22/%3E%3Ccircle cx=%22108%22 cy=%2226%22 r=%2213%22 fill=%22%23C9A227%22/%3E%3Cg transform=%22translate(14 36)%22%3E%3Crect width=%2262%22 height=%2240%22 rx=%2214%22 fill=%22%23FBF6EE%22/%3E%3Cpath d=%22M14 40 L8 54 L28 40Z%22 fill=%22%23FBF6EE%22/%3E%3Ccircle cx=%2218%22 cy=%2220%22 r=%224.5%22 fill=%22%231F3A5F%22/%3E%3Ccircle cx=%2231%22 cy=%2220%22 r=%224.5%22 fill=%22%231F3A5F%22/%3E%3Ccircle cx=%2244%22 cy=%2220%22 r=%224.5%22 fill=%22%231F3A5F%22/%3E%3C/g%3E%3Cg transform=%22translate(66 58)%22%3E%3Crect width=%2256%22 height=%2238%22 rx=%2214%22 fill=%22%23C9A227%22/%3E%3Cpath d=%22M42 38 L50 50 L32 38Z%22 fill=%22%23C9A227%22/%3E%3Cpath d=%22M28 30 C 16 22 17 12 23 12 C 26 12 28 14 28 16 C 28 14 30 12 33 12 C 39 12 40 22 28 30Z%22 fill=%22%2310213A%22/%3E%3C/g%3E%3Cpath transform=%22translate(124 54) scale(0.6)%22 d=%22M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z%22 fill=%22%23FBF6EE%22/%3E%3C/svg%3E"); }
 .ptitle { padding-right: 170px; }
 .ptitle h1 { text-wrap: balance; }
-.ptitle p { font-size: 16px; color: #E3EAF4; }
+.ptitle p { color: #E3EAF4; }
 .ptabs button { transition: background-color .15s, color .15s; }
 .ptabs button:hover { background: rgba(251,246,238,.1); color: #fff; }
 .ptabs button[aria-current="true"] { box-shadow: inset 0 -3px 0 var(--gold); }
 
 /* jobs top */
-.hello b { font-size: 21px; }
-.hello span { font-size: 15px; color: var(--pv-ink2); }
-.prog .bar { height: 12px; background: #EADFC8; position: relative; overflow: visible; }
+.hello span { color: var(--pv-ink2); }
+.prog .bar { background: #EADFC8; position: relative; overflow: visible; }
 .prog .bar i { background: linear-gradient(90deg, var(--gold), var(--pv-marigold)); position: relative; transform-origin: left center; }
 .prog .bar i::after { content: ""; position: absolute; right: -6px; top: 50%; width: 16px; height: 16px; margin-top: -8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 4px var(--gold); }
 .nextc { background-color: var(--navy); background-image: radial-gradient(70% 140% at 100% 100%, rgba(233,162,59,.35), rgba(233,162,59,0) 60%), linear-gradient(120deg, #10213A, #1F3A5F 55%, #23506A); box-shadow: 0 12px 28px rgba(16,33,58,.22); position: relative; overflow: hidden; }
-.nextc small { font-size: 13px; }
-.nextc span { font-size: 15px; color: #E3EAF4; }
+.nextc span { color: #E3EAF4; }
 .wnote { box-shadow: 0 6px 16px rgba(16,33,58,.06); }
-.sec-h { font-size: 14px; color: var(--pv-ink2); display: flex; align-items: center; gap: 10px; }
+.sec-h { color: var(--pv-ink2); display: flex; align-items: center; gap: 10px; }
 .sec-h::after { content: ""; flex: 1; height: 3px; border-radius: 3px; background: repeating-linear-gradient(90deg, var(--gold) 0 10px, transparent 10px 18px); opacity: .7; }
 
 /* job cards: warmer, still quick to scan */
@@ -145,10 +143,11 @@ html[data-pv="feedback"] .sky::after { background-image: url("data:image/svg+xml
   .card.empty { grid-template-columns: 88px minmax(0, 1fr); gap: 12px; }
   .card.empty::before { width: 88px; height: 72px; }
 }
-@media (max-width: 430px) { .jc .ans3 button svg { display: none; } }
-@media (max-width: 380px) {
-  .sky::after { width: 74px; height: 58px; }
-  .ptitle { padding-right: 80px; min-height: 58px; }
+@media (max-width: 430px) {
+  .jc .ans3 button svg { display: none; }
+  /* small phones: keep the header exactly as tall as before; the tab illustration steps aside */
+  .sky::after { display: none; }
+  .ptitle { padding-right: 0; min-height: 0; }
 }
 @media print {
   .fx-layer, .tabbar, .sky::after { display: none !important; }
