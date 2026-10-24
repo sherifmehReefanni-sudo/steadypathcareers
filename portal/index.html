@@ -429,7 +429,14 @@ body.deck-lock { overflow: hidden; }
   .ap-b > h2, .ap-b > p { padding-left: 52px; min-height: 20px; }
   .ap-b > h2 { padding-top: 8px; }
 }
-@media print { .rv-frame { height: auto; } .fl-back { display: none; } }
+@media print {
+  .rv-frame { height: auto; } .fl-back { display: none; }
+  /* printers drop backgrounds: dark cards and solid buttons print as dark text on white */
+  .nx { display: block !important; background: none !important; box-shadow: none !important; border: 1.5px solid #10213A !important; color: #10213A !important; }
+  .nx h2, .nx-s, .nx-k, .nx-acts .btn { color: #10213A !important; }
+  .nx-tx { padding-right: 0 !important; }
+  .ap-n, .kbtn.solid, .kdone { color: #10213A !important; background: none !important; border: 1.5px solid #10213A !important; box-shadow: none !important; }
+}
 
 @media (max-width: 760px) {
   .ptabs { display: none; }
