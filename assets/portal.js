@@ -53,15 +53,15 @@
     Object.keys(s.apps).forEach(function (id) {
       if (id in p.apps) return;
       var jid = s.apps[id];
-      fx.burstAt(q(jid ? '[data-jc="' + esc(jid) + '"] .kapplied' : '[data-app="' + esc(id) + '"]') || q('[data-app="' + esc(id) + '"]'), { n: 22, r: 110 });
+      fx.burstAt(q(jid ? '[data-jc="' + esc(jid) + '"] .kapplied' : '[data-app="' + esc(id) + '"]') || q('[data-app="' + esc(id) + '"]'), { n: 22, r: 110, fallback: true });
     });
     Object.keys(s.iv).forEach(function (id) {
       if (p.iv[id] === s.iv[id] || !(id in p.apps)) return;
-      fx.burstAt(q('[data-app="' + esc(id) + '"]'), { n: 18, r: 90, colors: ['#2b5aa8', '#C9A227', '#F2D98A', '#1f7a46'] });
+      fx.burstAt(q('[data-app="' + esc(id) + '"]'), { n: 18, r: 90, colors: ['#2b5aa8', '#C9A227', '#F2D98A', '#1f7a46'], fallback: true });
     });
     Object.keys(s.ok).forEach(function (id) {
       if (p.ok[id]) return;
-      fx.burstAt(q('[data-doc="' + esc(id) + '"]'), { n: 16, r: 90 });
+      fx.burstAt(q('[data-doc="' + esc(id) + '"]'), { n: 16, r: 90, fallback: true });
     });
   }
   if ('MutationObserver' in window) new MutationObserver(after).observe(app, { childList: true });

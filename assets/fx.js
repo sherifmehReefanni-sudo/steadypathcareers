@@ -40,8 +40,8 @@ window.SPFX = (function () {
   /* Burst from the middle of an element, if it is on screen. */
   function burstAt(el, o) {
     if (RM || !el || !el.getBoundingClientRect) return;
-    var b = el.getBoundingClientRect();
-    if (!b.width || b.bottom < 0 || b.top > (window.innerHeight || 800)) return;
+    var b = el.getBoundingClientRect(), vh = window.innerHeight || 800, vw = window.innerWidth || 400;
+    if (!b.width || b.bottom < 0 || b.top > vh) { if (o && o.fallback) burst(vw / 2, vh * 0.7, o); return; }
     burst(b.left + b.width / 2, b.top + b.height / 2, o);
   }
   return { burst: burst, burstAt: burstAt, reduced: RM };
