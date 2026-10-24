@@ -47,7 +47,7 @@
     svg.innerHTML = ART[Math.min(s, 5)];
     /* Going back gets a plain label, not the forward cheer again. */
     cheer.textContent = back && steps[s] ? 'Back to part ' + (s + 1) + ': ' + steps[s].t : CHEER[Math.min(s, 5)];
-    next.textContent = back ? 'Your answers are saved on this device.' : s < 4 && steps[s + 1] ? 'Up next: ' + steps[s + 1].t : s === 4 ? 'Then you are done.' : '';
+    next.textContent = back ? 'Your answers so far are still here.' : s < 4 && steps[s + 1] ? 'Up next: ' + steps[s + 1].t : s === 4 ? 'Then you are done.' : '';
     fill.style.strokeDashoffset = String(1 - Math.min(1, s / 4));
     dots.forEach(function (d, i) { d.classList.toggle('on', i <= s || s >= 5); d.classList.toggle('now', i === s); });
     head.classList.toggle('done', s >= 5);

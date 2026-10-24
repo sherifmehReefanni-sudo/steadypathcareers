@@ -143,7 +143,7 @@ html[data-pv="feedback"] .sky::after { background-image: url("data:image/svg+xml
   .card.empty { grid-template-columns: 88px minmax(0, 1fr); gap: 12px; }
   .card.empty::before { width: 88px; height: 72px; }
 }
-@media (max-width: 430px) {
+@media (max-width: 600px) {
   .jc .ans3 button svg { display: none; }
   /* small phones: keep the header exactly as tall as before; the tab illustration steps aside */
   .sky::after { display: none; }
