@@ -499,7 +499,7 @@ window.SP_DEMO = function () {
 var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
 
 var S = { token: null, view: 'jobs', data: null, status: 'boot', err: '', jobErr: {}, noteQ: {}, sent: false, pending: {}, notes: {}, fb: {}, fbText: {}, open: {}, demo: false,
-  q: {}, conf: {}, deferred: {}, leaving: {}, docBusy: {}, logDraft: {}, deck: null };
+  q: {}, conf: {}, deferred: {}, leaving: {}, docBusy: {}, logDraft: {}, deck: null, flow: null };
 var $ = function (s) { return document.querySelector(s); };
 var esc = SP.esc, fmtDate = SP.fmtDate, daysFrom = SP.daysFrom;
 var UNDO_MS = 5000;
@@ -763,8 +763,8 @@ function vFeedback() {
   var f = S.fb;
   var scale = function (key, from, to) { var out = ''; for (var i = from; i <= to; i++) out += '<button type="button" data-fb="' + key + '" data-v="' + i + '" aria-pressed="' + (f[key] === i) + '">' + i + '</button>'; return '<div class="scale">' + out + '</div>'; };
   var pick = function (key, opts) { return '<div class="scale">' + opts.map(function (o) { return '<button type="button" data-fb="' + key + '" data-v="' + o + '" aria-pressed="' + (f[key] === o) + '">' + o + '</button>'; }).join('') + '</div>'; };
-  if (S.fbDone) return shell('feedback', 'Thank you.', 'Sherif reads every answer himself.') + '<main class="pmain"><div class="card"><p style="margin:0">Got it. If you asked something, Sherif will get back to you.</p><p style="margin:12px 0 0"><button class="btn gold" data-go="jobs">Back to your jobs</button></p></div></main>' + tabbar('');
-  return shell('feedback', 'How is it going?', 'About two minutes. Be blunt; it helps.') +
+  if (S.fbDone) return shell('feedback', 'Thank you.', 'Sherif reads every answer himself.') + '<div class="pband" aria-hidden="true"></div><main class="pmain"><div class="card"><p style="margin:0">Got it. If you asked something, Sherif will get back to you.</p><p style="margin:12px 0 0"><button class="btn gold" data-go="jobs">Back to your jobs</button></p></div></main>' + tabbar('');
+  return shell('feedback', 'How is it going?', 'About two minutes. Be blunt; it helps.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain"><div class="card">' +
     '<div class="fbq"><div class="lab">How likely are you to recommend Steady Path to a friend?</div>' + scale('rec', 0, 10) + '<div class="scale-ends"><span>Not at all</span><span>Definitely</span></div></div>' +
     '<div class="fbq"><div class="lab">How useful have your job matches been?</div>' + scale('jobs', 1, 5) + '<div class="scale-ends" style="max-width:250px"><span>Not useful</span><span>Very useful</span></div></div>' +
@@ -1240,7 +1240,7 @@ function render() {
 function go(view) { S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
-  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
+  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
 }
 
