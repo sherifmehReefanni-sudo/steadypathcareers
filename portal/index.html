@@ -368,6 +368,7 @@ body.deck-lock { overflow: hidden; }
   .ptop .brand .bname { font-size: 15px; }
 }
 </style>
+<link rel="stylesheet" href="../assets/portal.css?v=20261024d">
 <script>
 /* Sample data for the portal preview (?demo=1). It ships inside this page but is only read in demo mode; real clients never see it. */
 window.SP_DEMO = function () {
@@ -865,7 +866,7 @@ function vJobs() {
     (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Sherif' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
     (fbDue(cl) ? '<div class="fbask"><p>Two minutes? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
     installCard() +
-    (main.length ? '<h2 class="sec-h">Your matches</h2><div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card"><p class="psub" style="margin:0">Nothing here yet. You will get an email when your first jobs arrive.</p></div>') +
+    (main.length ? '<h2 class="sec-h">Your matches</h2><div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">Nothing here yet. You will get an email when your first jobs arrive.</p></div>') +
     (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '') +
     '<footer class="help"><p><b>Need help?</b> ' + HELP + '</p><button class="linkbtn" data-signout>Sign out on this device</button></footer>' +
     '</main>' + tabbar('jobs');
@@ -881,7 +882,7 @@ function vDocs() {
   return shell('docs', n ? n + (n === 1 ? ' document needs' : ' documents need') + ' your OK' : 'Your documents', 'Open, approve or ask for changes.') +
     '<main class="pmain">' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + (d.docs.length ? groups.map(function (g) {
       return '<section class="dgrp"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' + g.docs.map(docCard).join('') + '</section>';
-    }).join('') : '<div class="card"><p class="psub" style="margin:0">Your resume draft will show up here for your OK.</p></div>') + '</main>' + tabbar('docs');
+    }).join('') : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your resume draft will show up here for your OK.</p></div>') + '</main>' + tabbar('docs');
 }
 function docCard(x) {
   var st = String(x.status || ''), ok = /approved/i.test(st), ready = isReady(x), link = safeUrl(x.link), id = esc(x.id), busy = S.docBusy[x.id];
@@ -935,7 +936,7 @@ function vApps() {
           (S.updFor === x.id ? '<div class="logbox" style="margin-top:8px"><label for="upStatus">New status</label><select id="upStatus">' + APP_STATUS.map(function (o) { return '<option' + (o === x.status ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select><label for="upIv">Interview date (if any)</label><input id="upIv" type="date" value="' + esc(/^\d{4}-\d\d-\d\d$/.test(x.interview || '') ? x.interview : '') + '"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-upsave="' + esc(x.id) + '">Save</button><button class="btn ghost" data-upd="">Cancel</button></div></div>'
             : '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p>') + '</div>';
       }).join('') + '</div>';
-    }).join('') + '</div>' : '<div class="card"><p class="psub" style="margin:0">Say Yes to a job, approve your documents, and apply. It shows up here.</p></div>') + '</main>' + tabbar('apps');
+    }).join('') + '</div>' : '<div class="card empty e-apps"><p class="psub" style="margin:0">Say Yes to a job, approve your documents, and apply. It shows up here.</p></div>') + '</main>' + tabbar('apps');
 }
 
 /* ---- render, keeping focus, caret and typed text ---- */
@@ -1311,5 +1312,7 @@ document.addEventListener('keydown', function (e) {
 document.addEventListener('input', function (e) { if (e.target.dataset && e.target.dataset.note) S.notes[e.target.dataset.note] = e.target.value; });
 load();
 </script>
+<script src="../assets/fx.js?v=20261024d"></script>
+<script src="../assets/portal.js?v=20261024d"></script>
 </body>
 </html>
