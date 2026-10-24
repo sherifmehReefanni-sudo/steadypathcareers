@@ -435,7 +435,8 @@ function jobById(id) { return ((S.data && S.data.jobs) || []).filter(function (x
   var q = new URLSearchParams(location.search);
   if (q.get('demo') === '1') {
     S.demo = true; S.token = 'demo'; if (q.get('v')) S.view = q.get('v');
-    if (q.get('t')) { q.delete('t'); history.replaceState({}, '', location.pathname + '?' + q.toString()); }
+    if (q.get('review')) S.wantReview = q.get('review');
+    if (q.get('t') || q.get('review')) { q.delete('t'); q.delete('review'); history.replaceState({}, '', location.pathname + '?' + q.toString()); }
     return;
   }
   var t = q.get('t');
@@ -444,7 +445,8 @@ function jobById(id) { return ((S.data && S.data.jobs) || []).filter(function (x
   if (q.get('expired')) { S.status = 'signin'; S.err = 'That link has expired. Enter your email and we\'ll send you a new one.'; lsDel('sp_token'); S.token = null; }
   if (q.get('answered')) S.flashJob = q.get('answered');
   if (q.get('v')) S.view = q.get('v');
-  if (t || q.get('expired') || q.get('answered')) history.replaceState({}, '', location.pathname);
+  if (q.get('review') && !q.get('expired')) S.wantReview = q.get('review'); /* from the "documents ready" email: open the review screen for that job */
+  if (t || q.get('expired') || q.get('answered') || q.get('review')) history.replaceState({}, '', location.pathname);
 })();
 if (S.view === 'home') S.view = 'jobs';
 
@@ -486,6 +488,11 @@ function load() {
        unanswered first, then Yes and Question, then No (shown in Passed). */
     var grp = function (x) { var a = ansOf(x); return !a ? 0 : a === 'no' ? 2 : 1; };
     S.order = d.jobs.slice().sort(function (a, b) { return grp(a) - grp(b) || String(b.added || '').localeCompare(String(a.added || '')); }).map(function (x) { return x.id; });
+    if (S.wantReview) {
+      var rj = jobById(S.wantReview); S.wantReview = null;
+      if (rj && jobDocs(rj).length) { S.flow = { kind: 'review', job: rj.id }; S.view = 'jobs'; S.focusTo = '.ptitle h1'; }
+      else if (rj) S.flash = 'Your documents for ' + coName(rj) + ' are not ready yet. We\'ll email you when they are.';
+    }
     render();
   }).catch(function () { S.status = 'error'; render(); });
 }
@@ -594,15 +601,16 @@ function undoToast(msg, fn, ms) {
   return el;
 }
 
-function docStatus(docId, status, request) {
-  if (S.docBusy[docId]) return;
+/* done(ok) is optional (the review screen chains approvals through it); quiet skips the success toast. */
+function docStatus(docId, status, request, done, quiet) {
+  if (S.docBusy[docId]) { if (done) done(false); return; }
   S.docBusy[docId] = true; render();
   post({ action: 'docStatus', t: S.token, doc: docId, status: status, request: request }).then(function (d) {
     delete S.docBusy[docId];
-    if (d && d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } S.changesDraft = ''; toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent to Sherif.'); }
+    if (d && d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } S.changesDraft = ''; if (!quiet) toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent to Sherif.'); }
     else { if (d && d.error === 'expired') S.reauthMsg = true; toast(errText(d && d.error, 'document')); }
-    render();
-  }).catch(function () { delete S.docBusy[docId]; toast(errText('network')); render(); });
+    if (done) done(!!(d && d.ok)); else render();
+  }).catch(function () { delete S.docBusy[docId]; toast(errText('network')); if (done) done(false); else render(); });
 }
 function track(what, job) { try { post({ action: 'track', t: S.token, what: what, job: job || '' }).catch(function () {}); } catch (e) {} }
 
@@ -698,18 +706,180 @@ function sendFeedback() {
   }).catch(function () { S.fbBusy = false; S.fbErr = 'That didn\'t send. Please check your connection and try again.'; render(); });
 }
 
-/* ---- next step ---- */
-function nextStep(d) {
-  var c = counts(), first = d.client.firstName || '';
-  var waitDoc = (d.docs || []).filter(isReady)[0];
-  var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0; }).sort(function (a, b) { return daysFrom(a.interview) - daysFrom(b.interview); })[0];
-  if (soon) { var dd = daysFrom(soon.interview); return { t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days'), s: soon.company + ' · ' + fmtDate(soon.interview) + '. Practice cards are ready.', go: 'apps', b: 'Practice' }; }
-  if (waitDoc) return { t: 'Check: ' + waitDoc.name, s: 'Approve it or ask for changes.', go: 'docs', b: 'Open' };
-  if (c.wait) return { t: c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer', s: 'Yes, No or Question.', go: 'first', b: 'Start' };
-  if (!d.jobs.length) return { t: 'Sherif is reading your resume', s: 'Your first matches come next.', go: '', b: '' };
-  if (c.yes && !(d.apps || []).length) return { t: 'Your documents are being written', s: 'They show up in Documents for your OK.', go: 'docs', b: 'Documents' };
-  return { t: 'All caught up' + (first ? ', ' + first : ''), s: 'New matches come each week.', go: '', b: '' };
+/* ---- guided flow: exactly one next step across all of the client's jobs ----
+   Priority: answer new jobs, read documents for a Yes job, apply, interview practice, then a plain waiting message.
+   The review and apply screens reuse the existing endpoints only (docStatus, app, track). */
+function needsOk(x) { return isReady(x) && docKind(x.name) !== 'prep'; }
+function jobState(j) {
+  var docs = jobDocs(j), ok = function (x) { return /approved/i.test(x.status || ''); };
+  var of = function (k) { return docs.filter(function (x) { return docKind(x.name) === k; }); };
+  var res = of('resume'), cov = of('cover');
+  var s = { docs: docs, resume: res.filter(ok)[0] || null, cover: cov.filter(ok)[0] || null, prep: of('prep').filter(function (x) { return safeUrl(x.link); })[0] || null,
+    review: docs.filter(needsOk), changes: docs.filter(function (x) { return /changes/i.test(x.status || ''); }), app: jobApp(j) };
+  s.applyReady = !!(s.resume && s.cover) && !res.concat(cov).some(needsOk);
+  return s;
 }
+function orderedJobs(d) { var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; }); return d.jobs.slice().sort(function (a, b) { var pa = pos[a.id] != null ? pos[a.id] : -1, pb = pos[b.id] != null ? pos[b.id] : -1; return pa - pb; }); }
+function coName(j) { return String(j.company || j.title || 'this job'); }
+/* "resume and cover letter", "resume", "thank-you note" */
+function docWords(list) {
+  var k = {}; list.forEach(function (x) { k[docKind(x.name) || 'other'] = x; });
+  var w = []; if (k.resume) w.push('resume'); if (k.cover) w.push('cover letter');
+  list.forEach(function (x) { if (!/^(resume|cover|prep)$/.test(docKind(x.name))) w.push(String(x.name).replace(/\s+for\s+.*$/i, '').toLowerCase()); });
+  return w.length > 1 ? w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] : w[0] || 'documents';
+}
+function flowStep(d) {
+  var c = counts(), first = d.client.firstName || '', jobs = orderedJobs(d);
+  var yes = jobs.filter(function (j) { return ansOf(j) === 'yes'; }), st = {};
+  yes.forEach(function (j) { st[j.id] = jobState(j); });
+  if (c.wait) return { k: 'answer', t: c.wait === 1 ? '1 new job to answer' : c.wait + ' new jobs to answer', s: 'Say Yes to the ones you want. For each Yes, Sherif writes a resume and cover letter for that job.',
+    act: deckButton(c) || '<button class="btn gold" data-first>Answer ' + (c.wait === 1 ? 'it' : 'them') + ' now</button>' };
+  var r = yes.filter(function (j) { return st[j.id].review.length; })[0];
+  if (r) { var w = docWords(st[r.id].review); return { k: 'review', t: 'Read your ' + w + ' for ' + coName(r), s: (st[r.id].review.length > 1 ? 'They are' : 'It is') + ' ready. Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ', then tap Looks good or ask for a change.', act: '<button class="btn gold" data-review="' + esc(r.id) + '">Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' now</button>' }; }
+  var a = yes.filter(function (j) { return st[j.id].applyReady && !st[j.id].app; })[0];
+  if (a) return { k: 'apply', t: 'Apply to ' + coName(a), s: 'Your documents are approved. Three short steps and you are done.', act: '<button class="btn gold" data-applyflow="' + esc(a.id) + '">Start applying</button>' };
+  var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0; }).sort(function (x, y) { return daysFrom(x.interview) - daysFrom(y.interview); })[0];
+  if (soon) {
+    var dd = daysFrom(soon.interview), sj = soon.jobId ? jobById(soon.jobId) : null, prep = sj ? jobState(sj).prep : null;
+    return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. Practice the questions they are likely to ask.',
+      act: '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">Practice now</button>' + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
+  }
+  var chg = yes.filter(function (j) { return st[j.id].changes.length && !st[j.id].app; })[0];
+  if (chg) return { k: 'wait', t: 'Sherif is making your changes for ' + coName(chg), s: 'We\'ll email you when they\'re ready to read.' };
+  var writing = yes.filter(function (j) { var s = st[j.id]; return !s.app && !s.applyReady && !s.review.length; });
+  if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: 'We\'ll email you when they\'re ready.' };
+  var qj = jobs.filter(function (j) { return ansOf(j) === 'q'; })[0];
+  if (qj) return { k: 'wait', t: 'Sherif is looking into your question', s: 'About ' + coName(qj) + '. You\'ll get an answer by email.' };
+  if (!d.jobs.length) return { k: 'start', t: 'Sherif is reading your resume', s: 'Your first job matches come next. We\'ll email you when they\'re here.' };
+  var hw = (d.apps || []).filter(function (x) { return stageOf(x) === 0; })[0];
+  if (hw) return { k: 'heard', t: 'Waiting to hear from ' + hw.company, s: 'Heard back? Update it on your Applied tab.', act: '<button class="btn gold" data-go="apps">Applied tab</button>' };
+  return { k: 'done', t: 'All caught up' + (first ? ', ' + first : ''), s: 'We\'ll email you when new matches come in.' };
+}
+function nxCard(n) {
+  return '<section class="nx" data-nx="' + n.k + '" aria-labelledby="nx-t"><div class="nx-art" aria-hidden="true"></div><div class="nx-tx"><p class="nx-k">Your next step</p><h2 id="nx-t">' + esc(n.t) + '</h2><p class="nx-s">' + esc(n.s) + '</p></div>' +
+    (n.act ? '<div class="nx-acts">' + n.act + '</div>' : '') + '</section>';
+}
+/* Journey map: every Yes job as a marker on the gold path, at its stage. */
+function shortCo(c) { var w = String(c || '').trim().split(/\s+/), s = w[0] || ''; if (s.length < 5 && w[1]) s += ' ' + w[1]; return s.length > 12 ? s.slice(0, 11) + '…' : s; }
+function jmap(jobs) {
+  var yes = jobs.filter(function (j) { return ansOf(j) === 'yes'; }); if (!yes.length) return '';
+  var by = [[], [], [], [], []]; yes.forEach(function (j) { by[S.deferred[j.id] || S.pending[j.id] ? 0 : stageFor(j)].push(j); });
+  return '<section class="jmap" aria-labelledby="jm-h"><h2 class="sec-h" id="jm-h">Where your Yes jobs are</h2><ol class="jm">' + STAGES_SHORT.map(function (s, i) {
+    return '<li class="jm-st st-' + i + (by[i].length ? ' has' : '') + '"><span class="jm-dot" aria-hidden="true"></span><span class="jm-l">' + s + '</span>' +
+      (by[i].length ? '<span class="jm-ms">' + by[i].map(function (m) { return '<button type="button" class="jm-m st-' + i + '" data-jmgo="' + esc(m.id) + '" aria-label="' + esc(m.company + ': ' + STAGES[i] + '. Show this job.') + '">' + esc(shortCo(m.company)) + '</button>'; }).join('') + '</span>' : '') + '</li>';
+  }).join('') + '</ol></section>';
+}
+
+/* ---- review screen: read the documents for one job, then one Looks good or one Ask for a change ---- */
+var KIND_LABEL = { resume: 'Resume', cover: 'Cover letter', prep: 'Interview prep' };
+function gdocId(link) { var m = String(link || '').match(/^https:\/\/docs\.google\.com\/document\/d\/([\w-]+)/); return m ? m[1] : ''; }
+function rvDocs(j) { var o = { resume: 0, cover: 1, prep: 2 }; return jobDocs(j).filter(function (x) { return safeUrl(x.link); }).sort(function (a, b) { var ka = o[docKind(a.name)], kb = o[docKind(b.name)]; return (ka == null ? 3 : ka) - (kb == null ? 3 : kb); }); }
+function docLabel(x) { return KIND_LABEL[docKind(x.name)] || String(x.name); }
+function docWord(x) { var st = String(x.status || ''); return /approved/i.test(st) ? 'Approved' : needsOk(x) ? 'Needs your OK' : /changes/i.test(st) ? 'Changes asked' : docKind(x.name) === 'prep' ? 'To read' : st || 'In progress'; }
+function sampleDoc(x, j) {
+  var k = docKind(x.name), L = function (w) { return '<i style="width:' + w + '%"></i>'; };
+  return '<div class="rv-sample" role="img" aria-label="Sample preview of ' + esc(docLabel(x).toLowerCase()) + '"><b>' + esc(k === 'cover' ? 'Dear hiring team at ' + j.company + ',' : k === 'prep' ? 'Interview prep: ' + j.company : (S.data.client.name || 'Your name')) + '</b>' +
+    L(80) + L(92) + L(64) + '<b>' + (k === 'resume' ? 'Experience' : k === 'prep' ? 'Questions to expect' : '') + '</b>' + L(88) + L(70) + L(94) + L(58) + L(84) + L(76) +
+    '<p>Sample preview. In your portal, your real document shows here.</p></div>';
+}
+function changeBox(st) {
+  var pick = st.review.filter(function (x) { return x.id === S.changesFor; })[0]; if (!pick) return '';
+  return '<div class="notebox rv-note">' + (st.review.length > 1 ? '<p class="rv-which" id="rvw">Which one?</p><div class="rv-picks" role="group" aria-labelledby="rvw">' + st.review.map(function (x) { return '<button type="button" class="btn ghost sm" data-rvpick="' + esc(x.id) + '" aria-pressed="' + (x.id === pick.id) + '">' + esc(docLabel(x)) + '</button>'; }).join('') + '</div>' : '') +
+    '<label for="changesText">What should change in your ' + esc(docLabel(pick).toLowerCase()) + '?</label><textarea id="changesText" placeholder="For example: add my NJ license, or remove my 2015 job.">' + esc(S.changesDraft || '') + '</textarea>' +
+    '<div class="row"><button class="btn gold" data-sendchanges="' + esc(pick.id) + '">Send to Sherif</button><button class="btn ghost" data-rvchange="">Cancel</button></div></div>';
+}
+function flowTop() { return '<div class="fl-top" data-live="top"><button class="fl-back" data-flowclose>' + IC.chev + 'Back to your jobs</button>' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + '</div>'; }
+function vReview() {
+  var j = jobById(S.flow.job); if (!j) { S.flow = null; return vJobs(); }
+  var docs = rvDocs(j), st = jobState(j), id = esc(j.id);
+  if (!docs.some(function (x) { return x.id === S.flow.tab; })) S.flow.tab = ((st.review[0] || docs[0]) || {}).id;
+  S.rvSig = docs.map(function (x) { return x.id + ' ' + x.link; }).join('|');
+  var busy = !!S.rvBusy, words = docWords(st.review), side;
+  if (st.review.length) side = '<div class="rv-card"><h2>Happy with ' + (st.review.length > 1 ? 'both' : 'it') + '?</h2><p>Tap Looks good to approve your ' + esc(words) + '. Then you can apply.</p>' +
+    '<button class="kdone" data-looksgood="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Looks good') + '</button>' +
+    '<button class="kbtn" data-rvchange="' + (S.changesFor ? '' : 'open') + '" aria-expanded="' + !!S.changesFor + '"' + (busy ? ' disabled' : '') + '>Ask for a change</button>' + changeBox(st) + '</div>';
+  else if (st.app) side = '<div class="rv-card ok"><h2>You applied</h2><p>Applied ' + esc(fmtDate(st.app.applied)) + '. It is on your Applied tab.</p><button class="btn gold" data-go="apps">Applied tab</button></div>';
+  else if (st.applyReady) side = '<div class="rv-card ok"><h2>All approved</h2><p>Your next step is to apply. It takes three short steps.</p><button class="kdone" data-applyflow="' + id + '">' + IC.check + 'Start applying</button></div>';
+  else side = '<div class="rv-card"><h2>Nothing to approve right now</h2><p>' + (st.changes.length ? 'Sherif is making your changes. ' : '') + 'We\'ll email you when your documents are ready to read.</p><button class="btn ghost" data-flowclose>Back to your jobs</button></div>';
+  return shell('jobs', 'Read your documents', esc(j.title + ' at ' + j.company)) + '<div class="pband" aria-hidden="true"></div>' +
+    '<main class="pmain wide flow rv" data-rv="' + id + '" data-sig="' + esc(S.rvSig) + '">' + flowTop() +
+    (docs.length ? '<div class="rv-grid"><div class="rv-left"><div class="rv-tabs" data-live="tabs" role="group" aria-label="Documents for this job">' + docs.map(function (x) {
+      return '<button type="button" class="rv-tab k-' + (docKind(x.name) || 'other') + '" data-rvtab="' + esc(x.id) + '" aria-pressed="' + (x.id === S.flow.tab) + '" aria-controls="rvp-' + esc(x.id) + '"><span>' + esc(docLabel(x)) + '</span><small>' + esc(docWord(x)) + '</small></button>';
+    }).join('') + '</div>' + docs.map(function (x, i) {
+      var g = gdocId(x.link);
+      return '<section class="rv-panel" id="rvp-' + esc(x.id) + '" aria-label="' + esc(x.name) + '"' + (x.id === S.flow.tab ? '' : ' hidden') + '><div class="rv-frame">' +
+        (S.demo ? sampleDoc(x, j) : g ? '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>' : '<p class="rv-nopv">This document opens in a new tab.</p>') + '</div>' +
+        '<div class="rv-pacts" data-live="pa' + i + '"><a class="kbtn" href="' + esc(safeUrl(x.link)) + '" target="_blank" rel="noopener">' + IC.ext + 'Open in Google Docs</a>' + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
+    }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. We\'ll email you when they are.</p></div>') +
+    '</main>' + tabbar('jobs');
+}
+/* Partial update for the review screen: the previews (iframes) stay loaded; only the live parts are swapped. */
+function patchLive(app, html) {
+  var t = document.createElement('template'); t.innerHTML = html;
+  var swap = function (sel) { var n = t.content.querySelector(sel), o = app.querySelector(sel); if (n && o) o.replaceWith(n); };
+  swap('header.sky'); swap('.tabbar');
+  [].slice.call(t.content.querySelectorAll('[data-live]')).forEach(function (n) { var o = app.querySelector('[data-live="' + n.getAttribute('data-live') + '"]'); if (o) o.replaceWith(n); });
+  rvShowTab();
+}
+function rvShowTab() {
+  if (!S.flow) return;
+  [].forEach.call(document.querySelectorAll('.rv-panel'), function (p) { p.hidden = p.id !== 'rvp-' + S.flow.tab; });
+  [].forEach.call(document.querySelectorAll('[data-rvtab]'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.rvtab === S.flow.tab)); });
+}
+/* Looks good: approve every document of this job that needs an OK, one request at a time, through docStatus. */
+function approveJob(jobId) {
+  var j = jobById(jobId); if (!j || S.rvBusy) return;
+  var ids = jobState(j).review.map(function (x) { return x.id; }); if (!ids.length) return;
+  S.rvBusy = true; S.changesFor = null;
+  var step = function (k) {
+    if (k >= ids.length) {
+      S.rvBusy = false;
+      if (jobState(j).applyReady && !jobApp(j)) { S.flow = { kind: 'apply', job: j.id }; toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
+      else { toast('Approved. Thank you.'); render(); }
+      return;
+    }
+    docStatus(ids[k], 'Approved', '', function (ok) { if (ok) step(k + 1); else { S.rvBusy = false; render(); } }, true);
+  };
+  step(0);
+}
+
+/* ---- apply screen: three guided steps, then "Did you submit it?" ---- */
+var AP_KIT = [1, 2, 0]; /* each step ticks the matching apply kit checkbox (kitChecks storage) */
+function kitAnswers(j) {
+  var kit = j.kit || {};
+  return [['pay', 'Pay you want'], ['start', 'When you can start'], ['why', 'Why this company']].filter(function (a) { return String(kit[a[0]] || '').trim(); })
+    .map(function (a) { return [a[1], String(kit[a[0]])]; }).concat(qaLines(kit.other), qaLines(S.data.client.std));
+}
+function kansHtml(answers) { return '<div class="kans">' + answers.map(function (a) { return '<div class="a"><div><b>' + esc(a[0]) + '</b><p>' + esc(a[1]) + '</p></div><button type="button" data-copy="' + esc(a[1]) + '" aria-label="Copy: ' + esc(a[0]) + '">Copy</button></div>'; }).join('') + '</div>'; }
+function apTick(jobId, i) { var c = kitChecks(jobId); c[AP_KIT[i]] = true; lsSet('sp_kit_' + jobId, JSON.stringify(c)); }
+function vApply() {
+  var j = jobById(S.flow.job); if (!j) { S.flow = null; return vJobs(); }
+  var st = jobState(j), checks = kitChecks(j.id), link = safeUrl(j.link), id = esc(j.id), answers = kitAnswers(j), done = S.flow.done || !!st.app, body;
+  var step = function (i, title, desc, a) {
+    var ck = !!checks[AP_KIT[i]];
+    return '<li class="ap-st' + (ck ? ' done' : '') + '"><span class="ap-n" aria-hidden="true">' + (ck ? IC.check : i + 1) + '</span><div class="ap-b"><h2>' + title + (ck ? '<span class="ap-ok"> Done</span>' : '') + '</h2><p>' + desc + '</p>' + a + '</div></li>';
+  };
+  var dl = function (doc, what, k, i) { var u = doc && pdfLink(doc.link); return u ? '<a class="kbtn solid" href="' + esc(u) + '" target="_blank" rel="noopener" data-track="' + k + '" data-job="' + id + '" data-apstep="' + i + '">' + IC.pdf + 'Download ' + what + ' PDF</a>' : '<p class="wait">Not ready yet.</p>'; };
+  if (done) {
+    var app = st.app;
+    body = '<section class="ap-done"><div class="ap-doneic" aria-hidden="true">' + IC.checkc + '</div><h2>It is on your Applied tab.</h2><p>' + (app && app.applied ? 'Applied ' + esc(fmtDate(app.applied)) + '. ' : '') + 'When ' + esc(j.company) + ' replies, update it there. Good luck.</p>' +
+      '<div class="row"><button class="btn gold" data-flowclose>See your next step</button><button class="btn ghost" data-go="apps">Applied tab</button></div></section>';
+  } else if (!st.applyReady) {
+    body = '<div class="rv-card"><h2>Approve your documents first</h2><p>' + (st.review.length ? 'Your ' + esc(docWords(st.review)) + ' ' + (st.review.length > 1 ? 'are' : 'is') + ' ready to read.' : 'We\'ll email you when your documents are ready to read.') + '</p>' + (st.review.length ? '<button class="btn gold" data-review="' + id + '">Read them now</button>' : '<button class="btn ghost" data-flowclose>Back to your jobs</button>') + '</div>';
+  } else {
+    body = '<p class="ap-intro">Do these in order. Each one opens in a new tab, so this page stays right here.</p><ol class="ap-steps">' +
+      step(0, 'Download your resume', 'Save the PDF. You upload it in step 3.', dl(st.resume, 'resume', 'resume_pdf', 0)) +
+      step(1, 'Download your cover letter', 'Save this PDF too.', dl(st.cover, 'cover letter', 'cover_pdf', 1)) +
+      step(2, 'Open the posting and apply', link ? 'Upload both PDFs. When the form asks a question, copy your ready answer below.' : 'The posting link is missing. Email Sherif and he will send it.',
+        (link ? '<a class="kbtn solid" href="' + esc(link) + '" target="_blank" rel="noopener" data-track="posting" data-job="' + id + '" data-apstep="2">' + IC.ext + 'Open the posting</a>' : '') +
+        (answers.length ? '<h3 class="ap-ah">Your ready answers</h3>' + kansHtml(answers) : '')) + '</ol>' +
+      '<section class="ap-ask" aria-labelledby="ap-q"><h2 id="ap-q">Did you submit it?</h2><p>Tell us once you have sent it, so it shows on your Applied tab.</p><div class="row"><button class="kdone" data-applied="' + id + '"' + (S.applyBusy === j.id ? ' disabled' : '') + '>' + IC.check + (S.applyBusy === j.id ? 'Saving…' : 'Yes, I submitted it') + '</button><button class="btn ghost" data-notyet>Not yet</button></div></section>';
+  }
+  return shell('jobs', done ? 'Sent. Nice work.' : 'Apply to ' + esc(j.company), esc(j.title)) + '<div class="pband" aria-hidden="true"></div>' +
+    '<main class="pmain flow ap" data-ap="' + id + '">' + flowTop() + body + '</main>' + tabbar('jobs');
+}
+function openFlow(kind, jobId) { S.flow = { kind: kind, job: jobId }; S.view = 'jobs'; S.changesFor = null; S.changesDraft = ''; S.menu = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
+function closeFlow(msg) { S.flow = null; S.changesFor = null; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); if (msg) toast(msg); }
 
 /* ---- home screen card ---- */
 var installEvt = null;
@@ -779,12 +949,13 @@ function applyKit(j) {
   var cover = docs.filter(function (x) { return docKind(x.name) === 'cover' && ok(x); })[0];
   var resume = docs.filter(function (x) { return docKind(x.name) === 'resume' && ok(x); })[0];
   var pending = docs.some(function (x) { return isReady(x) && /^(resume|cover)$/.test(docKind(x.name)); });
-  var app = jobApp(j), kit = j.kit || {}, link = safeUrl(j.link);
-  var answers = [['pay', 'Pay you want'], ['start', 'When you can start'], ['why', 'Why this company']].filter(function (a) { return String(kit[a[0]] || '').trim(); })
-    .map(function (a) { return [a[1], String(kit[a[0]])]; }).concat(qaLines(kit.other), qaLines(S.data.client.std));
+  var app = jobApp(j), link = safeUrl(j.link);
+  var answers = kitAnswers(j), js = jobState(j);
   var prep = docs.filter(function (x) { return docKind(x.name) === 'prep' && (ok(x) || isReady(x)) && safeUrl(x.link); })[0];
   var checks = kitChecks(j.id);
   var h = '<section class="kit" aria-label="Apply kit"><h3>' + IC.kit + 'Apply kit</h3>';
+  if (js.review.length) h += '<button class="kbtn solid guide" data-review="' + esc(j.id) + '">' + IC.docs + 'Read and approve your documents</button>';
+  else if (js.applyReady && !app) h += '<button class="kbtn solid guide" data-applyflow="' + esc(j.id) + '">' + IC.check + 'Apply step by step</button>';
   if (resume || cover) {
     h += '<div class="pdfs">' + (resume && pdfLink(resume.link) ? '<a class="kbtn solid" href="' + esc(pdfLink(resume.link)) + '" target="_blank" rel="noopener" data-track="resume_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Resume (PDF)</a>' : '') +
       (cover && pdfLink(cover.link) ? '<a class="kbtn solid" href="' + esc(pdfLink(cover.link)) + '" target="_blank" rel="noopener" data-track="cover_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Cover letter (PDF)</a>' : '') + '</div>';
@@ -796,7 +967,7 @@ function applyKit(j) {
   }
   if (link) h += '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener" data-track="posting" data-job="' + esc(j.id) + '">' + IC.ext + 'Open the posting</a>';
   if (prep) h += '<a class="kbtn" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener" data-track="prep" data-job="' + esc(j.id) + '">' + IC.docs + 'Interview prep</a>';
-  if (answers.length) h += '<div class="kans">' + answers.map(function (a) { return '<div class="a"><div><b>' + esc(a[0]) + '</b><p>' + esc(a[1]) + '</p></div><button type="button" data-copy="' + esc(a[1]) + '" aria-label="Copy: ' + esc(a[0]) + '">Copy</button></div>'; }).join('') + '</div>';
+  if (answers.length) h += kansHtml(answers);
   h += '<ol class="kcheck">' + KIT_STEPS.map(function (s, i) { var id = 'kc-' + esc(j.id) + '-' + i; return '<li><label for="' + id + '"><input type="checkbox" id="' + id + '" data-kc="' + esc(j.id) + '" data-i="' + i + '"' + (checks[i] ? ' checked' : '') + '><span>' + (i + 1) + '. ' + s + '</span></label></li>'; }).join('') + '</ol>';
   h += app ? '<p class="kapplied">' + IC.check.replace('<svg', '<svg width="18" height="18" style="vertical-align:-3px"') + ' Applied ' + esc(fmtDate(app.applied)) + '. It is on your Applied tab.</p>'
     : '<button class="kdone" data-applied="' + esc(j.id) + '"' + (S.applyBusy === j.id ? ' disabled' : '') + '>' + IC.check + (S.applyBusy === j.id ? 'Saving…' : 'I applied') + '</button>';
@@ -814,7 +985,7 @@ function jobCard(j, hint) {
   var heads = /below/i.test(j.floor || '') ? 'Heads-up: this is below your pay floor. Aim for the top of the range.' : '';
   var link = safeUrl(j.link), cm = commuteUrl(j), st = ans === 'yes' ? stageFor(j) : 0;
   var pills = [floorPill(j.floor), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : ''].filter(String).slice(0, 2).join('');
-  var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes</div>' : ans === 'q' ? '<div class="jst">' + IC.qc + 'Sherif is finding out</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
+  var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes <span class="stg st-' + st + '">' + STAGES_SHORT[st] + '</span></div>' : ans === 'q' ? '<div class="jst">' + IC.qc + 'Sherif is finding out</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
   var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' ? ' data-swipe="1"' : '') + ' aria-label="' + esc(j.title + ', ' + j.company) + '">' +
     (ans !== 'no' ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
     (hint ? '<p class="hint"><span>Tip: swipe right for Yes, left to pass</span><button type="button" data-hidehint aria-label="Hide tip">&times;</button></p>' : '') +
@@ -822,7 +993,7 @@ function jobCard(j, hint) {
     '<div class="pay' + (est ? ' est' : '') + '">' + esc(payText(j)) + (est ? '<small>Estimate</small>' : '') + '</div>' +
     '<div class="where">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</div>' +
     (pills ? '<div class="pills">' + pills + '</div>' : '');
-  if (ans === 'yes') h += tracker(st) + (st >= 2 ? applyKit(j) : '<p class="trknow">Next: your tailored resume, cover letter and interview prep are being prepared. They show up in Documents for your OK.</p>');
+  if (ans === 'yes') h += tracker(st) + (st >= 2 ? applyKit(j) : '<p class="trknow wait-w">Next: your tailored resume, cover letter and interview prep are being prepared. They show up in Documents for your OK.</p>');
   if (ans === 'q' || ans === 'no') {
     var nv = S.notes[j.id] != null ? S.notes[j.id] : (j.note || '');
     var conf = S.conf[j.id] || {};
@@ -855,14 +1026,14 @@ function vJobs() {
   var sorted = d.jobs.slice().sort(function (a, b) { var pa = pos[a.id] != null ? pos[a.id] : -1, pb = pos[b.id] != null ? pos[b.id] : -1; return pa - pb; });
   var main = sorted.filter(function (j) { return ansOf(j) !== 'no' || S.leaving[j.id]; }), passed = sorted.filter(function (j) { return ansOf(j) === 'no' && !S.leaving[j.id]; });
   var hintId = hintOn() ? (main.filter(function (j) { return !ansOf(j); })[0] || {}).id : null;
-  var n = nextStep(d), longNote = String(cl.weeklyNote || '').length > 110;
+  var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110;
   var title = !total ? 'Your first matches are on the way.' : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : 'All answered. Nice work.';
-  return shell('jobs', esc(title), 'Pay is from the employer\'s posting unless marked as an estimate.') +
+  return shell('jobs', esc(title), 'Pay is from the employer\'s posting unless marked as an estimate.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
     '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b><span>' + esc(trialText(cl)) + '</span></div>' +
+    nxCard(n) +
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
-    deckButton(c) +
-    '<div class="nextc"><div><small>Next</small><b>' + esc(n.t) + '</b><span>' + esc(n.s) + '</span></div>' + (n.go === 'first' ? '<button class="btn gold" data-first>' + esc(n.b) + '</button>' : n.go ? '<button class="btn gold" data-go="' + n.go + '">' + esc(n.b) + '</button>' : '') + '</div>' +
+    jmap(sorted) +
     (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Sherif' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
     (fbDue(cl) ? '<div class="fbask"><p>Two minutes? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
     installCard() +
@@ -880,8 +1051,9 @@ function vDocs() {
   groups.sort(function (a, b) { var ra = a.docs.some(isReady) ? 0 : 1, rb = b.docs.some(isReady) ? 0 : 1; return (a.k ? 1 : 0) - (b.k ? 1 : 0) || ra - rb; });
   var n = docsReady();
   return shell('docs', n ? n + (n === 1 ? ' document needs' : ' documents need') + ' your OK' : 'Your documents', 'Open, approve or ask for changes.') +
-    '<main class="pmain">' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + (d.docs.length ? groups.map(function (g) {
-      return '<section class="dgrp"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' + g.docs.map(docCard).join('') + '</section>';
+    '<div class="pband" aria-hidden="true"></div><main class="pmain">' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + (d.docs.length ? groups.map(function (g) {
+      return '<section class="dgrp"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' +
+        (g.job && g.docs.some(needsOk) ? '<button class="kbtn solid guide" data-review="' + esc(g.job.id) + '">' + IC.docs + 'Read them here</button>' : '') + g.docs.map(docCard).join('') + '</section>';
     }).join('') : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your resume draft will show up here for your OK.</p></div>') + '</main>' + tabbar('docs');
 }
 function docCard(x) {
@@ -927,7 +1099,7 @@ function vApps() {
   var mob = false; try { mob = matchMedia('(max-width: 760px)').matches; } catch (e) {}
   if (!S.colOpen) { S.colOpen = {}; cols.forEach(function (c, k) { S.colOpen[k] = mob ? by[k].length > 0 && by[k].length <= 6 : true; }); }
   return shell('apps', d.apps.length ? d.apps.length + ' sent so far' : 'Nothing sent yet', 'Where each one stands.') +
-    '<main class="pmain wide">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
+    '<div class="pband" aria-hidden="true"></div><main class="pmain wide">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
         var hasPrep = x.prepBring || x.prepExpect || x.prepAsk;
         return '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">Applied ' + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
@@ -966,7 +1138,10 @@ function render() {
   if (S.status === 'error') { app.innerHTML = '<div class="pmain"><div class="warn">We couldn\'t reach your portal. Please check your connection and <button class="btn ghost" data-retry>try again</button>.</div></div>'; return; }
   var fk = focusKey(document.activeElement); saveDrafts();
   var y = window.scrollY;
-  app.innerHTML = S.deck ? vDeck() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback }[S.view] || vJobs)();
+  if (S.flow && S.view !== 'jobs') S.flow = null;
+  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback }[S.view] || vJobs)();
+  var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
+  if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;
   if (!S.deck) window.scrollTo(0, y);
   var target = null;
   if (S.focusTo) { target = document.querySelector(S.focusTo); S.focusTo = null; fk = null; }
@@ -976,7 +1151,7 @@ function render() {
     if (fk && fk.s != null && typeof target.setSelectionRange === 'function') { try { target.setSelectionRange(fk.s, fk.e); } catch (e) {} }
   }
 }
-function go(view) { S.view = view; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
+function go(view) { S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
   dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
@@ -1001,7 +1176,8 @@ function markApplied(jobId) {
   S.applyBusy = j.id; render();
   saveApp(body, function (r) {
     S.applyBusy = null;
-    if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' }); toast('Nice work. It is on your Applied tab.'); }
+    if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' }); toast('Nice work. It is on your Applied tab.');
+      if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; } }
     else { if (r.error === 'expired') S.jobErr[j.id] = { msg: errText('expired'), re: true }; toast(errText(r.error, 'job')); }
     render();
   });
@@ -1234,7 +1410,7 @@ document.addEventListener('focusout', function (e) {
   setTimeout(function () { if (S.menu && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('.acct'))) { S.menu = false; render(); } }, 0);
 });
 document.addEventListener('click', function (e) {
-  var tr = e.target.closest('[data-track]'); if (tr) { track(tr.dataset.track, tr.dataset.job); return; }
+  var tr = e.target.closest('[data-track]'); if (tr) { track(tr.dataset.track, tr.dataset.job); if (tr.dataset.apstep != null && S.flow) { apTick(tr.dataset.job, Number(tr.dataset.apstep)); render(); } return; }
   if (S.menu && !e.target.closest('.acct')) { S.menu = false; render(); }
   if (e.target.closest('[data-flip]')) { S.flipped = !S.flipped; render(); return; }
   var ch = e.target.closest('[data-col]'); if (ch) { var ck = ch.dataset.col; S.colOpen[ck] = !S.colOpen[ck]; render(); return; }
@@ -1248,6 +1424,16 @@ document.addEventListener('click', function (e) {
   if (d.fbsubmit != null) { sendFeedback(); return; }
   if (d.prep != null) { S.prep = d.prep || null; S.card = 0; S.flipped = false; render(); if (S.prep) window.scrollTo(0, 0); return; }
   if (d.card) { S.card = (S.card || 0) + Number(d.card); S.flipped = false; render(); return; }
+  if (d.review) { openFlow('review', d.review); return; }
+  if (d.applyflow) { openFlow('apply', d.applyflow); return; }
+  if (d.flowclose != null) { closeFlow(); return; }
+  if (d.notyet != null) { closeFlow('No problem. Applying stays as your next step.'); return; }
+  if (d.rvtab) { S.flow.tab = d.rvtab; rvShowTab(); return; }
+  if (d.looksgood) { approveJob(d.looksgood); return; }
+  if (d.rvchange != null) { var rj = S.flow && jobById(S.flow.job), rs = rj ? jobState(rj).review : []; S.changesFor = d.rvchange ? ((rs.filter(function (x) { return x.id === S.flow.tab; })[0] || rs[0] || {}).id || null) : null; S.changesDraft = ''; S.focusTo = S.changesFor ? '#changesText' : '[data-rvchange]'; render(); return; }
+  if (d.rvpick) { S.changesFor = d.rvpick; S.focusTo = '[data-rvpick="' + cssq(d.rvpick) + '"]'; render(); return; }
+  if (d.nxprep) { S.view = 'apps'; S.flow = null; S.prep = d.nxprep; S.card = 0; S.flipped = false; S.flash = ''; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
+  if (d.jmgo) { var jc = document.querySelector('[data-jc="' + cssq(d.jmgo) + '"]'); if (jc) { jc.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); var dt = jc.querySelector('.dtog'); if (dt) dt.focus({ preventScroll: true }); } return; }
   if (d.go) { go(d.go); return; }
   if (d.first != null) { scrollToFirst(); return; }
   if (d.retry != null) { load(); return; }
