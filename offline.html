@@ -7,17 +7,21 @@
 <title>Offline · Steady Path Careers</title>
 <meta name="robots" content="noindex">
 <style>
-body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #10213A; color: #FBF6EE; font: 16px/1.5 Manrope, system-ui, -apple-system, "Segoe UI", sans-serif; padding: max(20px, env(safe-area-inset-left)) 20px; box-sizing: border-box; text-align: center; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #10213A; color: #FBF6EE; font: 17px/1.55 Manrope, system-ui, -apple-system, "Segoe UI", sans-serif; padding: max(20px, env(safe-area-inset-left)) 20px; box-sizing: border-box; text-align: center; }
 .box { max-width: 420px; display: grid; gap: 14px; justify-items: center; }
 svg { width: 84px; height: 84px; filter: drop-shadow(0 4px 14px rgba(0,0,0,.35)); }
 h1 { font: 800 28px/1.1 inherit; letter-spacing: -0.02em; margin: 0; }
 p { margin: 0; color: #d7e0ee; }
+button:focus-visible { outline: 3px solid #F2D98A; outline-offset: 3px; }
+.dots circle { fill: #C9A227; }
+@media (prefers-reduced-motion: no-preference) { .dots circle { animation: blink 1.6s ease-in-out infinite; } .dots circle:nth-child(2) { animation-delay: .2s; } .dots circle:nth-child(3) { animation-delay: .4s; } @keyframes blink { 0%, 100% { opacity: .25; } 50% { opacity: 1; } } }
 button { border: 0; background: #C9A227; color: #10213A; border-radius: 10px; padding: 13px 22px; font: 800 16px inherit; cursor: pointer; min-height: 44px; }
 </style>
 </head>
 <body>
 <div class="box">
 <svg viewBox="0 0 800 800" aria-hidden="true"><circle cx="400" cy="400" r="400" fill="#1F3A5F"/><circle cx="400" cy="318" r="92" fill="#C9A227"/><path d="M 383 330 C 380 470, 250 560, 230 800 L 570 800 C 550 560, 420 470, 417 330 Z" fill="#FBF6EE"/><path d="M 120 330 L 383 330 M 417 330 L 680 330" stroke="#C9A227" stroke-width="12" stroke-linecap="round"/></svg>
+<svg class="dots" viewBox="0 0 60 12" width="60" height="12" aria-hidden="true" style="width:60px;height:12px;filter:none"><circle cx="6" cy="6" r="5"/><circle cx="30" cy="6" r="5"/><circle cx="54" cy="6" r="5"/></svg>
 <h1>You're offline.</h1>
 <p>Your portal needs a connection to show your jobs and save your answers. Nothing you did is lost; once you're back online, just try again.</p>
 <button onclick="location.reload()">Try again</button>
