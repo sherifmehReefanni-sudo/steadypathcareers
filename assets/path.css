@@ -3,14 +3,17 @@
    Motion only runs when path.js adds .motion to <html>. Without JS, or with reduced motion, everything is visible and still. */
 :root {
   --sky: #DCE4F3; --mist: #EEE9F0; --peach: #FBE3CF; --sand: #F7E7CC; --apricot: #F3C792; --marigold: #E9A23B;
-  --teal: #0F5F66; --teal-d: #0B4A52; --berry: #7A2E5C; --ink2: #3D485E; --white: #fff;
+  --teal: #0F5F66; --teal-d: #0B4A52; --berry: #7A2E5C; --ink2: #333E52; --white: #fff;
 }
 body.mk { font-size: 17px; line-height: 1.6; background: var(--cream); overflow-x: hidden; }
 @supports (overflow: clip) { body.mk { overflow-x: clip; } }
 .mk p, .mk li { font-size: 17px; }
 .mk .wrap { max-width: 1100px; }
 .mk h1, .mk h2, .mk h3 { text-wrap: balance; }
-.mk a:focus-visible, .mk button:focus-visible, .mk summary:focus-visible, .mk [tabindex]:focus-visible, .mk input:focus-visible, .mk select:focus-visible, .mk textarea:focus-visible { outline: 3px solid var(--navy); outline-offset: 3px; box-shadow: 0 0 0 6px rgba(201,162,39,.55); border-radius: 8px; }
+.mk :focus-visible { outline: 3px solid var(--midnight); outline-offset: 3px; box-shadow: none; }
+.mk .dark :focus-visible, .mk .foot :focus-visible, .mk .finale :focus-visible, .mk .new .box :focus-visible, .mk .sw-done :focus-visible, .mk .skip:focus-visible { outline-color: var(--dawn); }
+.mk .dark .card :focus-visible, .mk .dark details :focus-visible, .mk .dark .li :focus-visible, .mk .dark .tw :focus-visible { outline-color: var(--midnight); }
+.mk .phones:focus-visible, .mk .tw:focus-visible { outline-offset: 2px; }
 .skip { position: absolute; left: 12px; top: -60px; z-index: 60; background: var(--midnight); color: var(--cream); padding: 12px 16px; border-radius: 10px; font-weight: 800; text-decoration: none; }
 .skip:focus { top: 12px; }
 
@@ -76,7 +79,9 @@ main.trail-main { position: relative; isolation: isolate; }
 .mk .card p:last-child { margin-bottom: 0; }
 
 /* the path */
-.trail { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.trail { position: absolute; left: 0; top: 0; width: 100%; z-index: 1; pointer-events: none; overflow: visible; }
+.trail-tip { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 3px #fff; z-index: 1; pointer-events: none; will-change: transform; }
+.rm .trail-tip { display: none !important; }
 .trail .track { fill: none; stroke: rgba(31,58,95,.16); stroke-width: 3; stroke-dasharray: 2 10; stroke-linecap: round; }
 .trail .glow { fill: none; stroke-width: 12; stroke-linecap: round; opacity: .22; }
 .trail .line { fill: none; stroke-width: 4; stroke-linecap: round; }
@@ -87,25 +92,25 @@ main.trail-main { position: relative; isolation: isolate; }
 
 /* reveal: path.js adds .pre only to things below the first screen, then removes it */
 .motion [data-reveal] { transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
-.motion [data-reveal].pre { opacity: 0; transform: translateY(28px); }
-.motion [data-reveal="left"].pre { transform: translateX(-28px); }
-.motion [data-reveal="right"].pre { transform: translateX(28px); }
-.motion [data-reveal="pop"].pre { transform: scale(.92); }
+.reveal-ready [data-reveal].pre { opacity: 0; transform: translateY(28px); }
+.reveal-ready [data-reveal="left"].pre { transform: translateX(-28px); }
+.reveal-ready [data-reveal="right"].pre { transform: translateX(28px); }
+.reveal-ready [data-reveal="pop"].pre { transform: scale(.92); }
 .motion .stagger > * { transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
-.motion .stagger.pre > * { opacity: 0; transform: translateY(22px); }
-.motion .stagger.pre { opacity: 1; transform: none; }
+.reveal-ready .stagger.pre > * { opacity: 0; transform: translateY(22px); }
+.reveal-ready .stagger.pre { opacity: 1; transform: none; }
 .motion .stagger > :nth-child(2) { transition-delay: .08s; } .motion .stagger > :nth-child(3) { transition-delay: .16s; } .motion .stagger > :nth-child(4) { transition-delay: .24s; }
 .motion .stagger > :nth-child(5) { transition-delay: .32s; } .motion .stagger > :nth-child(6) { transition-delay: .4s; } .motion .stagger > :nth-child(n+7) { transition-delay: .48s; }
 
 /* illustration motion. Level 1 draws in once; level 2 adds a gentle loop; level 3 keeps several parts moving. */
 @media (prefers-reduced-motion: no-preference) {
-  .motion [data-live]:not(.live) .draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .reveal-ready [data-live]:not(.live) .draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
   .motion [data-live].live .draw { stroke-dasharray: 1; animation: draw 1.4s cubic-bezier(.4,.1,.2,1) both; }
-  .motion [data-live]:not(.live) .pop { opacity: 0; transform: scale(.4); }
+  .reveal-ready [data-live]:not(.live) .pop { opacity: 0; transform: scale(.4); }
   .motion [data-live].live .pop { animation: pop .6s cubic-bezier(.3,1.6,.5,1) both; }
-  .motion [data-live]:not(.live) .rise { opacity: 0; transform: translateY(26px); }
+  .reveal-ready [data-live]:not(.live) .rise { opacity: 0; transform: translateY(26px); }
   .motion [data-live].live .rise { animation: rise 1.1s cubic-bezier(.2,.8,.2,1) both; }
-  .motion [data-live]:not(.live) .drop { opacity: 0; transform: translateY(-40px); }
+  .reveal-ready [data-live]:not(.live) .drop { opacity: 0; transform: translateY(-40px); }
   .motion [data-live].live .drop { animation: drop .8s cubic-bezier(.3,1.5,.5,1) both; }
   .motion [data-live].live .float { animation: float 5s ease-in-out infinite; }
   .motion [data-live].live .float2 { animation: float 6.5s ease-in-out -2s infinite; }
@@ -398,3 +403,32 @@ main.trail-main { position: relative; isolation: isolate; }
 .dark .btn.gold { color: var(--midnight); }
 .mk .brand { min-height: 44px; }
 .finale::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: var(--midnight); }
+
+/* paused while off screen (path.js) */
+.off, .off * { animation-play-state: paused !important; }
+.mk .psub { color: var(--ink2); }
+.finale .alt a { display: inline-flex; align-items: center; min-height: 44px; }
+@media (prefers-reduced-motion: reduce) { .sw-card, .js-sw .sw-card, .mnav-btn .bars i { transition: none !important; } }
+
+/* print: everything visible, no motion, dark sections on white, tables whole */
+@media print {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .pre, .stagger > *, [data-reveal], .pop, .drop, .rise, .sway, .swing, .spin, .breathe, .twinkle, .float, .float2, .scan, .slide, .write, .sun, .glowc, .drift { opacity: 1 !important; transform: none !important; }
+  [data-live] .draw, .phero-art .draw { stroke-dashoffset: 0 !important; }
+  body.mk { background: #fff !important; overflow: visible !important; }
+  .trail, .trail-tip, .skip, .mnav-btn, .mnav, .topbar .links, .topbar .right, .horizon, .hilltop, .finale .ill { display: none !important; }
+  .phero, .sec, .finale, .foot, .new .box, .price2 { background: #fff !important; color: #000 !important; box-shadow: none !important; }
+  .dark, .dark h2, .dark h3, .dark p, .dark li, .dark .lead, .dark .note2, .finale h2, .finale p, .foot, .foot a, .new .box, .new h2, .new li, .new li b, .founder2 blockquote, .founder2 .sig, .founder2 .sig span, .price2 p, .price2 li, .price2 .big, .dark .kfacts b, .dark .kfacts span, .closer p, .dark .prose p, .dark .prose li { color: #000 !important; }
+  .dark a, .finale a, .foot a { color: #000 !important; text-decoration: underline; }
+  .sec, .finale { padding: 18px 0 !important; }
+  .phero-in { padding-bottom: 10px; }
+  .phones { display: grid !important; grid-template-columns: repeat(4, 1fr); overflow: visible !important; }
+  .prose .tw, .tw { overflow: visible !important; border: 0; }
+  .prose .cmp { min-width: 0 !important; font-size: 11pt; }
+  tr, .card, .kfacts div, details, figure, .jobcard { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+  details > *:not(summary) { display: block !important; }
+  .sw-stack { height: auto; } .sw-card { position: static; margin-bottom: 8px; transform: none !important; visibility: visible !important; opacity: 1 !important; box-shadow: none; }
+  .gsplit { grid-template-columns: 1fr; } .gsplit .ill { display: none; }
+}
+.vh { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
