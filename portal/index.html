@@ -454,7 +454,7 @@ body.deck-lock { overflow: hidden; }
   .ptop .brand .bname { font-size: 15px; }
 }
 </style>
-<link rel="stylesheet" href="../assets/portal.css?v=20261024e">
+<link rel="stylesheet" href="../assets/portal.css?v=20261024f">
 <script>
 /* Sample data for the portal preview (?demo=1). It ships inside this page but is only read in demo mode; real clients never see it. */
 window.SP_DEMO = function () {
@@ -887,7 +887,7 @@ function vReview() {
   else if (st.app) side = '<div class="rv-card ok"><h2>You applied</h2><p>Applied ' + esc(fmtDate(st.app.applied)) + '. It is on your Applied tab.</p><button class="btn gold" data-go="apps">Applied tab</button></div>';
   else if (st.applyReady) side = '<div class="rv-card ok"><h2>All approved</h2><p>Your next step is to apply. It takes three short steps.</p><button class="kdone" data-applyflow="' + id + '">' + IC.check + 'Start applying</button></div>';
   else side = '<div class="rv-card"><h2>Nothing to approve right now</h2><p>' + (st.changes.length ? 'Sherif is making your changes. ' : '') + 'We\'ll email you when your documents are ready to read.</p><button class="btn ghost" data-flowclose>Back to your jobs</button></div>';
-  return shell('jobs', 'Read your documents', esc(j.title + ' at ' + j.company)) + '<div class="pband" aria-hidden="true"></div>' +
+  return shell('jobs', 'Read your documents', esc(j.title + ' at ' + j.company)) + '<div class="pband wide" aria-hidden="true"></div>' +
     '<main class="pmain wide flow rv" data-rv="' + id + '" data-sig="' + esc(S.rvSig) + '">' + flowTop() +
     (docs.length ? '<p class="rv-intro">' + (st.review.length ? 'Tap each one to read it. When you are done, tap Looks good below.' : 'Tap each one to read it.') + '</p><div class="rv-grid"><div class="rv-left"><div class="rv-tabs" data-live="tabs" role="group" aria-label="Documents for this job">' + docs.map(function (x) {
       return '<button type="button" class="rv-tab k-' + (docKind(x.name) || 'other') + '" data-rvtab="' + esc(x.id) + '" aria-pressed="' + (x.id === S.flow.tab) + '" aria-controls="rvp-' + esc(x.id) + '"><span>' + esc(docLabel(x)) + '</span><small>' + esc(docWord(x)) + '</small></button>';
@@ -1185,7 +1185,7 @@ function vApps() {
   var mob = false; try { mob = matchMedia('(max-width: 760px)').matches; } catch (e) {}
   if (!S.colOpen) { S.colOpen = {}; cols.forEach(function (c, k) { S.colOpen[k] = mob ? by[k].length > 0 && by[k].length <= 6 : true; }); }
   return shell('apps', d.apps.length ? d.apps.length + ' sent so far' : 'Nothing sent yet', 'Where each one stands.') +
-    '<div class="pband" aria-hidden="true"></div><main class="pmain wide">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
+    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
         var hasPrep = x.prepBring || x.prepExpect || x.prepAsk;
         return '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">Applied ' + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
@@ -1262,8 +1262,8 @@ function markApplied(jobId) {
   S.applyBusy = j.id; render();
   saveApp(body, function (r) {
     S.applyBusy = null;
-    if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' }); toast('Nice work. It is on your Applied tab.');
-      if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; } }
+    if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' }); /* on the apply screen the done card says it, so no toast on top of it */
+      if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; } else toast('Nice work. It is on your Applied tab.'); }
     else { if (r.error === 'expired') S.jobErr[j.id] = { msg: errText('expired'), re: true }; toast(errText(r.error, 'job')); }
     render();
   });
