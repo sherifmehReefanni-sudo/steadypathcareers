@@ -478,7 +478,7 @@ window.SP_DEMO = function () {
   var iso = function (n) { var d = new Date(); d.setDate(d.getDate() + n); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
   var gd = function (id) { return 'https://docs.google.com/document/d/' + id + '/edit'; };
   return {
-    ok: true,
+    ok: true, notify: true,
     client: { id: 'C-DEMO', name: 'Jordan T.', firstName: 'Jordan', stage: 'Trial', startDate: iso(-8), trialEnds: iso(9), payFloor: '$190,000', lastTouch: iso(-1), lastFeedback: '', home: 'Hicksville, NY', std: 'Authorized to work in the US: Yes\nNeed visa sponsorship: No\nNY dental license: Yes, active',
       weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. I am also asking Sample Community Dental about loan repayment for you and expect an answer by Friday. Two new Nassau County openings came in on Monday.' },
     jobs: [
@@ -599,7 +599,7 @@ function load() {
     if (S.wantReview) {
       var rj = jobById(S.wantReview); S.wantReview = null;
       if (rj && jobDocs(rj).length) { S.flow = { kind: 'review', job: rj.id }; S.view = 'jobs'; S.focusTo = '.ptitle h1'; histPush(S.flow); }
-      else if (rj) S.flash = 'Your documents for ' + coName(rj) + ' are not ready yet. We\'ll email you when they are.';
+      else if (rj) S.flash = 'Your documents for ' + coName(rj) + ' are not ready yet. ' + whenReady();
       else S.flash = 'We couldn\'t find that job. Here are all your jobs.';
     }
     render();
@@ -741,6 +741,10 @@ var IC = {
 };
 
 /* ---- shell ---- */
+/* "We'll email you ..." only when the API says the documents-ready emails are on (notify: true). An older API without the field,
+   or NOTIFY_READY set to off, gets wording that promises nothing. */
+function mailsOn() { return !!(S.data && S.data.notify === true); }
+function whenReady(they) { return mailsOn() ? 'We\'ll email you when ' + (!they ? 'they\'re' : they === 'it' ? 'it\'s' : they + ' are') + ' ready.' : 'Check back here. ' + (they === 'it' ? 'It' : 'They') + ' will show up on this page when ready.'; }
 function counts() { var j = (S.data && S.data.jobs) || []; var c = { yes: 0, no: 0, q: 0, wait: 0 }; j.forEach(function (x) { var a = ansOf(x); if (a) c[a]++; else c.wait++; }); return c; }
 function isReady(x) { var st = String(x.status || ''); return /ready|review/i.test(st) && !/approved/i.test(st); }
 function docsReady() { return ((S.data && S.data.docs) || []).filter(isReady).length; }
@@ -860,9 +864,9 @@ function flowStep(d) {
       act: '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">Practice now</button>' + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
   }
   var chg = yes.filter(function (j) { return st[j.id].changes.length && !st[j.id].app; })[0];
-  if (chg) return { k: 'wait', t: 'Sherif is making your changes for ' + coName(chg), s: 'We\'ll email you when they\'re ready to read.' };
+  if (chg) return { k: 'wait', t: 'Sherif is making your changes for ' + coName(chg), s: whenReady() };
   var writing = yes.filter(function (j) { var s = st[j.id]; return !s.app && !s.applyReady && !s.review.length; });
-  if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: 'We\'ll email you when they\'re ready.' };
+  if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: whenReady() };
   var qj = jobs.filter(function (j) { return ansOf(j) === 'q'; })[0];
   if (qj) return { k: 'wait', t: 'Sherif is looking into your question', s: 'About ' + coName(qj) + '. Sherif will reply to your question.' };
   if (!d.jobs.length) return { k: 'start', t: 'Sherif is reading your resume', s: 'Your first job matches will show up here.' };
@@ -927,7 +931,7 @@ function vReview() {
     '<button class="kbtn" data-rvchange="' + (S.changesFor ? '' : 'open') + '" aria-expanded="' + !!S.changesFor + '"' + (busy ? ' disabled' : '') + '>Ask for a change</button>' + changeBox(st) + '</div>';
   else if (st.app) side = '<div class="rv-card ok"><h2>You applied</h2><p>Applied ' + esc(fmtDate(st.app.applied)) + '. It is on your Applied tab.</p><button class="btn gold" data-go="apps">Applied tab</button></div>';
   else if (st.applyReady) side = '<div class="rv-card ok"><h2>All approved</h2><p>Your next step is to apply. It takes three short steps.</p><button class="kdone" data-applyflow="' + id + '">' + IC.check + 'Start applying</button></div>';
-  else side = '<div class="rv-card"><h2>Nothing to approve right now</h2><p>' + (st.changes.length ? 'Sherif is making your changes. ' : '') + 'We\'ll email you when your documents are ready to read.</p><button class="btn ghost" data-flowclose>Back to your jobs</button></div>';
+  else side = '<div class="rv-card"><h2>Nothing to approve right now</h2><p>' + (st.changes.length ? 'Sherif is making your changes. ' : '') + whenReady('your documents') + '</p><button class="btn ghost" data-flowclose>Back to your jobs</button></div>';
   return shell('jobs', 'Read your documents', esc(j.title + ' at ' + j.company)) + '<div class="pband wide" aria-hidden="true"></div>' +
     '<main class="pmain wide flow rv" data-rv="' + id + '" data-sig="' + esc(S.rvSig) + '">' + flowTop() +
     (docs.length ? '<p class="rv-intro">' + (st.review.length ? 'Tap each one to read it. When you are done, tap Looks good below.' : 'Tap each one to read it.') + '</p><div class="rv-grid"><div class="rv-left"><div class="rv-tabs" data-live="tabs" role="group" aria-label="Documents for this job">' + docs.map(function (x) {
@@ -936,10 +940,10 @@ function vReview() {
       var g = gdocId(x.link);
       var card = noFrame() || (!S.demo && !g), u = esc(safeUrl(x.link));
       return '<section class="rv-panel" id="rvp-' + esc(x.id) + '" aria-label="' + esc(x.name) + '"' + (x.id === S.flow.tab ? '' : ' hidden') + '><div class="rv-frame' + (card ? ' open' : '') + '">' +
-        (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. When you are done, come back to this tab to tap Looks good or ask for a change.</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
+        (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to tap Looks good or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
           : S.demo ? sampleDoc(x, j) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
         '<div class="rv-pacts" data-live="pa' + i + '">' + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>' + (S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>')) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
-    }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. We\'ll email you when they are.</p></div>') +
+    }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
     '</main>' + tabbar('jobs');
 }
 /* Partial update for the review screen: the previews (iframes) stay loaded; only the live parts are swapped. */
@@ -994,7 +998,7 @@ function vApply() {
     body = '<section class="ap-done"><div class="ap-doneic" aria-hidden="true">' + IC.checkc + '</div><h2>It is on your Applied tab.</h2><p>' + (app && app.applied ? 'Applied ' + esc(fmtDate(app.applied)) + '. ' : '') + 'When ' + esc(j.company) + ' replies, update it there. Good luck.</p>' +
       '<div class="row"><button class="btn gold" data-flowclose>See your next step</button><button class="btn ghost" data-go="apps">Applied tab</button></div></section>';
   } else if (!st.applyReady) {
-    body = '<div class="rv-card"><h2>Approve your documents first</h2><p>' + (st.review.length ? 'Your ' + esc(docWords(st.review)) + ' ' + (st.review.length > 1 ? 'are' : 'is') + ' ready to read.' : 'We\'ll email you when your documents are ready to read.') + '</p>' + (st.review.length ? '<button class="btn gold" data-review="' + id + '">Read them now</button>' : '<button class="btn ghost" data-flowclose>Back to your jobs</button>') + '</div>';
+    body = '<div class="rv-card"><h2>Approve your documents first</h2><p>' + (st.review.length ? 'Your ' + esc(docWords(st.review)) + ' ' + (st.review.length > 1 ? 'are' : 'is') + ' ready to read.' : whenReady('your documents')) + '</p>' + (st.review.length ? '<button class="btn gold" data-review="' + id + '">Read them now</button>' : '<button class="btn ghost" data-flowclose>Back to your jobs</button>') + '</div>';
   } else {
     body = '<p class="ap-intro">Do these in order. Each one opens in a new tab, so this page stays right here.</p><ol class="ap-steps">' +
       step(0, 'Download your resume', 'Save the PDF. You upload it in step 3.', dl(st.resume, 'resume', 'resume_pdf', 0)) +
@@ -1020,10 +1024,9 @@ function histPush(f) { try { history.pushState({ sp: 1, depth: S.hist + 1, flow:
 window.addEventListener('popstate', function (e) {
   var st = e.state; if (!st || !st.sp || S.status !== 'ready' || S.deck) return;
   S.hist = st.depth || 0;
-  var j = st.flow ? jobById(st.flow.job) : null, was = !!S.flow;
+  var j = st.flow ? jobById(st.flow.job) : null, was = !!S.flow, view = /^(jobs|docs|apps|feedback)$/.test(st.view || '') ? st.view : 'jobs';
   if (j) { S.flow = { kind: st.flow.kind === 'apply' ? 'apply' : 'review', job: j.id }; S.view = 'jobs'; }
-  else { S.flow = null; if (was) S.view = 'jobs'; }
-  if (!j && !was) return; /* already on that screen (closeFlow got there first) */
+  else { if (!was && S.view === view) return; /* already there (closeFlow got there first) */ S.flow = null; S.view = view; }
   S.changesFor = null; S.changesErr = ''; S.menu = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0);
 });
 
@@ -1297,7 +1300,10 @@ function render() {
     if (fk && fk.s != null && typeof target.setSelectionRange === 'function') { try { target.setSelectionRange(fk.s, fk.e); } catch (e) {} }
   }
 }
-function go(view) { S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
+function go(view) {
+  /* leaving a review or apply screen by the tab bar: that history entry now stands for the new tab, so Back goes to Jobs, not nowhere */
+  if (S.hist > 0 || (S.flow && history.state && history.state.flow)) { try { history.replaceState({ sp: 1, depth: 0, flow: null, view: view }, '', location.href); } catch (e) {} S.hist = 0; }
+  S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
   dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
