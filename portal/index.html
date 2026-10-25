@@ -1016,8 +1016,9 @@ function closeFlow(msg) {
   var n = S.hist; S.flow = null; S.changesFor = null; S.changesErr = ''; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); if (msg) toast(msg);
   if (n > 0) { S.hist = 0; try { history.go(-n); } catch (e) {} } /* drop the review/apply entries so Back from Jobs leaves no dead screens */
 }
-/* Browser Back inside the portal: the jobs list is history depth 0, and the review and apply screens each add one entry,
-   so Back goes apply -> review -> jobs and never skips out of the portal from a flow screen. */
+/* Browser Back inside the portal: depth counts entries above the portal's first entry (always Jobs). Review and apply each add one;
+   a tab chosen from a flow screen takes over that entry; "Back to your jobs" and the Jobs tab return to the first entry. So
+   Back goes apply -> review -> jobs and never skips out of the portal from a flow screen. */
 S.hist = 0;
 function histBase() { try { history.replaceState({ sp: 1, depth: 0, flow: null }, '', location.href); } catch (e) {} S.hist = 0; }
 function histPush(f) { try { history.pushState({ sp: 1, depth: S.hist + 1, flow: { kind: f.kind, job: f.job } }, '', location.href); S.hist++; } catch (e) {} }
@@ -1302,7 +1303,11 @@ function render() {
 }
 function go(view) {
   /* leaving a review or apply screen by the tab bar: that history entry now stands for the new tab, so Back goes to Jobs, not nowhere */
-  if (S.hist > 0 || (S.flow && history.state && history.state.flow)) { try { history.replaceState({ sp: 1, depth: 0, flow: null, view: view }, '', location.href); } catch (e) {} S.hist = 0; }
+  /* Jobs goes back to the portal's first entry, so a review-then-tab-bar loop never grows history; another tab replaces the current entry */
+  if (S.hist > 0) {
+    if (view === 'jobs') { var back = S.hist; S.hist = 0; try { history.go(-back); } catch (e) {} }
+    else { try { history.replaceState({ sp: 1, depth: S.hist, flow: null, view: view }, '', location.href); } catch (e) {} }
+  }
   S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
