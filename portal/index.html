@@ -716,7 +716,7 @@ function docStatus(docId, status, request, done, quiet) {
   S.docBusy[docId] = true; render();
   post({ action: 'docStatus', t: S.token, doc: docId, status: status, request: request }).then(function (d) {
     delete S.docBusy[docId];
-    if (d && d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } S.changesDraft = ''; if (!quiet) toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent to Sherif.'); }
+    if (d && d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } if (status === 'Changes requested') S.changesDraft = ''; if (!quiet) toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent to Sherif.'); }
     else { if (d && d.error === 'expired') S.reauthMsg = true; toast(errText(d && d.error, 'document')); }
     if (done) done(!!(d && d.ok)); else render();
   }).catch(function () { delete S.docBusy[docId]; toast(errText('network')); if (done) done(false); else render(); });
@@ -913,7 +913,7 @@ function changeBox(st) {
   var pick = st.review.filter(function (x) { return x.id === S.changesFor; })[0]; if (!pick) return '';
   return '<div class="notebox rv-note">' + (st.review.length > 1 ? '<p class="rv-which" id="rvw">Which one?</p><div class="rv-picks" role="group" aria-labelledby="rvw">' + st.review.map(function (x) { return '<button type="button" class="btn ghost sm" data-rvpick="' + esc(x.id) + '" aria-pressed="' + (x.id === pick.id) + '">' + esc(docLabel(x)) + '</button>'; }).join('') + '</div>' : '') +
     '<label for="changesText">What should change in your ' + esc(docNoun(pick)) + '?</label>' + (S.changesErr ? '<p class="err" role="alert" id="chErr">' + esc(S.changesErr) + '</p>' : '') + '<textarea id="changesText"' + (S.changesErr ? ' aria-invalid="true" aria-describedby="chErr"' : '') + ' placeholder="For example: add my NJ license, or remove my 2015 job.">' + esc(S.changesDraft || '') + '</textarea>' +
-    '<div class="row"><button class="btn gold" data-sendchanges="' + esc(pick.id) + '">Send to Sherif</button><button class="btn ghost" data-rvchange="">Cancel</button></div></div>';
+    '<div class="row"><button class="btn gold" data-sendchanges="' + esc(pick.id) + '"' + (S.docBusy[pick.id] ? ' disabled' : '') + '>' + (S.docBusy[pick.id] ? 'Sending…' : 'Send to Sherif') + '</button><button class="btn ghost" data-rvchange="">Cancel</button></div></div>';
 }
 function flowTop() { return '<div class="fl-top" data-live="top"><button class="fl-back" data-flowclose>' + IC.chev + 'Back to your jobs</button>' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + '</div>'; }
 function vReview() {
@@ -1213,7 +1213,7 @@ function docCard(x) {
     (x.updated && /^\d{4}-/.test(x.updated) ? '<p class="meta">Updated ' + esc(fmtDate(x.updated)) + '</p>' : '') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') +
     '<div class="acts">' + (link ? '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open</a>' : '') +
     (ready ? '<button class="kbtn ok" data-approve="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Approve') + '</button><button class="kbtn" data-changes="' + id + '"' + (busy ? ' disabled' : '') + '>Ask for changes</button>' : '') + '</div>' +
-    (S.changesFor === x.id ? '<div class="notebox"><label class="sr" for="changesText">What should change?</label>' + (S.changesErr ? '<p class="err" role="alert" id="chErr">' + esc(S.changesErr) + '</p>' : '') + '<textarea placeholder="What should change?" id="changesText"' + (S.changesErr ? ' aria-invalid="true" aria-describedby="chErr"' : '') + '>' + esc(S.changesDraft || '') + '</textarea><button class="btn" data-sendchanges="' + id + '">Send</button></div>' : '') + '</div>';
+    (S.changesFor === x.id ? '<div class="notebox"><label class="sr" for="changesText">What should change?</label>' + (S.changesErr ? '<p class="err" role="alert" id="chErr">' + esc(S.changesErr) + '</p>' : '') + '<textarea placeholder="What should change?" id="changesText"' + (S.changesErr ? ' aria-invalid="true" aria-describedby="chErr"' : '') + '>' + esc(S.changesDraft || '') + '</textarea><button class="btn" data-sendchanges="' + id + '"' + (busy ? ' disabled' : '') + '>' + (busy ? 'Sending…' : 'Send') + '</button></div>' : '') + '</div>';
 }
 
 /* ---- applied ---- */
@@ -1638,7 +1638,14 @@ document.addEventListener('click', function (e) {
   if (d.changes) { S.changesFor = d.changes; S.changesDraft = ''; S.changesErr = ''; S.focusTo = '#changesText'; render(); return; }
   if (d.sendchanges) { var t = $('#changesText'); var txt = t ? t.value : '';
     if (!txt.trim()) { S.changesErr = 'Write what should change first, then tap Send.'; S.changesDraft = txt; S.focusTo = '#changesText'; render(); return; } /* never post an empty request */
-    S.changesErr = ''; S.changesFor = null; S.focusTo = '.ptitle h1'; docStatus(d.sendchanges, 'Changes requested', txt.trim()); return; }
+    /* the box stays open with the client's words until the save is confirmed; on any failure they stay and can be sent again */
+    var cid = d.sendchanges; S.changesErr = ''; S.changesDraft = txt;
+    docStatus(cid, 'Changes requested', txt.trim(), function (ok) {
+      if (ok) { var box = $('#changesText'); if (box) box.value = ''; /* render() saves the box text as the draft; it is sent now */ S.changesFor = null; S.changesDraft = ''; S.changesErr = ''; S.focusTo = '.ptitle h1'; }
+      else { S.changesFor = cid; S.changesDraft = S.changesDraft || txt; S.changesErr = 'Not sent. Tap Send again.'; S.focusTo = '#changesText'; }
+      render();
+    });
+    return; }
 });
 /* A different answer tapped inside an undo window replaces the waiting one: put the old state back first. */
 function cancelDeferredRestore(id) { var D = S.deferred[id]; if (!D) return; cancelDeferred(id); var j = jobById(id); if (j) { j.answer = D.prev.answer; j.note = D.prev.note; } }
