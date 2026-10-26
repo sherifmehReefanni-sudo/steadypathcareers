@@ -34,7 +34,7 @@ window.SP = (function () {
     var h = '';
     links.querySelectorAll('a').forEach(function (a) { h += '<a href="' + esc(a.getAttribute('href')) + '">' + esc(a.textContent) + '</a>'; });
     if (!/\/portal\//.test(location.pathname)) h += '<a class="signin" href="/portal/">Client sign in</a>';
-    h += '<a class="gold" href="/start/">Start your free trial</a>';
+    h += '<a class="gold" href="/start/">Join the free pilot</a>';
     panel.innerHTML = h;
     bar.parentNode.insertBefore(panel, bar.nextSibling);
     btn.addEventListener('click', function () {
