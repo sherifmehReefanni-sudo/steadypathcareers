@@ -558,7 +558,7 @@ function jobById(id) { var f = function (x) { return String(x.id) === String(id)
   else S.token = lsGet('sp_token');
   if (q.get('expired')) { S.status = 'signin'; S.err = 'That link has expired. Enter your email and we\'ll send you a new one.'; lsDel('sp_token'); S.token = null; }
   if (q.get('answered')) S.flashJob = q.get('answered');
-  if (q.get('closed')) S.flash = 'That job posting has closed, so there is nothing to answer. You can see it under Closed postings in your Jobs list.';
+  if (q.get('closed')) S.flash = 'That job posting has closed, so there is nothing to answer.';
   if (q.get('v')) S.view = q.get('v');
   if (q.get('review') && !q.get('expired')) S.wantReview = q.get('review'); /* from the "documents ready" email: open the review screen for that job */
   if (t || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
@@ -586,7 +586,7 @@ function ansOf(j) { var a = String((j && j.answer) || '').trim(); if (!a) return
 function errText(e, thing) {
   e = String(e || '');
   if (e === 'expired') return 'Your sign-in has expired.';
-  if (e === 'closed') return 'This posting has just closed, so nothing was saved. Refresh this page to see it under Closed postings.';
+  if (e === 'closed') return 'This posting has just closed, so nothing was saved. Refresh this page to see the latest.';
   if (e === 'network') return 'That didn\'t save. Please check your connection and try again.';
   if (/not found/i.test(e)) return 'Not saved. That ' + (thing || 'item') + ' was updated. Reopen the portal to refresh.';
   return 'Not saved. Please try again in a minute.';
@@ -765,7 +765,7 @@ var IC = {
    or NOTIFY_READY set to off, gets wording that promises nothing. */
 function mailsOn() { return !!(S.data && S.data.notify === true); }
 function whenReady(they) { return mailsOn() ? 'We\'ll email you when ' + (!they ? 'they\'re' : they === 'it' ? 'it\'s' : they + ' are') + ' ready.' : 'Check back here. ' + (they === 'it' ? 'It' : 'They') + ' will show up on this page when ready.'; }
-function counts() { var j = (S.data && S.data.jobs) || []; var c = { yes: 0, no: 0, q: 0, wait: 0 }; j.forEach(function (x) { var a = ansOf(x); if (a) c[a]++; else c.wait++; }); return c; }
+function counts() { var j = (S.data && S.data.jobs) || []; var c = { yes: 0, no: 0, q: 0, wait: 0 }; j.forEach(function (x) { if (x.closed) return; var a = ansOf(x); if (a) c[a]++; else c.wait++; }); return c; }
 function isReady(x) { var st = String(x.status || ''); return !x.closedJob && /ready|review/i.test(st) && !/approved/i.test(st); }
 function docsReady() { return ((S.data && S.data.docs) || []).filter(isReady).length; }
 var TABS = [['jobs', 'Jobs'], ['docs', 'Documents'], ['apps', 'Applied']];
@@ -1156,7 +1156,7 @@ function jobCard(j, hint) {
   var link = safeUrl(j.link), cm = commuteUrl(j), st = ans === 'yes' ? stageFor(j) : 0;
   var pills = [floorPill(j.floor), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : ''].filter(String).slice(0, 2).join('');
   var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes <span class="stg st-' + st + '">' + STAGES_SHORT[st] + '</span></div>' : ans === 'q' ? '<div class="jst">' + IC.qc + 'Sherif is finding out</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
-  var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' && !j.closed ? ' data-swipe="1"' : '') + ' aria-label=""' + esc(j.title + ', ' + j.company) + '">' +
+  var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (j.closed ? ' is-closed' : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' && !j.closed ? ' data-swipe="1"' : '') + ' aria-label="' + esc(j.title + ', ' + j.company) + '">' +
     (ans !== 'no' && !j.closed ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
     (hint ? '<p class="hint"><span>Tip: swipe right for Yes, left to pass</span><button type="button" data-hidehint aria-label="Hide tip">&times;</button></p>' : '') +
     status + '<h2 class="ttl">' + esc(j.title) + '</h2>' +
@@ -1165,7 +1165,7 @@ function jobCard(j, hint) {
     (pills ? '<div class="pills">' + pills + '</div>' : '');
   if (j.closed) h += '<p class="cnote">This posting is no longer open. Your application still counts; keep going with any interview or follow-up.</p>';
   if (ans === 'yes') h += tracker(st) + (st >= 2 ? applyKit(j) : '<p class="trknow wait-w">Next: your tailored resume, cover letter and interview prep are being prepared. They show up in Documents for your OK.</p>');
-  if (ans === 'q' || ans === 'no') {
+  if ((ans === 'q' || ans === 'no') && !j.closed) {
     var nv = S.notes[j.id] != null ? S.notes[j.id] : (j.note || '');
     var conf = S.conf[j.id] || {};
     h += '<div class="note2"><label class="sr" for="nt-' + id + '">' + (ans === 'q' ? 'Your question' : 'Why not') + '</label><textarea id="nt-' + id + '" placeholder="' + (ans === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps your next matches.') + '" data-note="' + id + '">' + esc(nv) + '</textarea>' +
@@ -1209,7 +1209,7 @@ function vJobs() {
   var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; });
   var sorted = d.jobs.slice().sort(function (a, b) { var pa = pos[a.id] != null ? pos[a.id] : -1, pb = pos[b.id] != null ? pos[b.id] : -1; return pa - pb; });
   var main = sorted.filter(function (j) { return ansOf(j) !== 'no' || S.leaving[j.id]; }), passed = sorted.filter(function (j) { return ansOf(j) === 'no' && !S.leaving[j.id]; });
-  var hintId = hintOn() ? (main.filter(function (j) { return !ansOf(j); })[0] || {}).id : null;
+  var hintId = hintOn() ? (main.filter(function (j) { return !ansOf(j) && !j.closed; })[0] || {}).id : null;
   var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110;
   var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : 'All answered. Nice work.';
   return shell('jobs', esc(title), 'Pay is from the employer\'s posting unless marked as an estimate.') + '<div class="pband" aria-hidden="true"></div>' +
@@ -1376,7 +1376,7 @@ function markApplied(jobId) {
     render();
   });
 }
-function scrollToFirst() { var el = document.querySelector('.jc:not(.s-yes):not(.s-q):not(.s-no)'); if (el) { el.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); var b = el.querySelector('.ans3 .yes'); if (b) b.focus({ preventScroll: true }); } }
+function scrollToFirst() { var el = document.querySelector('.jc:not(.s-yes):not(.s-q):not(.s-no):not(.is-closed):not(.s-closed)'); if (el) { el.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); var b = el.querySelector('.ans3 .yes'); if (b) b.focus({ preventScroll: true }); } }
 function hideHint() { lsSet('sp_swipehint', '1'); }
 /* No tap: undo window, card grays out in place for a moment, then moves into Passed. */
 function tapNo(id) {
@@ -1436,7 +1436,7 @@ function deckButton(c) {
 }
 function deckOpen() {
   var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; });
-  var ids = S.data.jobs.filter(function (j) { return !ansOf(j) && !locked(j.id); }).sort(function (a, b) { return (pos[a.id] || 0) - (pos[b.id] || 0); }).map(function (j) { return j.id; });
+  var ids = S.data.jobs.filter(function (j) { return !ansOf(j) && !locked(j.id) && !j.closed; }).sort(function (a, b) { return (pos[a.id] || 0) - (pos[b.id] || 0); }).map(function (j) { return j.id; });
   if (!ids.length) return;
   S.deck = { ids: ids, i: 0, more: false, qFor: null, y: window.scrollY, tried: {} };
   document.body.classList.add('deck-lock'); S.focusTo = '.dk-acts .dk-yes'; render(); window.scrollTo(0, 0);
