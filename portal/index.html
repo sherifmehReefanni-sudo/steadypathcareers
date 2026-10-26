@@ -197,7 +197,7 @@ body { overflow-x: hidden; }
 .jc.s-closed { background-color: #F6F4EF; border-style: dashed; box-shadow: none; }
 .jc.s-closed::before { background: #c4c4bd; }
 .jc.s-closed .jst, .jc.s-closed .ttl, .jc.s-closed .where { color: var(--no-ink); }
-.jc.s-closed .cnote, .dgrp.closed .cnote { margin: 8px 0 0; font-size: 15px; line-height: 1.45; color: var(--no-ink); }
+.jc .cnote, .dgrp.closed .cnote { margin: 8px 0 0; font-size: 15px; line-height: 1.45; color: var(--no-ink); }
 .dgrp.closed .cnote { margin: 0 0 10px; }
 
 /* swipe */
@@ -586,7 +586,7 @@ function ansOf(j) { var a = String((j && j.answer) || '').trim(); if (!a) return
 function errText(e, thing) {
   e = String(e || '');
   if (e === 'expired') return 'Your sign-in has expired.';
-  if (e === 'closed') return 'This posting has just closed, so nothing was saved. Reopen the portal to see it under Closed postings.';
+  if (e === 'closed') return 'This posting has just closed, so nothing was saved. Refresh this page to see it under Closed postings.';
   if (e === 'network') return 'That didn\'t save. Please check your connection and try again.';
   if (/not found/i.test(e)) return 'Not saved. That ' + (thing || 'item') + ' was updated. Reopen the portal to refresh.';
   return 'Not saved. Please try again in a minute.';
@@ -599,10 +599,11 @@ function load() {
     d.jobs = d.jobs || []; d.docs = d.docs || []; d.apps = d.apps || []; d.client = d.client || {};
     /* Closed postings leave the active list, so no count, next step, swipe deck or review screen ever points at them.
        Their documents stay in Documents, marked closedJob, with no Approve buttons. */
-    var closedIds = {}; d.closed = d.jobs.filter(function (j) { return j.closed === true; }); d.closed.forEach(function (j) { closedIds[j.id] = true; });
-    d.jobs = d.jobs.filter(function (j) { return j.closed !== true; });
+    /* A job the client already applied to stays in the main list (interview, prep and follow-up still matter), with a small note. */
     var appFor = {}; d.apps.forEach(function (a) { if (a.jobId) appFor[a.jobId] = true; });
-    d.docs.forEach(function (x) { x.closedJob = !!(x.jobId && closedIds[x.jobId] && !appFor[x.jobId]); }); /* applied: documents stay usable */
+    var closedIds = {}; d.closed = d.jobs.filter(function (j) { return j.closed === true && !appFor[j.id]; }); d.closed.forEach(function (j) { closedIds[j.id] = true; });
+    d.jobs = d.jobs.filter(function (j) { return !closedIds[j.id]; });
+    d.docs.forEach(function (x) { x.closedJob = !!(x.jobId && closedIds[x.jobId]); });
     S.data = d; S.status = 'ready'; S.conf = {};
     d.jobs.forEach(function (j) { S.conf[j.id] = { answer: j.answer || '', note: j.note || '' }; });
     if (S.flashJob) { var fj = jobById(S.flashJob); S.flash = 'Saved your answer for ' + (fj ? fj.title + (fj.company ? ' at ' + fj.company : '') : 'that job') + '. Thank you.'; S.flashJob = null; }
@@ -888,7 +889,7 @@ function flowStep(d) {
   if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: whenReady() };
   var qj = jobs.filter(function (j) { return ansOf(j) === 'q'; })[0];
   if (qj) return { k: 'wait', t: 'Sherif is looking into your question', s: 'About ' + coName(qj) + '. Sherif will reply to your question.' };
-  if (!d.jobs.length) return { k: 'start', t: 'Sherif is reading your resume', s: 'Your first job matches will show up here.' };
+  if (!d.jobs.length && !(d.closed || []).length) return { k: 'start', t: 'Sherif is reading your resume', s: 'Your first job matches will show up here.' };
   var hw = (d.apps || []).filter(function (x) { return stageOf(x) === 0; })[0];
   if (hw) return { k: 'heard', t: 'Waiting to hear from ' + hw.company, s: 'Heard back? Update it on your Applied tab.', act: '<button class="btn gold" data-go="apps">Applied tab</button>' };
   return { k: 'done', t: 'All caught up' + (first ? ', ' + first : ''), s: 'Nothing to do right now. New job matches show up here.' };
@@ -1155,13 +1156,14 @@ function jobCard(j, hint) {
   var link = safeUrl(j.link), cm = commuteUrl(j), st = ans === 'yes' ? stageFor(j) : 0;
   var pills = [floorPill(j.floor), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : ''].filter(String).slice(0, 2).join('');
   var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes <span class="stg st-' + st + '">' + STAGES_SHORT[st] + '</span></div>' : ans === 'q' ? '<div class="jst">' + IC.qc + 'Sherif is finding out</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
-  var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' ? ' data-swipe="1"' : '') + ' aria-label="' + esc(j.title + ', ' + j.company) + '">' +
-    (ans !== 'no' ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
+  var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' && !j.closed ? ' data-swipe="1"' : '') + ' aria-label=""' + esc(j.title + ', ' + j.company) + '">' +
+    (ans !== 'no' && !j.closed ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
     (hint ? '<p class="hint"><span>Tip: swipe right for Yes, left to pass</span><button type="button" data-hidehint aria-label="Hide tip">&times;</button></p>' : '') +
     status + '<h2 class="ttl">' + esc(j.title) + '</h2>' +
     '<div class="pay' + (est ? ' est' : '') + '">' + esc(payText(j)) + (est ? '<small>Estimate</small>' : '') + '</div>' +
     '<div class="where">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</div>' +
     (pills ? '<div class="pills">' + pills + '</div>' : '');
+  if (j.closed) h += '<p class="cnote">This posting is no longer open. Your application still counts; keep going with any interview or follow-up.</p>';
   if (ans === 'yes') h += tracker(st) + (st >= 2 ? applyKit(j) : '<p class="trknow wait-w">Next: your tailored resume, cover letter and interview prep are being prepared. They show up in Documents for your OK.</p>');
   if (ans === 'q' || ans === 'no') {
     var nv = S.notes[j.id] != null ? S.notes[j.id] : (j.note || '');
@@ -1178,9 +1180,10 @@ function jobCard(j, hint) {
       (j.added && /^\d{4}-\d\d-\d\d/.test(String(j.added)) ? '<p class="live"><span class="pill check">Checked live ' + esc(fmtDate(j.added)) + '</span></p>' : '') +
       '<p class="dlinks">' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" data-track="posting" data-job="' + id + '">See the posting</a>' : '') +
       (cm ? '<a href="' + esc(cm) + '" target="_blank" rel="noopener noreferrer">Commute from home</a>' : '') +
-      (ans && !busy ? '<button type="button" data-clear="' + id + '">Clear my answer</button>' : '') + '</p></div>';
+      (ans && !busy && !j.closed ? '<button type="button" data-clear="' + id + '">Clear my answer</button>' : '') + '</p></div>';
   }
   var dis = busy ? ' aria-disabled="true"' : '';
+  if (j.closed) return h + '</div></article>';
   h += '</div><div class="ans3" role="group" aria-label="Your answer">' +
     '<button class="yes" data-ans="yes" data-j="' + id + '" aria-pressed="' + (ans === 'yes') + '"' + dis + '>' + IC.check + 'Yes</button>' +
     '<button class="no" data-ans="no" data-j="' + id + '" aria-pressed="' + (ans === 'no') + '"' + dis + '>' + IC.x + 'No</button>' +
@@ -1188,16 +1191,16 @@ function jobCard(j, hint) {
   return h;
 }
 function closedCard(j) {
-  var said = ansOf(j) === 'yes' ? 'You said Yes. ' : '', app = jobApp(j);
+  var a = ansOf(j), said = a === 'q' ? 'Your question about it isn\'t needed anymore. ' : '';
   return '<article class="jc s-closed" aria-label="' + esc(j.title + ', ' + j.company + ', posting closed') + '"><div class="in">' +
     '<div class="jst">Posting closed' + (j.closedOn && /^\d{4}-/.test(j.closedOn) ? ' · ' + esc(fmtDate(j.closedOn)) : '') + '</div>' +
     '<h2 class="ttl">' + esc(j.title) + '</h2><div class="where">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</div>' +
-    '<p class="cnote">' + esc(said) + (app ? 'This posting is no longer open on the employer\'s site. Your application and documents stay with you.' : 'This posting is no longer open on the employer\'s site, so there is nothing to apply to. Nothing for you to do.') + '</p></div></article>';
+    '<p class="cnote">' + esc(said) + 'This posting is no longer open, so there is nothing to do here.' + '</p></div></article>';
 }
 function closedList(d) {
   var cl = d.closed || []; if (!cl.length) return '';
   return '<div class="passed closedp"><button data-closedtog aria-expanded="' + !!S.closedOpen + '" aria-controls="closedList">Closed postings (' + cl.length + ')' + IC.chev + '</button>' +
-    (S.closedOpen ? '<p class="cintro">These postings are no longer open on the employer\'s site. We keep them here so you know what happened.</p><div class="jlist" id="closedList">' + cl.map(closedCard).join('') + '</div>' : '') + '</div>';
+    (S.closedOpen ? '<p class="cintro">These postings are no longer open. We keep them here so you know what happened.</p><div class="jlist" id="closedList">' + cl.map(closedCard).join('') + '</div>' : '') + '</div>';
 }
 function coarse() { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } }
 function hintOn() { return !lsGet('sp_swipehint') && coarse(); }
@@ -1208,7 +1211,7 @@ function vJobs() {
   var main = sorted.filter(function (j) { return ansOf(j) !== 'no' || S.leaving[j.id]; }), passed = sorted.filter(function (j) { return ansOf(j) === 'no' && !S.leaving[j.id]; });
   var hintId = hintOn() ? (main.filter(function (j) { return !ansOf(j); })[0] || {}).id : null;
   var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110;
-  var title = !total ? 'Your first matches are on the way.' : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : 'All answered. Nice work.';
+  var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : 'All answered. Nice work.';
   return shell('jobs', esc(title), 'Pay is from the employer\'s posting unless marked as an estimate.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
     '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b><span>' + esc(trialText(cl)) + '</span></div>' +
@@ -1218,7 +1221,7 @@ function vJobs() {
     (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Sherif' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
     (fbDue(cl) ? '<div class="fbask"><p>Two minutes? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
     installCard() +
-    (main.length ? '<h2 class="sec-h">Your matches</h2><div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">Nothing here yet. You will get an email when your first jobs arrive.</p></div>') +
+    (main.length ? '<h2 class="sec-h">Your matches</h2><div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">' + ((d.closed || []).length ? 'No open matches right now. New ones show up here.' : 'Nothing here yet. You will get an email when your first jobs arrive.') + '</p></div>') +
     closedList(d) +
     (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '') +
     '<footer class="help"><p><b>Need help?</b> ' + HELP + '</p><button class="linkbtn" data-signout>Sign out on this device</button></footer>' +
