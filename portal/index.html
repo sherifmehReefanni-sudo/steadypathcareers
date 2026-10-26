@@ -540,7 +540,9 @@ function dropToken() { if (!S.demo) lsDel('sp_token'); }
 function todayISO() { var d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
 function safeUrl(u) { u = String(u || '').trim(); return /^https?:\/\//i.test(u) ? u : ''; }
 function cssq(v) { try { return CSS.escape(String(v)); } catch (e) { return String(v).replace(/["\\]/g, '\\$&'); } }
-function jobById(id) { return ((S.data && S.data.jobs) || []).filter(function (x) { return String(x.id) === String(id); })[0]; }
+/* Active jobs first; closed postings only as a fallback, so an applied job's review, prep and interview links keep working.
+   Closed jobs never reach answer buttons, counts or the swipe deck: those read S.data.jobs directly. */
+function jobById(id) { var f = function (x) { return String(x.id) === String(id); }; return ((S.data && S.data.jobs) || []).filter(f)[0] || ((S.data && S.data.closed) || []).filter(f)[0]; }
 
 /* ---- token handling ---- */
 (function () {
@@ -556,7 +558,7 @@ function jobById(id) { return ((S.data && S.data.jobs) || []).filter(function (x
   else S.token = lsGet('sp_token');
   if (q.get('expired')) { S.status = 'signin'; S.err = 'That link has expired. Enter your email and we\'ll send you a new one.'; lsDel('sp_token'); S.token = null; }
   if (q.get('answered')) S.flashJob = q.get('answered');
-  if (q.get('closed')) S.flash = 'That job posting has closed, so there is nothing to answer. You can see it under Closed postings at the bottom of your jobs.';
+  if (q.get('closed')) S.flash = 'That job posting has closed, so there is nothing to answer. You can see it under Closed postings in your Jobs list.';
   if (q.get('v')) S.view = q.get('v');
   if (q.get('review') && !q.get('expired')) S.wantReview = q.get('review'); /* from the "documents ready" email: open the review screen for that job */
   if (t || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
@@ -599,7 +601,8 @@ function load() {
        Their documents stay in Documents, marked closedJob, with no Approve buttons. */
     var closedIds = {}; d.closed = d.jobs.filter(function (j) { return j.closed === true; }); d.closed.forEach(function (j) { closedIds[j.id] = true; });
     d.jobs = d.jobs.filter(function (j) { return j.closed !== true; });
-    d.docs.forEach(function (x) { x.closedJob = !!(x.jobId && closedIds[x.jobId]); });
+    var appFor = {}; d.apps.forEach(function (a) { if (a.jobId) appFor[a.jobId] = true; });
+    d.docs.forEach(function (x) { x.closedJob = !!(x.jobId && closedIds[x.jobId] && !appFor[x.jobId]); }); /* applied: documents stay usable */
     S.data = d; S.status = 'ready'; S.conf = {};
     d.jobs.forEach(function (j) { S.conf[j.id] = { answer: j.answer || '', note: j.note || '' }; });
     if (S.flashJob) { var fj = jobById(S.flashJob); S.flash = 'Saved your answer for ' + (fj ? fj.title + (fj.company ? ' at ' + fj.company : '') : 'that job') + '. Thank you.'; S.flashJob = null; }
@@ -613,7 +616,8 @@ function load() {
     else S.hist = hs.depth || 0;
     if (S.wantReview) {
       var rj = jobById(S.wantReview); S.wantReview = null;
-      if (rj && jobDocs(rj).length) { S.flow = { kind: 'review', job: rj.id }; S.view = 'jobs'; S.focusTo = '.ptitle h1'; histPush(S.flow); }
+      if (rj && rj.closed && !jobApp(rj)) S.flash = 'The ' + coName(rj) + ' posting is no longer open, so those documents don\'t need your OK. It is under Closed postings in your Jobs list.';
+      else if (rj && jobDocs(rj).length) { S.flow = { kind: 'review', job: rj.id }; S.view = 'jobs'; S.focusTo = '.ptitle h1'; histPush(S.flow); }
       else if (rj) S.flash = 'Your documents for ' + coName(rj) + ' are not ready yet. ' + whenReady();
       else S.flash = 'We couldn\'t find that job. Here are all your jobs.';
     }
@@ -932,7 +936,7 @@ function changeBox(st) {
 }
 function flowTop() { return '<div class="fl-top" data-live="top"><button class="fl-back" data-flowclose>' + IC.chev + 'Back to your jobs</button>' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + '</div>'; }
 function vReview() {
-  var j = jobById(S.flow.job); if (!j) { S.flow = null; return vJobs(); }
+  var j = jobById(S.flow.job); if (!j || (j.closed && !jobApp(j))) { S.flow = null; return vJobs(); }
   var docs = rvDocs(j), st = jobState(j), id = esc(j.id);
   if (!docs.some(function (x) { return x.id === S.flow.tab; })) S.flow.tab = ((st.review[0] || docs[0]) || {}).id;
   S.rvSig = docs.map(function (x) { return x.id + ' ' + x.link; }).join('|');
@@ -1001,7 +1005,7 @@ function kitAnswers(j) {
 function kansHtml(answers) { return '<div class="kans">' + answers.map(function (a) { return '<div class="a"><div><b>' + esc(a[0]) + '</b><p>' + esc(a[1]) + '</p></div><button type="button" data-copy="' + esc(a[1]) + '" aria-label="Copy: ' + esc(a[0]) + '">Copy</button></div>'; }).join('') + '</div>'; }
 function apTick(jobId, i) { var c = kitChecks(jobId); c[AP_KIT[i]] = true; lsSet('sp_kit_' + jobId, JSON.stringify(c)); }
 function vApply() {
-  var j = jobById(S.flow.job); if (!j) { S.flow = null; return vJobs(); }
+  var j = jobById(S.flow.job); if (!j || (j.closed && !jobApp(j))) { S.flow = null; return vJobs(); }
   var st = jobState(j), checks = kitChecks(j.id), link = safeUrl(j.link), id = esc(j.id), answers = kitAnswers(j), done = S.flow.done || !!st.app, body;
   var step = function (i, title, desc, a) {
     var ck = !!checks[AP_KIT[i]];
@@ -1188,12 +1192,12 @@ function closedCard(j) {
   return '<article class="jc s-closed" aria-label="' + esc(j.title + ', ' + j.company + ', posting closed') + '"><div class="in">' +
     '<div class="jst">Posting closed' + (j.closedOn && /^\d{4}-/.test(j.closedOn) ? ' · ' + esc(fmtDate(j.closedOn)) : '') + '</div>' +
     '<h2 class="ttl">' + esc(j.title) + '</h2><div class="where">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</div>' +
-    '<p class="cnote">' + esc(said) + (app ? 'The employer has closed this posting. Your application stays on your Applied tab.' : 'The employer has closed this posting, so it can\'t take applications anymore. Nothing for you to do.') + '</p></div></article>';
+    '<p class="cnote">' + esc(said) + (app ? 'This posting is no longer open on the employer\'s site. Your application and documents stay with you.' : 'This posting is no longer open on the employer\'s site, so there is nothing to apply to. Nothing for you to do.') + '</p></div></article>';
 }
 function closedList(d) {
   var cl = d.closed || []; if (!cl.length) return '';
   return '<div class="passed closedp"><button data-closedtog aria-expanded="' + !!S.closedOpen + '" aria-controls="closedList">Closed postings (' + cl.length + ')' + IC.chev + '</button>' +
-    (S.closedOpen ? '<p class="cintro">These jobs were taken down by the employer. We keep them here so you know what happened.</p><div class="jlist" id="closedList">' + cl.map(closedCard).join('') + '</div>' : '') + '</div>';
+    (S.closedOpen ? '<p class="cintro">These postings are no longer open on the employer\'s site. We keep them here so you know what happened.</p><div class="jlist" id="closedList">' + cl.map(closedCard).join('') + '</div>' : '') + '</div>';
 }
 function coarse() { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } }
 function hintOn() { return !lsGet('sp_swipehint') && coarse(); }
@@ -1230,8 +1234,8 @@ function vDocs() {
   var n = docsReady();
   return shell('docs', n ? n + (n === 1 ? ' document needs' : ' documents need') + ' your OK' : 'Your documents', 'Open, approve or ask for changes.') +
     '<div class="pband" aria-hidden="true"></div><main class="pmain">' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + (d.docs.length ? groups.map(function (g) {
-      return '<section class="dgrp' + (g.job && g.job.closed ? ' closed' : '') + '"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' +
-        (g.job && g.job.closed ? '<p class="cnote">The employer closed this posting, so these don\'t need your OK. They stay here for your records.</p>' : '') +
+      return '<section class="dgrp' + (g.docs.some(function (x) { return x.closedJob; }) ? ' closed' : '') + '"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' +
+        (g.docs.some(function (x) { return x.closedJob; }) ? '<p class="cnote">This posting is no longer open, so these don\'t need your OK. They stay here for your records.</p>' : '') +
         (g.job && g.docs.some(needsOk) ? '<button class="kbtn solid guide" data-review="' + esc(g.job.id) + '">' + IC.docs + 'Read them here</button>' : '') + g.docs.map(docCard).join('') + '</section>';
     }).join('') : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your resume draft will show up here for your OK.</p></div>') + '</main>' + tabbar('docs');
 }
