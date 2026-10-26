@@ -783,7 +783,7 @@ function shell(active, title, sub) {
 function tabbar(active) {
   return '<div class="tabbar"><nav aria-label="Portal">' + TABS.map(function (t) { var n = tabCount(t[0]); return '<button data-go="' + t[0] + '" aria-current="' + (active === t[0]) + '">' + IC[t[0]] + '<span>' + t[1] + '</span>' + (n ? '<span class="cnt" aria-label="' + n + ' waiting">' + n + '</span>' : '') + '</button>'; }).join('') + '</nav></div>';
 }
-function trialText(c) { var dl = daysFrom(c.trialEnds); if (dl == null) return ''; if (dl < 0) return 'Trial ended ' + fmtDate(c.trialEnds); return dl + (dl === 1 ? ' day' : ' days') + ' left in your trial'; }
+function trialText(c) { var dl = daysFrom(c.trialEnds); if (dl == null) return ''; if (dl < 0) return 'Free pilot ended ' + fmtDate(c.trialEnds); return dl + (dl === 1 ? ' day' : ' days') + ' left in your free pilot'; }
 function reauthBtn() { return ' <button type="button" class="btn ghost sm" data-reauth>Sign in again</button>'; }
 
 /* ---- sign in ---- */
@@ -797,7 +797,7 @@ function vSignin() {
       '<p class="fine">Nothing after a few minutes? Check spam, or email hello@steadypathcareers.com.</p>' :
       '<p class="psub">We\'ll send a one-time link. No password to remember.</p>' + (S.err ? '<div class="warn">' + esc(S.err) + '</div>' : '') +
       '<form id="linkForm"><input type="email" id="email" required placeholder="you@example.com" aria-label="Email" autocomplete="email"><button class="btn gold" id="linkBtn" type="submit" style="width:100%;margin-top:10px">Email me a sign-in link</button></form>') +
-    '<p class="fine">Not a client yet? <a href="/start/">Start your free trial</a>. Only you and Sherif can see your information.</p></div></div>';
+    '<p class="fine">Not a client yet? <a href="/start/">Join the free pilot</a>. Only Sherif handles your information.</p></div></div>';
 }
 
 /* ---- feedback ---- */
@@ -817,7 +817,7 @@ function vFeedback() {
     '<div class="fbq"><div class="lab">How useful have your job matches been?</div>' + scale('jobs', 1, 5) + '<div class="scale-ends" style="max-width:250px"><span>Not useful</span><span>Very useful</span></div></div>' +
     '<div class="fbq"><label for="fbHelp">What has helped you most?</label><textarea id="fbHelp" maxlength="1500">' + esc(S.fbText.help || '') + '</textarea></div>' +
     '<div class="fbq"><label for="fbChange">What is one thing you would change?</label><textarea id="fbChange" maxlength="1500">' + esc(S.fbText.change || '') + '</textarea></div>' +
-    '<div class="fbq"><div class="lab">Would you pay to keep going after your free trial?</div>' + pick('pay', ['Yes', 'Maybe', 'No']) + '<label for="fbWhy" style="font-weight:600;color:var(--muted)">Why? (optional)</label><textarea id="fbWhy" maxlength="1500" style="min-height:60px">' + esc(S.fbText.why || '') + '</textarea></div>' +
+    '<div class="fbq"><div class="lab">Would you pay to keep going after your free pilot?</div>' + pick('pay', ['Yes', 'Maybe', 'No']) + '<label for="fbWhy" style="font-weight:600;color:var(--muted)">Why? (optional)</label><textarea id="fbWhy" maxlength="1500" style="min-height:60px">' + esc(S.fbText.why || '') + '</textarea></div>' +
     '<div class="fbq"><label for="fbQuote">Optional: a sentence or two we could share on our website</label><textarea id="fbQuote" maxlength="600" style="min-height:60px">' + esc(S.fbText.quote || '') + '</textarea>' +
     '<div class="lab" style="margin-top:10px">May we share it?</div>' + pick('share', ['Yes, with my first name and last initial', 'Yes, but without my name', 'No, keep it private']) + '<div class="scale-ends" style="justify-content:flex-start"><span>We never share anything without a yes here.</span></div></div>' +
     (S.fbErr ? '<div class="warn" style="margin-top:14px">' + esc(S.fbErr) + (S.fbRe ? reauthBtn() : '') + '</div>' : '') +

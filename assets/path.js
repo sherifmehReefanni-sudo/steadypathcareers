@@ -15,13 +15,30 @@
     var vh = w.innerHeight || 800;
     /* Hiding only takes effect once .reveal-ready is set, which happens inside the observer's first callback.
        If anything fails before that, .pre does nothing and the page stays fully visible. */
+    /* Start the reveal before a section reaches the screen (rootMargin 15% below), so content is already fading in as it
+       arrives. A scroll check also shows anything that is on or above the screen at once, so a fast scroll, an anchor jump
+       or a restored scroll position never leaves a blank area waiting on the observer. */
     var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.remove('pre'); io.unobserve(e.target); } });
+      es.forEach(function (e) { if (e.isIntersecting) show(e.target); });
       if (!de.classList.contains('reveal-ready')) de.classList.add('reveal-ready');
-    }, { rootMargin: '0px 0px -6% 0px', threshold: 0.01 });
+    }, { rootMargin: '0px 0px 15% 0px', threshold: 0 });
+    var pending = [];
+    function show(el) { el.classList.remove('pre'); io.unobserve(el); }
+    function sweep() {
+      var lim = (w.innerHeight || vh) * 1.05;
+      pending = pending.filter(function (el) { if (el.getBoundingClientRect().top < lim) { show(el); return false; } return true; });
+      if (!pending.length) { w.removeEventListener('scroll', onScroll); w.removeEventListener('resize', onScroll); w.removeEventListener('hashchange', onScroll); }
+    }
+    var ticking = false;
+    function onScroll() { if (ticking) return; ticking = true; (w.requestAnimationFrame || setTimeout)(function () { ticking = false; sweep(); }); }
     revs.forEach(function (el) {
-      if (el.getBoundingClientRect().top > vh * 0.92) { el.classList.add('pre'); io.observe(el); }
+      if (el.getBoundingClientRect().top > vh * 0.92) { el.classList.add('pre'); io.observe(el); pending.push(el); }
     });
+    if (pending.length) {
+      w.addEventListener('scroll', onScroll, { passive: true }); w.addEventListener('resize', onScroll); w.addEventListener('hashchange', onScroll);
+      w.addEventListener('beforeprint', function () { pending.forEach(show); pending = []; });
+      w.addEventListener('pageshow', onScroll);
+    }
     var lio = new IntersectionObserver(function (es) {
       es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('live'); lio.unobserve(e.target); } });
     }, { threshold: 0.2 });

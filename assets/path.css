@@ -91,16 +91,16 @@ main.trail-main { position: relative; isolation: isolate; }
 .rm .trail .tip { display: none; }
 
 /* reveal: path.js adds .pre only to things below the first screen, then removes it */
-.motion [data-reveal] { transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
-.reveal-ready [data-reveal].pre { opacity: 0; transform: translateY(28px); }
+.motion [data-reveal] { transition: opacity .45s cubic-bezier(.2,.7,.2,1), transform .45s cubic-bezier(.2,.7,.2,1); }
+.reveal-ready [data-reveal].pre { opacity: 0; transform: translateY(16px); }
 .reveal-ready [data-reveal="left"].pre { transform: translateX(-28px); }
 .reveal-ready [data-reveal="right"].pre { transform: translateX(28px); }
 .reveal-ready [data-reveal="pop"].pre { transform: scale(.92); }
-.motion .stagger > * { transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
-.reveal-ready .stagger.pre > * { opacity: 0; transform: translateY(22px); }
+.motion .stagger > * { transition: opacity .45s cubic-bezier(.2,.7,.2,1), transform .45s cubic-bezier(.2,.7,.2,1); }
+.reveal-ready .stagger.pre > * { opacity: 0; transform: translateY(14px); }
 .reveal-ready .stagger.pre { opacity: 1; transform: none; }
-.motion .stagger > :nth-child(2) { transition-delay: .08s; } .motion .stagger > :nth-child(3) { transition-delay: .16s; } .motion .stagger > :nth-child(4) { transition-delay: .24s; }
-.motion .stagger > :nth-child(5) { transition-delay: .32s; } .motion .stagger > :nth-child(6) { transition-delay: .4s; } .motion .stagger > :nth-child(n+7) { transition-delay: .48s; }
+.motion .stagger > :nth-child(2) { transition-delay: .05s; } .motion .stagger > :nth-child(3) { transition-delay: .1s; } .motion .stagger > :nth-child(4) { transition-delay: .15s; }
+.motion .stagger > :nth-child(5) { transition-delay: .2s; } .motion .stagger > :nth-child(6) { transition-delay: .25s; } .motion .stagger > :nth-child(n+7) { transition-delay: .3s; }
 
 /* illustration motion. Level 1 draws in once; level 2 adds a gentle loop; level 3 keeps several parts moving. */
 @media (prefers-reduced-motion: no-preference) {
