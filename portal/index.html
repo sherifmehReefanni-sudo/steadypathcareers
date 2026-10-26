@@ -193,6 +193,12 @@ body { overflow-x: hidden; }
 .passed > button svg { width: 20px; height: 20px; transition: transform .15s; }
 .passed > button[aria-expanded="true"] svg { transform: rotate(180deg); }
 .passed .jlist { margin-top: 6px; }
+.closedp .cintro { margin: 0 4px 8px; font-size: 15px; color: var(--no-ink); }
+.jc.s-closed { background-color: #F6F4EF; border-style: dashed; box-shadow: none; }
+.jc.s-closed::before { background: #c4c4bd; }
+.jc.s-closed .jst, .jc.s-closed .ttl, .jc.s-closed .where { color: var(--no-ink); }
+.jc.s-closed .cnote, .dgrp.closed .cnote { margin: 8px 0 0; font-size: 15px; line-height: 1.45; color: var(--no-ink); }
+.dgrp.closed .cnote { margin: 0 0 10px; }
 
 /* swipe */
 .jc .sl { position: absolute; top: 18px; z-index: 3; font: 800 26px var(--display); letter-spacing: .06em; padding: 4px 14px; border-radius: 10px; border: 3px solid; opacity: 0; pointer-events: none; }
@@ -490,8 +496,10 @@ window.SP_DEMO = function () {
       { id: 'J-105', added: iso(-4), company: 'Sample Community Dental Center', title: 'Staff Dentist', location: 'Smithtown, NY', setting: 'On-site', pay: '$175,000 - $205,000 a year', payLow: 175000, paySource: 'Posted by employer', floor: 'Below your floor at the low end', why: 'Community health center with set hours and full benefits. Loan repayment may be available.', link: 'https://example.com/jobs/smithtown-staff', notes: '', answer: 'Question', note: 'Do they offer loan repayment or a sign-on bonus?', answeredOn: iso(-3) },
       { id: 'J-106', added: iso(-5), company: 'Example Dental Group', title: 'Associate Dentist', location: 'Bay Shore, NY', setting: 'On-site', pay: '$160,000 - $180,000 a year', payLow: 160000, paySource: 'Posted by employer', floor: 'Below your floor', why: 'Steady patient base and short drive from the train.', link: 'https://example.com/jobs/bay-shore-associate', notes: '', answer: 'No', note: 'Pay is too low.', answeredOn: iso(-4) },
       { id: 'J-107', added: iso(-7), company: 'Demo Family Dentistry', title: 'Dentist', location: 'Riverhead, NY', setting: 'On-site', pay: '$190,000 - $215,000 a year', payLow: 190000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Small practice, owner plans to retire in 3 years.', link: 'https://example.com/jobs/east-end-dentist', notes: '', answer: 'No', note: 'Too far to drive.', answeredOn: iso(-6) }
+      ,{ id: 'J-108', added: iso(-10), company: 'Demo Bay Dental', title: 'Lead Dentist', location: 'Oceanside, NY', setting: 'On-site', pay: '$210,000 - $260,000 a year', payLow: 210000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Lead role close to home.', link: 'https://example.com/jobs/108', notes: '', answer: 'Yes', note: '', answeredOn: iso(-9), closed: true, closedOn: iso(-1), kit: {} }
     ],
     docs: [
+      { id: 'D-8', jobId: 'J-108', name: 'Resume for Demo Bay Dental', link: gd('demo-resume-108'), status: 'Ready for your review', request: '', updated: iso(-3) },
       { id: 'D-1', jobId: '', name: 'Your resume', link: gd('demo-base-resume'), status: 'Approved', request: '', updated: iso(-7) },
       { id: 'D-2', jobId: 'J-103', name: 'Resume for Example Dental Arts', link: gd('demo-resume-103'), status: 'Approved', request: '', updated: iso(-2) },
       { id: 'D-2p', jobId: 'J-103', name: 'Interview prep: Example Dental Arts', link: gd('demo-prep-103'), status: 'Ready for your review', request: '', updated: iso(-2) },
@@ -548,9 +556,10 @@ function jobById(id) { return ((S.data && S.data.jobs) || []).filter(function (x
   else S.token = lsGet('sp_token');
   if (q.get('expired')) { S.status = 'signin'; S.err = 'That link has expired. Enter your email and we\'ll send you a new one.'; lsDel('sp_token'); S.token = null; }
   if (q.get('answered')) S.flashJob = q.get('answered');
+  if (q.get('closed')) S.flash = 'That job posting has closed, so there is nothing to answer. You can see it under Closed postings at the bottom of your jobs.';
   if (q.get('v')) S.view = q.get('v');
   if (q.get('review') && !q.get('expired')) S.wantReview = q.get('review'); /* from the "documents ready" email: open the review screen for that job */
-  if (t || q.get('expired') || q.get('answered') || q.get('review')) history.replaceState({}, '', location.pathname);
+  if (t || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
 })();
 if (S.view === 'home') S.view = 'jobs';
 
@@ -575,6 +584,7 @@ function ansOf(j) { var a = String((j && j.answer) || '').trim(); if (!a) return
 function errText(e, thing) {
   e = String(e || '');
   if (e === 'expired') return 'Your sign-in has expired.';
+  if (e === 'closed') return 'This posting has just closed, so nothing was saved. Reopen the portal to see it under Closed postings.';
   if (e === 'network') return 'That didn\'t save. Please check your connection and try again.';
   if (/not found/i.test(e)) return 'Not saved. That ' + (thing || 'item') + ' was updated. Reopen the portal to refresh.';
   return 'Not saved. Please try again in a minute.';
@@ -585,6 +595,11 @@ function load() {
   get({ action: 'me', t: S.token }).then(function (d) {
     if (!d || !d.ok) { S.status = 'signin'; S.err = d && d.error === 'expired' ? 'Your sign-in link has expired. Enter your email and we\'ll send you a new one.' : 'Sorry, we couldn\'t open your portal. Please sign in again.'; dropToken(); S.token = null; render(); return; }
     d.jobs = d.jobs || []; d.docs = d.docs || []; d.apps = d.apps || []; d.client = d.client || {};
+    /* Closed postings leave the active list, so no count, next step, swipe deck or review screen ever points at them.
+       Their documents stay in Documents, marked closedJob, with no Approve buttons. */
+    var closedIds = {}; d.closed = d.jobs.filter(function (j) { return j.closed === true; }); d.closed.forEach(function (j) { closedIds[j.id] = true; });
+    d.jobs = d.jobs.filter(function (j) { return j.closed !== true; });
+    d.docs.forEach(function (x) { x.closedJob = !!(x.jobId && closedIds[x.jobId]); });
     S.data = d; S.status = 'ready'; S.conf = {};
     d.jobs.forEach(function (j) { S.conf[j.id] = { answer: j.answer || '', note: j.note || '' }; });
     if (S.flashJob) { var fj = jobById(S.flashJob); S.flash = 'Saved your answer for ' + (fj ? fj.title + (fj.company ? ' at ' + fj.company : '') : 'that job') + '. Thank you.'; S.flashJob = null; }
@@ -746,7 +761,7 @@ var IC = {
 function mailsOn() { return !!(S.data && S.data.notify === true); }
 function whenReady(they) { return mailsOn() ? 'We\'ll email you when ' + (!they ? 'they\'re' : they === 'it' ? 'it\'s' : they + ' are') + ' ready.' : 'Check back here. ' + (they === 'it' ? 'It' : 'They') + ' will show up on this page when ready.'; }
 function counts() { var j = (S.data && S.data.jobs) || []; var c = { yes: 0, no: 0, q: 0, wait: 0 }; j.forEach(function (x) { var a = ansOf(x); if (a) c[a]++; else c.wait++; }); return c; }
-function isReady(x) { var st = String(x.status || ''); return /ready|review/i.test(st) && !/approved/i.test(st); }
+function isReady(x) { var st = String(x.status || ''); return !x.closedJob && /ready|review/i.test(st) && !/approved/i.test(st); }
 function docsReady() { return ((S.data && S.data.docs) || []).filter(isReady).length; }
 var TABS = [['jobs', 'Jobs'], ['docs', 'Documents'], ['apps', 'Applied']];
 function tabCount(k) { var c = counts(); return k === 'jobs' ? c.wait : k === 'docs' ? docsReady() : 0; }
@@ -1168,6 +1183,18 @@ function jobCard(j, hint) {
     '<button class="q" data-ans="q" data-j="' + id + '" aria-pressed="' + (ans === 'q') + '"' + dis + '>' + IC.q + 'Question</button></div></article>';
   return h;
 }
+function closedCard(j) {
+  var said = ansOf(j) === 'yes' ? 'You said Yes. ' : '', app = jobApp(j);
+  return '<article class="jc s-closed" aria-label="' + esc(j.title + ', ' + j.company + ', posting closed') + '"><div class="in">' +
+    '<div class="jst">Posting closed' + (j.closedOn && /^\d{4}-/.test(j.closedOn) ? ' · ' + esc(fmtDate(j.closedOn)) : '') + '</div>' +
+    '<h2 class="ttl">' + esc(j.title) + '</h2><div class="where">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</div>' +
+    '<p class="cnote">' + esc(said) + (app ? 'The employer has closed this posting. Your application stays on your Applied tab.' : 'The employer has closed this posting, so it can\'t take applications anymore. Nothing for you to do.') + '</p></div></article>';
+}
+function closedList(d) {
+  var cl = d.closed || []; if (!cl.length) return '';
+  return '<div class="passed closedp"><button data-closedtog aria-expanded="' + !!S.closedOpen + '" aria-controls="closedList">Closed postings (' + cl.length + ')' + IC.chev + '</button>' +
+    (S.closedOpen ? '<p class="cintro">These jobs were taken down by the employer. We keep them here so you know what happened.</p><div class="jlist" id="closedList">' + cl.map(closedCard).join('') + '</div>' : '') + '</div>';
+}
 function coarse() { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } }
 function hintOn() { return !lsGet('sp_swipehint') && coarse(); }
 function vJobs() {
@@ -1188,6 +1215,7 @@ function vJobs() {
     (fbDue(cl) ? '<div class="fbask"><p>Two minutes? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
     installCard() +
     (main.length ? '<h2 class="sec-h">Your matches</h2><div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">Nothing here yet. You will get an email when your first jobs arrive.</p></div>') +
+    closedList(d) +
     (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '') +
     '<footer class="help"><p><b>Need help?</b> ' + HELP + '</p><button class="linkbtn" data-signout>Sign out on this device</button></footer>' +
     '</main>' + tabbar('jobs');
@@ -1195,19 +1223,21 @@ function vJobs() {
 
 /* ---- documents ---- */
 function vDocs() {
-  var d = S.data, jobsById = {}; d.jobs.forEach(function (j) { jobsById[j.id] = j; });
+  var d = S.data, jobsById = {}; d.jobs.concat(d.closed || []).forEach(function (j) { jobsById[j.id] = j; });
   var groups = [], gi = {};
   d.docs.forEach(function (x) { var k = x.jobId || ''; if (gi[k] == null) { gi[k] = groups.length; groups.push({ k: k, job: jobsById[k], docs: [] }); } groups[gi[k]].docs.push(x); });
-  groups.sort(function (a, b) { var ra = a.docs.some(isReady) ? 0 : 1, rb = b.docs.some(isReady) ? 0 : 1; return (a.k ? 1 : 0) - (b.k ? 1 : 0) || ra - rb; });
+  groups.sort(function (a, b) { var ra = a.docs.some(isReady) ? 0 : 1, rb = b.docs.some(isReady) ? 0 : 1; var ca = a.job && a.job.closed ? 1 : 0, cb = b.job && b.job.closed ? 1 : 0; return ca - cb || (a.k ? 1 : 0) - (b.k ? 1 : 0) || ra - rb; });
   var n = docsReady();
   return shell('docs', n ? n + (n === 1 ? ' document needs' : ' documents need') + ' your OK' : 'Your documents', 'Open, approve or ask for changes.') +
     '<div class="pband" aria-hidden="true"></div><main class="pmain">' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + (d.docs.length ? groups.map(function (g) {
-      return '<section class="dgrp"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' +
+      return '<section class="dgrp' + (g.job && g.job.closed ? ' closed' : '') + '"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' +
+        (g.job && g.job.closed ? '<p class="cnote">The employer closed this posting, so these don\'t need your OK. They stay here for your records.</p>' : '') +
         (g.job && g.docs.some(needsOk) ? '<button class="kbtn solid guide" data-review="' + esc(g.job.id) + '">' + IC.docs + 'Read them here</button>' : '') + g.docs.map(docCard).join('') + '</section>';
     }).join('') : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your resume draft will show up here for your OK.</p></div>') + '</main>' + tabbar('docs');
 }
 function docCard(x) {
   var st = String(x.status || ''), ok = /approved/i.test(st), ready = isReady(x), link = safeUrl(x.link), id = esc(x.id), busy = S.docBusy[x.id];
+  if (x.closedJob && !ok) st = 'Posting closed';
   var pillCls = ok ? 'ok' : /changes/i.test(st) ? 'gold' : ready ? 'gold' : 'info';
   return '<div class="dc' + (ok ? ' ok' : ready ? ' ready' : '') + '" data-doc="' + id + '"><div class="top"><div class="nm">' + IC.docs + '<span>' + esc(x.name) + '</span></div><span class="pill ' + pillCls + '">' + (ok ? '&#10003; ' : '') + esc(st || 'In progress') + '</span></div>' +
     (x.updated && /^\d{4}-/.test(x.updated) ? '<p class="meta">Updated ' + esc(fmtDate(x.updated)) + '</p>' : '') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') +
@@ -1598,6 +1628,7 @@ document.addEventListener('click', function (e) {
   if (d.hidehint != null) { hideHint(); render(); return; }
   if (d.morenote != null) { S.noteOpen = !S.noteOpen; render(); return; }
   if (d.passed != null) { S.passedOpen = !S.passedOpen; render(); return; }
+  if (d.closedtog != null) { S.closedOpen = !S.closedOpen; render(); return; }
   if (d.det) { S.open[d.det] = !S.open[d.det]; render(); return; }
   if (d.copy != null) { copyText(d.copy); return; }
   if (d.applied) { markApplied(d.applied); return; }
