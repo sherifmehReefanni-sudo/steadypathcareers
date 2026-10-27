@@ -731,7 +731,7 @@ window.SP_DEMO = function () {
 .pv-q { border: 2px solid var(--navy); border-radius: 14px; padding: 16px; display: grid; gap: 10px; background: #fff; }
 .pv-qt { font: 800 19px/1.35 var(--display); color: var(--ink); }
 .pv-qt:focus { outline: none; }
-.pv-qt:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.pv-qt:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 3px; }
 .pv-q .kbtn { justify-self: start; }
 .pv-guide { background: var(--sunk); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; }
 .pv-guide[hidden] { display: none; }
@@ -743,7 +743,7 @@ window.SP_DEMO = function () {
 .pv-nav { display: flex; justify-content: space-between; gap: 8px; }
 .pv-nav .btn { min-width: 110px; }
 .pv-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
-.pv-after { border: 2px solid var(--gold); }
+.pv-after { border: 1px solid var(--line, #EAE3D5); }
 .pv-st { display: flex; flex-wrap: wrap; gap: 8px; }
 .pv-st button { min-height: 44px; padding: 8px 14px; border-radius: 10px; border: 2px solid var(--navy); background: #fff; color: var(--navy); font: 800 15px var(--display); cursor: pointer; }
 .pv-st button[aria-pressed="true"] { background: var(--navy); color: #fff; }
@@ -757,7 +757,7 @@ window.SP_DEMO = function () {
 .dhist summary::-webkit-details-marker { display: none; }
 .dhist summary::before { content: ""; width: 0; height: 0; border-left: 6px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; transition: transform .15s; }
 .dhist[open] summary::before { transform: rotate(90deg); }
-.dhist summary:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+.dhist summary:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; border-radius: 6px; }
 .dhist .dh-n { font-weight: 600; color: var(--muted); }
 .dhist ul { margin: 0 0 4px; padding-left: 20px; display: grid; gap: 4px; color: var(--ink); overflow-wrap: anywhere; }
 .dhist .dh-d { color: var(--muted); font-weight: 700; }
@@ -1167,7 +1167,7 @@ function dueItems(d) {
     var st = stageOf(x); if (st >= 3) return;
     var dd = daysFrom(x.interview), soon = dd != null && dd >= 0, mine = false;
     if (soon) { add(dd <= 7 ? 0 : 3, x.interview, 'Interview with ' + coOr(x) + (x.ivTime ? ', ' + x.ivTime : ''), 'you', pvDueBtn(x, prepQs(x).length ? 'Practice now' : 'Open')); mine = true; }
-    else if (dd != null && dd >= -21 && st === 2) { add(2, '', 'Tell us how the ' + coOr(x) + ' interview went', 'you', pvDueBtn(x, 'Open')); mine = true; }
+    else if (outcomeDue(x)) { add(2, '', 'Tell us how the ' + coOr(x) + ' interview went', 'you', pvDueBtn(x, 'Open')); mine = true; }
     var fd = daysFrom(x.followUpOn), fu = fd != null ? x.followUpOn : '';
     if (x.nextAction) { add(fu ? (fd <= 7 ? 0 : 3) : 4, fu, coOr(x) + ': ' + x.nextAction, 'you', goApps); mine = true; }
     else if (fu) { add(fd <= 7 ? 0 : 3, fu, 'Follow up with ' + coOr(x), 'you', goApps); mine = true; }
@@ -1347,7 +1347,8 @@ function kitAnswers(j) {
   var kit = j.kit || {};
   /* the third item is a short note shown under the answer (never copied): how a suggestion was worked out, or what it covers */
   var floor = S.data.client.payFloor, fw = typeof payWords === 'function' ? payWords(floor) : String(floor || '');
-  var payNote = 'A suggestion, so check it before you paste it. Worked out from ' + (isEst(j) ? 'an estimate (no pay was posted)' : 'the posted pay: ' + payText(j)) + (fw ? '; your minimum is ' + fw : '') + '.';
+  var noPay = isEst(j) || !String(j.pay == null ? '' : j.pay).trim();
+  var payNote = 'A suggestion, so check it before you paste it. Worked out from ' + (noPay ? (isEst(j) ? 'an estimate (no pay was posted)' : 'your minimum (no pay was posted)') : 'the posted pay: ' + payText(j)) + (fw ? '; your minimum is ' + fw : '') + '.';
   var whyNote = 'Written from your resume and the posting. If a form asks why you want this employer, add one thing you like about them.';
   return [['pay', 'Suggested pay answer', payNote], ['start', 'When you can start'], ['why', 'Why you fit this job', whyNote]].filter(function (a) { return String(kit[a[0]] || '').trim(); })
     .map(function (a) { return [a[1], String(kit[a[0]]), a[2] || '']; }).concat(qaLines(kit.other), qaLines(S.data.client.std));
@@ -1529,7 +1530,7 @@ function payText(j) { var p = String(j.pay == null ? '' : j.pay).split(';')[0].t
 function commuteUrl(j) { var h = S.data.client.home; if (!h || !j.location || /remote/i.test(j.location) || /^\s*remote/i.test(j.setting || '')) return ''; return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(h) + '&destination=' + encodeURIComponent(String(j.company).replace(/\s*\(.*?\)/g, '') + ', ' + j.location); }
 /* ---- round 3: fit label, one reason, the biggest concern, and the next action for a Yes job ---- */
 /* Fit comes from the Jobs sheet's "Fit" column (Strong fit / Possible fit / Stretch). No match percentages: any "85%" is dropped. */
-var FITS = [[/^strong/i, 'Strong fit', 'ok', 0], [/^possible/i, 'Possible fit', 'info', 1], [/^stretch/i, 'Stretch', 'attn', 2]];
+var FITS = [[/^strong/i, 'Strong fit', 'ok', 0], [/^possible/i, 'Possible fit', 'info', 1], [/^stretch/i, 'Stretch', '', 2]];
 function fitOf(j) {
   var f = String((j && j.fit) || '').replace(/\(?\s*\d+(\.\d+)?\s*%\s*\)?/g, ' ').replace(/\s+/g, ' ').trim(); if (!f) return null;
   for (var i = 0; i < FITS.length; i++) if (FITS[i][0].test(f)) return { label: FITS[i][1], cls: FITS[i][2], rank: FITS[i][3] };
@@ -1675,7 +1676,7 @@ function docCard(x, i, grp) {
   var st = String(x.status || ''), ok = /approved/i.test(st), ready = needsOk(x), prepRd = isReady(x) && docKind(x.name) === 'prep', link = safeUrl(x.link), id = esc(x.id), busy = S.docBusy[x.id];
   if (prepRd) st = 'Ready to read';
   if (x.closedJob && !ok) st = 'Posting closed';
-  var pillCls = ok ? 'ok' : /changes/i.test(st) ? 'gold' : ready ? 'gold' : 'info';
+  var pillCls = ok ? 'ok' : /changes/i.test(st) ? 'info' : ready ? 'gold' : 'info';
   return '<div class="dc' + (ok ? ' ok' : ready ? ' ready' : '') + '" data-doc="' + id + '"><div class="top"><div class="nm">' + IC.docs + '<span>' + esc(shortDocName(x, grp)) + '</span></div><span class="pill ' + pillCls + '">' + (ok ? '&#10003; ' : '') + esc(st || 'In progress') + '</span></div>' +
     docVerHtml(x) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') +
     '<div class="acts">' + (link ? '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open</a>' : '') +
@@ -1689,7 +1690,9 @@ function docCard(x, i, grp) {
 function stageOf(x) { var t = String(x.status || '').toLowerCase(); if (/reject|declin|turned it down|not selected|closed|no longer|withdr|no offer|not hired|rescind|filled|not moving|not proceed|unsuccessful|passed on|went with another/.test(t)) return 4; if (/offer|hired|accepted/.test(t)) return 3; if (x.interview || /interview/.test(t)) return 2; if (/reply|heard|screen|call|contact/.test(t)) return 1; return 0; }
 function prepQs(x) { return lines(x && x.prepExpect); }
 function lines(t) { return String(t || '').split(/\n|;|(?:\s\d+\.\s)/).map(function (z) { return z.trim(); }).filter(String); }
-var APP_STATUS = ['Applied', 'Heard back', 'Interview scheduled', 'Offer', 'Employer declined', 'I turned it down', 'Withdrew'];
+var APP_STATUS = ['Applied', 'Heard back', 'Interview scheduled', 'Interviewed, waiting to hear', 'Next round', 'Offer', 'Employer declined', 'I turned it down', 'Withdrew'];
+/* an interview in the last 3 weeks that the client has not told us about yet */
+function outcomeDue(x) { var dd = daysFrom(x.interview); return dd != null && dd < 0 && dd >= -21 && stageOf(x) === 2 && !/waiting to hear|next round/i.test(x.status || ''); }
 /* a status outside the list (old "Declined", or a note Sherif typed) is listed first and selected, so saving a date never changes it */
 function statusOpts(cur) { return cur && APP_STATUS.indexOf(cur) < 0 ? [cur].concat(APP_STATUS) : APP_STATUS; }
 function logForm() {
@@ -1719,7 +1722,7 @@ function ivLabel(x) {
   var dd = daysFrom(x.interview), st = stageOf(x); if (dd == null) return '';
   if (dd >= 0 && st < 4) return '<span class="pill info">Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : esc(fmtY(x.interview))) + (x.ivTime ? ', ' + esc(x.ivTime) : '') + '</span>';
   if (dd >= 0) return '';
-  if (dd >= -21 && st === 2) return '<span class="pill gold">Interview held ' + esc(fmtY(x.interview)) + '. How did it go?</span>';
+  if (outcomeDue(x)) return '<span class="pill gold">Interview held ' + esc(fmtY(x.interview)) + '. How did it go?</span>';
   return '<span class="pill">Interviewed ' + esc(fmtY(x.interview)) + '</span>';
 }
 function fuLabel(x) {
@@ -1842,7 +1845,7 @@ function afOn(d) { var f = af(); return afShow(d || S.data) && !!(f.q.trim() || 
 function appDue(x) {
   var st = stageOf(x), iv = daysFrom(x.interview), fu = daysFrom(x.followUpOn); if (st === 4) return false;
   if (iv != null && iv >= 0) return true;
-  if (iv != null && iv < 0 && iv >= -21 && st === 2) return true;
+  if (outcomeDue(x)) return true;
   return fu != null ? fu <= 0 : fuFlag(x);
 }
 function afApps(d) {
@@ -2001,6 +2004,9 @@ function go(view) {
   S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
+  /* a shared device keeps nothing of this client: practice notes, kit ticks and screen state */
+  try { for (var k = localStorage.length - 1; k >= 0; k--) { var lk = localStorage.key(k); if (/sp_pvnotes_|sp_kit_/.test(lk || '')) localStorage.removeItem(lk); } } catch (e) {}
+  S.pvMem = null; S.pv = null; S.dhOpen = null; S.jsel = null; if (S.view === 'prep') S.view = 'jobs';
   dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
 }
@@ -2623,7 +2629,7 @@ function pvDueBtn(x, label) { return '<button class="linkbtn" data-nxprep="' + e
 function appPrepBtn(x) {
   var dd = daysFrom(x.interview), st = stageOf(x), has = pvHas(x), qs = pvQs(x).length, id = esc(x.id);
   if (dd != null && dd >= 0 && st < 4) return '<p class="pv-cta"><button class="btn gold" data-prep="' + id + '">' + (qs ? 'Interview practice' : has ? 'Your prep notes' : 'Interview details') + '</button></p>' + (has ? '' : '<p class="psub" style="margin:8px 0 0">' + esc(prepWait(x)) + '</p>');
-  if (dd != null && dd < 0 && dd >= -21 && st === 2) return '<p style="margin:8px 0 0"><button class="btn gold" data-prep="' + id + '">How did it go?</button></p>';
+  if (outcomeDue(x)) return '<p style="margin:8px 0 0"><button class="btn gold" data-prep="' + id + '">How did it go?</button></p>';
   if (has) return '<p style="margin:8px 0 0"><button class="btn' + (qs ? '' : ' ghost') + '" data-prep="' + id + '">' + (qs ? 'Interview practice' : 'Your prep notes') + '</button></p>';
   return '';
 }
@@ -2659,7 +2665,7 @@ function pvWhere(w) {
   w = pvTxt(w); if (!w) return '';
   var m = w.match(/https?:\/\/[^\s<>"']+/i);
   if (m) { var u = safeUrl(m[0].replace(/[).,;]+$/, '')), k = w.indexOf(m[0]); if (u) return esc(w.slice(0, k)) + '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(u) + '</a>' + esc(w.slice(k + u.length)); }
-  if (!/\d/.test(w) || /\b(phone|video|zoom|teams|meet|call|online|virtual)\b/i.test(w)) return esc(w); /* only an address gets a map link */
+  if (!/\d/.test(w) || /\b(phone|video|zoom|teams|meet|call|online|virtual|webex|skype|whereby|bluejeans|ringcentral|gotomeeting|hangouts?)\b|^\s*(javascript|data):/i.test(w)) return esc(w); /* only an address gets a map link */
   return esc(w) + '<br><a class="pv-map" href="' + esc('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(w)) + '" target="_blank" rel="noopener noreferrer">Open in Maps</a>';
 }
 function vPrep() {
@@ -2686,7 +2692,7 @@ function vPrep() {
       '<div class="pv-q"><p class="pv-qt" id="pvQ" tabindex="-1">' + esc(q.q) + '</p><p class="psub">Answer out loud first, as if you were in the room.</p>' +
       '<button type="button" class="kbtn" data-pvshow aria-expanded="' + !!P.show + '" aria-controls="pvGuide">' + (P.show ? 'Hide what to bring up' : 'Show what to bring up') + '</button>' +
       '<div class="pv-guide" id="pvGuide"' + (P.show ? '' : ' hidden') + '><b>' + (q.g ? 'For this question' : 'What to bring up') + '</b><p>' + esc(guide || 'Use a real example with a number in it.') + '</p></div></div>' +
-      '<div class="pv-notes"><label for="pvNote">Your notes on this question</label><textarea id="pvNote" data-pvnote="' + esc(x.id) + '" maxlength="2000" aria-describedby="pvNoteHint">' + esc(note) + '</textarea><p class="meta" id="pvNoteHint">Saved on this device only. Nobody else sees these notes.</p></div>' +
+      '<div class="pv-notes"><label for="pvNote">Your notes on this question</label><textarea id="pvNote" data-pvnote="' + esc(x.id) + '" maxlength="2000" aria-describedby="pvNoteHint">' + esc(note) + '</textarea><p class="meta" id="pvNoteHint">Saved on this device only, and cleared when you sign out.</p></div>' +
       '<div class="pv-nav"><button type="button" class="btn ghost" data-pvstep="-1"' + (i ? '' : ' disabled') + '>Back</button><button type="button" class="btn" data-pvstep="1"' + (i < qs.length - 1 ? '' : ' disabled') + '>Next</button></div>');
   } else if (pvTxt(x.prepBring)) out += sec('bring', 'What to bring up', '<p>' + esc(pvTxt(x.prepBring)) + '</p>');
   /* 5. questions to ask */
@@ -2695,11 +2701,11 @@ function vPrep() {
   if (!has && !(dd != null && dd < 0)) out += '<div class="card pv-wait"><p class="psub" style="margin:0">' + esc(prepWait(x)) + ' Sherif will add it here.</p></div>';
   /* 6. after the interview */
   if (dd != null && dd < 0) {
-    var opts = [['Heard back', 'Heard back'], ['Interview scheduled', 'Another round'], ['Employer declined', 'Employer declined'], ['Offer', 'Offer']];
+    var opts = [['Interviewed, waiting to hear', 'Waiting to hear'], ['Next round', 'Another round'], ['Employer declined', 'Employer declined'], ['Offer', 'Offer']];
     var j = x.jobId ? jobById(x.jobId) : null, ty = j ? jobDocs(j).filter(function (d) { return /thank/i.test(d.name || '') && safeUrl(d.link); })[0] : null;
     var nv = P.next != null ? P.next : String(x.myNotes || '');
     top += sec('after', 'How did it go?',
-      '<p class="psub">Tell us where it stands. It updates your Applied tab.</p><div class="pv-st" role="group" aria-labelledby="pv-after">' + opts.map(function (o) { return '<button type="button" data-pvst="' + esc(o[0]) + '" aria-pressed="' + (x.status === o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>' +
+      '<p class="psub">Tell us where it stands. It updates your Applied tab.</p><div class="pv-st" role="group" aria-labelledby="pv-after">' + opts.map(function (o) { return '<button type="button" data-pvst="' + esc(o[0]) + '" aria-pressed="' + (x.status === o[0]) + '"' + (P.busy ? ' disabled' : '') + '>' + esc(o[1]) + '</button>'; }).join('') + '</div>' +
       '<p class="pv-msg" id="pvMsg" role="status">' + esc(P.msg || '') + (P.re ? reauthBtn() : '') + '</p>' +
       '<p><b>Send a thank-you note</b> to ' + (pvTxt(x.contact) ? esc(pvTxt(x.contact)) : 'the people you met') + ' within a day. Thank them and mention one thing you talked about.</p>' +
       (ty ? '<p><a class="kbtn" href="' + esc(safeUrl(ty.link)) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Your thank-you note</a></p>' : '') +
@@ -2714,8 +2720,9 @@ function pvSave(x, body, ok) {
   S.pv.busy = body.myNotes != null ? 'notes' : 'status'; S.pv.msg = 'Saving…'; S.pv.re = false; render();
   saveApp(Object.assign({ id: x.id }, body), function (r) {
     if (!S.pv) return; S.pv.busy = false;
-    if (r.ok) { Object.keys(body).forEach(function (k) { x[k] = body[k]; }); S.pv.msg = ok; }
+    if (r.ok) { Object.keys(body).forEach(function (k) { x[k] = body[k]; }); if (body.myNotes != null) S.pv.next = null; S.pv.msg = ok; }
     else { S.pv.re = r.error === 'expired'; S.pv.msg = r.error === 'expired' ? 'Your sign-in has expired. Sign in again, then save it.' : 'Sorry, that didn\'t save. Please check your connection and try again.'; }
+    if (body.status) S.focusTo = '[data-pvst="' + cssq(body.status) + '"]'; else if (body.myNotes != null) S.focusTo = '[data-pvsave]'; /* buttons were disabled while saving */
     render(); if (r.ok && body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); }
   });
 }
@@ -2726,10 +2733,10 @@ document.addEventListener('click', function (e) {
   if (d.pvshow != null) { S.pv.show = !S.pv.show; render(); return; }
   if (d.pvstep) { var n = pvQs(x).length, i = Math.min(Math.max((S.pv.i || 0) + Number(d.pvstep), 0), n - 1); S.pv.i = i; S.pv.show = false; if ((d.pvstep === '1' && i >= n - 1) || (d.pvstep === '-1' && i <= 0)) S.focusTo = '#pvQ'; render(); return; }
   if (d.pvst) { if (S.pv.busy) return; if (x.status === d.pvst) { S.pv.msg = 'Already saved as ' + d.pvst + '.'; render(); return; }
-    pvSave(x, { status: d.pvst }, d.pvst === 'Interview scheduled' ? 'Saved. When you have the date, add it with Update on your Applied tab.' : d.pvst === 'Offer' ? 'Saved. Congratulations!' : 'Saved. Your Applied tab is up to date.'); return; }
+    pvSave(x, { status: d.pvst }, d.pvst === 'Next round' ? 'Saved. When you have the date, add it with Update on your Applied tab.' : d.pvst === 'Offer' ? 'Saved. Congratulations!' : 'Saved. Your Applied tab is up to date.'); return; }
   if (d.pvsave != null) { if (S.pv.busy) return; var el = document.getElementById('pvNext'), v = el ? el.value.trim() : '';
     if (v === pvTxt(x.myNotes)) { S.pv.msg = 'Nothing changed.'; S.pv.next = null; render(); return; }
-    S.pv.next = null; pvSave(x, { myNotes: v }, 'Notes saved.'); return; }
+    S.pv.next = v; pvSave(x, { myNotes: v }, 'Notes saved.'); return; }
 });
 document.addEventListener('input', function (e) {
   var t = e.target; if (!t || !S.pv || S.view !== 'prep') return;
