@@ -840,7 +840,7 @@ function linkKeyDrop() { try { sessionStorage.removeItem('sp_linkkey'); } catch 
     return;
   }
   var t = q.get('t'), k = q.get('k');
-  if (t) { lsSet('sp_token', t); S.token = t; }
+  if (t) { lsSet('sp_token', t); S.token = t; linkKeyDrop(); } /* a ?t= link wins over a kept one-time key */
   else S.token = lsGet('sp_token');
   if (k && !t) { S.linkKey = k; linkKeySave(k); } /* round 12: the emailed link carries a one-time key; traded once, on Continue */
   else if (!t) { var kept = linkKeyRead(); if (kept) S.linkKey = kept; } /* a reload on the Continue screen keeps the key (30 minutes) */
@@ -883,11 +883,13 @@ function errText(e, thing) {
 }
 function load() {
   /* round 12: an emailed ?k= link is traded only when the client taps Continue (link scanners that open pages never burn it) */
-  if (S.linkKey) { S.status = 'link'; S.focusTo = '#linkGo'; render(); return; }
+  /* a saved session is checked first: when it works, the key is not needed (and not spent) */
+  if (S.linkKey && !S.token) { S.status = 'link'; S.focusTo = '#linkGo'; render(); return; }
   if (!S.token) { S.status = 'signin'; render(); return; }
   S.status = 'loading'; render();
   /* round 12: a failed request is a connection problem; an error while building the page is not (it is logged with its real cause) */
   get({ action: 'me', t: S.token }).then(null, function (e) { throw { spNet: true, cause: e }; }).then(function (d) {
+    if ((!d || !d.ok) && S.linkKey) { dropToken(); S.token = null; S.status = 'link'; S.focusTo = '#linkGo'; render(); return; } /* saved session ended: use the link */
     if (!d || !d.ok) { S.status = 'signin'; S.err = d && d.error === 'expired' ? 'Your sign-in link has expired. Enter your email and we\'ll send you a new one.' : 'Sorry, we couldn\'t open your portal. Please sign in again.'; dropToken(); S.token = null; render(); return; }
     d.jobs = d.jobs || []; d.docs = d.docs || []; d.apps = d.apps || []; d.client = d.client || {};
     /* Closed postings leave the active list, so no count, next step, swipe deck or review screen ever points at them.
@@ -897,7 +899,7 @@ function load() {
     var closedIds = {}; d.closed = d.jobs.filter(function (j) { return j.closed === true && !appFor[j.id]; }); d.closed.forEach(function (j) { closedIds[j.id] = true; });
     d.jobs = d.jobs.filter(function (j) { return !closedIds[j.id]; });
     d.docs.forEach(function (x) { x.closedJob = !!(x.jobId && closedIds[x.jobId]); });
-    S.data = d; S.status = 'ready'; S.conf = {};
+    S.data = d; S.status = 'ready'; S.conf = {}; S.linkKey = null; linkKeyDrop(); /* signed in: a kept one-time key is no longer needed */
     d.jobs.forEach(function (j) { S.conf[j.id] = { answer: j.answer || '', note: j.note || '' }; });
     if (S.linkFlash) { S.flash = (S.linkFlash === 'expired' ? 'That link has expired.' : S.linkFlash === 'used' ? 'That link was already used.' : 'That link didn\'t work.') + ' You are still signed in' + (d.client.firstName ? ' as ' + d.client.firstName : '') + '.'; S.linkFlash = null; }
     if (S.askJob) { var aj = jobById(S.askJob); S.askJob = null; /* round 12: from the email's Question button */
@@ -982,7 +984,7 @@ function pump(id) {
       if (q.next) { pump(id); return; }
       if (S.noteQ[id] != null && it.a === 'q') { var nq = S.noteQ[id]; delete S.noteQ[id]; sendAnswer(id, 'q', nq, {}); return; }
       delete S.pending[id];
-      if (it.a === 'q' && it.note) { delete S.qOpen[id]; delete S.notes[id]; if (it.note !== prevNote) moveReply(j); } /* a new question: the API moved the reply to Earlier replies; do the same here */ /* round 12: the question is saved, so its box is the normal one */
+      if (it.a === 'q' && it.note) { delete S.qOpen[id]; delete S.notes[id]; if (sameNote(it.note) !== sameNote(prevNote)) moveReply(j); } /* a new question: the API moved the reply to Earlier replies; do the same here */ /* round 12: the question is saved, so its box is the normal one */
       if (!S.deferred[id]) { j.answer = d.answer || ''; if (it.note !== undefined) j.note = it.note; }
       j.answeredOn = d.answer ? todayISO() : '';
       S.justSaved = id;
@@ -1199,20 +1201,23 @@ function replyCurrent(j) { return !!replyText(j) && ansOf(j) === 'q' && !j.close
 /* same as the API: a new question note moves the reply to earlierReplies ("YYYY-MM-DD: text", one per line) */
 function moveReply(j) {
   var r = replyText(j); if (!r) return;
-  var when = /^\d{4}-\d\d-\d\d/.test(String(j.replyDate || '')) ? String(j.replyDate).slice(0, 10) : todayISO();
+  var when = realISO(j.replyDate) ? String(j.replyDate).slice(0, 10) : todayISO();
   j.earlierReplies = (String(j.earlierReplies || '').trim() ? String(j.earlierReplies).trim() + '\n' : '') + when + ': ' + r.replace(/\s*\r?\n\s*/g, ' ');
   j.reply = ''; j.replyDate = '';
 }
 function earlierHtml(j) {
   var ls = String(j.earlierReplies || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(String); if (!ls.length) return '';
-  return '<div class="qlast"><span class="lab">Earlier answers</span><ul>' + ls.map(function (l) { var m = l.match(/^(\d{4}-\d\d-\d\d)\s*:\s*(.*)$/); return '<li>' + (m ? '<b>Sherif replied ' + esc(fmtY(m[1])) + ':</b> ' + esc(m[2]) : esc(l)) + '</li>'; }).join('') + '</ul></div>';
+  return '<div class="qlast"><span class="lab">Earlier answers</span><ul>' + ls.map(function (l) { var m = l.match(/^(\d{4}-\d\d-\d\d)\s*:\s*(.*)$/); return '<li>' + (m ? '<b>Sherif replied' + (realISO(m[1]) ? ' ' + esc(fmtY(m[1])) : '') + ':</b> ' + esc(m[2]) : esc(l)) + '</li>'; }).join('') + '</ul></div>';
 }
 function replyOf(j) { return replyCurrent(j) ? replyText(j) : ''; }
 function replyKey(j) { return String(j.id) + '|' + (String(j.replyDate || '').trim() || 'r' + String(j.reply || '').length); }
 function seenReplies() { if (!S.seenMem) { var o = {}; try { o = JSON.parse(lsGet('sp_replyseen') || '{}') || {}; if (typeof o !== 'object' || Array.isArray(o)) o = {}; } catch (e) { o = {}; } S.seenMem = o; } return S.seenMem; }
 function replyNew(j) { return !!replyOf(j) && !seenReplies()[replyKey(j)]; }
 function markReplySeen(id) { var j = jobById(id); if (!j || !replyNew(j)) return false; var o = seenReplies(); o[replyKey(j)] = 1; lsSet('sp_replyseen', JSON.stringify(o)); return true; }
-function replyWhen(j) { return /^\d{4}-\d\d-\d\d/.test(String(j.replyDate || '')) ? ' ' + fmtY(j.replyDate) : ''; }
+function replyWhen(j) { return realISO(j.replyDate) ? ' ' + fmtY(String(j.replyDate).slice(0, 10)) : ''; }
+/* a real calendar date as YYYY-MM-DD (a hand-typed "2026-13-40" shows no date); notes compare trimmed, spaces collapsed */
+function realISO(v) { var m = String(v || '').match(/^(\d{4})-(\d\d)-(\d\d)/); if (!m) return false; var d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3]; }
+function sameNote(x) { return String(x == null ? '' : x).replace(/\s+/g, ' ').trim(); }
 /* "resume and cover letter", "resume", "thank-you note" */
 /* "Thank-you note: Acme" or "Thank-you note for Acme" -> "thank-you note". Only a plain capital first letter is lowered (mid-sentence);
    names like "LinkedIn summary" keep their case, and the company part is dropped, never lowercased. */
