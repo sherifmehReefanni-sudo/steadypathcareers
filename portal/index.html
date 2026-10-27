@@ -310,13 +310,6 @@ body { overflow-x: hidden; }
 .logbox input, .logbox select, .logbox textarea { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #cfd6e3; border-radius: 10px; font: inherit; background: #fff; min-height: 44px; }
 .logbox .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
 .linkbtn { border: 0; background: transparent; padding: 0; color: var(--navy); font-weight: 700; text-decoration: underline; cursor: pointer; font: inherit; font-size: 14px; min-height: 44px; min-width: 44px; }
-.flipbox { margin-top: 10px; }
-.flip { border: 2px solid var(--navy); border-radius: 14px; padding: 18px; min-height: 140px; background: #fff; cursor: pointer; display: grid; align-content: center; gap: 8px; text-align: center; }
-.flip.back { background: var(--navy); color: var(--cream); }
-.flip small { color: var(--muted); }
-.flip.back small { color: #d7e0ee; }
-.fliprow { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 8px; }
-.fliprow .btn { min-height: 44px; }
 
 /* feedback + sign in bits (kept) */
 .fbq { display: grid; gap: 10px; }
@@ -546,6 +539,10 @@ body.deck-lock { overflow: hidden; }
 /* ---- round 4: search settings, data, calendar, versions, urgent help ---- */
 /* the account menu can hang below a short header; keep the header content (and its menu) above main, which is z-index 1 */
 .sky .wrap { z-index: 2; }
+/* round 8: the header lines up with the content under it (narrow screens, wide boards, the desktop Jobs list) */
+.sky > .wrap { width: 100%; max-width: 768px; }
+#app:has(.pmain.wide) .sky > .wrap { max-width: 1108px; }
+@media (min-width: 1100px) { #app:has(.pmain.xl) .sky > .wrap { max-width: 1108px; } }
 .pf .card { display: grid; gap: 10px; }
 .pf-h { font: 800 18px var(--display); color: var(--navy); margin: 0; }
 .pf-note { background: var(--q-bg); border: 1px solid var(--q-line); border-radius: 14px; padding: 12px 14px; font-size: 15px; color: var(--ink); }
@@ -639,7 +636,6 @@ body.deck-lock { overflow: hidden; }
 .sec-h::after { height: 1px; background: var(--card-line); opacity: 1; }
 .col { background-image: none; background-color: #F5EFE3; }
 .nx { box-shadow: 0 6px 18px rgba(16,33,58,.16); }
-.flip { box-shadow: var(--card-shadow); }
 
 /* desktop list + detail (Jobs, 1100px and wider; the markup only exists there) */
 .jl { display: grid; gap: 12px; }
@@ -864,6 +860,7 @@ function load() {
     var hs = null; try { hs = history.state; var nv = performance.getEntriesByType('navigation')[0]; if (!nv || (nv.type !== 'reload' && nv.type !== 'back_forward')) hs = null; } catch (e) { hs = null; } /* only a reload or Back/Forward restores a review or apply screen */
     if (S.wantReview || !(hs && hs.sp)) histBase();
     else if (hs.flow && jobById(hs.flow.job)) { S.flow = { kind: hs.flow.kind === 'apply' ? 'apply' : 'review', job: jobById(hs.flow.job).id, from: hs.flow.from === 'docs' ? 'docs' : 'jobs' }; S.view = S.flow.from; S.hist = hs.depth || 0; S.focusTo = '.ptitle h1'; } /* reload on a review or apply screen: stay there */
+    else if (hs.view === 'prep' && hs.prep && appById(hs.prep)) { S.pv = { id: String(appById(hs.prep).id), from: /^(jobs|docs|apps)$/.test(hs.from || '') ? hs.from : 'apps', i: 0, show: false, next: null, msg: '' }; S.view = 'prep'; S.hist = hs.depth || 0; S.focusTo = '.ptitle h1'; } /* round 8: reload on the prep screen stays there */
     else S.hist = hs.depth || 0;
     if (S.wantReview) {
       var rj = jobById(S.wantReview); S.wantReview = null;
@@ -1765,20 +1762,11 @@ function appCard(x) {
 function vApps() {
   var d = S.data, cols = ['Applied', 'Heard back', 'Interview', 'Offer', 'Closed'], by = [[], [], [], [], []];
   d.apps.forEach(function (x) { by[stageOf(x)].push(x); });
-  var prepApp = S.prep ? d.apps.filter(function (x) { return x.id === S.prep; })[0] : null;
-  var practice = '';
-  if (prepApp) {
-    var qs = lines(prepApp.prepExpect); var i = Math.min(S.card || 0, Math.max(qs.length - 1, 0));
-    practice = '<div class="card"><h3>' + (qs.length ? 'Practice: ' : 'Prep notes: ') + esc(prepApp.company) + '</h3>' + (qs.length ? '<p class="psub" style="margin:0">Answer out loud, then tap the card.</p><div class="flipbox"><div class="flip' + (S.flipped ? ' back' : '') + '" data-flip role="button" tabindex="0">' +
-      (S.flipped ? '<small>Bring up</small><div>' + esc(prepApp.prepBring || 'Use a real example with a number in it.') + '</div><span class="sr">Tap to see the question again.</span>' : '<small>Question ' + (i + 1) + ' of ' + qs.length + '</small><div style="font-weight:800;font-size:19px">' + esc(qs[i]) + '</div><span class="sr">Tap to see what to bring up.</span>') +
-      '</div><div class="fliprow"><button class="btn ghost" data-card="-1"' + (i ? '' : ' disabled') + '>Back</button><button class="btn" data-card="1"' + (i < qs.length - 1 ? '' : ' disabled') + '>Next</button></div></div>' : (prepApp.prepBring ? '<p style="margin:12px 0 0"><b>Bring up:</b> ' + esc(prepApp.prepBring) + '</p>' : '')) +
-      (prepApp.prepAsk ? '<p style="margin:12px 0 0"><b>Ask them:</b> ' + esc(prepApp.prepAsk) + '</p>' : '') + '<p style="margin:12px 0 0"><button class="btn ghost" data-prep="">' + (qs.length ? 'Close practice' : 'Close') + '</button></p></div>';
-  }
   var mob = false; try { mob = matchMedia('(max-width: 760px)').matches; } catch (e) {}
   if (!S.colOpen) { S.colOpen = {}; cols.forEach(function (c, k) { S.colOpen[k] = mob ? by[k].length > 0 && by[k].length <= 6 : k < 4 || by[k].length <= 6; }); }
   var afx = afApps(d); /* round 3: search and Due filter (more than 6 applications) */
   return shell('apps', d.apps.length ? d.apps.length + (d.apps.length === 1 ? ' application' : ' applications') + ' tracked' : 'Nothing sent yet', 'Where each one stands. Offers and closed ones have their own columns.') +
-    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + practice + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
+    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
         return appCard(x);
       }).join('') + '</div>';
@@ -2265,7 +2253,6 @@ document.addEventListener('focusout', function (e) {
 document.addEventListener('click', function (e) {
   var tr = e.target.closest('[data-track]'); if (tr) { track(tr.dataset.track, tr.dataset.job); if (tr.dataset.apstep != null && S.flow) { apTick(tr.dataset.job, Number(tr.dataset.apstep)); render(); } return; }
   if (S.menu && !e.target.closest('.acct')) { S.menu = false; render(); }
-  if (e.target.closest('[data-flip]')) { S.flipped = !S.flipped; render(); return; }
   var ch = e.target.closest('[data-col]'); if (ch) { var ck = ch.dataset.col; S.colOpen[ck] = !S.colOpen[ck]; render(); return; }
   if (e.target.closest('[data-a2hs-go]')) { if (installEvt) { installEvt.prompt(); installEvt.userChoice.then(function () { installEvt = null; render(); }); } return; }
   if (e.target.closest('[data-a2hs-hide]')) { lsSet('sp_a2hs', String(Date.now())); render(); return; }
@@ -2276,8 +2263,6 @@ document.addEventListener('click', function (e) {
   if (d.fb) { ['#fbHelp', '#fbChange', '#fbWhy', '#fbQuote'].forEach(function (id, i) { var el = $(id); if (el) S.fbText[['help', 'change', 'why', 'quote'][i]] = el.value; }); var v = /^\d+$/.test(d.v) ? Number(d.v) : d.v; S.fb[d.fb] = S.fb[d.fb] === v ? null : v; render(); return; }
   if (d.fbsubmit != null) { sendFeedback(); return; }
   if (d.prep) { openPrep(d.prep); return; } /* round 6a: the full prep screen */
-  if (d.prep != null) { S.prep = d.prep || null; S.card = 0; S.flipped = false; render(); if (S.prep) window.scrollTo(0, 0); return; }
-  if (d.card) { S.card = (S.card || 0) + Number(d.card); S.flipped = false; render(); return; }
   if (d.review) { openFlow('review', d.review); return; }
   if (d.applyflow) { openFlow('apply', d.applyflow); return; }
   if (d.flowclose != null) { closeFlow(); return; }
@@ -2288,7 +2273,6 @@ document.addEventListener('click', function (e) {
   if (d.rvchange != null) { var rj = S.flow && jobById(S.flow.job), rs = rj ? changeable(rj) : []; S.changesFor = d.rvchange ? ((rs.filter(function (x) { return x.id === S.flow.tab; })[0] || rs[0] || {}).id || null) : null; S.changesDraft = ''; S.changesErr = ''; S.focusTo = S.changesFor ? '#changesText' : '[data-rvchange]'; render(); return; }
   if (d.rvpick) { S.changesFor = d.rvpick; S.focusTo = '[data-rvpick="' + cssq(d.rvpick) + '"]'; render(); return; }
   if (d.nxprep) { openPrep(d.nxprep); return; } /* round 6a */
-  if (d.nxprep) { S.view = 'apps'; S.flow = null; S.prep = d.nxprep; S.card = 0; S.flipped = false; S.flash = ''; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
   if (d.jmgo) { var jc = document.querySelector('[data-jc="' + cssq(d.jmgo) + '"]'); if (jc) { jc.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); var dt = jc.querySelector('.dtog'); if (dt) dt.focus({ preventScroll: true }); } return; }
   if (d.go) { go(d.go); return; }
   if (d.first != null) { scrollToFirst(); return; }
@@ -2366,7 +2350,6 @@ document.addEventListener('keydown', function (e) {
     if (e.key === 'Home' && items.length) { e.preventDefault(); items[0].focus(); return; }
     if (e.key === 'End' && items.length) { e.preventDefault(); items[items.length - 1].focus(); return; }
   }
-  if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-flip]')) { e.preventDefault(); S.flipped = !S.flipped; render(); }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-col]')) { e.preventDefault(); var ck = e.target.closest('[data-col]').dataset.col; S.colOpen[ck] = !S.colOpen[ck]; render(); }
 });
 document.addEventListener('input', function (e) { if (e.target.dataset && e.target.dataset.note) S.notes[e.target.dataset.note] = e.target.value; });
