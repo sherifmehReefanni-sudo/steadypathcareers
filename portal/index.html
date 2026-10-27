@@ -9,7 +9,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/img/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="theme-color" content="#10213A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Steady Path">
@@ -27,8 +27,31 @@ body { overflow-x: hidden; }
 .help { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 8px; display: grid; gap: 4px; color: var(--muted); font-size: 15px; }
 .help p { margin: 0; }
 .help b { color: var(--ink); }
-.acct .menu .mhelp { margin: 4px 0 0; padding: 10px 14px 8px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); overflow-wrap: anywhere; max-width: 240px; }
+.acct .menu .mhelp { margin: 4px 0 0; padding: 10px 14px 8px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); overflow-wrap: break-word; word-break: normal; max-width: 260px; }
 .acct .menu .mhelp b { color: var(--ink); display: block; }
+/* round 12: help links; an email address never breaks mid-word */
+.hnw { white-space: nowrap; }
+.hlink { color: var(--navy); font-weight: 800; white-space: nowrap; display: inline-block; min-height: 24px; }
+.acct .menu a[role="menuitem"] { display: flex; align-items: center; text-align: left; padding: 12px 14px; min-height: 44px; border-radius: 10px; font-weight: 700; font-size: 15px; color: var(--navy); text-decoration: none; box-sizing: border-box; }
+.acct .menu a[role="menuitem"]:hover { background: var(--sunk); }
+.acct .menu .mlegal { display: flex; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 4px; padding-top: 4px; }
+.acct .menu .mlegal a[role="menuitem"] { font-size: 14px; padding: 10px 14px; }
+.legal { margin: 0; font-size: 13px; color: var(--muted); }
+.legal a { color: inherit; font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; }
+.login .fine a { color: var(--navy); font-weight: 700; }
+.errscr .box h2:focus { outline: none; }
+.errscr .box h2:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.errscr .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.errscr .row .btn { flex: 1 1 140px; min-height: 48px; }
+.errscr .ehelp { margin: 0; font-size: 15px; color: var(--muted); }
+.errscr .ehelp b { color: var(--ink); }
+/* round 12: Sherif's reply to a question */
+.jc .qreply { margin: 0; background: #fff; border: 1px solid var(--q-line); border-left: 5px solid var(--q); border-radius: 12px; padding: 10px 12px; font-size: 15.5px; line-height: 1.45; color: var(--ink); white-space: pre-wrap; }
+.jc .qreply b { color: var(--q); }
+.jc .qreply:focus { outline: none; }
+.jc .qreply:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.jc .note2 .btn[disabled] { opacity: .55; cursor: not-allowed; }
+.dk-q .btn[disabled] { opacity: .55; cursor: not-allowed; }
 .jc .live { margin: 8px 0 0; }
 .jc .live .pill { white-space: normal; text-align: left; }
 .jc.leave { opacity: .55; transform: scale(.98); }
@@ -681,14 +704,15 @@ window.SP_DEMO = function () {
     ok: true, notify: true,
     prefs: { roles: ['Associate Dentist', 'General Dentist'], payFloor: '190000', commute: 'Up to 45 minutes', setting: 'On site', contact: 'Email', status: 'active' }, requests: [], /* round 4 */
     client: { id: 'C-DEMO', name: 'Jordan T.', firstName: 'Jordan', stage: 'Trial', startDate: iso(-8), trialEnds: iso(9), payFloor: '$190,000', lastTouch: iso(-1), lastFeedback: '', home: 'Hicksville, NY', std: 'Authorized to work in the US: Yes\nNeed visa sponsorship: No\nNY dental license: Yes, active',
-      weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. I am also asking Sample Community Dental about loan repayment for you and expect an answer by Friday. Two new Nassau County openings came in on Monday.' },
+      weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. I also heard back from Sample Community Dental about loan repayment. My answer is on that job. Two new Nassau County openings came in on Monday.' },
     jobs: [
       { id: 'J-101', fit: 'Strong fit', concern: 'Four days a week, so ask how new patients are split between dentists.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Smiles Dental', title: 'Associate Dentist', location: 'Garden City, NY', setting: 'On-site', pay: '$195,000 - $235,000 a year', payLow: 195000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Family practice with 4 chairs and a full hygiene team. Mostly restorative and some cosmetic work, which matches your last 5 years.', link: 'https://example.com/jobs/bright-smiles-associate', notes: 'Four days a week, no Sundays.', answer: '', note: '', answeredOn: '', kit: { pay: '', start: '', why: '' } },
       { id: 'J-102', fit: 'Possible fit', concern: 'Hourly pay, and the posting lists no benefits.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Dental Partners', title: 'General Dentist', location: 'Huntington, NY', setting: 'On-site', pay: '$90 - $115 an hour', payLow: 90, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Busy group practice with in-house lab. Open to dentists who want to build implant skills.', link: 'https://example.com/jobs/lidp-general', notes: '', answer: '', note: '', answeredOn: '' },
       { id: 'J-103', fit: 'Strong fit', added: iso(-6), postStatus: 'Open', postChecked: iso(-1), company: 'Example Dental Arts', title: 'Associate Dentist', location: 'Massapequa, NY', setting: 'On-site', pay: '$200,000 - $250,000 a year', payLow: 200000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Patient education is a big part of how they work, which is how you described your own style. Path to partnership after 2 years.', link: 'https://example.com/jobs/massapequa-associate', notes: 'They answer applications within a week.', answer: 'Yes', note: '', answeredOn: iso(-5),
         kit: { pay: 'I am looking for $220,000 to $240,000, in line with the posted range.', start: 'I can start two weeks after an offer.', why: 'I like that your team puts real time into patient education. That is how I practice, and my patients stay with me because of it.' } },
       { id: 'J-104', fit: 'Possible fit', concern: 'Less cosmetic work than your last practice.', added: iso(-9), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Shore Dental', title: 'General Dentist', location: 'Port Washington, NY', setting: 'On-site', pay: '$185,000 - $225,000 a year', payLow: 185000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Calm, modern office with digital scanners. Many family patients, good fit for your pediatric experience.', link: 'https://example.com/jobs/north-shore-general', notes: '', answer: 'Yes', note: '', answeredOn: iso(-8), kit: { pay: 'Within the posted range, around $210,000.', start: 'Two weeks after an offer.', why: '' } },
-      { id: 'J-105', docsDue: iso(2), fit: 'Stretch', concern: 'The low end of the pay range is below your floor.', added: iso(-4), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Community Dental Center', title: 'Staff Dentist', location: 'Smithtown, NY', setting: 'On-site', pay: '$175,000 - $205,000 a year', payLow: 175000, paySource: 'Posted by employer', floor: 'Below your floor at the low end', why: 'Community health center with set hours and full benefits. Loan repayment may be available.', link: 'https://example.com/jobs/smithtown-staff', notes: '', answer: 'Question', note: 'Do they offer loan repayment or a sign-on bonus?', answeredOn: iso(-3) },
+      { id: 'J-105', docsDue: iso(2), fit: 'Stretch', concern: 'The low end of the pay range is below your floor.', added: iso(-4), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Community Dental Center', title: 'Staff Dentist', location: 'Smithtown, NY', setting: 'On-site', pay: '$175,000 - $205,000 a year', payLow: 175000, paySource: 'Posted by employer', floor: 'Below your floor at the low end', why: 'Community health center with set hours and full benefits. Loan repayment may be available.', link: 'https://example.com/jobs/smithtown-staff', notes: '', answer: 'Question', note: 'Do they offer loan repayment or a sign-on bonus?', answeredOn: iso(-3),
+        reply: 'Yes to loan repayment: up to $50,000 over two years, through a state program. No sign-on bonus. They said the hours are set, 8 to 5, with no weekends.', replyDate: iso(-1) },
       { id: 'J-106', added: iso(-5), postStatus: 'Open', postChecked: iso(-1), company: 'Example Dental Group', title: 'Associate Dentist', location: 'Bay Shore, NY', setting: 'On-site', pay: '$160,000 - $180,000 a year', payLow: 160000, paySource: 'Posted by employer', floor: 'Below your floor', why: 'Steady patient base and short drive from the train.', link: 'https://example.com/jobs/bay-shore-associate', notes: '', answer: 'No', note: 'Pay is too low.', answeredOn: iso(-4) },
       { id: 'J-107', added: iso(-7), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Family Dentistry', title: 'Dentist', location: 'Riverhead, NY', setting: 'On-site', pay: '$190,000 - $215,000 a year', payLow: 190000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Small practice, owner plans to retire in 3 years.', link: 'https://example.com/jobs/east-end-dentist', notes: '', answer: 'No', note: 'Too far to drive.', answeredOn: iso(-6) }
       ,{ id: 'J-108', added: iso(-10), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Bay Dental', title: 'Lead Dentist', location: 'Oceanside, NY', setting: 'On-site', pay: '$210,000 - $260,000 a year', payLow: 210000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Lead role close to home.', link: 'https://example.com/jobs/108', notes: '', answer: 'Yes', note: '', answeredOn: iso(-9), closed: true, closedOn: iso(-1), kit: {} }
@@ -766,13 +790,17 @@ window.SP_DEMO = function () {
 </head>
 <body>
 <div id="app"><div class="skel">Opening your portal…</div></div>
-<script src="../assets/site.js?v=20261026a"></script>
+<script src="../assets/site.js?v=20261027a"></script>
 <script>
 /* Set after the Apps Script web app is deployed. */
 var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
+/* Help line. SP_TEXT_NUMBER: Google Voice number goes here (for example '+17325550100'). While it is empty, the help line shows
+   only the email link. */
+var SP_EMAIL = 'hello@steadypathcareers.com';
+var SP_TEXT_NUMBER = '';
 
 var S = { token: null, view: 'jobs', data: null, status: 'boot', err: '', jobErr: {}, noteQ: {}, sent: false, pending: {}, notes: {}, fb: {}, fbText: {}, open: {}, demo: false,
-  q: {}, conf: {}, deferred: {}, leaving: {}, docBusy: {}, logDraft: {}, deck: null, flow: null };
+  q: {}, conf: {}, deferred: {}, leaving: {}, docBusy: {}, logDraft: {}, deck: null, flow: null, qOpen: {} };
 var $ = function (s) { return document.querySelector(s); };
 var esc = SP.esc, fmtDate = SP.fmtDate, daysFrom = SP.daysFrom;
 var UNDO_MS = 5000;
@@ -801,15 +829,16 @@ function jobById(id) { var f = function (x) { return String(x.id) === String(id)
     if (q.get('t') || q.get('review')) { q.delete('t'); q.delete('review'); history.replaceState({}, '', location.pathname + '?' + q.toString()); }
     return;
   }
-  var t = q.get('t');
+  var t = q.get('t'), k = q.get('k');
   if (t) { lsSet('sp_token', t); S.token = t; }
   else S.token = lsGet('sp_token');
+  if (k && !t) S.linkKey = k; /* round 12: the emailed link carries a one-time key; load() trades it once for a session */
   if (q.get('expired')) { S.status = 'signin'; S.err = 'That link has expired. Enter your email and we\'ll send you a new one.'; lsDel('sp_token'); S.token = null; }
   if (q.get('answered')) S.flashJob = q.get('answered');
   if (q.get('closed')) S.flash = 'That job posting has closed, so there is nothing to answer.';
   if (q.get('v')) S.view = q.get('v');
   if (q.get('review') && !q.get('expired')) S.wantReview = q.get('review'); /* from the "documents ready" email: open the review screen for that job */
-  if (t || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
+  if (t || k || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
 })();
 if (S.view === 'home') S.view = 'jobs';
 
@@ -841,9 +870,11 @@ function errText(e, thing) {
   return 'Not saved. Please try again in a minute.';
 }
 function load() {
+  if (S.linkKey) { redeemLink(); return; }
   if (!S.token) { S.status = 'signin'; render(); return; }
   S.status = 'loading'; render();
-  get({ action: 'me', t: S.token }).then(function (d) {
+  /* round 12: a failed request is a connection problem; an error while building the page is not (it is logged with its real cause) */
+  get({ action: 'me', t: S.token }).then(null, function (e) { throw { spNet: true, cause: e }; }).then(function (d) {
     if (!d || !d.ok) { S.status = 'signin'; S.err = d && d.error === 'expired' ? 'Your sign-in link has expired. Enter your email and we\'ll send you a new one.' : 'Sorry, we couldn\'t open your portal. Please sign in again.'; dropToken(); S.token = null; render(); return; }
     d.jobs = d.jobs || []; d.docs = d.docs || []; d.apps = d.apps || []; d.client = d.client || {};
     /* Closed postings leave the active list, so no count, next step, swipe deck or review screen ever points at them.
@@ -873,9 +904,26 @@ function load() {
       else S.flash = 'We couldn\'t find that job. Here are all your jobs.';
     }
     render();
-  }).catch(function () { S.status = 'error'; render(); });
+  }).catch(function (x) {
+    if (x && x.spNet) { try { console.error('Portal: could not reach the server.', x.cause); } catch (e) {} S.errKind = 'network'; }
+    else { try { console.error('Portal: the page could not be built.', x); } catch (e) {} S.errKind = 'render'; }
+    S.status = 'error'; S.focusTo = '#errH'; render();
+  });
+}
+/* round 12: the emailed link works once. Trade its key for a session; a second tap on the same device keeps the session it already has. */
+function redeemLink() {
+  var k = S.linkKey; S.status = 'loading'; render();
+  post({ action: 'redeem', k: k }).then(function (d) {
+    S.linkKey = null;
+    if (d && d.ok && d.t) { S.token = d.t; setToken(d.t); load(); return; }
+    if (S.token) { load(); return; }
+    var e = d && d.error; S.status = 'signin';
+    S.err = e === 'used' ? 'That sign-in link was already used. Each link works once. Enter your email and we\'ll send you a new one.' : e === 'expired' ? 'That link has expired. Links work for 30 minutes. Enter your email and we\'ll send you a new one.' : 'That link didn\'t work. Enter your email and we\'ll send you a new one.';
+    render();
+  }).catch(function (e) { try { console.error('Portal: could not check the sign-in link.', e); } catch (x) {} S.errKind = 'network'; S.status = 'error'; S.focusTo = '#errH'; render(); });
 }
 function requestLink(email) {
+  S.lastEmail = email;
   var b = $('#linkBtn'); if (b) { b.disabled = true; b.textContent = 'Sending…'; }
   post({ action: 'requestLink', email: email }).then(function () { S.sent = email; S.err = ''; render(); }).catch(function () { S.err = 'We couldn\'t send the link. Please check your connection and try again.'; render(); });
 }
@@ -905,11 +953,12 @@ function pump(id) {
       if (q.next) { pump(id); return; }
       if (S.noteQ[id] != null && it.a === 'q') { var nq = S.noteQ[id]; delete S.noteQ[id]; sendAnswer(id, 'q', nq, {}); return; }
       delete S.pending[id];
+      if (it.a === 'q' && it.note) { delete S.qOpen[id]; delete S.notes[id]; } /* round 12: the question is saved, so its box is the normal one */
       if (!S.deferred[id]) { j.answer = d.answer || ''; if (it.note !== undefined) j.note = it.note; }
       j.answeredOn = d.answer ? todayISO() : '';
       S.justSaved = id;
       if (it.opts.keepalive) toast('Saved.'); /* app switch inside the undo window: the card stays answered, say it saved */
-      else if (!it.opts.quiet) toast(it.a === 'yes' ? 'Saved. Your documents are being prepared.' : it.a === 'q' ? (it.note ? 'Sent. Sherif can see your question.' : 'Got it. Add your question below.') : it.a === 'no' ? (it.note ? 'Sent. Thank you.' : 'Moved to Passed.') : 'Answer cleared.');
+      else if (!it.opts.quiet) toast(it.a === 'yes' ? 'Saved. Your documents are being prepared.' : it.a === 'q' ? (it.note ? 'Sent. Sherif can see your question.' : 'Saved as Question.') : it.a === 'no' ? (it.note ? 'Sent. Thank you.' : 'Moved to Passed.') : 'Answer cleared.');
     } else fail(d && d.error);
     render();
   }).catch(function () { if (seq !== q.seq) return; q.busy = false; fail('network'); render(); });
@@ -935,6 +984,7 @@ function decide(id, a, note, src) {
   var j = jobById(id); if (!j || locked(id)) return false;
   flushDeferred();
   var prev = { answer: j.answer || '', note: j.note || '' };
+  delete S.qOpen[id];
   j.answer = ANS_WORD[a]; if (note !== undefined) j.note = note;
   delete S.jobErr[id];
   var D = S.deferred[id] = { a: a, note: note, prev: prev, src: src || 'list' };
@@ -1020,14 +1070,20 @@ function isReady(x) { var st = String(x.status || ''); return !x.closedJob && /r
 function docsReady() { return ((S.data && S.data.docs) || []).filter(needsOk).length; }
 var TABS = [['jobs', 'Jobs'], ['docs', 'Documents'], ['apps', 'Applied']];
 function tabCount(k) { var c = counts(); return k === 'jobs' ? c.wait : k === 'docs' ? docsReady() : 0; }
-var HELP = 'Email hello@steadypathcareers.com or text Sherif.';
+/* "Email hello@... or text Sherif." with real links; email only until SP_TEXT_NUMBER is set */
+function helpHtml() {
+  var mail = '<a class="hlink" href="mailto:' + esc(SP_EMAIL) + '">' + esc(SP_EMAIL) + '</a>', num = String(SP_TEXT_NUMBER || '').replace(/[^\d+]/g, '');
+  var sms = num ? '<a class="hlink" href="sms:' + esc(num) + '">text Sherif</a>' : '';
+  return 'Email ' + (sms ? mail + ' or ' : '') + '<span class="hnw">' + (sms || mail) + '.</span>'; /* the period stays on the line of the last link */
+}
+function legalLinks(cls) { return '<p class="' + (cls || 'legal') + '"><a href="/privacy/">Privacy policy</a> · <a href="/terms/">Terms</a></p>'; }
 function shell(active, title, sub) {
   var cl = S.data.client, first = cl.firstName || String(cl.name || '').split(' ')[0] || 'You';
   var tabs = TABS.map(function (t) { var n = tabCount(t[0]); return '<button data-go="' + t[0] + '" aria-current="' + (active === t[0]) + '">' + IC[t[0]] + t[1] + (n ? '<span class="cnt" aria-label="' + n + ' waiting">' + n + '</span>' : '') + '</button>'; }).join('');
   return '<header class="sky"><div class="wrap"><div class="ptop"><a class="brand" href="/"><span>' + SP.LOGO + '</span><span class="bname">Steady Path</span></a>' + (S.demo ? '<span class="demo-badge">Demo</span>' : '') +
     '<nav class="ptabs" aria-label="Portal">' + tabs + '</nav>' +
     '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
-    (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="prefs">Your search settings</button><button role="menuitem" data-go="feedback">Give feedback</button><button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + HELP + '</p></div>' : '') + '</div></div>' +
+    (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="prefs">Your search settings</button><button role="menuitem" data-go="feedback">Give feedback</button><button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + helpHtml() + '</p><div class="mlegal" role="none"><a role="menuitem" href="/privacy/">Privacy policy</a><a role="menuitem" href="/terms/">Terms</a></div></div>' : '') + '</div></div>' +
     '<div class="ptitle"><h1 tabindex="-1">' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div></div>' + SP.scene(64, active) + '</header>';
 }
 function tabbar(active) {
@@ -1040,14 +1096,15 @@ function reauthBtn() { return ' <button type="button" class="btn ghost sm" data-
 function vSignin() {
   return '<div class="login"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a><h1>Your next job, one honest step at a time.</h1><p>Real openings. Posted pay. A person who checked every one.</p><ul><li>Pay shown on every match</li><li>Each posting checked live before it reaches you</li><li>Your resume and cover letter tailored for every Yes</li></ul></div>' +
     '<div class="box"><div><h2>Welcome back</h2><p class="tag">Sign in with your email.</p></div>' +
-    (S.sent ? '<div class="sent">Your link is on its way to ' + esc(S.sent) + '. Open it on this device to stay signed in for 90 days.</div>' +
+    (S.sent ? '<div class="sent">Your link is on its way to ' + esc(S.sent) + '. It works once, within 30 minutes. Open it on this device to stay signed in for 90 days.</div>' +
       '<div class="codebox"><label for="code">Or type the 6-digit code from that email</label>' + (S.codeErr ? '<div class="warn">' + esc(S.codeErr) + '</div>' : '') +
       '<form id="codeForm"><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" aria-label="6-digit code"><button class="btn" id="codeBtn" type="submit" style="width:100%;margin-top:8px">Sign in with the code</button></form>' +
       '<p class="fine" style="margin:0">Opened Steady Path from your home screen? The code signs you in right here.</p></div>' +
-      '<p class="fine">Nothing after a few minutes? Check spam, or email hello@steadypathcareers.com.</p>' :
-      '<p class="psub">We\'ll send a one-time link. No password to remember.</p>' + (S.err ? '<div class="warn">' + esc(S.err) + '</div>' : '') +
-      '<form id="linkForm"><input type="email" id="email" required placeholder="you@example.com" aria-label="Email" autocomplete="email"><button class="btn gold" id="linkBtn" type="submit" style="width:100%;margin-top:10px">Email me a sign-in link</button></form>') +
-    '<p class="fine">Not a client yet? <a href="/start/">Join the free pilot</a>. Only Sherif handles your information.</p></div></div>';
+      '<p class="fine">Nothing after a few minutes? Check spam, or email <a href="mailto:' + esc(SP_EMAIL) + '">' + esc(SP_EMAIL) + '</a>.</p>' +
+      '<p class="fine" style="margin:0"><button type="button" class="linkbtn" data-newlink>Send a new link</button></p>' :
+      '<p class="psub">We\'ll email you a sign-in link and a code. Each works once. No password to remember.</p>' + (S.err ? '<div class="warn">' + esc(S.err) + '</div>' : '') +
+      '<form id="linkForm"><input type="email" id="email" required placeholder="you@example.com" aria-label="Email" autocomplete="email" value="' + esc(S.lastEmail || '') + '"><button class="btn gold" id="linkBtn" type="submit" style="width:100%;margin-top:10px">Email me a sign-in link</button></form>') +
+    '<p class="fine">Not a client yet? <a href="/start/">Join the free pilot</a>.</p><p class="fine">Your information is private. Sherif and the tools listed in the privacy policy handle it.</p>' + legalLinks('fine legal') + '</div></div>';
 }
 
 /* ---- feedback ---- */
@@ -1104,6 +1161,14 @@ function jobState(j) {
 }
 function orderedJobs(d) { var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; }); return d.jobs.slice().sort(function (a, b) { var pa = pos[a.id] != null ? pos[a.id] : -1, pb = pos[b.id] != null ? pos[b.id] : -1; return pa - pb; }); }
 function coName(j) { return String(j.company || j.title || 'this job'); }
+/* round 12: Sherif's reply to a client's question (Jobs "Reply" / "Reply date"). A reply the client has not opened yet is their item
+   in Due next and the next step; seen replies are remembered on this device, keyed by job id + reply date. */
+function replyOf(j) { return ansOf(j) === 'q' && !j.closed ? String(j.reply || '').trim() : ''; }
+function replyKey(j) { return String(j.id) + '|' + (String(j.replyDate || '').trim() || 'r' + String(j.reply || '').length); }
+function seenReplies() { if (!S.seenMem) { var o = {}; try { o = JSON.parse(lsGet('sp_replyseen') || '{}') || {}; if (typeof o !== 'object' || Array.isArray(o)) o = {}; } catch (e) { o = {}; } S.seenMem = o; } return S.seenMem; }
+function replyNew(j) { return !!replyOf(j) && !seenReplies()[replyKey(j)]; }
+function markReplySeen(id) { var j = jobById(id); if (!j || !replyNew(j)) return false; var o = seenReplies(); o[replyKey(j)] = 1; lsSet('sp_replyseen', JSON.stringify(o)); return true; }
+function replyWhen(j) { return /^\d{4}-\d\d-\d\d/.test(String(j.replyDate || '')) ? ' ' + fmtY(j.replyDate) : ''; }
 /* "resume and cover letter", "resume", "thank-you note" */
 /* "Thank-you note: Acme" or "Thank-you note for Acme" -> "thank-you note". Only a plain capital first letter is lowered (mid-sentence);
    names like "LinkedIn summary" keep their case, and the company part is dropped, never lowercased. */
@@ -1129,6 +1194,8 @@ function flowStep(d) {
   if (r) { var w = docWords(st[r.id].review); return { k: 'review', t: 'Read your ' + w + ' for ' + coName(r), s: (st[r.id].review.length > 1 ? 'They are' : 'It is') + ' ready. Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ', then tap Looks good or ask for a change.', act: '<button class="btn gold" data-review="' + esc(r.id) + '">Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' now</button>' }; }
   var a = yes.filter(function (j) { return st[j.id].applyReady && !st[j.id].app; })[0];
   if (a) return { k: 'apply', t: 'Apply to ' + coName(a), s: 'Your documents are approved. Three short steps and you are done.', act: '<button class="btn gold" data-applyflow="' + esc(a.id) + '">Start applying</button>' };
+  var rp = jobs.filter(replyNew)[0];
+  if (rp) return { k: 'reply', t: 'Sherif answered your question about ' + coName(rp), s: 'Read the answer, then decide on this job.', act: '<button class="btn gold" data-seereply="' + esc(rp.id) + '">Read the answer</button>' };
   var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0 && stageOf(x) < 4; }).sort(function (x, y) { return daysFrom(x.interview) - daysFrom(y.interview); })[0];
   if (soon) {
     var dd = daysFrom(soon.interview), sj = soon.jobId ? jobById(soon.jobId) : null, prep = sj ? jobState(sj).prep : null;
@@ -1140,7 +1207,7 @@ function flowStep(d) {
   if (chg) return { k: 'wait', t: 'Sherif is making your changes for ' + coName(chg), s: whenReady() };
   var writing = yes.filter(function (j) { var s = st[j.id]; return !s.app && !s.applyReady && !s.review.length; });
   if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: (function () { var wj = writing.filter(function (j) { var dd = daysFrom(j.docsDue); return dd != null && dd >= 0; }).sort(function (a, b) { return a.docsDue < b.docsDue ? -1 : 1; })[0]; if (!wj) return ''; var dd = daysFrom(wj.docsDue), w = dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : fmtY(wj.docsDue); return writing.length > 1 ? 'Documents for ' + coName(wj) + ' expected ' + (dd > 1 ? 'by ' : '') + w + '. ' : 'Expected ' + (dd > 1 ? 'by ' : '') + w + '. '; })() + whenReady() };
-  var qj = jobs.filter(function (j) { return ansOf(j) === 'q'; })[0];
+  var qj = jobs.filter(function (j) { return ansOf(j) === 'q' && !replyOf(j); })[0];
   if (qj) return { k: 'wait', t: 'Sherif is looking into your question', s: 'About ' + coName(qj) + '. Sherif will reply to your question.' };
   if (!d.jobs.length && !(d.closed || []).length) return { k: 'start', t: 'Sherif is reading your resume', s: 'Your first job matches will show up here.' };
   var hw = (d.apps || []).filter(function (x) { return stageOf(x) === 0; })[0];
@@ -1162,7 +1229,10 @@ function dueItems(d) {
     else if (s.changes.length && !s.app) add(6, '', 'Making your changes for ' + coName(j), 'sherif');
     else if (!s.app && !s.applyReady) add(6, daysFrom(j.docsDue) != null && daysFrom(j.docsDue) >= 0 ? j.docsDue : '', 'Writing your documents for ' + coName(j), 'sherif'); /* dated, but never ahead of what the client can do */
   });
-  jobs.filter(function (j) { return ansOf(j) === 'q'; }).forEach(function (j) { add(6, '', 'Answering your question about ' + coName(j), 'sherif'); });
+  jobs.filter(function (j) { return ansOf(j) === 'q'; }).forEach(function (j) {
+    if (replyNew(j)) add(1, '', 'Sherif answered your question about ' + coName(j), 'you', '<button class="linkbtn" data-seereply="' + esc(j.id) + '">Open</button>');
+    else if (!replyOf(j)) add(6, '', 'Answering your question about ' + coName(j), 'sherif');
+  });
   (d.apps || []).forEach(function (x) {
     var st = stageOf(x); if (st >= 3) return;
     var dd = daysFrom(x.interview), soon = dd != null && dd >= 0, mine = false;
@@ -1575,7 +1645,7 @@ function jobCard(j, hint) {
   var heads = /below/i.test(j.floor || '') ? 'Heads-up: this is below your pay floor. Aim for the top of the range.' : '';
   var link = safeUrl(j.link), cm = commuteUrl(j), st = ans === 'yes' ? stageFor(j) : 0;
   var pills = [fitPill(j), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '', floorPill(j.floor)].filter(String).join('');
-  var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes <span class="stg st-' + st + '">' + STAGES_SHORT[st] + '</span></div>' : ans === 'q' ? '<div class="jst">' + IC.qc + 'Sherif is finding out</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
+  var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes <span class="stg st-' + st + '">' + STAGES_SHORT[st] + '</span></div>' : ans === 'q' ? '<div class="jst">' + IC.qc + (replyOf(j) ? 'Sherif answered your question' : 'Sherif is finding out') + '</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
   var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (j.closed ? ' is-closed' : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' && ans !== 'yes' && !j.closed ? ' data-swipe="1"' : '') + ' aria-label="' + esc(j.title + ', ' + j.company) + '">' +
     (ans !== 'no' && ans !== 'yes' && !j.closed ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
     (hint ? '<p class="hint"><span>Tip: swipe right for Yes, left to pass</span><button type="button" data-hidehint aria-label="Hide tip">&times;</button></p>' : '') +
@@ -1585,11 +1655,16 @@ function jobCard(j, hint) {
     (pills ? '<div class="pills">' + pills + '</div>' : '') + fitFace(j, ans) + (verifyPill(j) ? '<p class="live">' + verifyPill(j) + '</p>' : '');
   if (j.closed) h += '<p class="cnote">This posting is no longer open. Your application still counts; keep going with any interview or follow-up.</p>';
   if (ans === 'yes') h += jobNext(j); /* round 3: one next action on the face; the tracker and apply kit are under Details */
-  if ((ans === 'q' || ans === 'no') && !j.closed) {
-    var nv = S.notes[j.id] != null ? S.notes[j.id] : (j.note || '');
-    var conf = S.conf[j.id] || {};
-    h += '<div class="note2"><label class="sr" for="nt-' + id + '">' + (ans === 'q' ? 'Your question' : 'Why not') + '</label><textarea id="nt-' + id + '" placeholder="' + (ans === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps your next matches.') + '" data-note="' + id + '">' + esc(nv) + '</textarea>' +
-      '<div class="row"><button class="btn' + (ans === 'q' ? ' gold' : '') + '" data-savenote="' + id + '" data-a="' + ans + '">' + (S.noteQ[j.id] != null || (S.pending[j.id] && S.q[j.id] && S.q[j.id].noteInFlight) ? 'Sending…' : 'Send') + '</button>' + (conf.note && nv === conf.note && !busy ? '<span class="saving" role="status">Sent</span>' : '') + '</div></div>';
+  /* round 12: tapping Question only opens this box (S.qOpen); the answer is saved as Question when Send goes out with text */
+  var qo = !!S.qOpen[j.id] && ans !== 'q' && !j.closed;
+  if ((ans === 'q' || ans === 'no' || qo) && !j.closed) {
+    var na = qo ? 'q' : ans;
+    var nv = S.notes[j.id] != null ? S.notes[j.id] : (qo ? '' : j.note || '');
+    var conf = S.conf[j.id] || {}, sending = S.noteQ[j.id] != null || (S.pending[j.id] && S.q[j.id] && S.q[j.id].noteInFlight);
+    h += '<div class="note2"><label class="' + (qo ? '' : 'sr') + '" for="nt-' + id + '"' + (qo ? ' style="font-weight:800;color:var(--navy)"' : '') + '>' + (na === 'q' ? 'Your question for Sherif' : 'Why not') + '</label><textarea id="nt-' + id + '" placeholder="' + (na === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps your next matches.') + '" data-note="' + id + '" data-na="' + na + '">' + esc(nv) + '</textarea>' +
+      '<div class="row"><button class="btn' + (na === 'q' ? ' gold' : '') + '" data-savenote="' + id + '" data-a="' + na + '"' + (na === 'q' && !String(nv).trim() && !sending ? ' disabled' : '') + '>' + (sending ? 'Sending…' : 'Send') + '</button>' +
+      (qo ? '<button class="btn ghost" data-qcancel="' + id + '">Cancel</button>' : '') + (!qo && conf.note && nv === conf.note && !busy ? '<span class="saving" role="status">Sent</span>' : '') + '</div></div>';
+    if (ans === 'q' && replyOf(j)) h += '<p class="qreply" id="qr-' + id + '" tabindex="-1"><b>Sherif replied' + esc(replyWhen(j)) + ':</b> ' + esc(replyOf(j)) + '</p>';
   }
   if (S.pending[j.id]) h += '<span class="saving" role="status">Saving…</span>';
   var je = S.jobErr[j.id]; if (je) h += '<p class="err" role="alert">' + esc(je.msg) + (je.re ? reauthBtn() : '') + '</p>';
@@ -1606,7 +1681,7 @@ function jobCard(j, hint) {
   if (j.closed) return h + '</div></article>';
   var btns = '<button class="yes" data-ans="yes" data-j="' + id + '" aria-pressed="' + (ans === 'yes') + '"' + dis + '>' + IC.check + 'Yes</button>' +
     '<button class="no" data-ans="no" data-j="' + id + '" aria-pressed="' + (ans === 'no') + '"' + dis + '>' + IC.x + 'No</button>' +
-    '<button class="q" data-ans="q" data-j="' + id + '" aria-pressed="' + (ans === 'q') + '"' + dis + '>' + IC.q + 'Question</button>';
+    '<button class="q" data-ans="q" data-j="' + id + '" aria-pressed="' + (ans === 'q') + '"' + (ans !== 'q' ? ' aria-expanded="' + !!S.qOpen[j.id] + '" aria-controls="nt-' + id + '"' : '') + dis + '>' + IC.q + 'Question</button>';
   /* round 3: a Yes job's answer folds into a small "Change my answer" control */
   if (ans === 'yes') { var co = !!(S.chgOpen && S.chgOpen[j.id]);
     return h + '</div><div class="jchg"><button type="button" class="linkbtn" data-chgans="' + id + '" aria-expanded="' + co + '" aria-controls="chg-' + id + '">Change my answer' + IC.chev + '</button>' +
@@ -1650,7 +1725,7 @@ function vJobs() {
     (main.length ? (jfx.show ? '' : '<h2 class="sec-h">Your matches</h2>') + '<div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">' + ((d.closed || []).length ? 'No open matches right now. New ones show up here.' : 'Nothing here yet. You will get an email when your first jobs arrive.') + '</p></div>') +
     closedList(d) +
     (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '')) + '</div>' + (jl ? '</div>' : '') +
-    '<footer class="help"><p><b>Need help?</b> ' + HELP + '</p><button class="linkbtn" data-signout>Sign out on this device</button></footer>' +
+    '<footer class="help"><p><b>Need help?</b> ' + helpHtml() + '</p><button class="linkbtn" data-signout>Sign out on this device</button></footer>' +
     '</main>' + tabbar('jobs');
 }
 
@@ -1771,6 +1846,7 @@ function vApps() {
   d.apps.forEach(function (x) { by[stageOf(x)].push(x); });
   var mob = false; try { mob = matchMedia('(max-width: 760px)').matches; } catch (e) {}
   if (!S.colOpen) { S.colOpen = {}; cols.forEach(function (c, k) { S.colOpen[k] = mob ? by[k].length > 0 && by[k].length <= 6 : k < 4 || by[k].length <= 6; }); }
+  if (S.openCol != null) { S.colOpen[S.openCol] = true; S.openCol = null; }
   var afx = afApps(d); /* round 3: search and Due filter (more than 6 applications) */
   return shell('apps', d.apps.length ? d.apps.length + (d.apps.length === 1 ? ' application' : ' applications') + ' tracked' : 'Nothing sent yet', 'Where each one stands. Offers and closed ones have their own columns.') +
     '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
@@ -1886,7 +1962,7 @@ function jlStatus(j) {
   if (S.pending[j.id]) return '<span class="pill">Saving…</span>';
   if (S.jobErr[j.id]) return '<span class="pill attn">Didn\'t save</span>';
   if (a === 'no' || S.leaving[j.id]) return '<span class="pill">Passed</span>';
-  if (a === 'q') return '<span class="pill info">Sherif is finding out</span>';
+  if (a === 'q') return replyOf(j) ? '<span class="pill ' + (replyNew(j) ? 'attn">New answer from Sherif' : 'info">Sherif answered') + '</span>' : '<span class="pill info">Sherif is finding out</span>';
   if (a !== 'yes') return '<span class="pill attn">Needs your answer</span>';
   var s = jobState(j), st = stageFor(j);
   if (s.review.length) return '<span class="pill attn">Documents to read</span>';
@@ -1912,7 +1988,7 @@ function jlPanes(d, jfx, main, passed, hintId) {
   return '<div class="jl-panes">' + side + '<section class="jl-detail" id="jl-detail" tabindex="-1" data-jl="' + esc(sel ? sel.id : '') + '" aria-label="' + esc(sel ? 'Selected job: ' + sel.title + ', ' + sel.company : 'Selected job') + '">' + det + '</section></div>';
 }
 function jlSelect(id, focusWhat) {
-  S.jsel = id; S.focusTo = focusWhat || null; render();
+  S.jsel = id; markReplySeen(id); S.focusTo = focusWhat || null; render();
   var it = document.querySelector('#app [data-jsel="' + cssq(id) + '"]'); if (it && it.scrollIntoView) it.scrollIntoView({ block: 'nearest' });
 }
 /* before a render: a focus target inside a job card (after Undo, a No that moves on, Clear) selects that job; remember the pane's scroll */
@@ -1972,7 +2048,7 @@ function render() {
   var app = $('#app');
   if (S.status === 'signin') { app.innerHTML = vSignin(); return; }
   if (S.status === 'loading' || S.status === 'boot') { app.innerHTML = '<div class="skel">Opening your portal…</div>'; return; }
-  if (S.status === 'error') { app.innerHTML = '<div class="pmain"><div class="warn">We couldn\'t reach your portal. Please check your connection and <button class="btn ghost" data-retry>try again</button>.</div></div>'; return; }
+  if (S.status === 'error') { app.innerHTML = vError(); var eh = S.focusTo === '#errH' ? document.getElementById('errH') : null; S.focusTo = null; if (eh) { try { eh.focus({ preventScroll: true }); } catch (e) { eh.focus(); } } return; }
   var fk = focusKey(document.activeElement); saveDrafts();
   var y = window.scrollY, jls = jlBefore();
   if (S.flow && S.view !== flowFrom()) S.flow = null; /* a review or apply screen lives on the tab it was opened from */
@@ -1988,7 +2064,26 @@ function render() {
     try { target.focus({ preventScroll: true }); } catch (e) { target.focus(); }
     if (fk && fk.s != null && typeof target.setSelectionRange === 'function') { try { target.setSelectionRange(fk.s, fk.e); } catch (e) {} }
   }
+  appScroll();
 }
+/* round 12: the full-page error, with the logo, Try again, Sign in again and the help links. A connection problem and a page
+   that could not be built get different words; the real error is in the console. */
+function vError() {
+  var net = S.errKind !== 'render';
+  return '<div class="login errscr"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a></div>' +
+    '<div class="box" role="alert"><h2 id="errH" tabindex="-1">' + (net ? 'We couldn\'t reach your portal.' : 'Something went wrong opening your portal.') + '</h2>' +
+    '<p class="psub" style="margin:0">' + (net ? 'Please check your connection and try again.' : 'Please try again. If it keeps happening, sign in again or tell Sherif.') + '</p>' +
+    '<div class="row"><button class="btn gold" data-retry>Try again</button><button class="btn ghost" data-reauth>Sign in again</button></div>' +
+    '<p class="ehelp"><b>Need help?</b> ' + helpHtml() + '</p>' + legalLinks('fine legal') + '</div></div>';
+}
+/* round 12: after an application is saved, its Applied column is opened and the card scrolled into view (once) */
+function appScroll() {
+  if (!S.scrollApp || S.view !== 'apps' || S.flow || S.deck) return false;
+  var el = document.querySelector('#app [data-app="' + cssq(S.scrollApp) + '"]'); if (!el) return false;
+  S.scrollApp = null; try { el.scrollIntoView({ block: 'center', behavior: 'auto' }); } catch (e) { el.scrollIntoView(); }
+  return true;
+}
+function openAppCol(x) { var k = stageOf(x); if (S.colOpen) S.colOpen[k] = true; else S.openCol = k; S.scrollApp = x.id; }
 function go(view) {
   /* leaving a review or apply screen by the tab bar: that history entry now stands for the new tab, so Back goes to Jobs, not nowhere */
   /* Jobs goes back to the portal's first entry, so a review-then-tab-bar loop never grows history; another tab replaces the current entry */
@@ -1996,13 +2091,15 @@ function go(view) {
     if (view === 'jobs') { var back = S.hist; S.hist = 0; quietPop(); try { history.go(-back); } catch (e) {} }
     else { try { history.replaceState({ sp: 1, depth: S.hist, flow: null, view: view }, '', location.href); } catch (e) {} }
   }
-  S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
+  S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; var sc = S.scrollApp; render(); if (!sc || S.scrollApp) window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
+  /* round 12: end this session on the server too (fire and forget), before the token is dropped here */
+  if (S.token) { try { post({ action: 'signout', t: S.token }, true).catch(function () {}); } catch (e) {} }
   /* a shared device keeps nothing of this client: practice notes, kit ticks and screen state */
-  try { for (var k = localStorage.length - 1; k >= 0; k--) { var lk = localStorage.key(k); if (/sp_pvnotes_|sp_kit_/.test(lk || '')) localStorage.removeItem(lk); } } catch (e) {}
+  try { for (var k = localStorage.length - 1; k >= 0; k--) { var lk = localStorage.key(k); if (/sp_pvnotes_|sp_kit_|sp_replyseen/.test(lk || '')) localStorage.removeItem(lk); } } catch (e) {}
   S.pvMem = null; S.pv = null; S.dhOpen = null; S.jsel = null; if (S.view === 'prep') S.view = 'jobs';
-  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
+  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.qOpen = {}; S.notes = {}; S.seenMem = null; S.colOpen = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
 }
 
@@ -2010,7 +2107,7 @@ function redeemCode(code) {
   var b = $('#codeBtn'); if (b) { b.disabled = true; b.textContent = 'Checking…'; }
   post({ action: 'redeem', email: S.sent, code: code }).then(function (d) {
     if (d.ok && d.t) { S.token = d.t; setToken(d.t); S.sent = false; S.codeErr = ''; load(); }
-    else { S.codeErr = d.error === 'expired code' ? 'That code has expired. Request a new link below.' : 'That code didn\'t match. Check the newest email and try again.'; render(); }
+    else { S.codeErr = d.error === 'expired code' ? 'That code has expired. Tap Send a new link below.' : d.error === 'locked' ? 'Too many wrong tries, so this code is locked. Tap Send a new link below to get a new one.' : 'That code didn\'t match. Check the newest email and try again.'; render(); }
   }).catch(function () { S.codeErr = 'We couldn\'t check the code. Please check your connection and try again.'; render(); });
 }
 function copyText(t) {
@@ -2024,7 +2121,8 @@ function markApplied(jobId) {
   S.applyBusy = j.id; render();
   saveApp(body, function (r) {
     S.applyBusy = null;
-    if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' }); /* on the apply screen the done card says it, so no toast on top of it */
+    if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' });
+      openAppCol(jobApp(j)); /* round 12: the Applied column that got it opens, and the card is scrolled into view there */ /* on the apply screen the done card says it, so no toast on top of it */
       if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; } else toast('Nice work. It is on your Applied tab.'); }
     else { if (r.error === 'expired') S.jobErr[j.id] = { msg: errText('expired'), re: true }; toast(errText(r.error, 'job')); }
     render();
@@ -2081,7 +2179,8 @@ document.addEventListener('click', function (e) { if (Date.now() < blockClickUnt
 
 /* ===================== SWIPE DECK (trial feature) =====================
    A full-screen stack of the unanswered jobs, one big card at a time.
-   Right = Yes, left = Pass, up = Question (note box first, Skip allowed). Buttons and arrow keys do the same.
+   Right = Yes, left = Pass, up = Question (note box first: Send question needs text; Cancel returns to the card; Decide later moves on
+   and saves nothing). Buttons and arrow keys do the same.
    Every decision goes through decide() (undo window). To switch the deck off, set DECK_ENABLED = false. */
 var DECK_ENABLED = true;
 function deckButton(c) {
@@ -2110,6 +2209,8 @@ function deckDecide(a, note) {
   if (S.deck) { D.tried[j.id] = true; D.i++; D.more = false; D.qFor = null; S.focusTo = deckCur() ? '.dk-acts .dk-yes' : '[data-deckclose]'; render(); }
 }
 function deckAsk() { var j = deckCur(); if (!j) return; S.deck.qFor = j.id; S.deck.more = false; S.focusTo = '.dk-q textarea'; render(); }
+function deckCancelAsk() { if (!S.deck || !S.deck.qFor) return; S.deck.qFor = null; S.focusTo = '.dk-acts .dk-qb'; render(); }
+function deckLater() { var D = S.deck, j = deckCur(); if (!j) return; D.later = (D.later || 0) + 1; D.i++; D.more = false; D.qFor = null; S.focusTo = deckCur() ? '.dk-acts .dk-yes' : '[data-deckclose]'; render(); }
 /* Where each deck decision stands: waiting in its undo window or in flight, failed, or saved. */
 function deckState() {
   var D = S.deck, st = { waiting: 0, failed: [], expired: false };
@@ -2136,7 +2237,7 @@ function dkCard(j, top) {
   h += '</div>';
   if (asking) {
     h += '<div class="dk-q"><label for="dkq-' + id + '">Your question for Sherif</label><textarea id="dkq-' + id + '" data-note="' + id + '" placeholder="For example: is parking free?">' + esc(S.notes[j.id] || '') + '</textarea>' +
-      '<div class="row"><button class="btn gold" data-dkq="send">Send question</button><button class="btn ghost" data-dkq="skip">Skip</button></div></div>';
+      '<div class="row"><button class="btn gold" data-dkq="send"' + (String(S.notes[j.id] || '').trim() ? '' : ' disabled') + '>Send question</button><button class="btn ghost" data-dkq="cancel">Cancel</button><button class="btn ghost" data-dkq="later">Decide later</button></div></div>';
   }
   return h + '</div>';
 }
@@ -2147,9 +2248,12 @@ function vDeck() {
     '<div class="dk-bar" aria-hidden="true"><i style="width:' + Math.round(Math.min(D.i, total) / total * 100) + '%"></i></div></div>';
   if (!j) {
     var st = deckState(), nf = st.failed.length;
-    if (st.waiting && !st.expired) return h + '<div class="dk-done"><div class="dk-spin" aria-hidden="true"></div><h2>That was the last one</h2><p role="status">Saving your answers…' + (nf ? ' ' + nf + ' didn\'t save so far.' : '') + '</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
+    var left = D.ids.filter(function (id) { var x = jobById(id); return x && !ansOf(x); }).length;
+    var leftTx = left ? ' ' + (left === 1 ? '1 job is' : left + ' jobs are') + ' waiting for you to decide later. ' + (left === 1 ? 'It is' : 'They are') + ' on your list.' : '';
+    if (st.waiting && !st.expired) return h + '<div class="dk-done"><div class="dk-spin" aria-hidden="true"></div><h2>That was the last one</h2><p role="status">Saving your answers…' + (nf ? ' ' + nf + ' didn\'t save so far.' : '') + leftTx + '</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
     if (nf) return h + '<div class="dk-done"><div class="dk-fail" role="alert"><h2>' + nf + (nf === 1 ? ' answer didn\'t save' : ' answers didn\'t save') + '</h2><p>' + (st.expired ? 'Your sign-in has expired. Sign in again, then answer ' + (nf === 1 ? 'it' : 'them') + ' from your list.' : 'Check your connection, then try again. Your list shows which ones.') + '</p>' +
       '<div class="row">' + (st.expired ? '<button class="btn gold" data-reauth>Sign in again</button>' : '<button class="btn gold" data-dkretry>Retry</button>') + '<button class="btn ghost" data-deckclose>Back to the list</button></div></div></div></div>';
+    if (left) return h + '<div class="dk-done"><div class="dk-doneic">' + IC.checkc + '</div><h2>That was the last one</h2><p role="status">Your answers are saved.' + leftTx + '</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
     return h + '<div class="dk-done"><div class="dk-doneic">' + IC.checkc + '</div><h2>All caught up</h2><p role="status">Your answers are saved and on your list, in color.</p><button class="btn gold" data-deckclose>Back to the list</button></div></div>';
   }
   var ds = deckState();
@@ -2212,7 +2316,7 @@ document.addEventListener('pointerup', function (e) { dkEnd(e, false); });
 document.addEventListener('pointercancel', function (e) { dkEnd(e, true); });
 document.addEventListener('keydown', function (e) {
   if (!S.deck) return;
-  if (e.key === 'Escape') { e.preventDefault(); deckClose(); return; }
+  if (e.key === 'Escape') { e.preventDefault(); if (S.deck.qFor) deckCancelAsk(); else deckClose(); return; }
   if (e.key === 'Tab') { /* keep focus inside the deck */
     var f = [].slice.call(document.querySelectorAll('.deck button, .deck a[href], .deck textarea')).filter(function (x) { return !x.disabled && x.offsetParent !== null; });
     if (!f.length) return; var first = f[0], last = f[f.length - 1];
@@ -2232,7 +2336,12 @@ function deckClick(b, d) {
   if (d.dkmore != null) { S.deck.more = !S.deck.more; render(); return true; }
   if (d.dkretry != null) { deckRetry(); return true; }
   if (d.dka) { if (d.dka === 'q') deckAsk(); else deckDecide(d.dka); return true; }
-  if (d.dkq) { var j = deckCur(); if (!j) return true; var ta = document.querySelector('.dk-q textarea'); var note = ta ? ta.value.trim() : ''; S.notes[j.id] = note; deckDecide('q', d.dkq === 'send' && note ? note : undefined); return true; }
+  if (d.dkq) { var j = deckCur(); if (!j) return true; var ta = document.querySelector('.dk-q textarea'); var note = ta ? ta.value.trim() : '';
+    /* round 12: Send question needs text and saves Question with it; Cancel goes back to the same card; Decide later moves on, nothing saved */
+    if (d.dkq === 'send') { if (!note) { if (ta) ta.focus(); return true; } S.notes[j.id] = note; deckDecide('q', note); return true; }
+    if (d.dkq === 'cancel') { deckCancelAsk(); return true; }
+    if (d.dkq === 'later') { deckLater(); return true; }
+    return true; }
   return false;
 }
 /* Size the deck to the visible viewport so Send and Skip stay above the on-screen keyboard. */
@@ -2284,13 +2393,14 @@ document.addEventListener('click', function (e) {
   if (d.go) { go(d.go); return; }
   if (d.first != null) { scrollToFirst(); return; }
   if (d.retry != null) { load(); return; }
+  if (d.newlink != null) { S.sent = false; S.codeErr = ''; S.err = ''; S.focusTo = '#email'; render(); var em = $('#email'); if (em) em.focus(); return; }
   if (d.signout != null) { signOut(''); return; }
   if (d.hidehint != null) { hideHint(); render(); return; }
   if (d.morenote != null) { S.noteOpen = !S.noteOpen; render(); return; }
   if (d.dueall != null) { S.dueAll = !S.dueAll; render(); return; }
   if (d.passed != null) { S.passedOpen = !S.passedOpen; render(); return; }
   if (d.closedtog != null) { S.closedOpen = !S.closedOpen; render(); return; }
-  if (d.det) { S.open[d.det] = !S.open[d.det]; render(); return; }
+  if (d.det) { S.open[d.det] = !S.open[d.det]; markReplySeen(d.det); render(); return; }
   if (d.copy != null) { copyText(d.copy); return; }
   if (d.applied) { markApplied(d.applied); return; }
   if (d.ans) {
@@ -2300,12 +2410,25 @@ document.addEventListener('click', function (e) {
     if (D && D.a === d.ans) return;                                /* same choice inside its undo window (double tap) */
     hideHint();
     if (!D && cur === d.ans) { S.justSaved = d.j; toast('Already saved as ' + ANS_WORD[d.ans] + '.'); return; }
-    if (d.ans === 'no') { if (D) cancelDeferredRestore(d.j); tapNo(d.j); return; }
+    if (d.ans === 'no') { if (D) cancelDeferredRestore(d.j); delete S.qOpen[d.j]; tapNo(d.j); return; }
+    if (d.ans === 'q') { /* round 12: open the question box only; nothing is saved until Send */
+      if (D) cancelDeferredRestore(d.j);
+      if (S.qOpen[d.j]) { S.focusTo = '#nt-' + cssq(d.j); render(); return; }
+      S.qOpen[d.j] = true; S.notes[d.j] = ''; delete S.jobErr[d.j]; S.focusTo = '#nt-' + cssq(d.j); render(); return; }
+    delete S.qOpen[d.j];
     S.focusTo = '[data-ans="' + d.ans + '"][data-j="' + cssq(d.j) + '"]';
     answer(d.j, d.ans); return;
   }
+  if (d.qcancel) { delete S.qOpen[d.qcancel]; delete S.notes[d.qcancel]; S.focusTo = '[data-ans="q"][data-j="' + cssq(d.qcancel) + '"]'; render(); return; }
+  if (d.seereply) { var rj2 = jobById(d.seereply); if (!rj2) return; markReplySeen(rj2.id); 
+    if (jlOn()) { jlSelect(rj2.id, '#qr-' + cssq(rj2.id)); return; }
+    if (jfOn()) jfReset(); render();
+    var rc = document.querySelector('[data-jc="' + cssq(rj2.id) + '"]'), rq = document.getElementById('qr-' + rj2.id);
+    if (rc) rc.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); if (rq) { try { rq.focus({ preventScroll: true }); } catch (x) { rq.focus(); } }
+    return; }
   if (d.clear) { if (locked(d.clear)) return; S.focusTo = '[data-ans="yes"][data-j="' + cssq(d.clear) + '"]'; answer(d.clear, ''); return; }
   if (d.savenote) { var ta = document.querySelector('[data-note="' + cssq(d.savenote) + '"]'); S.notes[d.savenote] = ta ? ta.value : '';
+    if (d.a === 'q' && !S.notes[d.savenote].trim()) { if (ta) ta.focus(); return; } /* round 12: an empty question is never sent */
     if (S.pending[d.savenote] || S.deferred[d.savenote]) { if (d.a === 'q' && !S.deferred[d.savenote]) { S.noteQ[d.savenote] = S.notes[d.savenote]; render(); } return; }
     answer(d.savenote, d.a, S.notes[d.savenote]); return; }
   if (d.logopen != null) { S.logOpen = true; S.logErr = ''; S.logMsg = ''; S.logDraft = {}; S.focusTo = '#lgCompany'; render(); return; }
@@ -2317,7 +2440,7 @@ document.addEventListener('click', function (e) {
     if (!body.company || !body.role) { S.logErr = 'Please add the company and the job title.'; S.focusTo = body.company ? '#lgRole' : '#lgCompany'; render(); return; }
     S.logBusy = true; S.logErr = ''; S.logRe = false; render();
     saveApp(body, function (r) { S.logBusy = false;
-      if (r.ok) { S.data.apps.unshift({ id: r.id, company: body.company, role: body.role, applied: body.applied, status: body.status, interview: body.interview, nextAction: body.nextAction, followUpOn: body.followUpOn, type: body.type, ivTime: body.ivTime, contact: body.contact, myNotes: body.myNotes }); S.logOpen = false; S.logDraft = {}; S.logMsg = 'Saved. ' + body.company + ' is on your board.'; if (body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } }
+      if (r.ok) { S.data.apps.unshift({ id: r.id, company: body.company, role: body.role, applied: body.applied, status: body.status, interview: body.interview, nextAction: body.nextAction, followUpOn: body.followUpOn, type: body.type, ivTime: body.ivTime, contact: body.contact, myNotes: body.myNotes }); S.logOpen = false; S.logDraft = {}; S.logMsg = 'Saved. ' + body.company + ' is on your board.'; openAppCol(S.data.apps[0]); if (body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } }
       else { S.logErr = r.error === 'expired' ? 'Your sign-in has expired. Sign in again, then add it.' : 'Sorry, that didn\'t save. Please check your connection and try again.'; S.logRe = r.error === 'expired'; }
       render(); });
     return;
@@ -2359,7 +2482,13 @@ document.addEventListener('keydown', function (e) {
   }
   if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-col]')) { e.preventDefault(); var ck = e.target.closest('[data-col]').dataset.col; S.colOpen[ck] = !S.colOpen[ck]; render(); }
 });
-document.addEventListener('input', function (e) { if (e.target.dataset && e.target.dataset.note) S.notes[e.target.dataset.note] = e.target.value; });
+document.addEventListener('input', function (e) {
+  var t = e.target; if (!(t.dataset && t.dataset.note)) return;
+  S.notes[t.dataset.note] = t.value;
+  /* round 12: Send for a question stays disabled until there is text */
+  var empty = !t.value.trim(), b = t.closest('.dk-q') ? document.querySelector('.dk-q [data-dkq="send"]') : t.dataset.na === 'q' ? document.querySelector('[data-savenote="' + cssq(t.dataset.note) + '"][data-a="q"]') : null;
+  if (b && b.textContent !== 'Sending…') b.disabled = empty;
+});
 /* ---- round 3 controls: filter chips, clear, Due, Change my answer ---- */
 document.addEventListener('click', function (e) {
   var b = e.target.closest && e.target.closest('button'); if (!b || S.status !== 'ready') return; var d = b.dataset;
@@ -2370,7 +2499,10 @@ document.addEventListener('click', function (e) {
   /* a Yes from the big buttons folds them away: keep the keyboard on that card, on its Change my answer control */
   if (d.ans === 'yes' && d.j) { var ae = document.activeElement; if (!ae || ae === document.body || !document.contains(ae)) { var c = document.querySelector('[data-chgans="' + cssq(d.j) + '"]'); if (c) { try { c.focus({ preventScroll: true }); } catch (x) { c.focus(); } } } }
 });
-load();
+/* round 12: start only after the whole page is parsed. The later script blocks define functions render() needs (pvDueBtn,
+   appPrepBtn, icsBtn, payWords, docVerHtml), so data that arrives early must wait for them. */
+(function () { var started = false, start = function () { if (started) return; started = true; load(); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else setTimeout(start, 0); })();
 </script>
 <script>
 /* ===================== Round 4: search settings, data export and delete request, calendar files, document versions,
@@ -2431,7 +2563,7 @@ function vPrefs() {
     '<div class="pf-r"><dt>Search status</dt><dd>' + (st ? '<span class="pill ' + (P.status === 'active' ? 'ok' : P.status === 'paused' ? 'attn' : 'info') + '">' + st + '</span>' : dash) + '</dd></div></dl>' +
     (F.edit ? pfForm(P) : '<div class="pf-row"><button class="btn gold" data-pfedit="open">Request a change</button>' + (/^(active|paused)$/.test(P.status) && !F.pause ? '<button class="btn ghost" data-pfpause="open">' + (P.status === 'paused' ? 'Ask to resume my search' : 'Ask to pause my search') + '</button>' : '') + '</div>') +
     pausePanel + '</section>' +
-    '<section class="card" aria-labelledby="pfDataH"><h2 id="pfDataH" class="pf-h">Your data</h2><p class="psub">Download a copy of what is in your portal: your jobs, documents with their links, applications and your own notes. It is made on this device; nothing is sent anywhere.</p>' +
+    '<section class="card" aria-labelledby="pfDataH"><h2 id="pfDataH" class="pf-h">Your data</h2><p class="psub">Download a copy of what is in your portal: your jobs, documents with their links, applications and your own notes. It is made on this device; nothing is sent anywhere.</p>' + legalLinks() +
     '<div class="pf-row"><button class="btn" data-export="json">Download my data (JSON)</button><button class="btn ghost" data-export="csv">Download applications (CSV)</button></div>' +
     (F.del ? del : '<p style="margin:14px 0 0"><button class="linkbtn pf-delbtn" data-pfdel="open">Ask to delete my data</button></p>') + '</section>' +
     '</main>' + tabbar('');
