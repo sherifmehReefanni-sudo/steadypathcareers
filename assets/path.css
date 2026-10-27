@@ -307,6 +307,9 @@ main.trail-main { position: relative; isolation: isolate; }
 .foot nav a, .foot a { color: var(--cream); font-weight: 700; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; padding: 0 8px; border-radius: 8px; font-size: 16px; }
 .foot nav a:hover { background: rgba(251,246,238,.1); }
 .foot .where { font-size: 15px; width: 100%; color: #C4D0E0; }
+.foot .where { display: flex; flex-wrap: wrap; align-items: center; }
+.foot .where .wg { display: inline-flex; flex-wrap: wrap; align-items: center; column-gap: 2px; }
+@media (max-width: 900px) { .foot .where { flex-direction: column; align-items: flex-start; } .foot .where .ws { display: none; } .foot .where .wt { min-height: 30px; padding: 0 8px; } }
 
 /* inner pages: content blocks */
 .kfacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
