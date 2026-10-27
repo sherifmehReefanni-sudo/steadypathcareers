@@ -309,6 +309,7 @@ main.trail-main { position: relative; isolation: isolate; }
 .foot .where { font-size: 15px; width: 100%; color: #C4D0E0; }
 .foot .where { display: flex; flex-wrap: wrap; align-items: center; }
 .foot .where .wg { display: inline-flex; flex-wrap: wrap; align-items: center; column-gap: 2px; }
+.foot .where .ws { padding: 0 6px; }
 @media (max-width: 900px) { .foot .where { flex-direction: column; align-items: flex-start; } .foot .where .ws { display: none; } .foot .where .wt { min-height: 30px; padding: 0 8px; } }
 
 /* inner pages: content blocks */
