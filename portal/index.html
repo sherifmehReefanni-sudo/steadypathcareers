@@ -1058,12 +1058,14 @@ function shortCo(c) { var w = String(c || '').trim().split(/\s+/), s = w.slice(0
    Same company: the title words the jobs do not share; same title too: the town. Each part is cut at a word, with an ellipsis. */
 function clipWords(s, n) { s = String(s || '').trim(); if (s.length <= n) return s; var c = s.slice(0, n - 1), k = c.lastIndexOf(' '); return (k > 0 ? c.slice(0, k) : c).replace(/[\s,·:;&-]+$/, '') + '…'; }
 function roleBit(j, peers, narrow) {
-  var words = function (t) { return String(t || '').trim().split(/\s+/).filter(String); }, lc = function (v) { return String(v || '').trim().toLowerCase(); };
+  var words = function (t) { return String(t || '').replace(/[^\w&/+-]+/g, ' ').trim().split(/\s+/).filter(String); }, lc = function (v) { return String(v || '').trim().toLowerCase(); };
   var w = words(j.title), same = (peers || []).filter(function (p) { return p.id !== j.id && lc(p.company) === lc(j.company); });
   if (same.length) {
-    var diff = w.filter(function (x) { return !same.every(function (p) { return words(p.title).some(function (y) { return lc(y) === lc(x); }); }); });
-    if (diff.length) w = diff;
-    else if (j.location) return clipWords(String(j.location).split(',')[0], narrow ? 10 : 18);
+    /* for each other job at this company, the words of this title that one lacks; one word from each keeps every pair apart */
+    var pick = [], tie = false;
+    same.forEach(function (p) { var pw = words(p.title).map(lc), d = w.filter(function (x) { return pw.indexOf(lc(x)) < 0; }); if (!d.length) tie = true; else if (same.length === 1) pick = d; else if (!pick.some(function (x) { return d.indexOf(x) >= 0; })) pick.push(d[0]); });
+    if (tie && j.location) return clipWords(String(j.location).split(',')[0], narrow ? 10 : 18);
+    if (pick.length) w = w.filter(function (x) { return pick.indexOf(x) >= 0; });
   }
   return narrow ? clipWords(w[0] || '', 10) : clipWords(w.slice(0, 2).join(' '), same.length ? 18 : 14);
 }
@@ -1164,7 +1166,7 @@ function approveJob(jobId) {
   var step = function (k) {
     if (k >= ids.length) {
       S.rvBusy = false;
-      if (jobState(j).applyReady && !jobApp(j)) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
+      if (jobState(j).applyReady && !jobApp(j) && S.flow && S.flow.job === j.id) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
       else { toast('Approved. Thank you.'); render(); }
       return;
     }
@@ -1186,7 +1188,8 @@ function approveOne(jobId, docId) {
   S.rvBusy = true; S.changesFor = null;
   docStatus(docId, 'Approved', '', function (ok) {
     S.rvBusy = false;
-    if (!ok) { render(); return; }
+    if (!ok) { S.focusTo = '[data-rvok]'; render(); return; }
+    if (!S.flow || S.flow.job !== j.id) { toast(docLabel(x) + ' approved.'); render(); return; } /* the client moved on: no hand-off */
     var st = jobState(j), nx = st.review[0], what = docLabel(x);
     /* the last needed OK: the same hand-off to the apply screen as Looks good */
     if (!nx && st.applyReady && !jobApp(j)) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
@@ -1381,11 +1384,17 @@ var FITS = [[/^strong/i, 'Strong fit', 'ok', 0], [/^possible/i, 'Possible fit', 
 function fitOf(j) {
   var f = String((j && j.fit) || '').replace(/\(?\s*\d+(\.\d+)?\s*%\s*\)?/g, ' ').replace(/\s+/g, ' ').trim(); if (!f) return null;
   for (var i = 0; i < FITS.length; i++) if (FITS[i][0].test(f)) return { label: FITS[i][1], cls: FITS[i][2], rank: FITS[i][3] };
-  return { label: clipWords(f, 24), cls: '', rank: 3 };
+  return null; /* anything else (a number, "Weak") shows nothing rather than a made-up label */
 }
 function fitPill(j) { var f = fitOf(j); return f ? '<span class="pill' + (f.cls ? ' ' + f.cls : '') + ' fitp"><span class="sr">Fit: </span>' + esc(f.label) + '</span>' : ''; }
 /* first sentence of Why it fits (the whole text stays under Details) */
-function whyFirst(w) { w = String(w || '').replace(/\s+/g, ' ').trim(); if (!w) return ''; var m = w.match(/^.+?[.!?](?=\s|$)/); return clipWords(m ? m[0] : w, 160); }
+var ABBR = /(?:^|[\s(])(?:dr|mr|mrs|ms|st|jr|sr|inc|co|corp|ltd|llc|approx|est|vs|etc|no|dept|ave|e\.g|i\.e|u\.s|[a-z])\.$/i;
+function whyFirst(w) {
+  w = String(w || '').replace(/\s+/g, ' ').trim(); if (!w) return '';
+  var re = /[.!?](?=\s+["'(]?[A-Z0-9]|$)/g, m;
+  while ((m = re.exec(w))) { var head = w.slice(0, m.index + 1); if (m[0] !== '.' || !ABBR.test(head)) return clipWords(head, 160); }
+  return clipWords(w, 160);
+}
 function fitFace(j, ans) {
   if (ans === 'no' || j.closed) return '';
   var why = whyFirst(j.why), c = String(j.concern || '').trim();
@@ -1641,7 +1650,7 @@ function jfMatch(j) {
 /* yearly pay for sorting: hourly figures (under 1,000) count as 2,080 hours; no pay sorts last */
 function payNum(j) {
   var n = Number(j.payLow);
-  if (!(n > 0)) { var m = String(j.pay || '').replace(/,/g, '').match(/\$?\s*(\d+(?:\.\d+)?)\s*(k)?/i); n = m ? Number(m[1]) * (m[2] ? 1000 : 1) : 0; }
+  if (!(n > 0)) { var p = payText(j); if (/%|401\s*k|not posted/i.test(p)) return 0; var m = p.replace(/,/g, '').match(/\$\s*(\d+(?:\.\d+)?)\s*(k)?/i); n = m ? Number(m[1]) * (m[2] ? 1000 : 1) : 0; }
   return n > 0 && n < 1000 ? n * 2080 : n || 0;
 }
 function jfSorted(list) {
@@ -1678,7 +1687,7 @@ function appDue(x) {
   var st = stageOf(x), iv = daysFrom(x.interview), fu = daysFrom(x.followUpOn); if (st === 4) return false;
   if (iv != null && iv >= 0) return true;
   if (iv != null && iv < 0 && iv >= -21 && st === 2) return true;
-  return fu != null ? fu <= 0 : String(x.followUpDue).toLowerCase() === 'yes';
+  return fu != null ? fu <= 0 : fuFlag(x);
 }
 function afApps(d) {
   var show = afShow(d), on = show && afOn(d), f = af(), body = '', n = 0;
@@ -1694,8 +1703,10 @@ function afApps(d) {
 /* typing in a search box swaps only the results and the status line, so other fields and the scroll position stay put */
 function jfPatch() {
   if (S.status !== 'ready' || S.flow || S.deck) return;
+  saveDrafts();
   var t = document.createElement('template'); t.innerHTML = S.view === 'apps' ? vApps() : vJobs();
-  ['[data-jfres]', '[data-jfst]'].forEach(function (sel) { var nw = t.content.querySelector(sel), o = document.querySelector('#app ' + sel); if (nw && o) o.replaceWith(nw); });
+  var nr = t.content.querySelector('[data-jfres]'), or = document.querySelector('#app [data-jfres]'); if (nr && or) or.replaceWith(nr);
+  var ns = t.content.querySelector('[data-jfst]'), os = document.querySelector('#app [data-jfst]'); if (ns && os && os.innerHTML !== ns.innerHTML) os.innerHTML = ns.innerHTML; /* same live region, so screen readers announce the count */
 }
 function jfInput(e) { var t = e.target; if (!t || !t.dataset || !t.dataset.jfq || e.isComposing) return; if (t.dataset.jfq === 'apps') af().q = t.value; else jf().q = t.value; jfPatch(); }
 document.addEventListener('input', jfInput);
@@ -1758,7 +1769,7 @@ function go(view) {
   S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
-  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
+  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
 }
 
@@ -2237,7 +2248,7 @@ function exportData() {
     exported: new Date().toISOString(), from: 'Steady Path Careers client portal',
     client: { name: c.name || '', firstName: c.firstName || '', startDate: c.startDate || '', freePilotEnds: c.trialEnds || '', home: c.home || '', standardAnswers: c.std || '' },
     searchSettings: d.prefs ? prefsOf() : null,
-    jobs: jobs.map(function (j) { return { id: j.id, added: j.added || '', company: j.company || '', title: j.title || '', location: j.location || '', setting: j.setting || '', pay: j.pay || '', postingLink: safeUrl(j.link), whyItFits: j.why || '', yourAnswer: j.answer || '', yourNote: j.note || '', answeredOn: j.answeredOn || '', postingClosed: !!j.closed }; }),
+    jobs: jobs.map(function (j) { return { id: j.id, added: j.added || '', company: j.company || '', title: j.title || '', location: j.location || '', setting: j.setting || '', pay: j.pay || '', postingLink: safeUrl(j.link), whyItFits: j.why || '', fit: (fitOf(j) || {}).label || '', watchOut: j.concern || '', yourAnswer: j.answer || '', yourNote: j.note || '', answeredOn: j.answeredOn || '', postingClosed: !!j.closed }; }),
     documents: (d.docs || []).map(function (x) { return { id: x.id, jobId: x.jobId || '', name: x.name || '', link: safeUrl(x.link), status: x.status || '', updated: x.updated || '', version: x.version || '', whatChanged: x.changed || '', yourChangeRequest: x.request || '' }; }),
     applications: (d.apps || []).map(function (x) { return { id: x.id, jobId: x.jobId || '', company: x.company || '', role: x.role || '', type: x.type || '', applied: x.applied || '', status: x.status || '', interviewDate: x.interview || '', interviewTime: x.ivTime || '', nextAction: x.nextAction || '', followUpOn: x.followUpOn || '', contact: x.contact || '', yourNotes: x.myNotes || '' }; }),
     requests: d.requests || []
