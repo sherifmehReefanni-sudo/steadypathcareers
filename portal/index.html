@@ -835,6 +835,7 @@ function errText(e, thing) {
   e = String(e || '');
   if (e === 'expired') return 'Your sign-in has expired.';
   if (e === 'closed') return 'This posting has just closed, so nothing was saved. Refresh this page to see the latest.';
+  if (e === 'changed') return 'Sherif just updated this document, so nothing was approved. Showing you the latest version now.';
   if (e === 'network') return 'That didn\'t save. Please check your connection and try again.';
   if (/not found/i.test(e)) return 'Not saved. That ' + (thing || 'item') + ' was updated. Reopen the portal to refresh.';
   return 'Not saved. Please try again in a minute.';
@@ -983,10 +984,10 @@ function undoToast(msg, fn, ms) {
 function docStatus(docId, status, request, done, quiet) {
   if (S.docBusy[docId]) { if (done) done(false); return; }
   S.docBusy[docId] = true; render();
-  post({ action: 'docStatus', t: S.token, doc: docId, status: status, request: request }).then(function (d) {
+  post({ action: 'docStatus', t: S.token, doc: docId, status: status, request: request, seen: (S.data && S.data.serverTime) || '' }).then(function (d) {
     delete S.docBusy[docId];
     if (d && d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } if (status === 'Changes requested') S.changesDraft = ''; if (!quiet) toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent to Sherif.'); }
-    else { if (d && d.error === 'expired') S.reauthMsg = true; toast(errText(d && d.error, 'document')); }
+    else { if (d && d.error === 'expired') S.reauthMsg = true; toast(errText(d && d.error, 'document')); if (d && d.error === 'changed') { if (done) done(false); else render(); setTimeout(function () { try { location.reload(); } catch (e) { load(); } }, 2500); return; } /* a reload keeps the review screen open (history state) and shows the new version */ }
     if (done) done(!!(d && d.ok)); else render();
   }).catch(function () { delete S.docBusy[docId]; toast(errText('network')); if (done) done(false); else render(); });
 }
@@ -1281,7 +1282,7 @@ function vReview() {
         (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to tap Looks good or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
           : S.demo ? sampleDoc(x, j) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
         '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>') +
-          (docPdf(x, truePdf(x.link)) && docKind(x.name) !== 'prep' && /approved/i.test(x.status || '') && !x.closedJob ? '<a class="kbtn" href="' + esc(docPdf(x, truePdf(x.link))) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + 'Download approved PDF</a>' : '') +
+          (docPdf(x, truePdf(x.link)) && docKind(x.name) !== 'prep' && /approved/i.test(x.status || '') && !x.closedJob ? '<a class="kbtn" href="' + esc(docPdf(x, truePdf(x.link))) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + 'Download approved PDF</a>' : (x.pdfState === 'held' && docKind(x.name) !== 'prep' ? '<p class="meta">Your approved PDF is being updated. Sherif will let you know when it is ready.</p>' : '')) +
           (card || S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
     }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
     '</main>' + tabbar(flowFrom());
