@@ -208,6 +208,7 @@ body { overflow-x: hidden; }
 .kbtn svg { width: 20px; height: 20px; flex: none; }
 .kbtn.solid { background: var(--navy); color: #fff; }
 .kans { display: grid; gap: 8px; }
+.kans .knote { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
 .kans .a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: start; background: var(--sunk); border-radius: 12px; padding: 10px 10px 10px 12px; }
 .kans .a b { display: block; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
 .kans .a p { margin: 2px 0 0; font-size: 15.5px; }
@@ -1207,10 +1208,14 @@ function approveOne(jobId, docId) {
 var AP_KIT = [1, 2, 0]; /* each step ticks the matching apply kit checkbox (kitChecks storage) */
 function kitAnswers(j) {
   var kit = j.kit || {};
-  return [['pay', 'Pay you want'], ['start', 'When you can start'], ['why', 'Why this company']].filter(function (a) { return String(kit[a[0]] || '').trim(); })
-    .map(function (a) { return [a[1], String(kit[a[0]])]; }).concat(qaLines(kit.other), qaLines(S.data.client.std));
+  /* the third item is a short note shown under the answer (never copied): how a suggestion was worked out, or what it covers */
+  var floor = S.data.client.payFloor, fw = typeof payWords === 'function' ? payWords(floor) : String(floor || '');
+  var payNote = 'A suggestion, so check it before you paste it. Worked out from ' + (isEst(j) ? 'an estimate (no pay was posted)' : 'the posted pay: ' + payText(j)) + (fw ? '; your minimum is ' + fw : '') + '.';
+  var whyNote = 'Written from your resume and the posting. If a form asks why you want this employer, add one thing you like about them.';
+  return [['pay', 'Suggested pay answer', payNote], ['start', 'When you can start'], ['why', 'Why you fit this job', whyNote]].filter(function (a) { return String(kit[a[0]] || '').trim(); })
+    .map(function (a) { return [a[1], String(kit[a[0]]), a[2] || '']; }).concat(qaLines(kit.other), qaLines(S.data.client.std));
 }
-function kansHtml(answers) { return '<div class="kans">' + answers.map(function (a) { return '<div class="a"><div><b>' + esc(a[0]) + '</b><p>' + esc(a[1]) + '</p></div><button type="button" data-copy="' + esc(a[1]) + '" aria-label="Copy: ' + esc(a[0]) + '">Copy</button></div>'; }).join('') + '</div>'; }
+function kansHtml(answers) { return '<div class="kans">' + answers.map(function (a) { return '<div class="a"><div><b>' + esc(a[0]) + '</b><p>' + esc(a[1]) + '</p>' + (a[2] ? '<p class="knote">' + esc(a[2]) + '</p>' : '') + '</div><button type="button" data-copy="' + esc(a[1]) + '" aria-label="Copy: ' + esc(a[0]) + '">Copy</button></div>'; }).join('') + '</div>'; }
 function apTick(jobId, i) { var c = kitChecks(jobId); c[AP_KIT[i]] = true; lsSet('sp_kit_' + jobId, JSON.stringify(c)); }
 function vApply() {
   var j = jobById(S.flow.job); if (!j || (j.closed && !jobApp(j))) { S.flow = null; return vJobs(); }
