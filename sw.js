@@ -1,5 +1,5 @@
 /* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage. Assets: cache first. API calls (script.google.com) are never touched. */
-var V = 'sp-20261027a';
+var V = 'sp-20261027b';
 var ASSETS = ['/offline.html', '/assets/site.css?v=20261023a', '/assets/site.js?v=20261026a', '/assets/path.css?v=20261026a', '/assets/path.js?v=20261026a', '/assets/portal.css?v=20261024g', '/assets/portal.js?v=20261024e', '/assets/fx.js?v=20261024d', '/assets/intake.js?v=20261024d', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(V).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); }));
