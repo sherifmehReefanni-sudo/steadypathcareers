@@ -605,7 +605,7 @@ window.SP_DEMO = function () {
       { id: 'J-103', fit: 'Strong fit', added: iso(-6), postStatus: 'Open', postChecked: iso(-1), company: 'Example Dental Arts', title: 'Associate Dentist', location: 'Massapequa, NY', setting: 'On-site', pay: '$200,000 - $250,000 a year', payLow: 200000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Patient education is a big part of how they work, which is how you described your own style. Path to partnership after 2 years.', link: 'https://example.com/jobs/massapequa-associate', notes: 'They answer applications within a week.', answer: 'Yes', note: '', answeredOn: iso(-5),
         kit: { pay: 'I am looking for $220,000 to $240,000, in line with the posted range.', start: 'I can start two weeks after an offer.', why: 'I like that your team puts real time into patient education. That is how I practice, and my patients stay with me because of it.' } },
       { id: 'J-104', fit: 'Possible fit', concern: 'Less cosmetic work than your last practice.', added: iso(-9), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Shore Dental', title: 'General Dentist', location: 'Port Washington, NY', setting: 'On-site', pay: '$185,000 - $225,000 a year', payLow: 185000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Calm, modern office with digital scanners. Many family patients, good fit for your pediatric experience.', link: 'https://example.com/jobs/north-shore-general', notes: '', answer: 'Yes', note: '', answeredOn: iso(-8), kit: { pay: 'Within the posted range, around $210,000.', start: 'Two weeks after an offer.', why: '' } },
-      { id: 'J-105', fit: 'Stretch', concern: 'The low end of the pay range is below your floor.', added: iso(-4), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Community Dental Center', title: 'Staff Dentist', location: 'Smithtown, NY', setting: 'On-site', pay: '$175,000 - $205,000 a year', payLow: 175000, paySource: 'Posted by employer', floor: 'Below your floor at the low end', why: 'Community health center with set hours and full benefits. Loan repayment may be available.', link: 'https://example.com/jobs/smithtown-staff', notes: '', answer: 'Question', note: 'Do they offer loan repayment or a sign-on bonus?', answeredOn: iso(-3) },
+      { id: 'J-105', docsDue: iso(2), fit: 'Stretch', concern: 'The low end of the pay range is below your floor.', added: iso(-4), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Community Dental Center', title: 'Staff Dentist', location: 'Smithtown, NY', setting: 'On-site', pay: '$175,000 - $205,000 a year', payLow: 175000, paySource: 'Posted by employer', floor: 'Below your floor at the low end', why: 'Community health center with set hours and full benefits. Loan repayment may be available.', link: 'https://example.com/jobs/smithtown-staff', notes: '', answer: 'Question', note: 'Do they offer loan repayment or a sign-on bonus?', answeredOn: iso(-3) },
       { id: 'J-106', added: iso(-5), postStatus: 'Open', postChecked: iso(-1), company: 'Example Dental Group', title: 'Associate Dentist', location: 'Bay Shore, NY', setting: 'On-site', pay: '$160,000 - $180,000 a year', payLow: 160000, paySource: 'Posted by employer', floor: 'Below your floor', why: 'Steady patient base and short drive from the train.', link: 'https://example.com/jobs/bay-shore-associate', notes: '', answer: 'No', note: 'Pay is too low.', answeredOn: iso(-4) },
       { id: 'J-107', added: iso(-7), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Family Dentistry', title: 'Dentist', location: 'Riverhead, NY', setting: 'On-site', pay: '$190,000 - $215,000 a year', payLow: 190000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Small practice, owner plans to retire in 3 years.', link: 'https://example.com/jobs/east-end-dentist', notes: '', answer: 'No', note: 'Too far to drive.', answeredOn: iso(-6) }
       ,{ id: 'J-108', added: iso(-10), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Bay Dental', title: 'Lead Dentist', location: 'Oceanside, NY', setting: 'On-site', pay: '$210,000 - $260,000 a year', payLow: 210000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Lead role close to home.', link: 'https://example.com/jobs/108', notes: '', answer: 'Yes', note: '', answeredOn: iso(-9), closed: true, closedOn: iso(-1), kit: {} }
@@ -979,6 +979,8 @@ function docWords(list) {
   list.forEach(function (x) { if (!/^(resume|cover|prep)$/.test(docKind(x.name))) w.push(docShort(x.name)); });
   return w.length > 1 ? w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] : w[0] || 'documents';
 }
+/* " (expected by Oct 30)" when Sherif has set a date for this job's documents */
+function docsDue(j) { var dd = j && daysFrom(j.docsDue); return dd == null ? '' : dd < 0 ? ' (they were expected ' + fmtDate(j.docsDue) + '; Sherif will update you)' : ' (expected by ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : fmtDate(j.docsDue)) + ')'; }
 function flowStep(d) {
   var c = counts(), first = d.client.firstName || '', jobs = orderedJobs(d);
   var yes = jobs.filter(function (j) { return ansOf(j) === 'yes'; }), st = {};
@@ -999,7 +1001,7 @@ function flowStep(d) {
   var chg = yes.filter(function (j) { return st[j.id].changes.length && !st[j.id].app; })[0];
   if (chg) return { k: 'wait', t: 'Sherif is making your changes for ' + coName(chg), s: whenReady() };
   var writing = yes.filter(function (j) { var s = st[j.id]; return !s.app && !s.applyReady && !s.review.length; });
-  if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: whenReady() };
+  if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: (function (dd) { return dd == null || dd < 0 ? '' : 'Expected by ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : fmtDate(writing[0].docsDue)) + '. '; })(daysFrom(writing[0].docsDue)) + whenReady() };
   var qj = jobs.filter(function (j) { return ansOf(j) === 'q'; })[0];
   if (qj) return { k: 'wait', t: 'Sherif is looking into your question', s: 'About ' + coName(qj) + '. Sherif will reply to your question.' };
   if (!d.jobs.length && !(d.closed || []).length) return { k: 'start', t: 'Sherif is reading your resume', s: 'Your first job matches will show up here.' };
@@ -1020,7 +1022,7 @@ function dueItems(d) {
     if (s.review.length) add(1, '', 'Read and approve your documents for ' + coName(j), 'you', '<button class="linkbtn" data-review="' + esc(j.id) + '">Open</button>');
     else if (s.applyReady && !s.app) add(1, '', 'Apply to ' + coName(j), 'you', '<button class="linkbtn" data-applyflow="' + esc(j.id) + '">Open</button>');
     else if (s.changes.length && !s.app) add(6, '', 'Making your changes for ' + coName(j), 'sherif');
-    else if (!s.app && !s.applyReady) add(6, '', 'Writing your documents for ' + coName(j), 'sherif');
+    else if (!s.app && !s.applyReady) add(daysFrom(j.docsDue) != null && daysFrom(j.docsDue) >= 0 ? 0 : 6, daysFrom(j.docsDue) != null && daysFrom(j.docsDue) >= 0 ? j.docsDue : '', 'Writing your documents for ' + coName(j), 'sherif');
   });
   jobs.filter(function (j) { return ansOf(j) === 'q'; }).forEach(function (j) { add(6, '', 'Answering your question about ' + coName(j), 'sherif'); });
   (d.apps || []).forEach(function (x) {
@@ -1058,7 +1060,7 @@ function shortCo(c) { var w = String(c || '').trim().split(/\s+/), s = w.slice(0
    Same company: the title words the jobs do not share; same title too: the town. Each part is cut at a word, with an ellipsis. */
 function clipWords(s, n) { s = String(s || '').trim(); if (s.length <= n) return s; var c = s.slice(0, n - 1), k = c.lastIndexOf(' '); return (k > 0 ? c.slice(0, k) : c).replace(/[\s,·:;&-]+$/, '') + '…'; }
 function roleBit(j, peers, narrow) {
-  var words = function (t) { return String(t || '').replace(/[^\w&/+-]+/g, ' ').trim().split(/\s+/).filter(String); }, lc = function (v) { return String(v || '').trim().toLowerCase(); };
+  var words = function (t) { return String(t || '').replace(/[^\w&/+-]+/g, ' ').trim().split(/\s+/).filter(function (x) { return /[a-z0-9]/i.test(x); }); }, lc = function (v) { return String(v || '').trim().toLowerCase(); };
   var w = words(j.title), same = (peers || []).filter(function (p) { return p.id !== j.id && lc(p.company) === lc(j.company); });
   if (same.length) {
     /* for each other job at this company, the words of this title that one lacks; one word from each keeps every pair apart */
@@ -1141,7 +1143,9 @@ function vReview() {
       return '<section class="rv-panel" id="rvp-' + esc(x.id) + '" aria-label="' + esc(x.name) + '"' + (x.id === S.flow.tab ? '' : ' hidden') + '><div class="rv-frame' + (card ? ' open' : '') + '">' +
         (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to tap Looks good or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
           : S.demo ? sampleDoc(x, j) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
-        '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>' + (S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>')) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
+        '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open full screen</a>') +
+          (pdfLink(x.link) && docKind(x.name) !== 'prep' ? '<a class="kbtn" href="' + esc(pdfLink(x.link)) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + (/approved/i.test(x.status || '') ? 'Download PDF (approved)' : 'Download PDF (draft, not approved yet)') + '</a>' : '') +
+          (card || S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open full screen.</p>') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
     }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
     '</main>' + tabbar(flowFrom());
 }
@@ -1413,7 +1417,7 @@ function jobNext(j) {
     return '<div class="jnext">' + when + '<button class="kbtn" data-go="apps">' + IC.apps + 'See it on your Applied tab</button></div>';
   }
   if (s.changes.length) return '<div class="jnext"><p class="trknow">Next: Sherif is making your changes. ' + esc(whenReady()) + '</p></div>';
-  return '<div class="jnext"><p class="trknow wait-w">Next: your tailored resume, cover letter and interview prep are being prepared. They show up in Documents for your OK.</p></div>';
+  return '<div class="jnext"><p class="trknow wait-w">Next: your tailored resume, cover letter and interview prep are being prepared' + esc(docsDue(j)) + '. They show up in Documents for your OK.</p></div>';
 }
 function jobCard(j, hint) {
   var ans = ansOf(j), busy = locked(j.id), open = !!S.open[j.id], id = esc(j.id);
@@ -1520,7 +1524,7 @@ function docCard(x) {
   if (prepRd) st = 'Ready to read';
   if (x.closedJob && !ok) st = 'Posting closed';
   var pillCls = ok ? 'ok' : /changes/i.test(st) ? 'gold' : ready ? 'gold' : 'info';
-  return '<div class="dc' + (ok ? ' ok' : ready ? ' ready' : '') + '" data-doc="' + id + '"><div class="top"><div class="nm">' + IC.docs + '<span>' + esc(x.name) + '</span></div><span class="pill ' + pillCls + '">' + (ok ? '&#10003; ' : '') + esc(st || 'In progress') + '</span></div>' +
+  return '<div class="dc' + (ok ? ' ok' : ready ? ' ready' : '') + '" data-doc="' + id + '"><div class="top"><div class="nm">' + IC.docs + '<span>' + esc(x.jobId && KIND_LABEL[docKind(x.name)] ? KIND_LABEL[docKind(x.name)] : x.name) + '</span></div><span class="pill ' + pillCls + '">' + (ok ? '&#10003; ' : '') + esc(st || 'In progress') + '</span></div>' +
     docVerHtml(x) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') +
     '<div class="acts">' + (link ? '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open</a>' : '') +
     (ready ? '<button class="kbtn ok" data-approve="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Approve') + '</button>' : '') + (ready || prepRd ? '<button class="kbtn" data-changes="' + id + '"' + (busy ? ' disabled' : '') + '>Ask for changes</button>' : '') + '</div>' +
