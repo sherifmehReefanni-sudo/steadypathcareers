@@ -879,10 +879,10 @@ function flowStep(d) {
   if (r) { var w = docWords(st[r.id].review); return { k: 'review', t: 'Read your ' + w + ' for ' + coName(r), s: (st[r.id].review.length > 1 ? 'They are' : 'It is') + ' ready. Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ', then tap Looks good or ask for a change.', act: '<button class="btn gold" data-review="' + esc(r.id) + '">Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' now</button>' }; }
   var a = yes.filter(function (j) { return st[j.id].applyReady && !st[j.id].app; })[0];
   if (a) return { k: 'apply', t: 'Apply to ' + coName(a), s: 'Your documents are approved. Three short steps and you are done.', act: '<button class="btn gold" data-applyflow="' + esc(a.id) + '">Start applying</button>' };
-  var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0; }).sort(function (x, y) { return daysFrom(x.interview) - daysFrom(y.interview); })[0];
+  var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0 && stageOf(x) < 4; }).sort(function (x, y) { return daysFrom(x.interview) - daysFrom(y.interview); })[0];
   if (soon) {
     var dd = daysFrom(soon.interview), sj = soon.jobId ? jobById(soon.jobId) : null, prep = sj ? jobState(sj).prep : null;
-    var hasQs = prepQs(soon).length > 0;
+    var hasQs = prepQs(soon).length > 0; if (prep && !(isReady(prep) || /approved/i.test(prep.status || ''))) prep = null;
     return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. ' + (hasQs ? 'Practice the questions they are likely to ask.' : prep ? 'Read your prep sheet before you go.' : 'Your interview prep is in progress. Sherif will add it here.'),
       act: (hasQs ? '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">Practice now</button>' : '') + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
   }
@@ -932,8 +932,9 @@ function sampleDoc(x, j) {
     L(80) + L(92) + L(64) + '<b>' + (k === 'resume' ? 'Experience' : k === 'prep' ? 'Questions to expect' : '') + '</b>' + L(88) + L(70) + L(94) + L(58) + L(84) + L(76) +
     '<p>Sample preview. In your portal, your real document shows here.</p></div>';
 }
-/* Documents a change can be asked for on the review screen: any with a link that is not already waiting on a change, until the client has applied. */
-function changeable(j) { return jobApp(j) ? [] : rvDocs(j).filter(function (x) { return !/changes/i.test(x.status || '') && !x.closedJob; }); }
+/* Documents a change can be asked for on the review screen: any with a link that is not already waiting on a change. After the client
+   has applied, only ones still waiting for an OK (a thank-you note, say). */
+function changeable(j) { var ap = !!jobApp(j); return rvDocs(j).filter(function (x) { return !/changes/i.test(x.status || '') && !x.closedJob && (needsOk(x) || !ap); }); }
 function changeBox(st, j) {
   var cands = changeable(j), pick = cands.filter(function (x) { return x.id === S.changesFor; })[0]; if (!pick) return '';
   return '<div class="notebox rv-note">' + (cands.length > 1 ? '<p class="rv-which" id="rvw">Which one?</p><div class="rv-picks" role="group" aria-labelledby="rvw">' + cands.map(function (x) { return '<button type="button" class="btn ghost sm" data-rvpick="' + esc(x.id) + '" aria-pressed="' + (x.id === pick.id) + '">' + esc(docLabel(x)) + '</button>'; }).join('') + '</div>' : '') +
@@ -973,7 +974,7 @@ function vReview() {
           : S.demo ? sampleDoc(x, j) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
         '<div class="rv-pacts" data-live="pa' + i + '">' + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>' + (S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>')) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
     }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
-    '</main>' + tabbar('jobs');
+    '</main>' + tabbar(flowFrom());
 }
 /* Partial update for the review screen: the previews (iframes) stay loaded; only the live parts are swapped. */
 function patchLive(app, html) {
@@ -1038,7 +1039,7 @@ function vApply() {
       '<section class="ap-ask" aria-labelledby="ap-q"><h2 id="ap-q">Did you submit it?</h2><p>Tell us once you have sent it, so it shows on your Applied tab.</p><div class="row"><button class="kdone" data-applied="' + id + '"' + (S.applyBusy === j.id ? ' disabled' : '') + '>' + IC.check + (S.applyBusy === j.id ? 'Saving…' : 'Yes, I submitted it') + '</button><button class="btn ghost" data-notyet>Not yet</button></div></section>';
   }
   return shell(flowFrom(), done ? 'Sent. Nice work.' : 'Apply to ' + esc(j.company), esc(j.title)) + '<div class="pband" aria-hidden="true"></div>' +
-    '<main class="pmain flow ap" data-ap="' + id + '">' + flowTop() + body + '</main>' + tabbar('jobs');
+    '<main class="pmain flow ap" data-ap="' + id + '">' + flowTop() + body + '</main>' + tabbar(flowFrom());
 }
 function openFlow(kind, jobId) {
   var from = S.flow ? flowFrom() : S.view === 'docs' ? 'docs' : 'jobs';
@@ -1163,16 +1164,22 @@ function applyKit(j) {
 /* ---- job card ---- */
 /* What we actually know about the posting, from the daily check (API v1.18+: postStatus, postChecked). An older API, or a job
    not checked yet, says only when it was added: never "checked". Job boards (copies of the posting) are named as such. */
-var BOARD_HOSTS = /(^|\.)(indeed|ziprecruiter|adzuna|talent|jobleads|jobserve|linkedin|glassdoor|simplyhired|monster|careerbuilder|dice|snagajob|builtin|wellfound)\./i;
+/* Only these hosts are known employer hiring systems; a posting there is the employer's own. Known job boards are named as listings.
+   Anything else (an employer's own careers site, a staffing agency, a board we don't know) gets the neutral "Posting checked". */
+var ATS_HOSTS = /(^|\.)(myworkdayjobs\.com|myworkdaysite\.com|greenhouse\.io|lever\.co|ashbyhq\.com|workable\.com|adp\.com|icims\.com|smartrecruiters\.com|taleo\.net|paylocity\.com|bamboohr\.com|jobvite\.com|dayforcehcm\.com|ultipro\.com|ukg\.net|successfactors\.com|oraclecloud\.com|breezy\.hr|applytojob\.com|recruitee\.com|rippling\.com|paycomonline\.net|paychex\.com|teamtailor\.com|pinpointhq\.com)$/i;
+var BOARD_HOSTS = /(^|\.)(indeed|ziprecruiter|adzuna|talent|jobleads|jobserve|linkedin|glassdoor|simplyhired|monster|careerbuilder|dice|snagajob|builtin[a-z]*|wellfound|dentalpost|careerjet|jooble|theladders|ihire|healthecareers|dentaljobs|jobs2careers|lensa|talentify)\.(com|net|org|co|io|jobs)$/i;
 function postHost(j) { try { return new URL(safeUrl(j.link)).hostname.toLowerCase(); } catch (e) { return ''; } }
 function verifyPill(j) {
   if (j.closed) return '';
+  var added = j.added && /^\d{4}-\d\d-\d\d/.test(String(j.added)) ? fmtDate(j.added) : '';
+  if (j.postStatus === undefined) return added ? '<span class="pill info">Added ' + esc(added) + '</span>' : ''; /* older API: no check data */
   var st = String(j.postStatus || '').trim().toLowerCase(), on = /^\d{4}-\d\d-\d\d/.test(String(j.postChecked || '')) ? fmtDate(j.postChecked) : '';
-  var board = BOARD_HOSTS.test(postHost(j) + '.');
-  if (on && /^(open|keep open)/.test(st)) return '<span class="pill check">' + (board ? 'Job board listing checked ' : 'Employer posting checked ') + esc(on) + '</span>';
-  if (on && /^couldn/.test(st)) return '<span class="pill gold">Couldn\'t verify ' + esc(on) + '. Check the posting before you apply.</span>';
-  if (/^closing|^check/.test(st)) return '<span class="pill gold">Posting may have closed. Check it before you apply.</span>';
-  return j.added && /^\d{4}-\d\d-\d\d/.test(String(j.added)) ? '<span class="pill info">Added ' + esc(fmtDate(j.added)) + ', not checked yet</span>' : '';
+  var host = postHost(j), what = ATS_HOSTS.test(host) ? 'Employer posting checked ' : BOARD_HOSTS.test(host) ? 'Job board listing checked ' : 'Posting checked ';
+  if (/^(clos|check)/.test(st)) return '<span class="pill gold">Posting may have closed. Check it before you apply.</span>';
+  if (/^couldn/.test(st)) return '<span class="pill gold">Couldn\'t verify' + (on ? ' ' + esc(on) : '') + '. Check the posting before you apply.</span>';
+  if (on && st === 'open') return '<span class="pill check">' + what + esc(on) + '</span>';
+  if (on) return '<span class="pill info">Last checked ' + esc(on) + '</span>';
+  return added ? '<span class="pill info">Added ' + esc(added) + ', not checked yet</span>' : '';
 }
 function floorPill(f) { f = String(f || '').toLowerCase(); if (f.indexOf('at or above') === 0) return '<span class="pill ok">Meets your floor</span>'; if (f.indexOf('below') === 0) return '<span class="pill gold">Below your floor</span>'; return ''; }
 function isEst(j) { return /estimate/i.test(j.paySource || '') || /not posted|estimate/i.test(String(j.pay || '')); }
@@ -1262,8 +1269,9 @@ function vDocs() {
   var groups = [], gi = {};
   d.docs.forEach(function (x) { var k = x.jobId || ''; if (gi[k] == null) { gi[k] = groups.length; groups.push({ k: k, job: jobsById[k], docs: [] }); } groups[gi[k]].docs.push(x); });
   groups.sort(function (a, b) { var ra = a.docs.some(isReady) ? 0 : 1, rb = b.docs.some(isReady) ? 0 : 1; var ca = a.job && a.job.closed ? 1 : 0, cb = b.job && b.job.closed ? 1 : 0; return ca - cb || (a.k ? 1 : 0) - (b.k ? 1 : 0) || ra - rb; });
-  var n = docsReady(), kits = groups.filter(function (g) { return g.docs.some(needsOk); }).length;
-  return shell('docs', kits ? kits + (kits === 1 ? ' job has' : ' jobs have') + ' documents to review' : 'Your documents', n ? n + (n === 1 ? ' document needs' : ' documents need') + ' your OK. Interview prep is for reading; it needs no OK.' : 'Open, approve or ask for changes.') +
+  var n = docsReady(), kits = groups.filter(function (g) { return g.job && g.docs.some(needsOk); }).length, anyPrep = d.docs.some(function (x) { return docKind(x.name) === 'prep'; });
+  var dTitle = kits ? kits + (kits === 1 ? ' job has' : ' jobs have') + ' documents to review' : n ? n + (n === 1 ? ' document needs' : ' documents need') + ' your OK' : 'Your documents';
+  return shell('docs', dTitle, (kits && n ? n + (n === 1 ? ' document needs' : ' documents need') + ' your OK.' : 'Open, approve or ask for changes.') + (anyPrep ? ' Interview prep is for reading; it needs no OK.' : '')) +
     '<div class="pband" aria-hidden="true"></div><main class="pmain">' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + (d.docs.length ? groups.map(function (g) {
       return '<section class="dgrp' + (g.docs.some(function (x) { return x.closedJob; }) ? ' closed' : '') + '"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' +
         (g.docs.some(function (x) { return x.closedJob; }) ? '<p class="cnote">This posting is no longer open, so these don\'t need your OK. They stay here for your records.</p>' : '') +
@@ -1285,12 +1293,12 @@ function docCard(x) {
 /* ---- applied ---- */
 /* Applied board: 0 Applied, 1 Heard back, 2 Interview, 3 Offer, 4 Closed (declined either way, withdrew, posting gone). Closed words win,
    so "Offer declined" or a rejection after an interview never sits in Offer or Interview. */
-function stageOf(x) { var t = String(x.status || '').toLowerCase(); if (/reject|declin|turned it down|not selected|closed|no longer|withdr/.test(t)) return 4; if (/offer|hired|accepted/.test(t)) return 3; if (x.interview || /interview/.test(t)) return 2; if (/reply|heard|screen|call|contact/.test(t)) return 1; return 0; }
+function stageOf(x) { var t = String(x.status || '').toLowerCase(); if (/reject|declin|turned it down|not selected|closed|no longer|withdr|no offer|not hired|rescind|filled|not moving|not proceed|unsuccessful|passed on|went with another/.test(t)) return 4; if (/offer|hired|accepted/.test(t)) return 3; if (x.interview || /interview/.test(t)) return 2; if (/reply|heard|screen|call|contact/.test(t)) return 1; return 0; }
 function prepQs(x) { return lines(x && x.prepExpect); }
 function lines(t) { return String(t || '').split(/\n|;|(?:\s\d+\.\s)/).map(function (z) { return z.trim(); }).filter(String); }
 var APP_STATUS = ['Applied', 'Heard back', 'Interview scheduled', 'Offer', 'Employer declined', 'I turned it down', 'Withdrew'];
-/* the update form lists the old plain "Declined" too when a record still has it, so saving never changes it silently */
-function statusOpts(cur) { return (cur && APP_STATUS.indexOf(cur) < 0 && cur === 'Declined' ? APP_STATUS.concat(['Declined']) : APP_STATUS); }
+/* a status outside the list (old "Declined", or a note Sherif typed) is listed first and selected, so saving a date never changes it */
+function statusOpts(cur) { return cur && APP_STATUS.indexOf(cur) < 0 ? [cur].concat(APP_STATUS) : APP_STATUS; }
 function logForm() {
   if (!S.logOpen) return '<p style="margin:0"><button class="btn gold" data-logopen>+ Log an application</button></p>' + (S.logMsg ? '<p class="psub" role="status" style="margin:0">' + esc(S.logMsg) + '</p>' : '');
   var L = S.logDraft, v = function (k, dflt) { return esc(L[k] != null ? L[k] : (dflt || '')); };
@@ -1322,10 +1330,11 @@ function vApps() {
   return shell('apps', d.apps.length ? d.apps.length + (d.apps.length === 1 ? ' application' : ' applications') + ' tracked' : 'Nothing sent yet', 'Where each one stands. Offers and closed ones have their own columns.') +
     '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
-        var hasQs = prepQs(x).length > 0, hasNotes = !hasQs && (x.prepBring || x.prepAsk), soonIv = daysFrom(x.interview) != null && daysFrom(x.interview) >= 0;
+        var hasQs = prepQs(x).length > 0, hasNotes = !hasQs && (x.prepBring || x.prepAsk), soonIv = daysFrom(x.interview) != null && daysFrom(x.interview) >= 0 && stageOf(x) < 4;
+        var pj = x.jobId ? jobById(x.jobId) : null, pdoc = pj ? jobState(pj).prep : null; if (pdoc && !(isReady(pdoc) || /approved/i.test(pdoc.status || ''))) pdoc = null;
         return '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">Applied ' + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
           (x.interview ? '<div style="margin-top:6px"><span class="pill info">Interview ' + esc(fmtDate(x.interview)) + '</span></div>' : '') + (String(x.followUpDue).toLowerCase() === 'yes' ? '<div style="margin-top:6px"><span class="pill gold">Follow-up due</span></div>' : '') +
-          (hasQs ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : hasNotes ? '<p style="margin:8px 0 0"><button class="btn ghost" data-prep="' + esc(x.id) + '">Your prep notes</button></p>' : soonIv ? '<p class="psub" style="margin:8px 0 0">Interview prep in progress.</p>' : '') +
+          (hasQs ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : hasNotes ? '<p style="margin:8px 0 0"><button class="btn ghost" data-prep="' + esc(x.id) + '">Your prep notes</button></p>' : '') + (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : soonIv && !hasQs && !hasNotes ? '<p class="psub" style="margin:8px 0 0">Interview prep in progress.</p>' : '') +
           (S.updFor === x.id ? '<div class="logbox" style="margin-top:8px"><label for="upStatus">New status</label><select id="upStatus">' + statusOpts(x.status).map(function (o) { return '<option' + (o === x.status ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select><label for="upIv">Interview date (if any)</label><input id="upIv" type="date" value="' + esc(/^\d{4}-\d\d-\d\d$/.test(x.interview || '') ? x.interview : '') + '"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-upsave="' + esc(x.id) + '">Save</button><button class="btn ghost" data-upd="">Cancel</button></div></div>'
             : '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p>') + '</div>';
       }).join('') + '</div>';
