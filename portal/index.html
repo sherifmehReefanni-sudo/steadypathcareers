@@ -50,8 +50,12 @@ body { overflow-x: hidden; }
 .jc .qreply b { color: var(--q); }
 .jc .qreply:focus { outline: none; }
 .jc .qreply:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
-.jc .note2 .btn[disabled] { opacity: .55; cursor: not-allowed; }
-.dk-q .btn[disabled] { opacity: .55; cursor: not-allowed; }
+.jc .note2 .btn[aria-disabled="true"], .dk-q .btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+.qhint { font-size: 14px; font-weight: 700; color: var(--muted); }
+.qhint[hidden] { display: none; }
+.jc .det .qlast { background: #fff; border-left: 4px solid var(--q); border-radius: 10px; padding: 8px 10px; white-space: pre-wrap; }
+.jc .det .qlast b { color: var(--q); }
+.errscr .lmsg { margin: 0; }
 .jc .live { margin: 8px 0 0; }
 .jc .live .pill { white-space: normal; text-align: left; }
 .jc.leave { opacity: .55; transform: scale(.98); }
@@ -835,10 +839,11 @@ function jobById(id) { var f = function (x) { return String(x.id) === String(id)
   if (k && !t) S.linkKey = k; /* round 12: the emailed link carries a one-time key; load() trades it once for a session */
   if (q.get('expired')) { S.status = 'signin'; S.err = 'That link has expired. Enter your email and we\'ll send you a new one.'; lsDel('sp_token'); S.token = null; }
   if (q.get('answered')) S.flashJob = q.get('answered');
+  if (q.get('ask')) S.askJob = q.get('ask'); /* round 12: the email's Question button opens that job with its question box */
   if (q.get('closed')) S.flash = 'That job posting has closed, so there is nothing to answer.';
   if (q.get('v')) S.view = q.get('v');
   if (q.get('review') && !q.get('expired')) S.wantReview = q.get('review'); /* from the "documents ready" email: open the review screen for that job */
-  if (t || k || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
+  if (t || k || q.get('ask') || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
 })();
 if (S.view === 'home') S.view = 'jobs';
 
@@ -870,7 +875,8 @@ function errText(e, thing) {
   return 'Not saved. Please try again in a minute.';
 }
 function load() {
-  if (S.linkKey) { redeemLink(); return; }
+  /* round 12: an emailed ?k= link is traded only when the client taps Continue (link scanners that open pages never burn it) */
+  if (S.linkKey) { S.status = 'link'; S.focusTo = '#linkGo'; render(); return; }
   if (!S.token) { S.status = 'signin'; render(); return; }
   S.status = 'loading'; render();
   /* round 12: a failed request is a connection problem; an error while building the page is not (it is logged with its real cause) */
@@ -886,6 +892,11 @@ function load() {
     d.docs.forEach(function (x) { x.closedJob = !!(x.jobId && closedIds[x.jobId]); });
     S.data = d; S.status = 'ready'; S.conf = {};
     d.jobs.forEach(function (j) { S.conf[j.id] = { answer: j.answer || '', note: j.note || '' }; });
+    if (S.linkFlash) { S.flash = (S.linkFlash === 'expired' ? 'That link has expired.' : S.linkFlash === 'used' ? 'That link was already used.' : 'That link didn\'t work.') + ' You are still signed in' + (d.client.firstName ? ' as ' + d.client.firstName : '') + '.'; S.linkFlash = null; }
+    if (S.askJob) { var aj = jobById(S.askJob); S.askJob = null; /* round 12: from the email's Question button */
+      if (!aj) S.flash = 'We couldn\'t find that job. Here are all your jobs.';
+      else if (aj.closed && !jobApp(aj)) S.flash = 'That job posting has closed, so there is nothing to ask.';
+      else { S.view = 'jobs'; jfReset(); if (ansOf(aj) === 'no') S.passedOpen = true; if (ansOf(aj) !== 'q') { S.qOpen[aj.id] = true; S.notes[aj.id] = ''; } S.jsel = aj.id; S.focusTo = '#nt-' + cssq(aj.id); S.scrollJob = aj.id; } }
     if (S.flashJob) { var fj = jobById(S.flashJob); S.flash = 'Saved your answer for ' + (fj ? fj.title + (fj.company ? ' at ' + fj.company : '') : 'that job') + '. Thank you.'; S.flashJob = null; }
     /* Fix the job order once per load so a card never jumps away while the client is answering it:
        unanswered first, then Yes and Question, then No (shown in Passed). */
@@ -912,15 +923,25 @@ function load() {
 }
 /* round 12: the emailed link works once. Trade its key for a session; a second tap on the same device keeps the session it already has. */
 function redeemLink() {
-  var k = S.linkKey; S.status = 'loading'; render();
+  var k = S.linkKey; if (!k || S.linkBusy) return;
+  S.linkBusy = true; S.linkMsg = ''; render();
   post({ action: 'redeem', k: k }).then(function (d) {
+    S.linkBusy = false; var e = d && d.error;
+    if (d && d.ok && d.t) { S.linkKey = null; S.token = d.t; setToken(d.t); load(); return; }
+    if (e === 'busy' || !d) { S.linkMsg = 'That took too long on our side. Please tap the button again.'; S.focusTo = '#linkGo'; render(); return; } /* the key is kept */
     S.linkKey = null;
-    if (d && d.ok && d.t) { S.token = d.t; setToken(d.t); load(); return; }
-    if (S.token) { load(); return; }
-    var e = d && d.error; S.status = 'signin';
+    if (S.token) { S.linkFlash = e || 'bad'; load(); return; } /* a saved session on this device keeps working */
+    S.status = 'signin';
     S.err = e === 'used' ? 'That sign-in link was already used. Each link works once. Enter your email and we\'ll send you a new one.' : e === 'expired' ? 'That link has expired. Links work for 30 minutes. Enter your email and we\'ll send you a new one.' : 'That link didn\'t work. Enter your email and we\'ll send you a new one.';
     render();
-  }).catch(function (e) { try { console.error('Portal: could not check the sign-in link.', e); } catch (x) {} S.errKind = 'network'; S.status = 'error'; S.focusTo = '#errH'; render(); });
+  }).catch(function (e) { try { console.error('Portal: could not check the sign-in link.', e); } catch (x) {} S.linkBusy = false; S.linkMsg = 'We couldn\'t reach the server. Please check your connection and tap the button again.'; S.focusTo = '#linkGo'; render(); });
+}
+function vLink() {
+  return '<div class="login errscr"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a></div>' +
+    '<div class="box"><h2 id="linkH" tabindex="-1">Open your portal</h2><p class="psub" style="margin:0">Tap the button to finish signing in on this device. The link works once.</p>' +
+    (S.linkMsg ? '<div class="warn lmsg" role="alert">' + esc(S.linkMsg) + '</div>' : '') +
+    '<button class="btn gold" id="linkGo" data-redeemlink style="width:100%;min-height:48px"' + (S.linkBusy ? ' aria-disabled="true"' : '') + '>' + (S.linkBusy ? 'Opening your portal…' : 'Continue to my portal') + '</button>' +
+    '<p class="ehelp"><b>Need help?</b> ' + helpHtml() + '</p>' + legalLinks('fine legal') + '</div></div>';
 }
 function requestLink(email) {
   S.lastEmail = email;
@@ -953,7 +974,7 @@ function pump(id) {
       if (q.next) { pump(id); return; }
       if (S.noteQ[id] != null && it.a === 'q') { var nq = S.noteQ[id]; delete S.noteQ[id]; sendAnswer(id, 'q', nq, {}); return; }
       delete S.pending[id];
-      if (it.a === 'q' && it.note) { delete S.qOpen[id]; delete S.notes[id]; } /* round 12: the question is saved, so its box is the normal one */
+      if (it.a === 'q' && it.note) { delete S.qOpen[id]; delete S.notes[id]; S.newQ = S.newQ || {}; S.newQ[id] = true; } /* a new question: an earlier reply is no longer its answer */ /* round 12: the question is saved, so its box is the normal one */
       if (!S.deferred[id]) { j.answer = d.answer || ''; if (it.note !== undefined) j.note = it.note; }
       j.answeredOn = d.answer ? todayISO() : '';
       S.justSaved = id;
@@ -1163,7 +1184,15 @@ function orderedJobs(d) { var pos = {}; (S.order || []).forEach(function (id, i)
 function coName(j) { return String(j.company || j.title || 'this job'); }
 /* round 12: Sherif's reply to a client's question (Jobs "Reply" / "Reply date"). A reply the client has not opened yet is their item
    in Due next and the next step; seen replies are remembered on this device, keyed by job id + reply date. */
-function replyOf(j) { return ansOf(j) === 'q' && !j.closed ? String(j.reply || '').trim() : ''; }
+/* current = still the answer to the client's question: the job is a Question, the Reply date is on or after Answered on, and no new
+   question was sent here since. With no Reply date, current until the client sends a new question. An older reply stays in Details. */
+function replyText(j) { return String((j && j.reply) || '').trim(); }
+function replyCurrent(j) {
+  if (!replyText(j) || ansOf(j) !== 'q' || j.closed || (S.newQ && S.newQ[j.id])) return false;
+  var iso = /^\d{4}-\d\d-\d\d/, rd = String(j.replyDate || '').slice(0, 10), ad = String(j.answeredOn || '').slice(0, 10);
+  return !iso.test(rd) || !iso.test(ad) || rd >= ad;
+}
+function replyOf(j) { return replyCurrent(j) ? replyText(j) : ''; }
 function replyKey(j) { return String(j.id) + '|' + (String(j.replyDate || '').trim() || 'r' + String(j.reply || '').length); }
 function seenReplies() { if (!S.seenMem) { var o = {}; try { o = JSON.parse(lsGet('sp_replyseen') || '{}') || {}; if (typeof o !== 'object' || Array.isArray(o)) o = {}; } catch (e) { o = {}; } S.seenMem = o; } return S.seenMem; }
 function replyNew(j) { return !!replyOf(j) && !seenReplies()[replyKey(j)]; }
@@ -1662,7 +1691,8 @@ function jobCard(j, hint) {
     var nv = S.notes[j.id] != null ? S.notes[j.id] : (qo ? '' : j.note || '');
     var conf = S.conf[j.id] || {}, sending = S.noteQ[j.id] != null || (S.pending[j.id] && S.q[j.id] && S.q[j.id].noteInFlight);
     h += '<div class="note2"><label class="' + (qo ? '' : 'sr') + '" for="nt-' + id + '"' + (qo ? ' style="font-weight:800;color:var(--navy)"' : '') + '>' + (na === 'q' ? 'Your question for Sherif' : 'Why not') + '</label><textarea id="nt-' + id + '" placeholder="' + (na === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps your next matches.') + '" data-note="' + id + '" data-na="' + na + '">' + esc(nv) + '</textarea>' +
-      '<div class="row"><button class="btn' + (na === 'q' ? ' gold' : '') + '" data-savenote="' + id + '" data-a="' + na + '"' + (na === 'q' && !String(nv).trim() && !sending ? ' disabled' : '') + '>' + (sending ? 'Sending…' : 'Send') + '</button>' +
+      '<div class="row"><button class="btn' + (na === 'q' ? ' gold' : '') + '" data-savenote="' + id + '" data-a="' + na + '"' + (na === 'q' && !String(nv).trim() && !sending ? ' aria-disabled="true" aria-describedby="qh-' + id + '"' : '') + '>' + (sending ? 'Sending…' : 'Send') + '</button>' +
+      (na === 'q' ? '<span class="qhint" id="qh-' + id + '"' + (String(nv).trim() || sending ? ' hidden' : '') + '>Type your question first</span>' : '') +
       (qo ? '<button class="btn ghost" data-qcancel="' + id + '">Cancel</button>' : '') + (!qo && conf.note && nv === conf.note && !busy ? '<span class="saving" role="status">Sent</span>' : '') + '</div></div>';
     if (ans === 'q' && replyOf(j)) h += '<p class="qreply" id="qr-' + id + '" tabindex="-1"><b>Sherif replied' + esc(replyWhen(j)) + ':</b> ' + esc(replyOf(j)) + '</p>';
   }
@@ -1671,7 +1701,8 @@ function jobCard(j, hint) {
   h += '<button class="dtog" data-det="' + id + '" aria-expanded="' + open + '" aria-controls="det-' + id + '">Details ' + IC.chev + '</button>';
   if (open) {
     h += '<div class="det" id="det-' + id + '">' + (j.why ? '<p><span class="lab">Why it fits</span>' + esc(j.why) + '</p>' : '') +
-      (j.notes ? '<p><span class="lab">Our notes</span>' + esc(j.notes) + '</p>' : '') + (heads ? '<p class="heads">' + heads + '</p>' : '') +
+      (j.notes ? '<p><span class="lab">Our notes</span>' + esc(j.notes) + '</p>' : '') +
+      (replyText(j) && !replyOf(j) ? '<p class="qlast"><span class="lab">Earlier answer</span><b>Sherif replied' + esc(replyWhen(j)) + ':</b> ' + esc(replyText(j)) + '</p>' : '') + (heads ? '<p class="heads">' + heads + '</p>' : '') +
       '<p class="dlinks">' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" data-track="posting" data-job="' + id + '">See the posting</a>' : '') +
       (cm ? '<a href="' + esc(cm) + '" target="_blank" rel="noopener noreferrer">Commute from home</a>' : '') +
       (ans && !busy && !j.closed ? '<button type="button" data-clear="' + id + '">Clear my answer</button>' : '') + '</p>' +
@@ -2047,6 +2078,7 @@ function saveDrafts() {
 function render() {
   var app = $('#app');
   if (S.status === 'signin') { app.innerHTML = vSignin(); return; }
+  if (S.status === 'link') { app.innerHTML = vLink(); var lg = S.focusTo ? document.querySelector(S.focusTo) : null; S.focusTo = null; if (lg) { try { lg.focus({ preventScroll: true }); } catch (e) { lg.focus(); } } return; }
   if (S.status === 'loading' || S.status === 'boot') { app.innerHTML = '<div class="skel">Opening your portal…</div>'; return; }
   if (S.status === 'error') { app.innerHTML = vError(); var eh = S.focusTo === '#errH' ? document.getElementById('errH') : null; S.focusTo = null; if (eh) { try { eh.focus({ preventScroll: true }); } catch (e) { eh.focus(); } } return; }
   var fk = focusKey(document.activeElement); saveDrafts();
@@ -2065,6 +2097,7 @@ function render() {
     if (fk && fk.s != null && typeof target.setSelectionRange === 'function') { try { target.setSelectionRange(fk.s, fk.e); } catch (e) {} }
   }
   appScroll();
+  if (S.scrollJob && S.status === 'ready') { var sj = document.querySelector('#app [data-jc="' + cssq(S.scrollJob) + '"]'); S.scrollJob = null; if (sj) { try { sj.scrollIntoView({ block: 'start', behavior: 'auto' }); } catch (e) { sj.scrollIntoView(); } } }
 }
 /* round 12: the full-page error, with the logo, Try again, Sign in again and the help links. A connection problem and a page
    that could not be built get different words; the real error is in the console. */
@@ -2099,7 +2132,7 @@ function signOut(msg) {
   /* a shared device keeps nothing of this client: practice notes, kit ticks and screen state */
   try { for (var k = localStorage.length - 1; k >= 0; k--) { var lk = localStorage.key(k); if (/sp_pvnotes_|sp_kit_|sp_replyseen/.test(lk || '')) localStorage.removeItem(lk); } } catch (e) {}
   S.pvMem = null; S.pv = null; S.dhOpen = null; S.jsel = null; if (S.view === 'prep') S.view = 'jobs';
-  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.qOpen = {}; S.notes = {}; S.seenMem = null; S.colOpen = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
+  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.qOpen = {}; S.notes = {}; S.newQ = {}; S.seenMem = null; S.colOpen = null; S.lastEmail = ''; S.linkKey = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
 }
 
@@ -2107,7 +2140,7 @@ function redeemCode(code) {
   var b = $('#codeBtn'); if (b) { b.disabled = true; b.textContent = 'Checking…'; }
   post({ action: 'redeem', email: S.sent, code: code }).then(function (d) {
     if (d.ok && d.t) { S.token = d.t; setToken(d.t); S.sent = false; S.codeErr = ''; load(); }
-    else { S.codeErr = d.error === 'expired code' ? 'That code has expired. Tap Send a new link below.' : d.error === 'locked' ? 'Too many wrong tries, so this code is locked. Tap Send a new link below to get a new one.' : 'That code didn\'t match. Check the newest email and try again.'; render(); }
+    else { S.codeErr = d.error === 'expired code' ? 'That code has expired. Tap Send a new link below.' : d.error === 'locked' ? 'Too many wrong tries, so sign-in codes are locked for 30 minutes. Open the link in the newest email instead. Need a new one? Tap Send a new link below.' : d.error === 'busy' ? 'We couldn\'t check the code just now. Please try again in a minute.' : 'That code didn\'t match. Check the newest email and try again.'; render(); }
   }).catch(function () { S.codeErr = 'We couldn\'t check the code. Please check your connection and try again.'; render(); });
 }
 function copyText(t) {
@@ -2237,7 +2270,7 @@ function dkCard(j, top) {
   h += '</div>';
   if (asking) {
     h += '<div class="dk-q"><label for="dkq-' + id + '">Your question for Sherif</label><textarea id="dkq-' + id + '" data-note="' + id + '" placeholder="For example: is parking free?">' + esc(S.notes[j.id] || '') + '</textarea>' +
-      '<div class="row"><button class="btn gold" data-dkq="send"' + (String(S.notes[j.id] || '').trim() ? '' : ' disabled') + '>Send question</button><button class="btn ghost" data-dkq="cancel">Cancel</button><button class="btn ghost" data-dkq="later">Decide later</button></div></div>';
+      '<div class="row"><button class="btn gold" data-dkq="send"' + (String(S.notes[j.id] || '').trim() ? '' : ' aria-disabled="true" aria-describedby="dkqh"') + '>Send question</button><button class="btn ghost" data-dkq="cancel">Cancel</button><button class="btn ghost" data-dkq="later">Decide later</button></div><span class="qhint" id="dkqh"' + (String(S.notes[j.id] || '').trim() ? ' hidden' : '') + '>Type your question first</span></div>';
   }
   return h + '</div>';
 }
@@ -2338,7 +2371,7 @@ function deckClick(b, d) {
   if (d.dka) { if (d.dka === 'q') deckAsk(); else deckDecide(d.dka); return true; }
   if (d.dkq) { var j = deckCur(); if (!j) return true; var ta = document.querySelector('.dk-q textarea'); var note = ta ? ta.value.trim() : '';
     /* round 12: Send question needs text and saves Question with it; Cancel goes back to the same card; Decide later moves on, nothing saved */
-    if (d.dkq === 'send') { if (!note) { if (ta) ta.focus(); return true; } S.notes[j.id] = note; deckDecide('q', note); return true; }
+    if (d.dkq === 'send') { if (!note) return true; /* aria-disabled: nothing happens while empty */ S.notes[j.id] = note; deckDecide('q', note); return true; }
     if (d.dkq === 'cancel') { deckCancelAsk(); return true; }
     if (d.dkq === 'later') { deckLater(); return true; }
     return true; }
@@ -2393,6 +2426,7 @@ document.addEventListener('click', function (e) {
   if (d.go) { go(d.go); return; }
   if (d.first != null) { scrollToFirst(); return; }
   if (d.retry != null) { load(); return; }
+  if (d.redeemlink != null) { redeemLink(); return; }
   if (d.newlink != null) { S.sent = false; S.codeErr = ''; S.err = ''; S.focusTo = '#email'; render(); var em = $('#email'); if (em) em.focus(); return; }
   if (d.signout != null) { signOut(''); return; }
   if (d.hidehint != null) { hideHint(); render(); return; }
@@ -2428,7 +2462,7 @@ document.addEventListener('click', function (e) {
     return; }
   if (d.clear) { if (locked(d.clear)) return; S.focusTo = '[data-ans="yes"][data-j="' + cssq(d.clear) + '"]'; answer(d.clear, ''); return; }
   if (d.savenote) { var ta = document.querySelector('[data-note="' + cssq(d.savenote) + '"]'); S.notes[d.savenote] = ta ? ta.value : '';
-    if (d.a === 'q' && !S.notes[d.savenote].trim()) { if (ta) ta.focus(); return; } /* round 12: an empty question is never sent */
+    if (d.a === 'q' && !S.notes[d.savenote].trim()) return; /* aria-disabled while empty: nothing happens */ /* round 12: an empty question is never sent */
     if (S.pending[d.savenote] || S.deferred[d.savenote]) { if (d.a === 'q' && !S.deferred[d.savenote]) { S.noteQ[d.savenote] = S.notes[d.savenote]; render(); } return; }
     answer(d.savenote, d.a, S.notes[d.savenote]); return; }
   if (d.logopen != null) { S.logOpen = true; S.logErr = ''; S.logMsg = ''; S.logDraft = {}; S.focusTo = '#lgCompany'; render(); return; }
@@ -2487,7 +2521,11 @@ document.addEventListener('input', function (e) {
   S.notes[t.dataset.note] = t.value;
   /* round 12: Send for a question stays disabled until there is text */
   var empty = !t.value.trim(), b = t.closest('.dk-q') ? document.querySelector('.dk-q [data-dkq="send"]') : t.dataset.na === 'q' ? document.querySelector('[data-savenote="' + cssq(t.dataset.note) + '"][data-a="q"]') : null;
-  if (b && b.textContent !== 'Sending…') b.disabled = empty;
+  if (b && b.textContent !== 'Sending…') {
+    var hid = b.closest('.dk-q') ? 'dkqh' : 'qh-' + t.dataset.note, hint = document.getElementById(hid);
+    if (empty) { b.setAttribute('aria-disabled', 'true'); b.setAttribute('aria-describedby', hid); } else { b.removeAttribute('aria-disabled'); b.removeAttribute('aria-describedby'); }
+    if (hint) hint.hidden = !empty;
+  }
 });
 /* ---- round 3 controls: filter chips, clear, Due, Change my answer ---- */
 document.addEventListener('click', function (e) {
