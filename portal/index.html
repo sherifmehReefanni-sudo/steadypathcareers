@@ -835,7 +835,7 @@ function errText(e, thing) {
   e = String(e || '');
   if (e === 'expired') return 'Your sign-in has expired.';
   if (e === 'closed') return 'This posting has just closed, so nothing was saved. Refresh this page to see the latest.';
-  if (e === 'changed') return 'Sherif just updated this document, so nothing was approved. Showing you the latest version now.';
+  if (e === 'changed') return 'This document changed since you opened it, so it was not approved. Showing you the latest version now.';
   if (e === 'network') return 'That didn\'t save. Please check your connection and try again.';
   if (/not found/i.test(e)) return 'Not saved. That ' + (thing || 'item') + ' was updated. Reopen the portal to refresh.';
   return 'Not saved. Please try again in a minute.';
