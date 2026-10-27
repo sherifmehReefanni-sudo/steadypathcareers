@@ -590,6 +590,90 @@ body.deck-lock { overflow: hidden; }
 .urg.ok:focus { outline: none; }
 @media (max-width: 520px) { .pf-r { grid-template-columns: 1fr; } }
 </style>
+<style>
+/* ---- round 6b: color roles, lighter chrome, desktop list + detail ----
+   Roles: --struct (navy) for structure; --act (gold) only for the primary action and the selected state; --ok (green) for done or
+   approved; --attn (amber) for "needs you"; questions waiting on Sherif use the info blue (--q). Contrast checked with
+   /home/claude/spc/r6b-test/contrast.js (WCAG AA, light mode). */
+:root { --struct: var(--navy); --act: var(--gold); --act-ink: var(--midnight); --act-soft: #FBF3DA; --act-edge: #9C7A10;
+  --attn: #8A4300; --attn-soft: #FDEBD5; --attn-line: #EDB77A; --attn-badge: #F0A04B;
+  --q: #2b5aa8; --q-bg: #F1F5FC; --q-line: #B9CCEE;
+  --card-line: #EAE3D5; --card-shadow: 0 1px 2px rgba(16,33,58,.05), 0 2px 8px rgba(16,33,58,.03); }
+/* pills and chips: amber asks for attention, green is done, gold is never a status. ".gold" pills (older markup) read as attention. */
+.pill.attn, .pill.gold { background: var(--attn-soft); color: var(--attn); }
+.pill.check { background: var(--ok-soft); color: var(--ok); }
+.warn { background: var(--attn-soft); color: var(--attn); }
+.dk-alert { background: var(--attn-soft); color: var(--attn); }
+.due .who.w-you { background: var(--attn-soft); color: var(--attn); }
+.ptabs .cnt, .tabbar .cnt { background: var(--attn-badge); color: var(--midnight); }
+.jc .jwatch { background: var(--attn-soft); color: var(--ink); }
+.jc .jwatch b { color: var(--attn); }
+.jc.s-q .jwatch { background: #fff; }
+.jc .det .heads { background: var(--attn-soft); }
+.dc.ready { border-color: var(--attn-line); box-shadow: none; background-image: none; }
+/* states on the job card: navy until answered, green for Yes, blue while Sherif finds out */
+.jc::before, .jc.s-q::before, .jc.s-yes::before { width: 5px; }
+.jc::before { background: var(--struct); }
+.jc.s-yes::before { background: var(--ok); }
+.jc.s-q::before { background: var(--q); }
+.jc .ans3 button.q[aria-pressed="true"] { background: var(--q); border-color: var(--q); color: #fff; }
+.dk-stamp.q { border-color: var(--q); }
+.prog .bar i { background: var(--ok); }
+/* stage 2, "Ready for you", is the client's turn: amber. The journey map's gold road is kept as an illustration, but quieter. */
+.st-2 { color: var(--attn); background-color: var(--attn-soft); }
+.jm::before { opacity: .45; }
+.jm-dot { border-color: #DCCDA6; }
+.jm-st.has .jm-dot { box-shadow: 0 0 0 4px rgba(16,33,58,.08); }
+.jm-st.has.st-2 .jm-dot { border-color: var(--attn); }
+.prog .bar i::after { box-shadow: 0 0 0 4px var(--ok); }
+.col h3 .tw { color: var(--struct); }
+.wnote { border-left-color: var(--struct); }
+.fbask { background: #fff; border-color: var(--card-line); }
+/* lighter chrome: hairline borders, soft shadows, flat quiet panels */
+.jc { border: 1px solid var(--card-line); box-shadow: var(--card-shadow); }
+.jc.s-no, .jc.s-closed { box-shadow: none; }
+.dc, .app, .wnote, .kit, .due, .jfind, .rv-card, .ap-st, .rv-tab, .card { box-shadow: var(--card-shadow); }
+.dc, .app, .due, .jfind, .rv-card, .ap-st { border-width: 1px; }
+.dc:not(.ok):not(.ready), .app, .due, .jfind, .rv-card:not(.ok), .ap-st:not(.done) { border-color: var(--card-line); }
+.jmap { background: #fff; border: 1px solid var(--card-line); box-shadow: var(--card-shadow); }
+.sec-h::after { height: 1px; background: var(--card-line); opacity: 1; }
+.col { background-image: none; background-color: #F5EFE3; }
+.nx { box-shadow: 0 6px 18px rgba(16,33,58,.16); }
+.flip { box-shadow: var(--card-shadow); }
+
+/* desktop list + detail (Jobs, 1100px and wider; the markup only exists there) */
+.jl { display: grid; gap: 12px; }
+.jl-panes { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.jl-side { display: grid; gap: 10px; min-width: 0; }
+.jl-side > .sec-h { margin: 0; }
+.jl-list { list-style: none; margin: 0; padding: 0; background: #fff; border: 1px solid var(--card-line); border-radius: 14px; overflow: hidden; box-shadow: var(--card-shadow); }
+.jl-list li + li { border-top: 1px solid var(--card-line); }
+.passed .jl-list { margin-top: 6px; }
+.jl-i { position: relative; display: grid; gap: 2px; width: 100%; box-sizing: border-box; min-height: 44px; margin: 0; padding: 12px 14px 12px 18px; border: 0; background: transparent; text-align: left; font: inherit; color: var(--ink); cursor: pointer; overflow-wrap: anywhere; }
+.jl-i:hover { background: #FCFAF5; }
+.jl-i[aria-current="true"] { background: var(--act-soft); }
+.jl-i[aria-current="true"]::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--act-edge); }
+#app .jl-i:focus-visible { outline: 3px solid var(--midnight); outline-offset: -3px; }
+.jl-t { font: 800 16px/1.25 var(--display); color: var(--struct); }
+.jl-c { font-size: 14px; font-weight: 600; color: var(--muted); }
+.jl-p { font-weight: 800; font-size: 14.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.jl-p small { font-weight: 700; color: var(--muted); }
+.jl-m { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 4px; }
+.jl-m .pill { font-size: 12.5px; padding: 2px 9px; white-space: normal; }
+.jl-i.s-no .jl-t, .jl-i.s-no .jl-p, .jl-i.is-closed .jl-t { color: var(--no-ink); }
+.jl-none, .jl-empty { margin: 0; padding: 18px; background: #fff; border: 1px dashed var(--card-line); border-radius: 14px; color: var(--muted); font-weight: 700; }
+.jl-detail { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; overscroll-behavior: contain; border-radius: 18px; min-width: 0; }
+#app .jl-detail:focus-visible { outline: 3px solid var(--midnight); outline-offset: 2px; }
+@media (min-width: 1100px) {
+  .pmain.xl { max-width: 1100px; } /* lines up with the header and the Applied board */
+  /* the search bar sits above both panes as one toolbar */
+  .jl .jfind { grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: 16px; }
+  .jl .jfind .jf-row { grid-column: 1; }
+  .jl .jfind .jf-chips { grid-column: 2; }
+  .jl .jfind .jf-st { grid-column: 1 / -1; }
+}
+@media print { .jl-panes { display: block; } .jl-detail { position: static; max-height: none; overflow: visible; } }
+</style>
 <script>
 /* Sample data for the portal preview (?demo=1). It ships inside this page but is only read in demo mode; real clients never see it. */
 window.SP_DEMO = function () {
@@ -1433,19 +1517,19 @@ function verifyPill(j) {
   if (j.postStatus === undefined) return added ? '<span class="pill info">Added ' + esc(added) + '</span>' : ''; /* older API: no check data */
   var st = String(j.postStatus || '').trim().toLowerCase(), on = /^\d{4}-\d\d-\d\d/.test(String(j.postChecked || '')) ? fmtDate(j.postChecked) : '';
   var host = postHost(j), what = ATS_HOSTS.test(host) ? 'Employer posting checked ' : BOARD_HOSTS.test(host) ? 'Job board listing checked ' : 'Posting checked ';
-  if (/^(clos|check)/.test(st)) return '<span class="pill gold">Posting may have closed. Check it before you apply.</span>';
-  if (/^couldn/.test(st)) return '<span class="pill gold">Couldn\'t verify' + (on ? ' ' + esc(on) : '') + '. Check the posting before you apply.</span>';
+  if (/^(clos|check)/.test(st)) return '<span class="pill attn">Posting may have closed. Check it before you apply.</span>';
+  if (/^couldn/.test(st)) return '<span class="pill attn">Couldn\'t verify' + (on ? ' ' + esc(on) : '') + '. Check the posting before you apply.</span>';
   if (on && st === 'open') return '<span class="pill check">' + what + esc(on) + '</span>';
   if (on) return '<span class="pill info">Last checked ' + esc(on) + '</span>';
   return added ? '<span class="pill info">Added ' + esc(added) + ', not checked yet</span>' : '';
 }
-function floorPill(f) { f = String(f || '').toLowerCase(); if (f.indexOf('at or above') === 0) return '<span class="pill ok">Meets your floor</span>'; if (f.indexOf('below') === 0) return '<span class="pill gold">Below your floor</span>'; return ''; }
+function floorPill(f) { f = String(f || '').toLowerCase(); if (f.indexOf('at or above') === 0) return '<span class="pill ok">Meets your floor</span>'; if (f.indexOf('below') === 0) return '<span class="pill attn">Below your floor</span>'; return ''; }
 function isEst(j) { return /estimate/i.test(j.paySource || '') || /not posted|estimate/i.test(String(j.pay || '')); }
 function payText(j) { var p = String(j.pay == null ? '' : j.pay).split(';')[0].trim(); return p || 'Pay not posted'; }
 function commuteUrl(j) { var h = S.data.client.home; if (!h || !j.location || /remote/i.test(j.location) || /^\s*remote/i.test(j.setting || '')) return ''; return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(h) + '&destination=' + encodeURIComponent(String(j.company).replace(/\s*\(.*?\)/g, '') + ', ' + j.location); }
 /* ---- round 3: fit label, one reason, the biggest concern, and the next action for a Yes job ---- */
 /* Fit comes from the Jobs sheet's "Fit" column (Strong fit / Possible fit / Stretch). No match percentages: any "85%" is dropped. */
-var FITS = [[/^strong/i, 'Strong fit', 'ok', 0], [/^possible/i, 'Possible fit', 'info', 1], [/^stretch/i, 'Stretch', 'gold', 2]];
+var FITS = [[/^strong/i, 'Strong fit', 'ok', 0], [/^possible/i, 'Possible fit', 'info', 1], [/^stretch/i, 'Stretch', 'attn', 2]];
 function fitOf(j) {
   var f = String((j && j.fit) || '').replace(/\(?\s*\d+(\.\d+)?\s*%\s*\)?/g, ' ').replace(/\s+/g, ' ').trim(); if (!f) return null;
   for (var i = 0; i < FITS.length; i++) if (FITS[i][0].test(f)) return { label: FITS[i][1], cls: FITS[i][2], rank: FITS[i][3] };
@@ -1546,10 +1630,10 @@ function vJobs() {
   var main = sorted.filter(function (j) { return ansOf(j) !== 'no' || S.leaving[j.id]; }), passed = sorted.filter(function (j) { return ansOf(j) === 'no' && !S.leaving[j.id]; });
   var hintId = hintOn() ? (main.filter(function (j) { return !ansOf(j) && !j.closed; })[0] || {}).id : null;
   var jfx = jfJobs(d, main, passed, hintId); main = jfx.main; passed = jfx.passed; /* round 3: search, sort, filters (the list only) */
-  var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110;
+  var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110, jl = jlOn(); /* round 6b: list + detail at 1100px and wider */
   var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : n.k === 'done' ? 'All caught up.' : 'Your matches are reviewed. Here\'s what\'s next.';
   return shell('jobs', esc(title), 'Pay is from the employer\'s posting unless marked as an estimate.') + '<div class="pband" aria-hidden="true"></div>' +
-    '<main class="pmain">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
+    '<main class="pmain' + (jl ? ' xl' : '') + '">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
     '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b><span>' + esc(trialText(cl)) + '</span></div>' +
     nxCard(n) + dueCard(d) +
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
@@ -1557,10 +1641,10 @@ function vJobs() {
     (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Sherif' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
     (fbDue(cl) ? '<div class="fbask"><p>Two minutes? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
     installCard() +
-    jfx.head + '<div class="jfres" data-jfres>' + (jfx.on ? jfx.body :
+    (jl ? '<div class="jl">' : '') + jfx.head + '<div class="jfres" data-jfres>' + (jl ? jlPanes(d, jfx, main, passed, hintId) : jfx.on ? jfx.body :
     (main.length ? (jfx.show ? '' : '<h2 class="sec-h">Your matches</h2>') + '<div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">' + ((d.closed || []).length ? 'No open matches right now. New ones show up here.' : 'Nothing here yet. You will get an email when your first jobs arrive.') + '</p></div>') +
     closedList(d) +
-    (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '')) + '</div>' +
+    (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '')) + '</div>' + (jl ? '</div>' : '') +
     '<footer class="help"><p><b>Need help?</b> ' + HELP + '</p><button class="linkbtn" data-signout>Sign out on this device</button></footer>' +
     '</main>' + tabbar('jobs');
 }
@@ -1749,7 +1833,7 @@ function jfJobs(d, main, passed, hintId) {
     '<div><label for="jfSort">Sort</label><select id="jfSort" data-jfsort>' + JF_SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (f.sort === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>' +
     '<div class="jf-chips" role="group" aria-label="Show only">' + JF_CHIPS.map(function (c) { return '<button type="button" data-jfchip="' + c[0] + '" aria-pressed="' + !!f.f[c[0]] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
     jfStatus(on, n, d.jobs.length, d.jobs.length === 1 ? 'job' : 'jobs') + '</section>';
-  return { show: show, on: on, main: main, passed: passed, head: head, body: body };
+  return { show: show, on: on, main: main, passed: passed, head: head, body: body, list: on ? list : null };
 }
 function af() { return S.af || (S.af = { q: '', due: false }); }
 function afShow(d) { return !!(d && d.apps && d.apps.length > 6); }
@@ -1787,9 +1871,84 @@ document.addEventListener('change', function (e) { var t = e.target; if (t && t.
 /* "Answer them now" and the journey map: if a search hides the card they point to, clear the search first (capture runs before the main handler) */
 document.addEventListener('click', function (e) {
   var b = e.target.closest && e.target.closest('[data-first], [data-jmgo]'); if (!b || S.status !== 'ready' || S.view !== 'jobs' || S.flow || S.deck || !jfOn()) return;
-  var hidden = b.dataset.jmgo ? !document.querySelector('[data-jc="' + cssq(b.dataset.jmgo) + '"]') : !document.querySelector('.jc:not(.s-yes):not(.s-q):not(.s-no):not(.is-closed):not(.s-closed)');
+  var hidden = b.dataset.jmgo ? !document.querySelector('[data-jc="' + cssq(b.dataset.jmgo) + '"], [data-jsel="' + cssq(b.dataset.jmgo) + '"]') : !document.querySelector('.jc:not(.s-yes):not(.s-q):not(.s-no):not(.is-closed):not(.s-closed), .jl-main .jl-i.s-wait:not(.is-closed)');
   if (hidden) { jfReset(); render(); }
 }, true);
+/* ---- round 6b: desktop list + detail on Jobs (1100px and wider) ----
+   Left: a compact list of job summaries (title, company, pay, fit, status), one button each, arrow keys move through them
+   (roving tabindex, the selection follows). Right: the selected job's full card, jobCard(j) unchanged, sticky and scrolling on its own.
+   Selecting changes only S.jsel (screen state). Answers, swipes, filters, counts, Due next and the deck are untouched.
+   Below 1100px vJobs renders the single column of cards exactly as before. */
+var JL_MQ = null; try { JL_MQ = matchMedia('(min-width: 1100px)'); } catch (e) {}
+function jlWide() { return !!(JL_MQ && JL_MQ.matches); }
+function jlOn() { return jlWide() && S.status === 'ready' && S.view === 'jobs' && !S.flow && !S.deck && !!(S.data && S.data.jobs && S.data.jobs.length); }
+/* one status per job, in the color roles: amber when it needs the client, green when done, blue while Sherif finds out */
+function jlStatus(j) {
+  var a = ansOf(j);
+  if (S.pending[j.id]) return '<span class="pill">Saving…</span>';
+  if (S.jobErr[j.id]) return '<span class="pill attn">Didn\'t save</span>';
+  if (a === 'no' || S.leaving[j.id]) return '<span class="pill">Passed</span>';
+  if (a === 'q') return '<span class="pill info">Sherif is finding out</span>';
+  if (a !== 'yes') return '<span class="pill attn">Needs your answer</span>';
+  var s = jobState(j), st = stageFor(j);
+  if (s.review.length) return '<span class="pill attn">Documents to read</span>';
+  if (s.applyReady && !s.app) return '<span class="pill attn">Ready to apply</span>';
+  return '<span class="pill ok">Yes · ' + esc(STAGES_SHORT[st]) + '</span>';
+}
+function jlItem(j, sel, tab) {
+  var a = ansOf(j), est = isEst(j);
+  return '<li><button type="button" class="jl-i s-' + (S.leaving[j.id] ? 'no' : a || 'wait') + (j.closed ? ' is-closed' : '') + '" data-jsel="' + esc(j.id) + '" aria-current="' + sel + '" aria-controls="jl-detail" aria-describedby="jl-keys" tabindex="' + (tab ? 0 : -1) + '">' +
+    '<span class="jl-t">' + esc(j.title) + '</span><span class="jl-c">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</span>' +
+    '<span class="jl-p' + (est ? ' est' : '') + '">' + esc(payText(j)) + (est ? ' <small>(estimate)</small>' : '') + '</span>' +
+    '<span class="jl-m">' + fitPill(j) + jlStatus(j) + '</span></button></li>';
+}
+function jlPanes(d, jfx, main, passed, hintId) {
+  var list = jfx.on ? jfx.list || [] : main, pas = jfx.on ? [] : passed, vis = list.concat(S.passedOpen ? pas : []);
+  var sel = vis.filter(function (j) { return String(j.id) === String(S.jsel); })[0] || vis[0] || null, tabId = sel ? sel.id : null;
+  var item = function (j) { return jlItem(j, !!sel && j.id === sel.id, j.id === tabId); };
+  var side = '<div class="jl-side">' + (jfx.show ? '' : '<h2 class="sec-h">Your matches</h2>') + '<p class="sr" id="jl-keys">Up and down arrow keys move through your jobs.</p>' +
+    (list.length ? '<ul class="jl-list jl-main" aria-label="Your matches">' + list.map(item).join('') + '</ul>' : jfx.on ? jfNone() : '<p class="jl-none">No open matches right now. New ones show up here.</p>') +
+    (jfx.on ? '' : closedList(d) +
+      (pas.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + pas.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<ul class="jl-list" id="passedList" aria-label="Passed">' + pas.map(item).join('') + '</ul>' : '') + '</div>' : '')) + '</div>';
+  var det = sel ? jobCard(sel, sel.id === hintId) : '<p class="jl-empty">' + (jfx.on ? 'No job matches this search.' : 'Pick a job from the list to see it here.') + '</p>';
+  return '<div class="jl-panes">' + side + '<section class="jl-detail" id="jl-detail" tabindex="-1" data-jl="' + esc(sel ? sel.id : '') + '" aria-label="' + esc(sel ? 'Selected job: ' + sel.title + ', ' + sel.company : 'Selected job') + '">' + det + '</section></div>';
+}
+function jlSelect(id, focusWhat) {
+  S.jsel = id; S.focusTo = focusWhat || null; render();
+  var it = document.querySelector('#app [data-jsel="' + cssq(id) + '"]'); if (it && it.scrollIntoView) it.scrollIntoView({ block: 'nearest' });
+}
+/* before a render: a focus target inside a job card (after Undo, a No that moves on, Clear) selects that job; remember the pane's scroll */
+function jlBefore() {
+  if (!jlWide() || !S.data) return null;
+  var m = S.focusTo && /data-(?:j|jc|chgans|jsel)="((?:[^"\\]|\\.)*)"/.exec(S.focusTo);
+  if (m) { var id = m[1].replace(/\\(.)/g, '$1'); if (jobById(id)) S.jsel = id; }
+  var p = document.querySelector('#app .jl-detail'); return p ? { id: p.getAttribute('data-jl'), top: p.scrollTop } : null;
+}
+function jlAfter(p) { var n = document.querySelector('#app .jl-detail'); if (n && p && p.id === n.getAttribute('data-jl')) n.scrollTop = p.top; }
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-jsel]'); if (!b || S.status !== 'ready') return;
+  var id = b.dataset.jsel;
+  /* Enter or Space on the job already shown moves the keyboard into its card; a mouse click leaves focus on the list */
+  if (b.getAttribute('aria-current') === 'true') { if (e.detail === 0) { var p = document.querySelector('#jl-detail'); if (p) p.focus({ preventScroll: true }); } return; }
+  jlSelect(id, '[data-jsel="' + cssq(id) + '"]');
+});
+document.addEventListener('keydown', function (e) {
+  var b = e.target.closest && e.target.closest('[data-jsel]'), k = e.key; if (!b || !jlOn() || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (k !== 'ArrowDown' && k !== 'ArrowUp' && k !== 'Home' && k !== 'End') return;
+  var all = [].slice.call(document.querySelectorAll('#app [data-jsel]')), i = all.indexOf(b);
+  var n = k === 'Home' ? 0 : k === 'End' ? all.length - 1 : k === 'ArrowDown' ? Math.min(all.length - 1, i + 1) : Math.max(0, i - 1);
+  e.preventDefault(); if (n === i || !all[n]) return;
+  jlSelect(all[n].dataset.jsel, '[data-jsel="' + cssq(all[n].dataset.jsel) + '"]');
+});
+/* the journey map and "Answer them now" point at a job: on the desktop list it is shown in the detail pane first, then the usual
+   handler scrolls to it and moves focus into it (runs after the capture handler above, which may clear a filter first) */
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-first], [data-jmgo]'); if (!b || !jlOn()) return;
+  var w = b.dataset.jmgo ? document.querySelector('[data-jsel="' + cssq(b.dataset.jmgo) + '"]') : document.querySelector('.jl-main .jl-i.s-wait:not(.is-closed)');
+  if (w && w.getAttribute('aria-current') !== 'true') { S.jsel = w.dataset.jsel; render(); }
+}, true);
+/* crossing 1100px switches between the list + detail and the single column */
+if (JL_MQ) { var jlMq = function () { if (S.status === 'ready' && S.view === 'jobs' && !S.deck) render(); }; if (JL_MQ.addEventListener) JL_MQ.addEventListener('change', jlMq); else if (JL_MQ.addListener) JL_MQ.addListener(jlMq); }
 /* ---- render, keeping focus, caret and typed text ---- */
 function focusKey(el) {
   if (!el || el === document.body || !el.closest || !el.closest('#app')) return null;
@@ -1817,12 +1976,13 @@ function render() {
   if (S.status === 'loading' || S.status === 'boot') { app.innerHTML = '<div class="skel">Opening your portal…</div>'; return; }
   if (S.status === 'error') { app.innerHTML = '<div class="pmain"><div class="warn">We couldn\'t reach your portal. Please check your connection and <button class="btn ghost" data-retry>try again</button>.</div></div>'; return; }
   var fk = focusKey(document.activeElement); saveDrafts();
-  var y = window.scrollY;
+  var y = window.scrollY, jls = jlBefore();
   if (S.flow && S.view !== flowFrom()) S.flow = null; /* a review or apply screen lives on the tab it was opened from */
   var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs, prep: vPrep }[S.view] || vJobs)();
   var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
   if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;
   if (!S.deck) window.scrollTo(0, y);
+  jlAfter(jls);
   var target = null;
   if (S.focusTo) { target = document.querySelector(S.focusTo); S.focusTo = null; fk = null; }
   else if (fk) { var all = document.querySelectorAll('#app ' + fk.sel); target = all[fk.idx] || all[0] || null; }
@@ -1874,7 +2034,7 @@ function hideHint() { lsSet('sp_swipehint', '1'); }
 /* No tap: undo window, card grays out in place for a moment, then moves into Passed. */
 function tapNo(id) {
   if (!decide(id, 'no', undefined, 'list')) return;
-  var nextCard = (function () { var cards = [].slice.call(document.querySelectorAll('.jlist:not(#passedList) .jc')), k = cards.map(function (c) { return c.dataset.jc; }).indexOf(String(id)); var n = cards[k + 1] || cards[k - 1]; return n ? n.dataset.jc : null; })();
+  var nextCard = (function () { var cards = [].slice.call(document.querySelectorAll('.jlist:not(#passedList) .jc, .jl-main [data-jsel]')), k = cards.map(function (c) { return c.dataset.jc || c.dataset.jsel; }).indexOf(String(id)); var n = cards[k + 1] || cards[k - 1]; return n ? n.dataset.jc || n.dataset.jsel : null; })();
   var after = function () { delete S.leaving[id]; S.focusTo = nextCard ? '[data-ans="yes"][data-j="' + cssq(nextCard) + '"]' : '[data-passed]'; render(); };
   if (REDUCED) { after(); return; }
   S.leaving[id] = true; render(); setTimeout(after, 240);
@@ -2272,7 +2432,7 @@ function vPrefs() {
     '<div class="pf-note" role="note"><b>Changes here are requests.</b> ' + esc(PF_WAIT) + '</div>' + msg + pfReqList() +
     '<section class="card" aria-labelledby="pfCurH"><h2 id="pfCurH" class="pf-h">Your current settings</h2>' + (has ? '' : '<p class="psub">Your saved settings will show here soon. You can still ask for a change.</p>') +
     '<dl class="pf-dl">' + row('Target roles', P.roles.join(', ')) + (!P.roles.length && P.searchTerms.length ? row('What your search looks for now', P.searchTerms.join(', ')) : '') + row('Minimum pay', payWords(P.payFloor)) + row('Commute limit', P.commute) + row('Remote or hybrid', P.setting) + row('How Sherif contacts you', P.contact) +
-    '<div class="pf-r"><dt>Search status</dt><dd>' + (st ? '<span class="pill ' + (P.status === 'active' ? 'ok' : P.status === 'paused' ? 'gold' : 'info') + '">' + st + '</span>' : dash) + '</dd></div></dl>' +
+    '<div class="pf-r"><dt>Search status</dt><dd>' + (st ? '<span class="pill ' + (P.status === 'active' ? 'ok' : P.status === 'paused' ? 'attn' : 'info') + '">' + st + '</span>' : dash) + '</dd></div></dl>' +
     (F.edit ? pfForm(P) : '<div class="pf-row"><button class="btn gold" data-pfedit="open">Request a change</button>' + (/^(active|paused)$/.test(P.status) && !F.pause ? '<button class="btn ghost" data-pfpause="open">' + (P.status === 'paused' ? 'Ask to resume my search' : 'Ask to pause my search') + '</button>' : '') + '</div>') +
     pausePanel + '</section>' +
     '<section class="card" aria-labelledby="pfDataH"><h2 id="pfDataH" class="pf-h">Your data</h2><p class="psub">Download a copy of what is in your portal: your jobs, documents with their links, applications and your own notes. It is made on this device; nothing is sent anywhere.</p>' +
