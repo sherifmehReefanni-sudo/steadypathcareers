@@ -504,6 +504,54 @@ body.deck-lock { overflow: hidden; }
 }
 </style>
 <link rel="stylesheet" href="../assets/portal.css?v=20261024g">
+<style>
+/* ---- round 4: search settings, data, calendar, versions, urgent help ---- */
+/* the account menu can hang below a short header; keep the header content (and its menu) above main, which is z-index 1 */
+.sky .wrap { z-index: 2; }
+.pf .card { display: grid; gap: 10px; }
+.pf-h { font: 800 18px var(--display); color: var(--navy); margin: 0; }
+.pf-note { background: var(--q-bg); border: 1px solid var(--q-line); border-radius: 14px; padding: 12px 14px; font-size: 15px; color: var(--ink); }
+.pf-note b { color: var(--navy); }
+.pf-msg { display: flex; gap: 10px; align-items: flex-start; background: var(--yes-bg); border: 1px solid var(--yes-line); border-radius: 14px; padding: 12px 14px; font-weight: 700; color: var(--ink); }
+.pf-msg svg { width: 22px; height: 22px; flex: none; color: var(--yes); }
+.pf-msg:focus { outline: none; } .pf-msg:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.pf-dl { margin: 0; display: grid; gap: 0; }
+.pf-r { display: grid; grid-template-columns: minmax(130px, 34%) 1fr; gap: 4px 14px; padding: 10px 0; border-top: 1px solid var(--line); }
+.pf-r:first-child { border-top: 0; }
+.pf-r dt { font-weight: 800; color: var(--muted); font-size: 14px; }
+.pf-r dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.pf-none { color: var(--muted); font-weight: 600; font-style: italic; }
+.pf-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.pf-row .btn { min-height: 44px; }
+.pf-form, .pf-panel { border-top: 1px solid var(--line); padding-top: 12px; }
+.pf-form h3 { margin: 0; font-size: 17px; color: var(--navy); }
+.pf-form textarea, .pf-panel textarea, .urg textarea, .urg select { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #cfd6e3; border-radius: 10px; font: inherit; background: #fff; box-sizing: border-box; resize: vertical; }
+.urg select { min-height: 44px; }
+.pf .err, .urg .err { color: var(--bad); font-weight: 700; font-size: 14px; margin: 4px 0 0; }
+.pf-req ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pf-req li { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--line); }
+.pf-req li:first-child { border-top: 0; }
+.pf-req li span { color: var(--muted); font-size: 14px; font-weight: 700; }
+.pf-req .psub { margin: 0; }
+.pf-confirm { border: 2px solid var(--bad); border-radius: 14px; padding: 14px; margin-top: 14px; display: grid; gap: 8px; }
+.pf-confirm h3 { margin: 0; font-size: 17px; color: var(--ink); }
+.pf-confirm h3:focus { outline: none; } .pf-confirm h3:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.pf-confirm p { margin: 0; }
+.btn.danger { background: var(--bad); border-color: var(--bad); color: #fff; }
+.pf-delbtn { color: var(--bad); }
+.ics-row { margin: 4px 0 0; }
+.linkbtn.ics { display: inline-flex; align-items: center; gap: 6px; }
+.linkbtn.ics svg { width: 18px; height: 18px; flex: none; }
+.dc .meta.dchg, .rv-pacts .meta.dchg { color: var(--ink); }
+.scale button.unused { min-width: 0; font-weight: 600; font-size: 14px; }
+.fbft { display: grid; gap: 6px; margin-top: 8px; }
+.fbft-n { font-weight: 700; color: var(--ink); }
+.urg-link { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; color: var(--muted); font-size: 14px; }
+.urg-link .linkbtn { color: var(--bad); }
+.urg.ok { background: var(--yes-bg); border: 1px solid var(--yes-line); }
+.urg.ok:focus { outline: none; }
+@media (max-width: 520px) { .pf-r { grid-template-columns: 1fr; } }
+</style>
 <script>
 /* Sample data for the portal preview (?demo=1). It ships inside this page but is only read in demo mode; real clients never see it. */
 window.SP_DEMO = function () {
@@ -511,6 +559,7 @@ window.SP_DEMO = function () {
   var gd = function (id) { return 'https://docs.google.com/document/d/' + id + '/edit'; };
   return {
     ok: true, notify: true,
+    prefs: { roles: ['Associate Dentist', 'General Dentist'], payFloor: '190000', commute: 'Up to 45 minutes', setting: 'On site', contact: 'Email', status: 'active' }, requests: [], /* round 4 */
     client: { id: 'C-DEMO', name: 'Jordan T.', firstName: 'Jordan', stage: 'Trial', startDate: iso(-8), trialEnds: iso(9), payFloor: '$190,000', lastTouch: iso(-1), lastFeedback: '', home: 'Hicksville, NY', std: 'Authorized to work in the US: Yes\nNeed visa sponsorship: No\nNY dental license: Yes, active',
       weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. I am also asking Sample Community Dental about loan repayment for you and expect an answer by Friday. Two new Nassau County openings came in on Monday.' },
     jobs: [
@@ -527,7 +576,7 @@ window.SP_DEMO = function () {
     docs: [
       { id: 'D-8', jobId: 'J-108', name: 'Resume for Demo Bay Dental', link: gd('demo-resume-108'), status: 'Ready for your review', request: '', updated: iso(-3) },
       { id: 'D-1', jobId: '', name: 'Your resume', link: gd('demo-base-resume'), status: 'Approved', request: '', updated: iso(-7) },
-      { id: 'D-2', jobId: 'J-103', name: 'Resume for Example Dental Arts', link: gd('demo-resume-103'), status: 'Approved', request: '', updated: iso(-2) },
+      { id: 'D-2', jobId: 'J-103', name: 'Resume for Example Dental Arts', link: gd('demo-resume-103'), status: 'Approved', request: '', updated: iso(-2), version: '2', changed: 'Added your NY license number and moved your implant work to the top.' },
       { id: 'D-2p', jobId: 'J-103', name: 'Interview prep: Example Dental Arts', link: gd('demo-prep-103'), status: 'Ready for your review', request: '', updated: iso(-2) },
       { id: 'D-3', jobId: 'J-103', name: 'Cover letter for Example Dental Arts', link: gd('demo-cover-103'), status: 'Approved', request: '', updated: iso(-2) },
       { id: 'D-4', jobId: 'J-104', name: 'Resume for Demo Shore Dental', link: gd('demo-resume-104'), status: 'Approved', request: '', updated: iso(-7) },
@@ -535,7 +584,7 @@ window.SP_DEMO = function () {
       { id: 'D-6', jobId: 'J-104', name: 'Thank-you note for Demo Shore Dental', link: gd('demo-thanks-104'), status: 'Ready for review', request: '', updated: iso(-1) }
     ],
     apps: [
-      { id: 'A-1', jobId: 'J-104', company: 'Demo Shore Dental', role: 'General Dentist', applied: iso(-6), status: 'Interview scheduled', followUpDue: '', interview: iso(3), ivTime: '10:30 AM', nextAction: 'Confirm the interview with Dana', followUpOn: iso(1), contact: 'Dana, office manager', type: 'Application',
+      { id: 'A-1', jobId: 'J-104', company: 'Demo Shore Dental', role: 'General Dentist', applied: iso(-6), status: 'Interview scheduled', followUpDue: '', interview: iso(3), ivTime: '10:30 AM', nextAction: 'Confirm the interview with Dana', followUpOn: iso(1), contact: 'Dana, office manager', type: 'Application', prepDue: iso(2),
         prepBring: 'Your pediatric work: about 30 kids a week at your last practice, with very few needing a second visit.', prepExpect: 'Tell us about yourself; How do you handle an anxious patient?; Walk us through a case you are proud of; Why Demo Shore Dental?', prepAsk: 'How are new patients split between dentists? What does a normal day look like?' }
     ]
   };
@@ -803,7 +852,7 @@ function shell(active, title, sub) {
   return '<header class="sky"><div class="wrap"><div class="ptop"><a class="brand" href="/"><span>' + SP.LOGO + '</span><span class="bname">Steady Path</span></a>' + (S.demo ? '<span class="demo-badge">Demo</span>' : '') +
     '<nav class="ptabs" aria-label="Portal">' + tabs + '</nav>' +
     '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
-    (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="feedback">Give feedback</button><button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + HELP + '</p></div>' : '') + '</div></div>' +
+    (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="prefs">Your search settings</button><button role="menuitem" data-go="feedback">Give feedback</button><button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + HELP + '</p></div>' : '') + '</div></div>' +
     '<div class="ptitle"><h1 tabindex="-1">' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div></div>' + SP.scene(64, active) + '</header>';
 }
 function tabbar(active) {
@@ -838,9 +887,9 @@ function vFeedback() {
   var pick = function (key, opts) { return '<div class="scale">' + opts.map(function (o) { return '<button type="button" data-fb="' + key + '" data-v="' + o + '" aria-pressed="' + (f[key] === o) + '">' + o + '</button>'; }).join('') + '</div>'; };
   if (S.fbDone) return shell('feedback', 'Thank you.', 'Sherif reads every answer himself.') + '<div class="pband" aria-hidden="true"></div><main class="pmain"><div class="card"><p style="margin:0">Got it. If you asked something, Sherif will get back to you.</p><p style="margin:12px 0 0"><button class="btn gold" data-go="jobs">Back to your jobs</button></p></div></main>' + tabbar('');
   return shell('feedback', 'How is it going?', 'About two minutes. Be blunt; it helps.') + '<div class="pband" aria-hidden="true"></div>' +
-    '<main class="pmain"><div class="card">' +
+    '<main class="pmain">' + urgentBox() + '<div class="card">' +
     '<div class="fbq"><div class="lab">How likely are you to recommend Steady Path to a friend?</div>' + scale('rec', 0, 10) + '<div class="scale-ends"><span>Not at all</span><span>Definitely</span></div></div>' +
-    '<div class="fbq"><div class="lab">How useful have your job matches been?</div>' + scale('jobs', 1, 5) + '<div class="scale-ends" style="max-width:250px"><span>Not useful</span><span>Very useful</span></div></div>' +
+    '<div class="fbq"><div class="lab">How useful have your job matches been?</div>' + rateScale('jobs', 'Job matches') + '<div class="scale-ends" style="max-width:250px"><span>Not useful</span><span>Very useful</span></div></div>' + featureRatings() +
     '<div class="fbq"><label for="fbHelp">What has helped you most?</label><textarea id="fbHelp" maxlength="1500">' + esc(S.fbText.help || '') + '</textarea></div>' +
     '<div class="fbq"><label for="fbChange">What is one thing you would change?</label><textarea id="fbChange" maxlength="1500">' + esc(S.fbText.change || '') + '</textarea></div>' +
     '<div class="fbq"><div class="lab">Would you pay to keep going after your free pilot?</div>' + pick('pay', ['Yes', 'Maybe', 'No']) + '<label for="fbWhy" style="font-weight:600;color:var(--muted)">Why? (optional)</label><textarea id="fbWhy" maxlength="1500" style="min-height:60px">' + esc(S.fbText.why || '') + '</textarea></div>' +
@@ -853,10 +902,10 @@ function vFeedback() {
 function sendFeedback() {
   var f = S.fb, tx = function (id) { var el = $(id); return el ? el.value.trim() : ''; };
   S.fbText = { help: tx('#fbHelp'), change: tx('#fbChange'), why: tx('#fbWhy'), quote: tx('#fbQuote') };
-  if (f.rec == null && f.jobs == null && !S.fbText.help && !S.fbText.change && !f.pay && !S.fbText.quote) { S.fbErr = 'Please answer at least one question first.'; render(); return; }
+  if (f.rec == null && f.jobs == null && !S.fbText.help && !S.fbText.change && !f.pay && !S.fbText.quote && !Object.keys(fbFeatures()).length) { S.fbErr = 'Please answer at least one question first.'; render(); return; }
   if (S.fbBusy) return;
   S.fbBusy = true; S.fbErr = ''; S.fbRe = false; render();
-  post({ action: 'feedback', t: S.token, recommend: f.rec, jobsUseful: f.jobs, mostHelpful: S.fbText.help, oneChange: S.fbText.change, wouldPay: f.pay || '', why: S.fbText.why, quote: S.fbText.quote, share: S.fbText.quote ? (f.share || 'No, keep it private') : '' }).then(function (d) {
+  post({ action: 'feedback', t: S.token, recommend: f.rec, jobsUseful: f.jobs === 'unused' ? '' : f.jobs, features: fbFeatures(), mostHelpful: S.fbText.help, oneChange: S.fbText.change, wouldPay: f.pay || '', why: S.fbText.why, quote: S.fbText.quote, share: S.fbText.quote ? (f.share || 'No, keep it private') : '' }).then(function (d) {
     S.fbBusy = false;
     if (d && d.ok) { S.fbDone = true; S.data.client.lastFeedback = todayISO(); window.scrollTo(0, 0); }
     else if (d && d.error === 'expired') { S.fbErr = 'Your sign-in has expired. Sign in again, then send this.'; S.fbRe = true; }
@@ -907,7 +956,7 @@ function flowStep(d) {
   if (soon) {
     var dd = daysFrom(soon.interview), sj = soon.jobId ? jobById(soon.jobId) : null, prep = sj ? jobState(sj).prep : null;
     var hasQs = prepQs(soon).length > 0; if (prep && !(isReady(prep) || /approved/i.test(prep.status || ''))) prep = null;
-    return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. ' + (hasQs ? 'Practice the questions they are likely to ask.' : prep ? 'Read your prep sheet before you go.' : 'Your interview prep is in progress. Sherif will add it here.'),
+    return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. ' + (hasQs ? 'Practice the questions they are likely to ask.' : prep ? 'Read your prep sheet before you go.' : 'Your interview prep is in progress' + prepDueText(soon) + '. Sherif will add it here.'),
       act: (hasQs ? '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">Practice now</button>' : '') + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
   }
   var chg = yes.filter(function (j) { return st[j.id].changes.length && !st[j.id].app; })[0];
@@ -1037,7 +1086,7 @@ function vReview() {
       return '<section class="rv-panel" id="rvp-' + esc(x.id) + '" aria-label="' + esc(x.name) + '"' + (x.id === S.flow.tab ? '' : ' hidden') + '><div class="rv-frame' + (card ? ' open' : '') + '">' +
         (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to tap Looks good or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
           : S.demo ? sampleDoc(x, j) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
-        '<div class="rv-pacts" data-live="pa' + i + '">' + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>' + (S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>')) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
+        '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>' + (S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>')) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
     }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
     '</main>' + tabbar(flowFrom());
 }
@@ -1349,7 +1398,7 @@ function docCard(x) {
   if (x.closedJob && !ok) st = 'Posting closed';
   var pillCls = ok ? 'ok' : /changes/i.test(st) ? 'gold' : ready ? 'gold' : 'info';
   return '<div class="dc' + (ok ? ' ok' : ready ? ' ready' : '') + '" data-doc="' + id + '"><div class="top"><div class="nm">' + IC.docs + '<span>' + esc(x.name) + '</span></div><span class="pill ' + pillCls + '">' + (ok ? '&#10003; ' : '') + esc(st || 'In progress') + '</span></div>' +
-    (x.updated && /^\d{4}-/.test(x.updated) ? '<p class="meta">Updated ' + esc(fmtDate(x.updated)) + '</p>' : '') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') +
+    docVerHtml(x) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') +
     '<div class="acts">' + (link ? '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open</a>' : '') +
     (ready ? '<button class="kbtn ok" data-approve="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Approve') + '</button>' : '') + (ready || prepRd ? '<button class="kbtn" data-changes="' + id + '"' + (busy ? ' disabled' : '') + '>Ask for changes</button>' : '') + '</div>' +
     (S.changesFor === x.id ? '<div class="notebox"><label class="sr" for="changesText">What should change?</label>' + (S.changesErr ? '<p class="err" role="alert" id="chErr">' + esc(S.changesErr) + '</p>' : '') + '<textarea placeholder="What should change?" id="changesText"' + (S.changesErr ? ' aria-invalid="true" aria-describedby="chErr"' : '') + '>' + esc(S.changesDraft || '') + '</textarea><button class="btn" data-sendchanges="' + id + '"' + (busy ? ' disabled' : '') + '>' + (busy ? 'Sending…' : 'Send') + '</button></div>' : '') + '</div>';
@@ -1413,12 +1462,12 @@ function appCard(x) {
   var pj = x.jobId ? jobById(x.jobId) : null, pdoc = pj ? jobState(pj).prep : null; if (pdoc && !(isReady(pdoc) || /approved/i.test(pdoc.status || ''))) pdoc = null;
   var pills = [ivLabel(x), fuLabel(x), isOutreach(x) ? '<span class="pill">Recruiter outreach</span>' : ''].filter(String).join(' ');
   var h = '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">' + (isOutreach(x) ? 'Contacted ' : 'Applied ') + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
-    (pills ? '<div class="apills">' + pills + '</div>' : '') +
+    (pills ? '<div class="apills">' + pills + '</div>' : '') + icsBtn(x) +
     (x.nextAction ? '<p class="nact"><span class="nl">Next:</span> ' + esc(x.nextAction) + '</p>' : '') +
     (x.contact ? '<p class="psub amore">Contact: ' + esc(x.contact) + '</p>' : '') +
     (x.myNotes ? '<p class="psub amore notes">Your notes: ' + esc(x.myNotes) + '</p>' : '') +
     (hasQs ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : hasNotes ? '<p style="margin:8px 0 0"><button class="btn ghost" data-prep="' + esc(x.id) + '">Your prep notes</button></p>' : '') +
-    (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : soonIv && !hasQs && !hasNotes ? '<p class="psub" style="margin:8px 0 0">Interview prep in progress.</p>' : '');
+    (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : soonIv && !hasQs && !hasNotes ? '<p class="psub" style="margin:8px 0 0">' + esc(prepWait(x)) + '</p>' : '');
   if (S.updFor !== x.id) return h + '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p></div>';
   var sh = upShown(x), dv = S.upDraft && S.upDraft.id === x.id ? S.upDraft.v : sh, hint = function (raw) { return raw && !ISO_RE.test(raw) ? '<p class="psub" style="margin:2px 0 0">Saved as: ' + esc(raw) + '. Pick a date only if you want to change it.</p>' : ''; };
   return h + '<div class="logbox upbox" style="margin-top:8px">' +
@@ -1482,7 +1531,7 @@ function render() {
   var fk = focusKey(document.activeElement); saveDrafts();
   var y = window.scrollY;
   if (S.flow && S.view !== flowFrom()) S.flow = null; /* a review or apply screen lives on the tab it was opened from */
-  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback }[S.view] || vJobs)();
+  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs }[S.view] || vJobs)();
   var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
   if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;
   if (!S.deck) window.scrollTo(0, y);
@@ -1865,6 +1914,231 @@ document.addEventListener('keydown', function (e) {
 });
 document.addEventListener('input', function (e) { if (e.target.dataset && e.target.dataset.note) S.notes[e.target.dataset.note] = e.target.value; });
 load();
+</script>
+<script>
+/* ===================== Round 4: search settings, data export and delete request, calendar files, document versions,
+   urgent help, feature ratings, prep timing. Settings changes, pause/resume, delete and urgent help are all REQUESTS
+   (action 'prefs', a row in Sherif's Requests tab); nothing here changes a setting directly. ===================== */
+var PF_COMMUTE = ['Up to 15 minutes', 'Up to 30 minutes', 'Up to 45 minutes', 'Up to 1 hour', 'More than 1 hour', 'Remote only, no commute'];
+var PF_SETTING = ['On site', 'Hybrid', 'Remote', 'On site or hybrid', 'Hybrid or remote', 'Any of these'];
+var PF_CONTACT = ['Email', 'Text', 'Phone call'];
+var PF_SCREENS = ['Jobs', 'Documents', 'Reading or approving documents', 'Applying', 'Applied', 'Signing in', 'Search settings', 'Something else'];
+var PF_WAIT = 'Sherif reviews changes within a day; your matches use the old settings until then.';
+S.pf = { draft: {} };
+function pfReset() { S.pf = { draft: {} }; }
+function prefsOf() { var p = (S.data && S.data.prefs) || {}; return { roles: Array.isArray(p.roles) ? p.roles.map(String) : String(p.roles || '').split(/\r?\n/).filter(String), payFloor: String(p.payFloor == null ? '' : p.payFloor), commute: String(p.commute || ''), setting: String(p.setting || ''), contact: String(p.contact || ''), status: String(p.status || '') }; }
+function payWords(v) {
+  v = String(v == null ? '' : v).trim(); if (!v) return '';
+  if (!/^\d+(\.\d+)?$/.test(v)) return v;
+  var n = Number(v); return n >= 1000 ? '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' a year' : '$' + n + ' an hour';
+}
+function statusWords(st) { return st === 'active' ? 'Active' : st === 'paused' ? 'Paused' : ''; }
+function pfReqList() {
+  var r = (S.data && S.data.requests) || []; if (!r.length) return '';
+  return '<section class="card pf-req" aria-labelledby="pfReqH"><h2 id="pfReqH" class="pf-h">Waiting for Sherif</h2><ul>' + r.slice(0, 6).map(function (x) {
+    return '<li><b>' + esc(x.type) + '</b><span>Sent ' + esc(fmtDate(x.date)) + (x.status && !/^new$/i.test(x.status) ? ' · ' + esc(x.status) : '') + '</span></li>';
+  }).join('') + '</ul><p class="psub">' + esc(PF_WAIT) + '</p></section>';
+}
+function pfSelect(id, label, list, cur) {
+  return '<label for="' + id + '">' + label + '</label><select id="' + id + '"><option value="">Keep as is' + (cur ? ' (' + esc(cur) + ')' : '') + '</option>' +
+    list.map(function (o) { return '<option' + (S.pf.draft[id] === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>';
+}
+function pfForm(P) {
+  var D = S.pf.draft, v = function (id, dflt) { return esc(D[id] != null ? D[id] : dflt); };
+  return '<div class="logbox pf-form" id="pfForm"><h3>Request a change</h3><p class="psub" style="margin:0">Change what you want, leave the rest. ' + esc(PF_WAIT) + '</p>' +
+    '<label for="pfRoles">Target roles (one per line, up to 8)</label><textarea id="pfRoles" maxlength="600" rows="4">' + v('pfRoles', P.roles.join('\n')) + '</textarea>' +
+    '<label for="pfPay">Minimum pay</label><input id="pfPay" maxlength="40" autocomplete="off" placeholder="For example: $60,000 a year" value="' + v('pfPay', payWords(P.payFloor)) + '">' +
+    '<div class="two"><div>' + pfSelect('pfCommute', 'Commute limit', PF_COMMUTE, P.commute) + '</div><div>' + pfSelect('pfSetting', 'Remote or hybrid', PF_SETTING, P.setting) + '</div></div>' +
+    pfSelect('pfContact', 'How Sherif contacts you', PF_CONTACT, P.contact) +
+    '<label for="pfNote">Anything else Sherif should know? (optional)</label><textarea id="pfNote" maxlength="1000" rows="3">' + v('pfNote', '') + '</textarea>' +
+    (S.pf.err ? '<p class="err" role="alert" id="pfErr">' + esc(S.pf.err) + (S.pf.re ? reauthBtn() : '') + '</p>' : '') +
+    '<div class="pf-row"><button class="btn gold" data-pfsend' + (S.pf.busy ? ' disabled' : '') + '>' + (S.pf.busy ? 'Sending…' : 'Send to Sherif') + '</button><button class="btn ghost" data-pfedit="">Cancel</button></div></div>';
+}
+function vPrefs() {
+  var P = prefsOf(), has = !!(S.data && S.data.prefs), F = S.pf, dash = '<span class="pf-none">Not set yet</span>';
+  var row = function (k, val) { return '<div class="pf-r"><dt>' + k + '</dt><dd>' + (val ? esc(val) : dash) + '</dd></div>'; };
+  var st = statusWords(P.status), pauseType = P.status === 'paused' ? 'Resume search' : 'Pause search';
+  var msg = F.msg ? '<div class="pf-msg" role="status" tabindex="-1" id="pfMsg">' + IC.checkc + '<span>' + esc(F.msg) + '</span></div>' : '';
+  var pausePanel = F.pause ? '<div class="logbox pf-panel"><label for="pfPauseNote">' + (P.status === 'paused' ? 'Anything Sherif should know before your search starts again? (optional)' : 'Why are you pausing, and until when? (optional)') + '</label><textarea id="pfPauseNote" maxlength="1000" rows="3">' + esc(F.draft.pfPauseNote || '') + '</textarea>' +
+    (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
+    '<div class="pf-row"><button class="btn gold" data-pfpausesend="' + esc(pauseType) + '"' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Send request') + '</button><button class="btn ghost" data-pfpause="">Cancel</button></div></div>' : '';
+  var del = F.del ? '<div class="pf-confirm" role="group" aria-labelledby="pfDelH"><h3 id="pfDelH" tabindex="-1">Ask Sherif to delete your data?</h3>' +
+    '<p>This sends Sherif a request to delete your jobs, documents, applications and notes. Nothing is deleted right away: Sherif reviews it within a day and emails you. Once your data is deleted, your search and this portal stop.</p>' +
+    '<p>Want a copy first? Download your data above before you send this.</p>' +
+    (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
+    '<div class="pf-row"><button class="btn danger" data-pfdelyes' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Yes, send the delete request') + '</button><button class="btn ghost" data-pfdel="">Cancel</button></div></div>' : '';
+  return shell('prefs', 'Your search settings', 'What Sherif uses to find your job matches.') + '<div class="pband" aria-hidden="true"></div><main class="pmain pf">' +
+    '<div class="pf-note" role="note"><b>Changes here are requests.</b> ' + esc(PF_WAIT) + '</div>' + msg + pfReqList() +
+    '<section class="card" aria-labelledby="pfCurH"><h2 id="pfCurH" class="pf-h">Your current settings</h2>' + (has ? '' : '<p class="psub">Your saved settings will show here soon. You can still ask for a change.</p>') +
+    '<dl class="pf-dl">' + row('Target roles', P.roles.join(', ')) + row('Minimum pay', payWords(P.payFloor)) + row('Commute limit', P.commute) + row('Remote or hybrid', P.setting) + row('How Sherif contacts you', P.contact) +
+    '<div class="pf-r"><dt>Search status</dt><dd>' + (st ? '<span class="pill ' + (P.status === 'active' ? 'ok' : 'gold') + '">' + st + '</span>' : dash) + '</dd></div></dl>' +
+    (F.edit ? pfForm(P) : '<div class="pf-row"><button class="btn gold" data-pfedit="open">Request a change</button>' + (st && !F.pause ? '<button class="btn ghost" data-pfpause="open">' + (P.status === 'paused' ? 'Ask to resume my search' : 'Ask to pause my search') + '</button>' : '') + '</div>') +
+    pausePanel + '</section>' +
+    '<section class="card" aria-labelledby="pfDataH"><h2 id="pfDataH" class="pf-h">Your data</h2><p class="psub">Download a copy of what is in your portal: your jobs, documents with their links, applications and your own notes. It is made on this device; nothing is sent anywhere.</p>' +
+    '<div class="pf-row"><button class="btn" data-export="json">Download my data (JSON)</button><button class="btn ghost" data-export="csv">Download applications (CSV)</button></div>' +
+    (F.del ? del : '<p style="margin:14px 0 0"><button class="linkbtn pf-delbtn" data-pfdel="open">Ask to delete my data</button></p>') + '</section>' +
+    '</main>' + tabbar('');
+}
+function pfVal(id) { var el = document.getElementById(id); return el ? el.value : (S.pf.draft[id] || ''); }
+function pfSaveDraft() { ['pfRoles', 'pfPay', 'pfCommute', 'pfSetting', 'pfContact', 'pfNote', 'pfPauseNote', 'urgWhat', 'urgScreen'].forEach(function (id) { var el = document.getElementById(id); if (el) S.pf.draft[id] = el.value; }); }
+/* One request to Sherif. done(ok) runs after the reply. */
+function sendRequest(body, done) {
+  if (S.pf.busy) return; S.pf.busy = true; S.pf.err = ''; S.pf.re = false; render();
+  post(Object.assign({ action: 'prefs', t: S.token }, body)).then(function (r) {
+    S.pf.busy = false;
+    if (r && r.ok) { S.data.requests = [{ id: r.id || '', date: r.date || todayISO(), type: body.type, status: 'New' }].concat(S.data.requests || []); done(true); }
+    else { var e = r && r.error; S.pf.re = e === 'expired'; S.pf.err = e === 'expired' ? 'Your sign-in has expired. Sign in again, then send this.' : e === 'limit' ? 'That is a lot of requests for one day. Email hello@steadypathcareers.com instead.' : e === 'missing' ? 'Please fill in what should change first.' : 'Sorry, that didn\'t send. Please try again in a minute.'; done(false); }
+    render();
+  }).catch(function () { S.pf.busy = false; S.pf.err = 'That didn\'t send. Please check your connection and try again.'; done(false); render(); });
+}
+function sendPrefsChange() {
+  pfSaveDraft();
+  var P = prefsOf(), D = S.pf.draft, ch = {}, clean = function (x) { return String(x || '').replace(/\r\n?/g, '\n').trim(); };
+  var roles = clean(D.pfRoles).split('\n').map(function (r) { return r.trim(); }).filter(String);
+  if (roles.length > 8) { S.pf.err = 'Please list 8 roles or fewer.'; S.focusTo = '#pfRoles'; render(); return; }
+  if (roles.some(function (r) { return r.length > 100; })) { S.pf.err = 'One of the roles is very long. Please keep each one under 100 characters.'; S.focusTo = '#pfRoles'; render(); return; }
+  if (roles.join('\n') !== P.roles.join('\n')) ch.roles = roles.join('\n');
+  var pay = clean(D.pfPay).slice(0, 40); if (pay !== payWords(P.payFloor)) ch.payFloor = pay;
+  [['pfCommute', 'commute', PF_COMMUTE], ['pfSetting', 'setting', PF_SETTING], ['pfContact', 'contact', PF_CONTACT]].forEach(function (f) { var x = D[f[0]] || ''; if (f[2].indexOf(x) >= 0) ch[f[1]] = x; });
+  var note = clean(D.pfNote).slice(0, 1000);
+  if (!Object.keys(ch).length && !note) { S.pf.err = 'Change at least one setting, or add a note for Sherif.'; S.focusTo = '#pfRoles'; render(); return; }
+  if (ch.roles === '') ch.roles = '(remove all roles)';
+  sendRequest({ type: 'Change settings', changes: ch, note: note }, function (ok) {
+    if (ok) { S.pf.edit = false; S.pf.draft = {}; S.pf.msg = 'Sent to Sherif. ' + PF_WAIT; S.focusTo = '#pfMsg'; } else S.focusTo = '#pfErr';
+  });
+}
+/* ---- client-side files: data export, applications CSV, calendar ---- */
+function saveFile(name, mime, text) {
+  var blob = new Blob([text], { type: mime }), url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = name; a.rel = 'noopener'; a.style.display = 'none'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+}
+function exportData() {
+  var d = S.data || {}, c = d.client || {}, jobs = (d.jobs || []).concat(d.closed || []);
+  return {
+    exported: new Date().toISOString(), from: 'Steady Path Careers client portal',
+    client: { name: c.name || '', firstName: c.firstName || '', startDate: c.startDate || '', freePilotEnds: c.trialEnds || '', home: c.home || '', standardAnswers: c.std || '' },
+    searchSettings: d.prefs ? prefsOf() : null,
+    jobs: jobs.map(function (j) { return { id: j.id, added: j.added || '', company: j.company || '', title: j.title || '', location: j.location || '', setting: j.setting || '', pay: j.pay || '', postingLink: safeUrl(j.link), whyItFits: j.why || '', yourAnswer: j.answer || '', yourNote: j.note || '', answeredOn: j.answeredOn || '', postingClosed: !!j.closed }; }),
+    documents: (d.docs || []).map(function (x) { return { id: x.id, jobId: x.jobId || '', name: x.name || '', link: safeUrl(x.link), status: x.status || '', updated: x.updated || '', version: x.version || '', whatChanged: x.changed || '', yourChangeRequest: x.request || '' }; }),
+    applications: (d.apps || []).map(function (x) { return { id: x.id, jobId: x.jobId || '', company: x.company || '', role: x.role || '', type: x.type || '', applied: x.applied || '', status: x.status || '', interviewDate: x.interview || '', interviewTime: x.ivTime || '', nextAction: x.nextAction || '', followUpOn: x.followUpOn || '', contact: x.contact || '', yourNotes: x.myNotes || '' }; }),
+    requests: d.requests || []
+  };
+}
+function csvCell(v) { v = String(v == null ? '' : v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; } /* leading = + - @ would run as a formula in a spreadsheet */
+function appsCsv() {
+  var cols = [['Company', 'company'], ['Role', 'role'], ['Type', 'type'], ['Applied on', 'applied'], ['Status', 'status'], ['Interview date', 'interview'], ['Interview time', 'ivTime'], ['Next action', 'nextAction'], ['Follow-up date', 'followUpOn'], ['Contact', 'contact'], ['Your notes', 'myNotes'], ['Job ID', 'jobId']];
+  return '\ufeff' + [cols.map(function (c) { return csvCell(c[0]); }).join(',')].concat(((S.data && S.data.apps) || []).map(function (x) { return cols.map(function (c) { return csvCell(x[c[1]]); }).join(','); })).join('\r\n') + '\r\n';
+}
+/* "3:00 PM", "3 pm", "10:30am", "15:00", "noon", "2:00 PM ET" -> [h, m]; anything else -> null (all-day event) */
+function ivClock(t) {
+  t = String(t || '').trim().toLowerCase().replace(/\./g, '').replace(/\s*(et|est|edt|eastern( time)?|ny time|new york time)$/, '');
+  if (t === 'noon') return [12, 0];
+  var m = t.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/); if (!m) return null;
+  var h = +m[1], mi = m[2] ? +m[2] : 0; if (mi > 59) return null;
+  if (m[3]) { if (h < 1 || h > 12) return null; if (m[3] === 'pm' && h < 12) h += 12; if (m[3] === 'am' && h === 12) h = 0; }
+  else if (!m[2] || h > 23) return null;
+  return [h, mi];
+}
+function icsText(s) { return String(s == null ? '' : s).replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r\n|\r|\n/g, '\\n'); }
+/* RFC 5545 folding: lines over 75 octets continue on the next line after CRLF + one space, never splitting a character */
+function icsFold(line) {
+  var out = [], cur = '', n = 0, lim = 75, enc = window.TextEncoder ? new TextEncoder() : null;
+  Array.from(line).forEach(function (ch) { var b = enc ? enc.encode(ch).length : unescape(encodeURIComponent(ch)).length; if (n + b > lim) { out.push(cur); cur = ' '; n = 1; lim = 75; } cur += ch; n += b; });
+  out.push(cur); return out.join('\r\n');
+}
+function icsFor(x) {
+  var m = String(x.interview || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return '';
+  var p2 = function (n) { return ('0' + n).slice(-2); }, ymd = function (dt) { return dt.getUTCFullYear() + p2(dt.getUTCMonth() + 1) + p2(dt.getUTCDate()); };
+  var clock = ivClock(x.ivTime), start, end, now = new Date();
+  if (clock) { var s0 = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], clock[0], clock[1])), e0 = new Date(s0.getTime() + 3600e3);
+    start = 'DTSTART;TZID=America/New_York:' + ymd(s0) + 'T' + p2(clock[0]) + p2(clock[1]) + '00'; end = 'DTEND;TZID=America/New_York:' + ymd(e0) + 'T' + p2(e0.getUTCHours()) + p2(e0.getUTCMinutes()) + '00'; }
+  else { var d0 = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])), d1 = new Date(d0.getTime() + 864e5); start = 'DTSTART;VALUE=DATE:' + ymd(d0); end = 'DTEND;VALUE=DATE:' + ymd(d1); }
+  var desc = [x.role ? 'Role: ' + x.role : '', x.ivTime && !clock ? 'Time: ' + x.ivTime : '', x.contact ? 'Contact: ' + x.contact : '', x.nextAction ? 'Next: ' + x.nextAction : '', 'From your Steady Path portal.'].filter(String).join('\n');
+  var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Steady Path Careers//Client Portal//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+  if (clock) L = L.concat(['BEGIN:VTIMEZONE', 'TZID:America/New_York', 'BEGIN:DAYLIGHT', 'TZOFFSETFROM:-0500', 'TZOFFSETTO:-0400', 'TZNAME:EDT', 'DTSTART:19700308T020000', 'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU', 'END:DAYLIGHT',
+    'BEGIN:STANDARD', 'TZOFFSETFROM:-0400', 'TZOFFSETTO:-0500', 'TZNAME:EST', 'DTSTART:19701101T020000', 'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU', 'END:STANDARD', 'END:VTIMEZONE']);
+  L = L.concat(['BEGIN:VEVENT', 'UID:interview-' + String(x.id || 'app').replace(/[^\w-]/g, '') + '-' + m[1] + m[2] + m[3] + '@steadypathcareers.com',
+    'DTSTAMP:' + now.getUTCFullYear() + p2(now.getUTCMonth() + 1) + p2(now.getUTCDate()) + 'T' + p2(now.getUTCHours()) + p2(now.getUTCMinutes()) + p2(now.getUTCSeconds()) + 'Z',
+    start, end, 'SUMMARY:' + icsText('Interview: ' + (x.company || 'employer')), 'DESCRIPTION:' + icsText(desc), 'TRANSP:OPAQUE', 'END:VEVENT', 'END:VCALENDAR']);
+  return L.map(icsFold).join('\r\n') + '\r\n';
+}
+function slug(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'interview'; }
+function icsBtn(x) {
+  var dd = daysFrom(x.interview); if (dd == null || dd < 0 || stageOf(x) >= 4) return '';
+  return '<p class="ics-row"><button type="button" class="linkbtn ics" data-ics="' + esc(x.id) + '" aria-label="' + esc('Add the ' + (x.company || '') + ' interview to your calendar') + '">' + IC.cal + 'Add to calendar</button></p>';
+}
+IC.cal = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>';
+/* ---- document version line; prep timing ---- */
+function docVerHtml(x) {
+  var u = x.updated && /^\d{4}-/.test(x.updated) ? 'Updated ' + fmtDate(x.updated) : '', v = String(x.version == null ? '' : x.version).trim().replace(/^v(ersion)?\s*/i, ''), c = String(x.changed || '').trim();
+  var line = [u, v ? 'Version ' + v : ''].filter(String).join(' · ');
+  return (line ? '<p class="meta">' + esc(line) + '</p>' : '') + (c ? '<p class="meta dchg"><b>What changed:</b> ' + esc(c) + '</p>' : '');
+}
+function prepDueText(x) { return x && daysFrom(x.prepDue) != null ? ', expected by ' + fmtDate(x.prepDue) : ''; }
+function prepWait(x) { return 'Interview prep in progress' + prepDueText(x) + '.'; }
+/* ---- feedback: feature ratings with "I haven't used this yet"; urgent help that skips the survey ---- */
+var FB_FEATURES = [['docs', 'Your tailored resume and cover letter'], ['apply', 'Apply steps and ready answers'], ['prep', 'Interview prep and practice'], ['tracker', 'Applied tracker']];
+function rateScale(key, name) {
+  var f = S.fb, out = '';
+  for (var i = 1; i <= 5; i++) out += '<button type="button" data-fb="' + key + '" data-v="' + i + '" aria-pressed="' + (f[key] === i) + '">' + i + '</button>';
+  return '<div class="scale" role="group" aria-label="' + esc(name) + ', 1 to 5">' + out + '<button type="button" class="unused" data-fb="' + key + '" data-v="unused" aria-pressed="' + (f[key] === 'unused') + '">I haven\'t used this yet</button></div>';
+}
+function featureRatings() {
+  return '<div class="fbq"><div class="lab">How useful has each part been? 1 is not useful, 5 is very useful.</div>' + FB_FEATURES.map(function (x) {
+    return '<div class="fbft"><div class="fbft-n">' + esc(x[1]) + '</div>' + rateScale('ft_' + x[0], x[1]) + '</div>';
+  }).join('') + '</div>';
+}
+function fbFeatures() { var f = S.fb || {}, o = {}; if (f.jobs != null) o.jobs = f.jobs; FB_FEATURES.forEach(function (x) { var v = f['ft_' + x[0]]; if (v != null) o[x[0]] = v; }); return o; }
+function urgentBox() {
+  var U = S.urg || {};
+  if (U.done) return '<div class="card urg ok" role="status"><b>Sent to Sherif as urgent.</b> He will get back to you as soon as he can. You can still fill in the survey below, or skip it.</div>';
+  if (!U.open) return '<div class="urg-link"><button class="linkbtn" data-urg="open" aria-expanded="false">Something\'s broken or urgent?</button> <span>Skip the survey and tell Sherif now.</span></div>';
+  var D = S.pf.draft;
+  return '<div class="card urg logbox"><h2 class="pf-h">Something\'s broken or urgent</h2><p class="psub" style="margin:0">This goes straight to Sherif, outside the survey.</p>' +
+    '<label for="urgWhat">What\'s wrong?</label><textarea id="urgWhat" maxlength="1000" rows="3"' + (U.err ? ' aria-invalid="true" aria-describedby="urgErr"' : '') + '>' + esc(D.urgWhat || '') + '</textarea>' +
+    '<label for="urgScreen">Which screen?</label><select id="urgScreen"><option value="">Not sure</option>' + PF_SCREENS.map(function (o) { return '<option' + (D.urgScreen === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' +
+    (U.err ? '<p class="err" role="alert" id="urgErr">' + esc(U.err) + (S.pf.re ? reauthBtn() : '') + '</p>' : '') +
+    '<div class="pf-row"><button class="btn gold" data-urgsend' + (S.pf.busy ? ' disabled' : '') + '>' + (S.pf.busy ? 'Sending…' : 'Send to Sherif now') + '</button><button class="btn ghost" data-urg="">Cancel</button></div></div>';
+}
+function sendUrgent() {
+  pfSaveDraft(); var what = String(S.pf.draft.urgWhat || '').trim().slice(0, 1000), screen = PF_SCREENS.indexOf(S.pf.draft.urgScreen) >= 0 ? S.pf.draft.urgScreen : '';
+  S.urg = S.urg || {};
+  if (!what) { S.urg.err = 'Please say what\'s wrong first.'; S.focusTo = '#urgWhat'; render(); return; }
+  S.urg.err = '';
+  sendRequest({ type: 'Urgent help', what: what, screen: screen }, function (ok) {
+    if (ok) { S.urg = { done: true }; delete S.pf.draft.urgWhat; delete S.pf.draft.urgScreen; S.focusTo = '.urg'; } else { S.urg.err = S.pf.err; S.pf.err = ''; S.focusTo = '#urgWhat'; }
+  });
+}
+/* Runs before the portal's main click handler (capture), so opening this screen starts fresh and typed text is kept. */
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('button'); if (!b || !S.data) return;
+  pfSaveDraft();
+  if (b.dataset.go === 'prefs' && S.view !== 'prefs') pfReset();
+  if (b.dataset.go === 'feedback') S.urg = {};
+}, true);
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('button'); if (!b || !S.data) return; var d = b.dataset;
+  if (d.pfedit != null) { S.pf.edit = !!d.pfedit; S.pf.pause = false; S.pf.del = false; S.pf.err = ''; S.pf.msg = ''; if (!S.pf.edit) S.pf.draft = {}; S.focusTo = S.pf.edit ? '#pfRoles' : '[data-pfedit]'; render(); return; }
+  if (d.pfsend != null) { sendPrefsChange(); return; }
+  if (d.pfpause != null) { S.pf.pause = !!d.pfpause; S.pf.edit = false; S.pf.del = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.pause ? '#pfPauseNote' : '[data-pfpause]'; render(); return; }
+  if (d.pfpausesend) { var ty = d.pfpausesend === 'Resume search' ? 'Resume search' : 'Pause search';
+    sendRequest({ type: ty, note: String(S.pf.draft.pfPauseNote || '').trim().slice(0, 1000) }, function (ok) { if (ok) { S.pf.pause = false; delete S.pf.draft.pfPauseNote; S.pf.msg = 'Sent. Sherif will ' + (ty === 'Pause search' ? 'pause' : 'restart') + ' your search after he reviews it, within a day. Until then nothing changes.'; S.focusTo = '#pfMsg'; } }); return; }
+  if (d.pfdel != null) { S.pf.del = !!d.pfdel; S.pf.edit = false; S.pf.pause = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.del ? '#pfDelH' : '[data-pfdel]'; render(); return; }
+  if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. Sherif reviews it within a day and will email you. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
+  if (d.export) { var day = todayISO(); if (d.export === 'csv') saveFile('steady-path-applications-' + day + '.csv', 'text/csv;charset=utf-8', appsCsv()); else saveFile('steady-path-my-data-' + day + '.json', 'application/json', JSON.stringify(exportData(), null, 2)); toast('Downloaded.'); return; }
+  if (d.ics) { var ap = ((S.data && S.data.apps) || []).filter(function (x) { return String(x.id) === d.ics; })[0], txt = ap && icsFor(ap); if (!txt) return; saveFile('interview-' + slug(ap.company) + '-' + ap.interview + '.ics', 'text/calendar;charset=utf-8', txt); toast('Calendar file downloaded. Open it to add the interview.'); return; }
+  if (d.urg != null) { S.urg = { open: !!d.urg }; S.pf.err = ''; S.focusTo = d.urg ? '#urgWhat' : '[data-urg]'; render(); return; }
+  if (d.urgsend != null) { sendUrgent(); return; }
+});
+document.addEventListener('input', function (e) {
+  var id = e.target && e.target.id; if (!id || !/^(pf|urg)[A-Z]/.test(id)) return;
+  S.pf.draft[id] = e.target.value;
+  /* typing clears a "fill this in first" error (not a sign-in one), without re-rendering */
+  if (S.pf.err && !S.pf.re) { S.pf.err = ''; var pe = document.querySelector('.pf .err'); if (pe) pe.remove(); }
+  if (S.urg && S.urg.err && !S.pf.re) { S.urg.err = ''; var ue = document.getElementById('urgErr'); if (ue) ue.remove(); var w = document.getElementById('urgWhat'); if (w) { w.removeAttribute('aria-invalid'); w.removeAttribute('aria-describedby'); } }
+});
+/* =================== END ROUND 4 =================== */
 </script>
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/portal.js?v=20261024e"></script>
