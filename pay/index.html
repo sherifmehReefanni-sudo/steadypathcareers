@@ -76,6 +76,16 @@ function card(j) {
     (lo != null && hi != null ? '<div class="bar" aria-hidden="true"><div class="span" style="left:' + pct(lo) + ';right:calc(100% - ' + pct(hi) + ')"></div><div class="dot" style="left:' + pct(mid) + '"></div></div>' +
     '<div class="legend"><span>The lowest-paid 25% earn under <b>' + money(lo) + '</b></span><span>The highest-paid 25% earn over <b>' + money(hi) + '</b></span></div>' : '') + '</div>';
 }
+/* Source line: the dataset name links to its official page (source_url, https only), opening in a new tab.
+   The survey period is part of the source name (e.g. "May 2025 state estimates"); "retrieved" is when we downloaded it,
+   shown as the as-of date. */
+function srcLine(d) {
+  var el = document.getElementById('src'), name = String(d.source || 'U.S. Bureau of Labor Statistics wage data'), url = String(d.source_url || '');
+  var h = 'Source: ' + (/^https:\/\//.test(url) ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(name) + '<span class="vh"> (opens in a new tab)</span></a>' : esc(name)) + '.';
+  var m = String(d.retrieved || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) h += ' Retrieved from BLS ' + new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) + '.';
+  el.innerHTML = h + ' Figures are yearly wages for all workers in the job statewide, not offers for any specific posting. Pay varies by employer, experience and region.';
+}
 function run() {
   var q = document.getElementById('q').value.trim(), out = document.getElementById('res');
   if (!D) return;
@@ -85,7 +95,7 @@ function run() {
 }
 fetch('/pay/data.json').then(function (r) { return r.json(); }).then(function (d) {
   D = d;
-  document.getElementById('src').textContent = 'Source: ' + d.source + '. Figures are yearly wages for all workers in the job statewide, not offers for any specific posting. Pay varies by employer, experience and region.';
+  srcLine(d);
   var picks = ['Nurse', 'CNA', 'Medical assistant', 'IT support', 'Software developer', 'Electrician', 'HVAC', 'Customer service', 'Payroll', 'Teacher', 'Security guard', 'Warehouse'];
   document.getElementById('sugg').innerHTML = picks.map(function (p) { return '<button type="button" data-s="' + p + '">' + p + '</button>'; }).join('');
   var q0 = new URLSearchParams(location.search).get('q'); if (q0) { document.getElementById('q').value = q0; }
