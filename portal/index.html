@@ -980,7 +980,7 @@ function docWords(list) {
   return w.length > 1 ? w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] : w[0] || 'documents';
 }
 /* " (expected by Oct 30)" when Sherif has set a date for this job's documents */
-function docsDue(j) { var dd = j && daysFrom(j.docsDue); return dd == null ? '' : dd < 0 ? ' (they were expected ' + fmtDate(j.docsDue) + '; Sherif will update you)' : ' (expected by ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : fmtDate(j.docsDue)) + ')'; }
+function docsDue(j) { var dd = j && daysFrom(j.docsDue); return dd == null ? '' : dd < 0 ? ' (they were expected ' + fmtY(j.docsDue) + '; Sherif will update you)' : (dd === 0 ? ' (expected today)' : dd === 1 ? ' (expected tomorrow)' : ' (expected by ' + fmtY(j.docsDue) + ')'); }
 function flowStep(d) {
   var c = counts(), first = d.client.firstName || '', jobs = orderedJobs(d);
   var yes = jobs.filter(function (j) { return ansOf(j) === 'yes'; }), st = {};
@@ -1001,7 +1001,7 @@ function flowStep(d) {
   var chg = yes.filter(function (j) { return st[j.id].changes.length && !st[j.id].app; })[0];
   if (chg) return { k: 'wait', t: 'Sherif is making your changes for ' + coName(chg), s: whenReady() };
   var writing = yes.filter(function (j) { var s = st[j.id]; return !s.app && !s.applyReady && !s.review.length; });
-  if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: (function (dd) { return dd == null || dd < 0 ? '' : 'Expected by ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : fmtDate(writing[0].docsDue)) + '. '; })(daysFrom(writing[0].docsDue)) + whenReady() };
+  if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: (function () { var wj = writing.filter(function (j) { var dd = daysFrom(j.docsDue); return dd != null && dd >= 0; }).sort(function (a, b) { return a.docsDue < b.docsDue ? -1 : 1; })[0]; if (!wj) return ''; var dd = daysFrom(wj.docsDue), w = dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : fmtY(wj.docsDue); return writing.length > 1 ? 'Documents for ' + coName(wj) + ' expected ' + (dd > 1 ? 'by ' : '') + w + '. ' : 'Expected ' + (dd > 1 ? 'by ' : '') + w + '. '; })() + whenReady() };
   var qj = jobs.filter(function (j) { return ansOf(j) === 'q'; })[0];
   if (qj) return { k: 'wait', t: 'Sherif is looking into your question', s: 'About ' + coName(qj) + '. Sherif will reply to your question.' };
   if (!d.jobs.length && !(d.closed || []).length) return { k: 'start', t: 'Sherif is reading your resume', s: 'Your first job matches will show up here.' };
@@ -1022,7 +1022,7 @@ function dueItems(d) {
     if (s.review.length) add(1, '', 'Read and approve your documents for ' + coName(j), 'you', '<button class="linkbtn" data-review="' + esc(j.id) + '">Open</button>');
     else if (s.applyReady && !s.app) add(1, '', 'Apply to ' + coName(j), 'you', '<button class="linkbtn" data-applyflow="' + esc(j.id) + '">Open</button>');
     else if (s.changes.length && !s.app) add(6, '', 'Making your changes for ' + coName(j), 'sherif');
-    else if (!s.app && !s.applyReady) add(daysFrom(j.docsDue) != null && daysFrom(j.docsDue) >= 0 ? 0 : 6, daysFrom(j.docsDue) != null && daysFrom(j.docsDue) >= 0 ? j.docsDue : '', 'Writing your documents for ' + coName(j), 'sherif');
+    else if (!s.app && !s.applyReady) add(6, daysFrom(j.docsDue) != null && daysFrom(j.docsDue) >= 0 ? j.docsDue : '', 'Writing your documents for ' + coName(j), 'sherif'); /* dated, but never ahead of what the client can do */
   });
   jobs.filter(function (j) { return ansOf(j) === 'q'; }).forEach(function (j) { add(6, '', 'Answering your question about ' + coName(j), 'sherif'); });
   (d.apps || []).forEach(function (x) {
@@ -1092,7 +1092,7 @@ function noFrame() {
   var ua = navigator.userAgent || '', ios = /iP(hone|ad|od)/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   return ios || (/Safari\//.test(ua) && !/(Chrome|Chromium|CriOS|FxiOS|EdgiOS|Edg|OPR|Android)\//.test(ua));
 }
-function gdocId(link) { var m = String(link || '').match(/^https:\/\/docs\.google\.com\/document\/d\/([\w-]+)/); return m ? m[1] : ''; }
+function gdocId(link) { var m = String(link || '').match(/^https:\/\/docs\.google\.com\/document\/(?:u\/\d+\/)?d\/([\w-]+)/); return m ? m[1] : ''; }
 function rvDocs(j) { var o = { resume: 0, cover: 1, prep: 2 }; return jobDocs(j).filter(function (x) { return safeUrl(x.link); }).sort(function (a, b) { var ka = o[docKind(a.name)], kb = o[docKind(b.name)]; return (ka == null ? 3 : ka) - (kb == null ? 3 : kb); }); }
 function docNoun(x) { return KIND_LABEL[docKind(x.name)] ? KIND_LABEL[docKind(x.name)].toLowerCase() : docShort(x.name); }
 function docLabel(x) { return KIND_LABEL[docKind(x.name)] || String(x.name); }
@@ -1143,9 +1143,9 @@ function vReview() {
       return '<section class="rv-panel" id="rvp-' + esc(x.id) + '" aria-label="' + esc(x.name) + '"' + (x.id === S.flow.tab ? '' : ' hidden') + '><div class="rv-frame' + (card ? ' open' : '') + '">' +
         (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to tap Looks good or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
           : S.demo ? sampleDoc(x, j) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
-        '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open full screen</a>') +
-          (pdfLink(x.link) && docKind(x.name) !== 'prep' ? '<a class="kbtn" href="' + esc(pdfLink(x.link)) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + (/approved/i.test(x.status || '') ? 'Download PDF (approved)' : 'Download PDF (draft, not approved yet)') + '</a>' : '') +
-          (card || S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open full screen.</p>') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
+        '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>') +
+          (truePdf(x.link) && docKind(x.name) !== 'prep' && /approved/i.test(x.status || '') && !x.closedJob ? '<a class="kbtn" href="' + esc(truePdf(x.link)) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + 'Download approved PDF</a>' : '') +
+          (card || S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
     }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
     '</main>' + tabbar(flowFrom());
 }
@@ -1312,7 +1312,9 @@ function tracker(st) {
     return '<li class="' + cls + '"' + (i === st ? ' aria-current="step"' : '') + '><span class="d">' + (i < st ? '<span style="color:#fff">' + IC.check + '</span>' : '') + '</span><span class="full">' + s + '</span><span class="short">' + STAGES_SHORT[i] + '</span></li>';
   }).join('') + '</ol>';
 }
-function pdfLink(link) { var m = String(link || '').match(/^https:\/\/docs\.google\.com\/document\/d\/([\w-]+)/); return m ? 'https://docs.google.com/document/d/' + m[1] + '/export?format=pdf' : safeUrl(link); }
+function pdfLink(link) { var id = gdocId(link); return id ? 'https://docs.google.com/document/d/' + id + '/export?format=pdf' : safeUrl(link); }
+/* a real PDF: a Google Doc export or a link to a .pdf file; anything else is not offered as a PDF */
+function truePdf(link) { return gdocId(link) ? pdfLink(link) : /^https:\/\/[^?#]+\.pdf([?#]|$)/i.test(String(link || '')) ? safeUrl(link) : ''; }
 /* Document kind from the start of its name ("Tailored resume: Discover, ..." must not read as a cover letter). Older free-form names fall back to a word match. */
 function docKind(n) {
   n = String(n || '').trim();
@@ -1519,12 +1521,19 @@ function vDocs() {
         (g.job && g.docs.some(needsOk) ? '<button class="kbtn solid guide" data-review="' + esc(g.job.id) + '">' + IC.docs + 'Read them here</button>' : '') + g.docs.map(docCard).join('') + '</section>';
     }).join('') : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your resume draft will show up here for your OK.</p></div>') + '</main>' + tabbar('docs');
 }
-function docCard(x) {
+/* "Resume" instead of "Resume for Example Dental Arts" inside a job's group, only when the name starts with that kind,
+   the job is known and no other document in the group is of the same kind; otherwise the full name */
+var KIND_START = { resume: /^(tailored\s+)?(resume|cv)\b/i, cover: /^cover\s+letter\b/i, prep: /^interview\s+prep\b/i };
+function shortDocName(x, grp) {
+  var k = docKind(x.name); if (!x.jobId || !KIND_LABEL[k] || !KIND_START[k].test(String(x.name || '').trim()) || !jobById(x.jobId)) return x.name;
+  return (grp || []).filter(function (y) { return docKind(y.name) === k; }).length > 1 ? x.name : KIND_LABEL[k];
+}
+function docCard(x, i, grp) {
   var st = String(x.status || ''), ok = /approved/i.test(st), ready = needsOk(x), prepRd = isReady(x) && docKind(x.name) === 'prep', link = safeUrl(x.link), id = esc(x.id), busy = S.docBusy[x.id];
   if (prepRd) st = 'Ready to read';
   if (x.closedJob && !ok) st = 'Posting closed';
   var pillCls = ok ? 'ok' : /changes/i.test(st) ? 'gold' : ready ? 'gold' : 'info';
-  return '<div class="dc' + (ok ? ' ok' : ready ? ' ready' : '') + '" data-doc="' + id + '"><div class="top"><div class="nm">' + IC.docs + '<span>' + esc(x.jobId && KIND_LABEL[docKind(x.name)] ? KIND_LABEL[docKind(x.name)] : x.name) + '</span></div><span class="pill ' + pillCls + '">' + (ok ? '&#10003; ' : '') + esc(st || 'In progress') + '</span></div>' +
+  return '<div class="dc' + (ok ? ' ok' : ready ? ' ready' : '') + '" data-doc="' + id + '"><div class="top"><div class="nm">' + IC.docs + '<span>' + esc(shortDocName(x, grp)) + '</span></div><span class="pill ' + pillCls + '">' + (ok ? '&#10003; ' : '') + esc(st || 'In progress') + '</span></div>' +
     docVerHtml(x) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') +
     '<div class="acts">' + (link ? '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open</a>' : '') +
     (ready ? '<button class="kbtn ok" data-approve="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Approve') + '</button>' : '') + (ready || prepRd ? '<button class="kbtn" data-changes="' + id + '"' + (busy ? ' disabled' : '') + '>Ask for changes</button>' : '') + '</div>' +
