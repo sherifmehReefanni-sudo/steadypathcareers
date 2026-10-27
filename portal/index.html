@@ -1553,7 +1553,7 @@ function go(view) {
   S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
-  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
+  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
 }
 
@@ -1923,21 +1923,21 @@ var PF_COMMUTE = ['Up to 15 minutes', 'Up to 30 minutes', 'Up to 45 minutes', 'U
 var PF_SETTING = ['On site', 'Hybrid', 'Remote', 'On site or hybrid', 'Hybrid or remote', 'Any of these'];
 var PF_CONTACT = ['Email', 'Text', 'Phone call'];
 var PF_SCREENS = ['Jobs', 'Documents', 'Reading or approving documents', 'Applying', 'Applied', 'Signing in', 'Search settings', 'Something else'];
-var PF_WAIT = 'Sherif reviews changes within a day; your matches use the old settings until then.';
+var PF_WAIT = 'Sherif reviews requests, usually within one business day. Your matches use your current settings until then.';
 S.pf = { draft: {} };
 function pfReset() { S.pf = { draft: {} }; }
-function prefsOf() { var p = (S.data && S.data.prefs) || {}; return { roles: Array.isArray(p.roles) ? p.roles.map(String) : String(p.roles || '').split(/\r?\n/).filter(String), payFloor: String(p.payFloor == null ? '' : p.payFloor), commute: String(p.commute || ''), setting: String(p.setting || ''), contact: String(p.contact || ''), status: String(p.status || '') }; }
+function prefsOf() { var p = (S.data && S.data.prefs) || {}; return { roles: Array.isArray(p.roles) ? p.roles.map(String) : String(p.roles || '').split(/\r?\n/).filter(String), payFloor: String(p.payFloor == null ? '' : p.payFloor), commute: String(p.commute || ''), setting: String(p.setting || ''), contact: String(p.contact || ''), status: String(p.status || ''), searchTerms: Array.isArray(p.searchTerms) ? p.searchTerms.map(String) : [] }; }
 function payWords(v) {
   v = String(v == null ? '' : v).trim(); if (!v) return '';
   if (!/^\d+(\.\d+)?$/.test(v)) return v;
-  var n = Number(v); return n >= 1000 ? '$' + n.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' a year' : '$' + n + ' an hour';
+  var n = Number(v); return n >= 1000 ? '$' + Math.round(n).toLocaleString('en-US') + ' a year' : '$' + n.toLocaleString('en-US', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }) + ' an hour';
 }
-function statusWords(st) { return st === 'active' ? 'Active' : st === 'paused' ? 'Paused' : ''; }
+function statusWords(st) { return st === 'active' ? 'Active' : st === 'paused' ? 'Paused' : st === 'not started' ? 'Not started yet' : ''; }
 function pfReqList() {
   var r = (S.data && S.data.requests) || []; if (!r.length) return '';
   return '<section class="card pf-req" aria-labelledby="pfReqH"><h2 id="pfReqH" class="pf-h">Waiting for Sherif</h2><ul>' + r.slice(0, 6).map(function (x) {
     return '<li><b>' + esc(x.type) + '</b><span>Sent ' + esc(fmtDate(x.date)) + (x.status && !/^new$/i.test(x.status) ? ' · ' + esc(x.status) : '') + '</span></li>';
-  }).join('') + '</ul><p class="psub">' + esc(PF_WAIT) + '</p></section>';
+  }).join('') + '</ul>' + (r.some(function (x) { return /settings|pause|resume/i.test(x.type || ''); }) ? '<p class="psub">Your matches use your current settings until Sherif makes a change.</p>' : '') + '</section>';
 }
 function pfSelect(id, label, list, cur) {
   return '<label for="' + id + '">' + label + '</label><select id="' + id + '"><option value="">Keep as is' + (cur ? ' (' + esc(cur) + ')' : '') + '</option>' +
@@ -1946,7 +1946,7 @@ function pfSelect(id, label, list, cur) {
 function pfForm(P) {
   var D = S.pf.draft, v = function (id, dflt) { return esc(D[id] != null ? D[id] : dflt); };
   return '<div class="logbox pf-form" id="pfForm"><h3>Request a change</h3><p class="psub" style="margin:0">Change what you want, leave the rest. ' + esc(PF_WAIT) + '</p>' +
-    '<label for="pfRoles">Target roles (one per line, up to 8)</label><textarea id="pfRoles" maxlength="600" rows="4">' + v('pfRoles', P.roles.join('\n')) + '</textarea>' +
+    '<label for="pfRoles">Target roles (one per line, up to 10)</label><textarea id="pfRoles" maxlength="1200" rows="4">' + v('pfRoles', P.roles.join('\n')) + '</textarea>' +
     '<label for="pfPay">Minimum pay</label><input id="pfPay" maxlength="40" autocomplete="off" placeholder="For example: $60,000 a year" value="' + v('pfPay', payWords(P.payFloor)) + '">' +
     '<div class="two"><div>' + pfSelect('pfCommute', 'Commute limit', PF_COMMUTE, P.commute) + '</div><div>' + pfSelect('pfSetting', 'Remote or hybrid', PF_SETTING, P.setting) + '</div></div>' +
     pfSelect('pfContact', 'How Sherif contacts you', PF_CONTACT, P.contact) +
@@ -1963,16 +1963,16 @@ function vPrefs() {
     (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
     '<div class="pf-row"><button class="btn gold" data-pfpausesend="' + esc(pauseType) + '"' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Send request') + '</button><button class="btn ghost" data-pfpause="">Cancel</button></div></div>' : '';
   var del = F.del ? '<div class="pf-confirm" role="group" aria-labelledby="pfDelH"><h3 id="pfDelH" tabindex="-1">Ask Sherif to delete your data?</h3>' +
-    '<p>This sends Sherif a request to delete your jobs, documents, applications and notes. Nothing is deleted right away: Sherif reviews it within a day and emails you. Once your data is deleted, your search and this portal stop.</p>' +
+    '<p>This sends Sherif a request to delete your jobs, documents, applications and notes. Nothing is deleted right away: Sherif reviews it, usually within one business day, and emails you. Once your data is deleted, your search and this portal stop.</p>' +
     '<p>Want a copy first? Download your data above before you send this.</p>' +
     (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
     '<div class="pf-row"><button class="btn danger" data-pfdelyes' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Yes, send the delete request') + '</button><button class="btn ghost" data-pfdel="">Cancel</button></div></div>' : '';
   return shell('prefs', 'Your search settings', 'What Sherif uses to find your job matches.') + '<div class="pband" aria-hidden="true"></div><main class="pmain pf">' +
     '<div class="pf-note" role="note"><b>Changes here are requests.</b> ' + esc(PF_WAIT) + '</div>' + msg + pfReqList() +
     '<section class="card" aria-labelledby="pfCurH"><h2 id="pfCurH" class="pf-h">Your current settings</h2>' + (has ? '' : '<p class="psub">Your saved settings will show here soon. You can still ask for a change.</p>') +
-    '<dl class="pf-dl">' + row('Target roles', P.roles.join(', ')) + row('Minimum pay', payWords(P.payFloor)) + row('Commute limit', P.commute) + row('Remote or hybrid', P.setting) + row('How Sherif contacts you', P.contact) +
-    '<div class="pf-r"><dt>Search status</dt><dd>' + (st ? '<span class="pill ' + (P.status === 'active' ? 'ok' : 'gold') + '">' + st + '</span>' : dash) + '</dd></div></dl>' +
-    (F.edit ? pfForm(P) : '<div class="pf-row"><button class="btn gold" data-pfedit="open">Request a change</button>' + (st && !F.pause ? '<button class="btn ghost" data-pfpause="open">' + (P.status === 'paused' ? 'Ask to resume my search' : 'Ask to pause my search') + '</button>' : '') + '</div>') +
+    '<dl class="pf-dl">' + row('Target roles', P.roles.join(', ')) + (!P.roles.length && P.searchTerms.length ? row('What your search looks for now', P.searchTerms.join(', ')) : '') + row('Minimum pay', payWords(P.payFloor)) + row('Commute limit', P.commute) + row('Remote or hybrid', P.setting) + row('How Sherif contacts you', P.contact) +
+    '<div class="pf-r"><dt>Search status</dt><dd>' + (st ? '<span class="pill ' + (P.status === 'active' ? 'ok' : P.status === 'paused' ? 'gold' : 'info') + '">' + st + '</span>' : dash) + '</dd></div></dl>' +
+    (F.edit ? pfForm(P) : '<div class="pf-row"><button class="btn gold" data-pfedit="open">Request a change</button>' + (/^(active|paused)$/.test(P.status) && !F.pause ? '<button class="btn ghost" data-pfpause="open">' + (P.status === 'paused' ? 'Ask to resume my search' : 'Ask to pause my search') + '</button>' : '') + '</div>') +
     pausePanel + '</section>' +
     '<section class="card" aria-labelledby="pfDataH"><h2 id="pfDataH" class="pf-h">Your data</h2><p class="psub">Download a copy of what is in your portal: your jobs, documents with their links, applications and your own notes. It is made on this device; nothing is sent anywhere.</p>' +
     '<div class="pf-row"><button class="btn" data-export="json">Download my data (JSON)</button><button class="btn ghost" data-export="csv">Download applications (CSV)</button></div>' +
@@ -1994,11 +1994,13 @@ function sendRequest(body, done) {
 function sendPrefsChange() {
   pfSaveDraft();
   var P = prefsOf(), D = S.pf.draft, ch = {}, clean = function (x) { return String(x || '').replace(/\r\n?/g, '\n').trim(); };
-  var roles = clean(D.pfRoles).split('\n').map(function (r) { return r.trim(); }).filter(String);
-  if (roles.length > 8) { S.pf.err = 'Please list 8 roles or fewer.'; S.focusTo = '#pfRoles'; render(); return; }
-  if (roles.some(function (r) { return r.length > 100; })) { S.pf.err = 'One of the roles is very long. Please keep each one under 100 characters.'; S.focusTo = '#pfRoles'; render(); return; }
-  if (roles.join('\n') !== P.roles.join('\n')) ch.roles = roles.join('\n');
-  var pay = clean(D.pfPay).slice(0, 40); if (pay !== payWords(P.payFloor)) ch.payFloor = pay;
+  var roles = D.pfRoles == null ? P.roles : clean(D.pfRoles).split('\n').map(function (r) { return r.trim(); }).filter(String);
+  if (roles.join('\n') !== P.roles.join('\n')) { /* checked only when the client changed them */
+    if (roles.length > 10) { S.pf.err = 'Please list 10 roles or fewer.'; S.focusTo = '#pfRoles'; render(); return; }
+    if (roles.some(function (r) { return r.length > 100; })) { S.pf.err = 'One of the roles is very long. Please keep each one under 100 characters.'; S.focusTo = '#pfRoles'; render(); return; }
+    ch.roles = roles.join('\n');
+  }
+  var pay = clean(D.pfPay == null ? payWords(P.payFloor) : D.pfPay).slice(0, 40); if (pay !== payWords(P.payFloor)) ch.payFloor = pay || '(remove my minimum)';
   [['pfCommute', 'commute', PF_COMMUTE], ['pfSetting', 'setting', PF_SETTING], ['pfContact', 'contact', PF_CONTACT]].forEach(function (f) { var x = D[f[0]] || ''; if (f[2].indexOf(x) >= 0) ch[f[1]] = x; });
   var note = clean(D.pfNote).slice(0, 1000);
   if (!Object.keys(ch).length && !note) { S.pf.err = 'Change at least one setting, or add a note for Sherif.'; S.focusTo = '#pfRoles'; render(); return; }
@@ -2058,7 +2060,7 @@ function icsFor(x) {
   var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Steady Path Careers//Client Portal//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
   if (clock) L = L.concat(['BEGIN:VTIMEZONE', 'TZID:America/New_York', 'BEGIN:DAYLIGHT', 'TZOFFSETFROM:-0500', 'TZOFFSETTO:-0400', 'TZNAME:EDT', 'DTSTART:19700308T020000', 'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU', 'END:DAYLIGHT',
     'BEGIN:STANDARD', 'TZOFFSETFROM:-0400', 'TZOFFSETTO:-0500', 'TZNAME:EST', 'DTSTART:19701101T020000', 'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU', 'END:STANDARD', 'END:VTIMEZONE']);
-  L = L.concat(['BEGIN:VEVENT', 'UID:interview-' + String(x.id || 'app').replace(/[^\w-]/g, '') + '-' + m[1] + m[2] + m[3] + '@steadypathcareers.com',
+  L = L.concat(['BEGIN:VEVENT', 'UID:interview-' + String(x.id || 'app').replace(/[^\w-]/g, '') + '@steadypathcareers.com', 'SEQUENCE:' + Math.floor(now.getTime() / 60000),
     'DTSTAMP:' + now.getUTCFullYear() + p2(now.getUTCMonth() + 1) + p2(now.getUTCDate()) + 'T' + p2(now.getUTCHours()) + p2(now.getUTCMinutes()) + p2(now.getUTCSeconds()) + 'Z',
     start, end, 'SUMMARY:' + icsText('Interview: ' + (x.company || 'employer')), 'DESCRIPTION:' + icsText(desc), 'TRANSP:OPAQUE', 'END:VEVENT', 'END:VCALENDAR']);
   return L.map(icsFold).join('\r\n') + '\r\n';
@@ -2092,8 +2094,8 @@ function featureRatings() {
 function fbFeatures() { var f = S.fb || {}, o = {}; if (f.jobs != null) o.jobs = f.jobs; FB_FEATURES.forEach(function (x) { var v = f['ft_' + x[0]]; if (v != null) o[x[0]] = v; }); return o; }
 function urgentBox() {
   var U = S.urg || {};
-  if (U.done) return '<div class="card urg ok" role="status"><b>Sent to Sherif as urgent.</b> He will get back to you as soon as he can. You can still fill in the survey below, or skip it.</div>';
-  if (!U.open) return '<div class="urg-link"><button class="linkbtn" data-urg="open" aria-expanded="false">Something\'s broken or urgent?</button> <span>Skip the survey and tell Sherif now.</span></div>';
+  if (U.done) return '<div class="card urg ok" role="status" tabindex="-1"><b>Sent to Sherif as urgent.</b> He will get back to you as soon as he can. You can still fill in the survey below, or skip it.</div>';
+  if (!U.open) return '<div class="urg-link"><button class="linkbtn" data-urg="open">Something\'s broken or urgent?</button> <span>Skip the survey and tell Sherif now.</span></div>';
   var D = S.pf.draft;
   return '<div class="card urg logbox"><h2 class="pf-h">Something\'s broken or urgent</h2><p class="psub" style="margin:0">This goes straight to Sherif, outside the survey.</p>' +
     '<label for="urgWhat">What\'s wrong?</label><textarea id="urgWhat" maxlength="1000" rows="3"' + (U.err ? ' aria-invalid="true" aria-describedby="urgErr"' : '') + '>' + esc(D.urgWhat || '') + '</textarea>' +
@@ -2123,9 +2125,9 @@ document.addEventListener('click', function (e) {
   if (d.pfsend != null) { sendPrefsChange(); return; }
   if (d.pfpause != null) { S.pf.pause = !!d.pfpause; S.pf.edit = false; S.pf.del = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.pause ? '#pfPauseNote' : '[data-pfpause]'; render(); return; }
   if (d.pfpausesend) { var ty = d.pfpausesend === 'Resume search' ? 'Resume search' : 'Pause search';
-    sendRequest({ type: ty, note: String(S.pf.draft.pfPauseNote || '').trim().slice(0, 1000) }, function (ok) { if (ok) { S.pf.pause = false; delete S.pf.draft.pfPauseNote; S.pf.msg = 'Sent. Sherif will ' + (ty === 'Pause search' ? 'pause' : 'restart') + ' your search after he reviews it, within a day. Until then nothing changes.'; S.focusTo = '#pfMsg'; } }); return; }
+    sendRequest({ type: ty, note: String(S.pf.draft.pfPauseNote || '').trim().slice(0, 1000) }, function (ok) { if (ok) { S.pf.pause = false; delete S.pf.draft.pfPauseNote; S.pf.msg = 'Sent. Sherif will ' + (ty === 'Pause search' ? 'pause' : 'restart') + ' your search after he reviews it, usually within one business day. Until then nothing changes.'; S.focusTo = '#pfMsg'; } }); return; }
   if (d.pfdel != null) { S.pf.del = !!d.pfdel; S.pf.edit = false; S.pf.pause = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.del ? '#pfDelH' : '[data-pfdel]'; render(); return; }
-  if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. Sherif reviews it within a day and will email you. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
+  if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. Sherif reviews it, usually within one business day, and will email you. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
   if (d.export) { var day = todayISO(); if (d.export === 'csv') saveFile('steady-path-applications-' + day + '.csv', 'text/csv;charset=utf-8', appsCsv()); else saveFile('steady-path-my-data-' + day + '.json', 'application/json', JSON.stringify(exportData(), null, 2)); toast('Downloaded.'); return; }
   if (d.ics) { var ap = ((S.data && S.data.apps) || []).filter(function (x) { return String(x.id) === d.ics; })[0], txt = ap && icsFor(ap); if (!txt) return; saveFile('interview-' + slug(ap.company) + '-' + ap.interview + '.ics', 'text/calendar;charset=utf-8', txt); toast('Calendar file downloaded. Open it to add the interview.'); return; }
   if (d.urg != null) { S.urg = { open: !!d.urg }; S.pf.err = ''; S.focusTo = d.urg ? '#urgWhat' : '[data-urg]'; render(); return; }
