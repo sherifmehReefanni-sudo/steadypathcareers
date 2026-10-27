@@ -574,9 +574,11 @@ body.deck-lock { overflow: hidden; }
 .pf-confirm p { margin: 0; }
 .btn.danger { background: var(--bad); border-color: var(--bad); color: #fff; }
 .pf-delbtn { color: var(--bad); }
-.ics-row { margin: 4px 0 0; }
-.linkbtn.ics { display: inline-flex; align-items: center; gap: 6px; }
-.linkbtn.ics svg { width: 18px; height: 18px; flex: none; }
+.ics-row { margin: 8px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ics-lab { flex: 1 0 100%; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--muted); font-size: 14px; }
+.ics-lab svg { width: 18px; height: 18px; flex: none; }
+.linkbtn.ics { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; border: 1.5px solid var(--navy); border-radius: 999px; background: #fff; text-decoration: none; white-space: nowrap; }
+.linkbtn.ics:hover { background: var(--navy); color: #fff; }
 .dc .meta.dchg, .rv-pacts .meta.dchg { color: var(--ink); }
 .scale button.unused { min-width: 0; font-weight: 600; font-size: 14px; }
 .fbft { display: grid; gap: 6px; margin-top: 8px; }
@@ -2460,6 +2462,7 @@ function sendPrefsChange() {
   });
 }
 /* ---- client-side files: data export, applications CSV, calendar ---- */
+function isIOS() { var u = navigator.userAgent || ''; return /iPhone|iPad|iPod/.test(u) || (/Macintosh/.test(u) && navigator.maxTouchPoints > 1); }
 function saveFile(name, mime, text) {
   var blob = new Blob([text], { type: mime }), url = URL.createObjectURL(blob), a = document.createElement('a');
   a.href = url; a.download = name; a.rel = 'noopener'; a.style.display = 'none'; document.body.appendChild(a); a.click(); a.remove();
@@ -2516,9 +2519,21 @@ function icsFor(x) {
   return L.map(icsFold).join('\r\n') + '\r\n';
 }
 function slug(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'interview'; }
-function icsBtn(x) {
+function gcalUrl(x) {
+  var m = String(x.interview || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return '';
+  var p2 = function (n) { return ('0' + n).slice(-2); }, clock = ivClock(x.ivTime), dates;
+  if (clock) { var s0 = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], clock[0], clock[1])), e0 = new Date(s0.getTime() + 3600e3), f = function (dt) { return dt.getUTCFullYear() + p2(dt.getUTCMonth() + 1) + p2(dt.getUTCDate()) + 'T' + p2(dt.getUTCHours()) + p2(dt.getUTCMinutes()) + '00'; }; dates = f(s0) + '/' + f(e0); }
+  else { var d0 = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])), d1 = new Date(d0.getTime() + 864e5), g = function (dt) { return dt.getUTCFullYear() + p2(dt.getUTCMonth() + 1) + p2(dt.getUTCDate()); }; dates = g(d0) + '/' + g(d1); }
+  var desc = [x.role ? 'Role: ' + x.role : '', x.ivTime && !clock ? 'Time: ' + x.ivTime : '', x.contact ? 'Contact: ' + x.contact : '', 'From your Steady Path portal.'].filter(String).join('\n');
+  var q = 'action=TEMPLATE&text=' + encodeURIComponent('Interview: ' + (x.company || 'employer')) + '&dates=' + dates + (clock ? '&ctz=America%2FNew_York' : '') + '&details=' + encodeURIComponent(desc) + (String(x.ivWhere || '').trim() ? '&location=' + encodeURIComponent(String(x.ivWhere).trim()) : '');
+  return 'https://calendar.google.com/calendar/render?' + q;
+}
+function icsBtn(x) { /* round 9: Google Calendar link, plus the calendar file for iPhone, Mac and Outlook */
   var dd = daysFrom(x.interview); if (dd == null || dd < 0 || stageOf(x) >= 4) return '';
-  return '<p class="ics-row"><button type="button" class="linkbtn ics" data-ics="' + esc(x.id) + '" aria-label="' + esc('Add the ' + (x.company || '') + ' interview to your calendar') + '">' + IC.cal + 'Add to calendar</button></p>';
+  var g = gcalUrl(x), co = x.company || '';
+  return '<p class="ics-row"><span class="ics-lab">' + IC.cal + 'Add to your calendar</span>' +
+    (g ? '<a class="linkbtn ics" href="' + esc(g) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc('Add the ' + co + ' interview to Google Calendar (opens Google)') + '">Google Calendar</a>' : '') +
+    '<button type="button" class="linkbtn ics" data-ics="' + esc(x.id) + '" aria-label="' + esc('Add the ' + co + ' interview to your iPhone, Mac or Outlook calendar') + '">iPhone or Outlook</button></p>';
 }
 IC.cal = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>';
 /* ---- document version line; prep timing ---- */
@@ -2579,7 +2594,7 @@ document.addEventListener('click', function (e) {
   if (d.pfdel != null) { S.pf.del = !!d.pfdel; S.pf.edit = false; S.pf.pause = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.del ? '#pfDelH' : '[data-pfdel]'; render(); return; }
   if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. Sherif reviews it, usually within one business day, and will email you. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
   if (d.export) { var day = todayISO(); if (d.export === 'csv') saveFile('steady-path-applications-' + day + '.csv', 'text/csv;charset=utf-8', appsCsv()); else saveFile('steady-path-my-data-' + day + '.json', 'application/json', JSON.stringify(exportData(), null, 2)); toast('Downloaded.'); return; }
-  if (d.ics) { var ap = ((S.data && S.data.apps) || []).filter(function (x) { return String(x.id) === d.ics; })[0], txt = ap && icsFor(ap); if (!txt) return; saveFile('interview-' + slug(ap.company) + '-' + ap.interview + '.ics', 'text/calendar;charset=utf-8', txt); toast('Calendar file downloaded. Open it to add the interview.'); return; }
+  if (d.ics) { var ap = ((S.data && S.data.apps) || []).filter(function (x) { return String(x.id) === d.ics; })[0], txt = ap && icsFor(ap); if (!txt) return; if (isIOS()) { try { location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(txt); return; } catch (e) {} } saveFile('interview-' + slug(ap.company) + '-' + ap.interview + '.ics', 'text/calendar;charset=utf-8', txt); toast('Calendar file downloaded. Open it to add the interview to Outlook or Apple Calendar.'); return; }
   if (d.urg != null) { S.urg = { open: !!d.urg }; S.pf.err = ''; S.focusTo = d.urg ? '#urgWhat' : '[data-urg]'; render(); return; }
   if (d.urgsend != null) { sendUrgent(); return; }
 });
