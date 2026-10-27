@@ -137,6 +137,39 @@ body { overflow-x: hidden; }
 .jc .nstep { margin: 0; font-weight: 700; font-size: 15px; }
 .hint { margin: 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--info-soft); color: var(--info); border-radius: 10px; padding: 6px 6px 6px 12px; font-weight: 800; font-size: 14px; }
 .hint button { border: 0; background: none; color: var(--info); min-width: 44px; min-height: 44px; font-size: 20px; line-height: 1; }
+/* round 3: fit, watch-out, next action on the card face, collapsed answer for a Yes job */
+.jc .jfit { margin: 0; font-size: 15.5px; line-height: 1.4; color: var(--ink); }
+.jc .jwatch { margin: 0; font-size: 15px; line-height: 1.4; color: #6b4e00; background: #fff6df; border-radius: 10px; padding: 6px 10px; }
+.jc .jwatch b { font-weight: 800; }
+.jc .jnext { display: grid; gap: 6px; }
+.jc .jnext .kbtn { width: 100%; }
+.jc .jnext p { margin: 0; font-size: 15px; font-weight: 700; color: var(--muted); }
+.jc .jnext p.trknow { color: var(--yes); }
+.jc .jchg { padding: 2px 16px 8px 22px; border-top: 1px solid rgba(0,0,0,.06); }
+.jc .jchg .linkbtn { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 800; color: var(--navy); }
+.jc .jchg .linkbtn svg { width: 16px; height: 16px; transition: transform .15s; }
+.jc .jchg .linkbtn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.jc .jchg .ans3 { padding: 4px 0 6px; border-top: 0; background: none; }
+.jc .jchg .ans3 button { min-height: 44px; font-size: 15px; }
+.jc .det .trk { margin-top: 6px; }
+.jc .det .kit { font-size: 15.5px; }
+.jc.s-q .jwatch { background: #fff; }
+.jm-n { display: none; }
+@media (max-width: 760px) { .jm .jm-m { -webkit-line-clamp: 3; font-size: 11px; padding: 3px 1px; letter-spacing: -0.01em; } .jm-m .jm-w { display: none; } .jm-m .jm-n { display: inline; } }
+/* round 3: search, sort and filter chips (Jobs and Applied) */
+.jfind { display: grid; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; }
+.jf-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.jf-row.one { grid-template-columns: minmax(0, 1fr); }
+.jf-row label { display: block; font-weight: 800; font-size: 13px; color: var(--muted); margin: 0 0 4px; }
+.jf-row input, .jf-row select { width: 100%; min-width: 0; box-sizing: border-box; min-height: 44px; padding: 8px 12px; border: 1.5px solid #cfd6e3; border-radius: 10px; font: 16px var(--display); background: #fff; color: var(--ink); }
+.jf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.jf-chips button { min-height: 44px; padding: 0 14px; border-radius: 99px; border: 2px solid #cfd6e3; background: #fff; color: var(--navy); font-weight: 800; font-size: 14.5px; }
+.jf-chips button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+.jf-st { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 14px; font-weight: 700; color: var(--muted); }
+.jf-st:empty { display: none; }
+.jf-none { display: grid; gap: 10px; justify-items: start; }
+.jf-none p { margin: 0; font-weight: 700; }
+@media (max-width: 520px) { .jf-row { grid-template-columns: minmax(0, 1fr); } }
 
 /* status colors */
 .jc.s-yes { background: var(--yes-bg); border-color: var(--yes-line); }
@@ -251,6 +284,9 @@ body { overflow-x: hidden; }
 .app .notes { white-space: pre-wrap; }
 .app .amore { margin: 6px 0 0; font-size: 14px; }
 .upbox textarea { min-height: 70px; }
+.alist { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; align-items: start; }
+.alist .app { margin: 0; }
+.jf-hint { margin: 0; font-size: 13px; color: var(--muted); }
 .due { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
 .due .sec-h { margin: 0 0 8px; }
 .due ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
@@ -428,6 +464,7 @@ body.deck-lock { overflow: hidden; }
 .rv-card h2 { margin: 0; font: 800 20px var(--display); color: var(--navy); }
 .rv-card p { margin: 0; }
 .rv-card .kdone, .rv-card .kbtn { width: 100%; }
+.rv-card .kbtn.rv-one { border-color: var(--yes); color: var(--yes); }
 .rv-note { display: grid; gap: 8px; }
 .rv-note textarea { width: 100%; min-height: 90px; border: 1.5px solid #d3dae6; border-radius: 12px; padding: 10px 12px; font: 16px var(--display); box-sizing: border-box; }
 .rv-note label, .rv-which { font-weight: 800; color: var(--navy); margin: 0; }
@@ -563,12 +600,12 @@ window.SP_DEMO = function () {
     client: { id: 'C-DEMO', name: 'Jordan T.', firstName: 'Jordan', stage: 'Trial', startDate: iso(-8), trialEnds: iso(9), payFloor: '$190,000', lastTouch: iso(-1), lastFeedback: '', home: 'Hicksville, NY', std: 'Authorized to work in the US: Yes\nNeed visa sponsorship: No\nNY dental license: Yes, active',
       weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. I am also asking Sample Community Dental about loan repayment for you and expect an answer by Friday. Two new Nassau County openings came in on Monday.' },
     jobs: [
-      { id: 'J-101', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Smiles Dental', title: 'Associate Dentist', location: 'Garden City, NY', setting: 'On-site', pay: '$195,000 - $235,000 a year', payLow: 195000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Family practice with 4 chairs and a full hygiene team. Mostly restorative and some cosmetic work, which matches your last 5 years.', link: 'https://example.com/jobs/bright-smiles-associate', notes: 'Four days a week, no Sundays.', answer: '', note: '', answeredOn: '', kit: { pay: '', start: '', why: '' } },
-      { id: 'J-102', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Dental Partners', title: 'General Dentist', location: 'Huntington, NY', setting: 'On-site', pay: '$90 - $115 an hour', payLow: 90, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Busy group practice with in-house lab. Open to dentists who want to build implant skills.', link: 'https://example.com/jobs/lidp-general', notes: '', answer: '', note: '', answeredOn: '' },
-      { id: 'J-103', added: iso(-6), postStatus: 'Open', postChecked: iso(-1), company: 'Example Dental Arts', title: 'Associate Dentist', location: 'Massapequa, NY', setting: 'On-site', pay: '$200,000 - $250,000 a year', payLow: 200000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Patient education is a big part of how they work, which is how you described your own style. Path to partnership after 2 years.', link: 'https://example.com/jobs/massapequa-associate', notes: 'They answer applications within a week.', answer: 'Yes', note: '', answeredOn: iso(-5),
+      { id: 'J-101', fit: 'Strong fit', concern: 'Four days a week, so ask how new patients are split between dentists.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Smiles Dental', title: 'Associate Dentist', location: 'Garden City, NY', setting: 'On-site', pay: '$195,000 - $235,000 a year', payLow: 195000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Family practice with 4 chairs and a full hygiene team. Mostly restorative and some cosmetic work, which matches your last 5 years.', link: 'https://example.com/jobs/bright-smiles-associate', notes: 'Four days a week, no Sundays.', answer: '', note: '', answeredOn: '', kit: { pay: '', start: '', why: '' } },
+      { id: 'J-102', fit: 'Possible fit', concern: 'Hourly pay, and the posting lists no benefits.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Dental Partners', title: 'General Dentist', location: 'Huntington, NY', setting: 'On-site', pay: '$90 - $115 an hour', payLow: 90, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Busy group practice with in-house lab. Open to dentists who want to build implant skills.', link: 'https://example.com/jobs/lidp-general', notes: '', answer: '', note: '', answeredOn: '' },
+      { id: 'J-103', fit: 'Strong fit', added: iso(-6), postStatus: 'Open', postChecked: iso(-1), company: 'Example Dental Arts', title: 'Associate Dentist', location: 'Massapequa, NY', setting: 'On-site', pay: '$200,000 - $250,000 a year', payLow: 200000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Patient education is a big part of how they work, which is how you described your own style. Path to partnership after 2 years.', link: 'https://example.com/jobs/massapequa-associate', notes: 'They answer applications within a week.', answer: 'Yes', note: '', answeredOn: iso(-5),
         kit: { pay: 'I am looking for $220,000 to $240,000, in line with the posted range.', start: 'I can start two weeks after an offer.', why: 'I like that your team puts real time into patient education. That is how I practice, and my patients stay with me because of it.' } },
-      { id: 'J-104', added: iso(-9), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Shore Dental', title: 'General Dentist', location: 'Port Washington, NY', setting: 'On-site', pay: '$185,000 - $225,000 a year', payLow: 185000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Calm, modern office with digital scanners. Many family patients, good fit for your pediatric experience.', link: 'https://example.com/jobs/north-shore-general', notes: '', answer: 'Yes', note: '', answeredOn: iso(-8), kit: { pay: 'Within the posted range, around $210,000.', start: 'Two weeks after an offer.', why: '' } },
-      { id: 'J-105', added: iso(-4), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Community Dental Center', title: 'Staff Dentist', location: 'Smithtown, NY', setting: 'On-site', pay: '$175,000 - $205,000 a year', payLow: 175000, paySource: 'Posted by employer', floor: 'Below your floor at the low end', why: 'Community health center with set hours and full benefits. Loan repayment may be available.', link: 'https://example.com/jobs/smithtown-staff', notes: '', answer: 'Question', note: 'Do they offer loan repayment or a sign-on bonus?', answeredOn: iso(-3) },
+      { id: 'J-104', fit: 'Possible fit', concern: 'Less cosmetic work than your last practice.', added: iso(-9), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Shore Dental', title: 'General Dentist', location: 'Port Washington, NY', setting: 'On-site', pay: '$185,000 - $225,000 a year', payLow: 185000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Calm, modern office with digital scanners. Many family patients, good fit for your pediatric experience.', link: 'https://example.com/jobs/north-shore-general', notes: '', answer: 'Yes', note: '', answeredOn: iso(-8), kit: { pay: 'Within the posted range, around $210,000.', start: 'Two weeks after an offer.', why: '' } },
+      { id: 'J-105', fit: 'Stretch', concern: 'The low end of the pay range is below your floor.', added: iso(-4), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Community Dental Center', title: 'Staff Dentist', location: 'Smithtown, NY', setting: 'On-site', pay: '$175,000 - $205,000 a year', payLow: 175000, paySource: 'Posted by employer', floor: 'Below your floor at the low end', why: 'Community health center with set hours and full benefits. Loan repayment may be available.', link: 'https://example.com/jobs/smithtown-staff', notes: '', answer: 'Question', note: 'Do they offer loan repayment or a sign-on bonus?', answeredOn: iso(-3) },
       { id: 'J-106', added: iso(-5), postStatus: 'Open', postChecked: iso(-1), company: 'Example Dental Group', title: 'Associate Dentist', location: 'Bay Shore, NY', setting: 'On-site', pay: '$160,000 - $180,000 a year', payLow: 160000, paySource: 'Posted by employer', floor: 'Below your floor', why: 'Steady patient base and short drive from the train.', link: 'https://example.com/jobs/bay-shore-associate', notes: '', answer: 'No', note: 'Pay is too low.', answeredOn: iso(-4) },
       { id: 'J-107', added: iso(-7), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Family Dentistry', title: 'Dentist', location: 'Riverhead, NY', setting: 'On-site', pay: '$190,000 - $215,000 a year', payLow: 190000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Small practice, owner plans to retire in 3 years.', link: 'https://example.com/jobs/east-end-dentist', notes: '', answer: 'No', note: 'Too far to drive.', answeredOn: iso(-6) }
       ,{ id: 'J-108', added: iso(-10), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Bay Dental', title: 'Lead Dentist', location: 'Oceanside, NY', setting: 'On-site', pay: '$210,000 - $260,000 a year', payLow: 210000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Lead role close to home.', link: 'https://example.com/jobs/108', notes: '', answer: 'Yes', note: '', answeredOn: iso(-9), closed: true, closedOn: iso(-1), kit: {} }
@@ -1017,12 +1054,28 @@ function nxCard(n) {
 }
 /* Journey map: every Yes job as a marker on the gold path, at its stage. */
 function shortCo(c) { var w = String(c || '').trim().split(/\s+/), s = w.slice(0, 2).join(' '); return s.length > 20 ? s.slice(0, 19) + '…' : s; }
+/* Round 3: a marker names the company and enough of the role to tell two jobs at one company apart ("HUB · Private Client").
+   Same company: the title words the jobs do not share; same title too: the town. Each part is cut at a word, with an ellipsis. */
+function clipWords(s, n) { s = String(s || '').trim(); if (s.length <= n) return s; var c = s.slice(0, n - 1), k = c.lastIndexOf(' '); return (k > 0 ? c.slice(0, k) : c).replace(/[\s,·:;&-]+$/, '') + '…'; }
+function roleBit(j, peers, narrow) {
+  var words = function (t) { return String(t || '').trim().split(/\s+/).filter(String); }, lc = function (v) { return String(v || '').trim().toLowerCase(); };
+  var w = words(j.title), same = (peers || []).filter(function (p) { return p.id !== j.id && lc(p.company) === lc(j.company); });
+  if (same.length) {
+    var diff = w.filter(function (x) { return !same.every(function (p) { return words(p.title).some(function (y) { return lc(y) === lc(x); }); }); });
+    if (diff.length) w = diff;
+    else if (j.location) return clipWords(String(j.location).split(',')[0], narrow ? 10 : 18);
+  }
+  return narrow ? clipWords(w[0] || '', 10) : clipWords(w.slice(0, 2).join(' '), same.length ? 18 : 14);
+}
+function coBit(c, n) { n = n || 14; var w = String(c || '').trim().split(/\s+/).filter(String), two = w.slice(0, 2).join(' '); return two.length <= n ? two : clipWords(w[0] || '', n); }
+/* narrow: the phone label (five stages share 390px), company and one word of the role */
+function jmLabel(j, peers, narrow) { var c = coBit(j.company, narrow ? 10 : 14), r = roleBit(j, peers, narrow); return c && r ? c + ' · ' + r : c || r || 'Job'; }
 function jmap(jobs) {
   var yes = jobs.filter(function (j) { return ansOf(j) === 'yes'; }); if (!yes.length) return '';
   var by = [[], [], [], [], []]; yes.forEach(function (j) { by[S.deferred[j.id] || S.pending[j.id] ? 0 : stageFor(j)].push(j); });
   return '<section class="jmap" aria-labelledby="jm-h"><h2 class="sec-h" id="jm-h">Where your Yes jobs are</h2><ol class="jm">' + STAGES_SHORT.map(function (s, i) {
     return '<li class="jm-st st-' + i + (by[i].length ? ' has' : '') + '"><span class="jm-dot" aria-hidden="true"></span><span class="jm-l">' + s + '</span>' +
-      (by[i].length ? '<span class="jm-ms">' + by[i].map(function (m) { return '<button type="button" class="jm-m st-' + i + '" data-jmgo="' + esc(m.id) + '" aria-label="' + esc(m.company + ': ' + STAGES[i] + '. Show this job.') + '">' + esc(shortCo(m.company)) + '</button>'; }).join('') + '</span>' : '') + '</li>';
+      (by[i].length ? '<span class="jm-ms">' + by[i].map(function (m) { return '<button type="button" class="jm-m st-' + i + '" data-jmgo="' + esc(m.id) + '" aria-label="' + esc(m.company + ', ' + m.title + ': ' + STAGES[i] + '. Show this job.') + '"><span class="jm-w">' + esc(jmLabel(m, yes)) + '</span><span class="jm-n">' + esc(jmLabel(m, yes, true)) + '</span></button>'; }).join('') + '</span>' : '') + '</li>';
   }).join('') + '</ol></section>';
 }
 
@@ -1069,7 +1122,7 @@ function vReview() {
   var willApply = !st.app && okOrOnScreen('resume') && okOrOnScreen('cover') && !st.changes.some(function (x) { return /^(resume|cover)$/.test(docKind(x.name)); });
   var ask = nRv === 1 ? 'Happy with it?' : nRv === 2 ? 'Happy with both?' : nRv === 3 ? 'Happy with all three?' : 'Happy with all of them?';
   if (nRv) side = '<div class="rv-card"><h2>' + ask + '</h2><p>Tap Looks good to approve your ' + esc(words) + '.' + (willApply ? ' Then you can apply.' : '') + '</p>' +
-    '<button class="kdone" data-looksgood="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Looks good') + '</button>' +
+    '<button class="kdone" data-looksgood="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Looks good') + '</button>' + rvOneBtn(docs, nRv, busy) +
     '<button class="kbtn" data-rvchange="' + (S.changesFor ? '' : 'open') + '" aria-expanded="' + !!S.changesFor + '"' + (busy ? ' disabled' : '') + '>Ask for a change</button>' + changeBox(st, j) + '</div>';
   else if (st.app) side = '<div class="rv-card ok"><h2>You applied</h2><p>Applied ' + esc(fmtDate(st.app.applied)) + '. It is on your Applied tab.</p><button class="btn gold" data-go="apps">Applied tab</button></div>';
   else if (st.applyReady) side = '<div class="rv-card ok"><h2>All approved</h2><p>Your next step is to apply. It takes three short steps.</p><button class="kdone" data-applyflow="' + id + '">' + IC.check + 'Start applying</button></div>';
@@ -1118,6 +1171,29 @@ function approveJob(jobId) {
     docStatus(ids[k], 'Approved', '', function (ok) { if (ok) step(k + 1); else { S.rvBusy = false; render(); } }, true);
   };
   step(0);
+}
+
+/* Round 3: approve only the document in view ("Approve resume", "Approve cover letter"), next to the one Looks good that approves
+   everything still needing an OK. Shown when more than one document needs an OK; interview prep never gets one (needsOk). */
+function rvOneBtn(docs, nRv, busy) {
+  var x = docs.filter(function (y) { return y.id === S.flow.tab; })[0];
+  if (nRv < 2 || !x || !needsOk(x)) return '';
+  return '<button class="kbtn rv-one" data-rvok="' + esc(x.id) + '"' + (busy ? ' disabled' : '') + '>' + IC.check + 'Approve ' + esc(docNoun(x)) + '</button>';
+}
+function approveOne(jobId, docId) {
+  var j = jobById(jobId); if (!j || S.rvBusy) return;
+  var x = jobState(j).review.filter(function (y) { return y.id === docId; })[0]; if (!x) return;
+  S.rvBusy = true; S.changesFor = null;
+  docStatus(docId, 'Approved', '', function (ok) {
+    S.rvBusy = false;
+    if (!ok) { render(); return; }
+    var st = jobState(j), nx = st.review[0], what = docLabel(x);
+    /* the last needed OK: the same hand-off to the apply screen as Looks good */
+    if (!nx && st.applyReady && !jobApp(j)) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
+    if (nx && S.flow && S.flow.job === j.id) { S.flow.tab = nx.id; S.focusTo = '[data-rvtab="' + cssq(nx.id) + '"]'; toast(what + ' approved. Next: your ' + docNoun(nx) + '.'); }
+    else toast(what + ' approved. Thank you.');
+    render();
+  }, true);
 }
 
 /* ---- apply screen: three guided steps, then "Did you submit it?" ---- */
@@ -1299,22 +1375,53 @@ function floorPill(f) { f = String(f || '').toLowerCase(); if (f.indexOf('at or 
 function isEst(j) { return /estimate/i.test(j.paySource || '') || /not posted|estimate/i.test(String(j.pay || '')); }
 function payText(j) { var p = String(j.pay == null ? '' : j.pay).split(';')[0].trim(); return p || 'Pay not posted'; }
 function commuteUrl(j) { var h = S.data.client.home; if (!h || !j.location || /remote/i.test(j.location) || /^\s*remote/i.test(j.setting || '')) return ''; return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(h) + '&destination=' + encodeURIComponent(String(j.company).replace(/\s*\(.*?\)/g, '') + ', ' + j.location); }
+/* ---- round 3: fit label, one reason, the biggest concern, and the next action for a Yes job ---- */
+/* Fit comes from the Jobs sheet's "Fit" column (Strong fit / Possible fit / Stretch). No match percentages: any "85%" is dropped. */
+var FITS = [[/^strong/i, 'Strong fit', 'ok', 0], [/^possible/i, 'Possible fit', 'info', 1], [/^stretch/i, 'Stretch', 'gold', 2]];
+function fitOf(j) {
+  var f = String((j && j.fit) || '').replace(/\(?\s*\d+(\.\d+)?\s*%\s*\)?/g, ' ').replace(/\s+/g, ' ').trim(); if (!f) return null;
+  for (var i = 0; i < FITS.length; i++) if (FITS[i][0].test(f)) return { label: FITS[i][1], cls: FITS[i][2], rank: FITS[i][3] };
+  return { label: clipWords(f, 24), cls: '', rank: 3 };
+}
+function fitPill(j) { var f = fitOf(j); return f ? '<span class="pill' + (f.cls ? ' ' + f.cls : '') + ' fitp"><span class="sr">Fit: </span>' + esc(f.label) + '</span>' : ''; }
+/* first sentence of Why it fits (the whole text stays under Details) */
+function whyFirst(w) { w = String(w || '').replace(/\s+/g, ' ').trim(); if (!w) return ''; var m = w.match(/^.+?[.!?](?=\s|$)/); return clipWords(m ? m[0] : w, 160); }
+function fitFace(j, ans) {
+  if (ans === 'no' || j.closed) return '';
+  var why = whyFirst(j.why), c = String(j.concern || '').trim();
+  return (why ? '<p class="jfit">' + esc(why) + '</p>' : '') + (c ? '<p class="jwatch"><b>Watch out:</b> ' + esc(c) + '</p>' : '');
+}
+function jobNext(j) {
+  var s = jobState(j), id = esc(j.id), app = s.app;
+  var b = function (attr, icon, label) { return '<div class="jnext"><button class="kbtn solid" ' + attr + '>' + icon + label + '</button></div>'; };
+  if (s.review.length) return b('data-review="' + id + '"', IC.docs, 'Read and approve documents');
+  if (s.applyReady && !app) return b('data-applyflow="' + id + '"', IC.check, 'Apply step by step');
+  if (app) {
+    var live = stageOf(app) < 4, prep = s.prep && (isReady(s.prep) || /approved/i.test(s.prep.status || '')) ? s.prep : null;
+    var when = '<p>' + (isOutreach(app) ? 'Contacted ' : 'Applied ') + esc(fmtDate(app.applied)) + (app.status ? ' · ' + esc(app.status) : '') + '</p>';
+    if (live && prepQs(app).length) return '<div class="jnext">' + when + '<button class="kbtn solid" data-nxprep="' + esc(app.id) + '">' + IC.docs + 'Interview prep</button></div>';
+    if (live && prep) return '<div class="jnext">' + when + '<a class="kbtn solid" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + id + '">' + IC.docs + 'Interview prep</a></div>';
+    return '<div class="jnext">' + when + '<button class="kbtn" data-go="apps">' + IC.apps + 'See it on your Applied tab</button></div>';
+  }
+  if (s.changes.length) return '<div class="jnext"><p class="trknow">Next: Sherif is making your changes. ' + esc(whenReady()) + '</p></div>';
+  return '<div class="jnext"><p class="trknow wait-w">Next: your tailored resume, cover letter and interview prep are being prepared. They show up in Documents for your OK.</p></div>';
+}
 function jobCard(j, hint) {
   var ans = ansOf(j), busy = locked(j.id), open = !!S.open[j.id], id = esc(j.id);
   var est = isEst(j);
   var heads = /below/i.test(j.floor || '') ? 'Heads-up: this is below your pay floor. Aim for the top of the range.' : '';
   var link = safeUrl(j.link), cm = commuteUrl(j), st = ans === 'yes' ? stageFor(j) : 0;
-  var pills = [floorPill(j.floor), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : ''].filter(String).slice(0, 2).join('');
+  var pills = [fitPill(j), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '', floorPill(j.floor)].filter(String).join('');
   var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes <span class="stg st-' + st + '">' + STAGES_SHORT[st] + '</span></div>' : ans === 'q' ? '<div class="jst">' + IC.qc + 'Sherif is finding out</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
-  var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (j.closed ? ' is-closed' : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' && !j.closed ? ' data-swipe="1"' : '') + ' aria-label="' + esc(j.title + ', ' + j.company) + '">' +
-    (ans !== 'no' && !j.closed ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
+  var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (j.closed ? ' is-closed' : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' && ans !== 'yes' && !j.closed ? ' data-swipe="1"' : '') + ' aria-label="' + esc(j.title + ', ' + j.company) + '">' +
+    (ans !== 'no' && ans !== 'yes' && !j.closed ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
     (hint ? '<p class="hint"><span>Tip: swipe right for Yes, left to pass</span><button type="button" data-hidehint aria-label="Hide tip">&times;</button></p>' : '') +
     status + '<h2 class="ttl">' + esc(j.title) + '</h2>' +
     '<div class="pay' + (est ? ' est' : '') + '">' + esc(payText(j)) + (est ? '<small>Estimate</small>' : '') + '</div>' +
     '<div class="where">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</div>' +
-    (pills ? '<div class="pills">' + pills + '</div>' : '') + (verifyPill(j) ? '<p class="live">' + verifyPill(j) + '</p>' : '');
+    (pills ? '<div class="pills">' + pills + '</div>' : '') + fitFace(j, ans) + (verifyPill(j) ? '<p class="live">' + verifyPill(j) + '</p>' : '');
   if (j.closed) h += '<p class="cnote">This posting is no longer open. Your application still counts; keep going with any interview or follow-up.</p>';
-  if (ans === 'yes') h += tracker(st) + (st >= 2 ? applyKit(j) : '<p class="trknow wait-w">Next: your tailored resume, cover letter and interview prep are being prepared. They show up in Documents for your OK.</p>');
+  if (ans === 'yes') h += jobNext(j); /* round 3: one next action on the face; the tracker and apply kit are under Details */
   if ((ans === 'q' || ans === 'no') && !j.closed) {
     var nv = S.notes[j.id] != null ? S.notes[j.id] : (j.note || '');
     var conf = S.conf[j.id] || {};
@@ -1329,14 +1436,19 @@ function jobCard(j, hint) {
       (j.notes ? '<p><span class="lab">Our notes</span>' + esc(j.notes) + '</p>' : '') + (heads ? '<p class="heads">' + heads + '</p>' : '') +
       '<p class="dlinks">' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" data-track="posting" data-job="' + id + '">See the posting</a>' : '') +
       (cm ? '<a href="' + esc(cm) + '" target="_blank" rel="noopener noreferrer">Commute from home</a>' : '') +
-      (ans && !busy && !j.closed ? '<button type="button" data-clear="' + id + '">Clear my answer</button>' : '') + '</p></div>';
+      (ans && !busy && !j.closed ? '<button type="button" data-clear="' + id + '">Clear my answer</button>' : '') + '</p>' +
+      (ans === 'yes' ? tracker(st) + (st >= 2 ? applyKit(j) : '') : '') + '</div>';
   }
   var dis = busy ? ' aria-disabled="true"' : '';
   if (j.closed) return h + '</div></article>';
-  h += '</div><div class="ans3" role="group" aria-label="Your answer">' +
-    '<button class="yes" data-ans="yes" data-j="' + id + '" aria-pressed="' + (ans === 'yes') + '"' + dis + '>' + IC.check + 'Yes</button>' +
+  var btns = '<button class="yes" data-ans="yes" data-j="' + id + '" aria-pressed="' + (ans === 'yes') + '"' + dis + '>' + IC.check + 'Yes</button>' +
     '<button class="no" data-ans="no" data-j="' + id + '" aria-pressed="' + (ans === 'no') + '"' + dis + '>' + IC.x + 'No</button>' +
-    '<button class="q" data-ans="q" data-j="' + id + '" aria-pressed="' + (ans === 'q') + '"' + dis + '>' + IC.q + 'Question</button></div></article>';
+    '<button class="q" data-ans="q" data-j="' + id + '" aria-pressed="' + (ans === 'q') + '"' + dis + '>' + IC.q + 'Question</button>';
+  /* round 3: a Yes job's answer folds into a small "Change my answer" control */
+  if (ans === 'yes') { var co = !!(S.chgOpen && S.chgOpen[j.id]);
+    return h + '</div><div class="jchg"><button type="button" class="linkbtn" data-chgans="' + id + '" aria-expanded="' + co + '" aria-controls="chg-' + id + '">Change my answer' + IC.chev + '</button>' +
+      (co ? '<div class="ans3" id="chg-' + id + '" role="group" aria-label="Change your answer">' + btns + '</div>' : '') + '</div></article>'; }
+  h += '</div><div class="ans3" role="group" aria-label="Your answer">' + btns + '</div></article>';
   return h;
 }
 function closedCard(j) {
@@ -1359,6 +1471,7 @@ function vJobs() {
   var sorted = d.jobs.slice().sort(function (a, b) { var pa = pos[a.id] != null ? pos[a.id] : -1, pb = pos[b.id] != null ? pos[b.id] : -1; return pa - pb; });
   var main = sorted.filter(function (j) { return ansOf(j) !== 'no' || S.leaving[j.id]; }), passed = sorted.filter(function (j) { return ansOf(j) === 'no' && !S.leaving[j.id]; });
   var hintId = hintOn() ? (main.filter(function (j) { return !ansOf(j) && !j.closed; })[0] || {}).id : null;
+  var jfx = jfJobs(d, main, passed, hintId); main = jfx.main; passed = jfx.passed; /* round 3: search, sort, filters (the list only) */
   var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110;
   var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : n.k === 'done' ? 'All caught up.' : 'Your matches are reviewed. Here\'s what\'s next.';
   return shell('jobs', esc(title), 'Pay is from the employer\'s posting unless marked as an estimate.') + '<div class="pband" aria-hidden="true"></div>' +
@@ -1370,9 +1483,10 @@ function vJobs() {
     (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Sherif' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
     (fbDue(cl) ? '<div class="fbask"><p>Two minutes? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
     installCard() +
-    (main.length ? '<h2 class="sec-h">Your matches</h2><div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">' + ((d.closed || []).length ? 'No open matches right now. New ones show up here.' : 'Nothing here yet. You will get an email when your first jobs arrive.') + '</p></div>') +
+    jfx.head + '<div class="jfres" data-jfres>' + (jfx.on ? jfx.body :
+    (main.length ? (jfx.show ? '' : '<h2 class="sec-h">Your matches</h2>') + '<div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">' + ((d.closed || []).length ? 'No open matches right now. New ones show up here.' : 'Nothing here yet. You will get an email when your first jobs arrive.') + '</p></div>') +
     closedList(d) +
-    (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '') +
+    (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '')) + '</div>' +
     '<footer class="help"><p><b>Need help?</b> ' + HELP + '</p><button class="linkbtn" data-signout>Sign out on this device</button></footer>' +
     '</main>' + tabbar('jobs');
 }
@@ -1494,14 +1608,105 @@ function vApps() {
   }
   var mob = false; try { mob = matchMedia('(max-width: 760px)').matches; } catch (e) {}
   if (!S.colOpen) { S.colOpen = {}; cols.forEach(function (c, k) { S.colOpen[k] = mob ? by[k].length > 0 && by[k].length <= 6 : k < 4 || by[k].length <= 6; }); }
+  var afx = afApps(d); /* round 3: search and Due filter (more than 6 applications) */
   return shell('apps', d.apps.length ? d.apps.length + (d.apps.length === 1 ? ' application' : ' applications') + ' tracked' : 'Nothing sent yet', 'Where each one stands. Offers and closed ones have their own columns.') +
-    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
+    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + practice + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
         return appCard(x);
       }).join('') + '</div>';
-    }).join('') + '</div>' : '<div class="card empty e-apps"><p class="psub" style="margin:0">Say Yes to a job, approve your documents, and apply. It shows up here.</p></div>') + '</main>' + tabbar('apps');
+    }).join('') + '</div>' : '<div class="card empty e-apps"><p class="psub" style="margin:0">Say Yes to a job, approve your documents, and apply. It shows up here.</p></div>') + '</div></main>' + tabbar('apps');
 }
 
+/* ---- round 3: search, sort and filter chips ----
+   Jobs: shown when there are more than 6 jobs. Applied: when there are more than 6 applications. Per-viewer screen state only (S.jf,
+   S.af); only the Jobs sort is remembered on this device. Filters change which cards are listed, never the counts, the next step,
+   the Due next list or the journey map (those read S.data). While a search is on, a card the client acts on stays listed until the
+   search changes, so a card never vanishes under the finger. */
+var JF_SORTS = [['order', 'Needs answer first'], ['new', 'Newest'], ['pay', 'Highest pay'], ['fit', 'Best fit']];
+var JF_CHIPS = [['wait', 'Needs answer'], ['yes', 'Yes'], ['q', 'Question'], ['remote', 'Remote/Hybrid']];
+function jf() { if (!S.jf) { var s = lsGet('sp_jsort'); S.jf = { q: '', sort: JF_SORTS.some(function (x) { return x[0] === s; }) ? s : 'order', f: {} }; } return S.jf; }
+function jfShow(d) { return !!(d && d.jobs && d.jobs.length > 6); }
+function jfOn(d) { var f = jf(); return jfShow(d || S.data) && !!(f.q.trim() || JF_CHIPS.some(function (c) { return f.f[c[0]]; })); }
+function jfReset() { var f = jf(); f.q = ''; f.f = {}; }
+function terms(q) { return String(q || '').toLowerCase().split(/\s+/).filter(String); }
+function hasAll(hay, q) { hay = hay.toLowerCase(); return terms(q).every(function (t) { return hay.indexOf(t) >= 0; }); }
+function jfMatch(j) {
+  var f = jf(), a = ansOf(j);
+  if (f.q.trim() && !hasAll([j.company, j.title, j.location].join(' '), f.q)) return false;
+  var want = ['wait', 'yes', 'q'].filter(function (k) { return f.f[k]; });
+  if (want.length && want.indexOf(a || 'wait') < 0) return false;
+  if (f.f.remote && !/remote|hybrid/i.test(String(j.setting || '') + ' ' + String(j.location || ''))) return false;
+  return true;
+}
+/* yearly pay for sorting: hourly figures (under 1,000) count as 2,080 hours; no pay sorts last */
+function payNum(j) {
+  var n = Number(j.payLow);
+  if (!(n > 0)) { var m = String(j.pay || '').replace(/,/g, '').match(/\$?\s*(\d+(?:\.\d+)?)\s*(k)?/i); n = m ? Number(m[1]) * (m[2] ? 1000 : 1) : 0; }
+  return n > 0 && n < 1000 ? n * 2080 : n || 0;
+}
+function jfSorted(list) {
+  var k = jf().sort, pos = {}; list.forEach(function (j, i) { pos[j.id] = i; });
+  var by = k === 'new' ? function (a, b) { return String(b.added || '').localeCompare(String(a.added || '')); }
+    : k === 'pay' ? function (a, b) { return payNum(b) - payNum(a); }
+    : k === 'fit' ? function (a, b) { var fa = fitOf(a), fb = fitOf(b); return (fa ? fa.rank : 9) - (fb ? fb.rank : 9); } : null;
+  return by ? list.slice().sort(function (a, b) { return by(a, b) || pos[a.id] - pos[b.id]; }) : list;
+}
+function jfStatus(on, n, total, what) { return '<p class="jf-st" data-jfst role="status">' + (on ? 'Showing ' + n + ' of ' + total + ' ' + what + '. <button type="button" class="linkbtn" data-jfclear>Clear</button>' : '') + '</p>'; }
+function jfNone() { return '<div class="card jf-none"><p>No matches for this search.</p><button type="button" class="btn ghost" data-jfclear>Clear search</button></div>'; }
+function jfJobs(d, main, passed, hintId) {
+  var show = jfShow(d), on = show && jfOn(d), f = jf(), body = '', n = 0;
+  if (show) { main = jfSorted(main); passed = jfSorted(passed); }
+  if (on) {
+    var key = JSON.stringify([f.q.trim().toLowerCase(), f.f]); if (S.jfKey !== key) { S.jfKey = key; S.jfShown = {}; }
+    var keep = S.jfShown || {}, list = main.concat(passed).filter(function (j) { return keep[j.id] || locked(j.id) || S.leaving[j.id] || jfMatch(j); });
+    if (f.sort !== 'order') list = jfSorted(list);
+    S.jfShown = {}; list.forEach(function (j) { S.jfShown[j.id] = true; }); n = list.length;
+    body = n ? '<div class="jlist">' + list.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : jfNone();
+  } else { S.jfKey = null; S.jfShown = {}; }
+  var head = !show ? '' : '<h2 class="sec-h">Your matches</h2><section class="jfind" aria-label="Find a job">' +
+    '<div class="jf-row"><div><label for="jfQ">Search</label><input id="jfQ" type="search" data-jfq="jobs" placeholder="Company, title or place" autocomplete="off" enterkeyhint="search" value="' + esc(f.q) + '"></div>' +
+    '<div><label for="jfSort">Sort</label><select id="jfSort" data-jfsort>' + JF_SORTS.map(function (o) { return '<option value="' + o[0] + '"' + (f.sort === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></div></div>' +
+    '<div class="jf-chips" role="group" aria-label="Show only">' + JF_CHIPS.map(function (c) { return '<button type="button" data-jfchip="' + c[0] + '" aria-pressed="' + !!f.f[c[0]] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
+    jfStatus(on, n, d.jobs.length, d.jobs.length === 1 ? 'job' : 'jobs') + '</section>';
+  return { show: show, on: on, main: main, passed: passed, head: head, body: body };
+}
+function af() { return S.af || (S.af = { q: '', due: false }); }
+function afShow(d) { return !!(d && d.apps && d.apps.length > 6); }
+function afOn(d) { var f = af(); return afShow(d || S.data) && !!(f.q.trim() || f.due); }
+/* Due: a follow-up due today or overdue, an interview coming up, or an interview held in the last 3 weeks with no outcome yet */
+function appDue(x) {
+  var st = stageOf(x), iv = daysFrom(x.interview), fu = daysFrom(x.followUpOn); if (st === 4) return false;
+  if (iv != null && iv >= 0) return true;
+  if (iv != null && iv < 0 && iv >= -21 && st === 2) return true;
+  return fu != null ? fu <= 0 : String(x.followUpDue).toLowerCase() === 'yes';
+}
+function afApps(d) {
+  var show = afShow(d), on = show && afOn(d), f = af(), body = '', n = 0;
+  if (on) {
+    var list = d.apps.filter(function (x) { return (!f.q.trim() || hasAll([x.company, x.role, x.contact].join(' '), f.q)) && (!f.due || appDue(x)); }); n = list.length;
+    body = n ? '<div class="alist">' + list.map(appCard).join('') + '</div>' : jfNone();
+  }
+  var head = !show ? '' : '<section class="jfind" aria-label="Find an application"><div class="jf-row one"><div><label for="afQ">Search</label><input id="afQ" type="search" data-jfq="apps" placeholder="Company or job title" autocomplete="off" enterkeyhint="search" value="' + esc(f.q) + '"></div></div>' +
+    '<div class="jf-chips" role="group" aria-label="Show only"><button type="button" data-afdue aria-pressed="' + !!f.due + '" aria-describedby="afDueH">Due</button></div><p class="jf-hint" id="afDueH">Due: follow-ups due, interviews coming up, and interviews waiting for an outcome.</p>' +
+    jfStatus(on, n, d.apps.length, d.apps.length === 1 ? 'application' : 'applications') + '</section>';
+  return { on: on, head: head, body: body };
+}
+/* typing in a search box swaps only the results and the status line, so other fields and the scroll position stay put */
+function jfPatch() {
+  if (S.status !== 'ready' || S.flow || S.deck) return;
+  var t = document.createElement('template'); t.innerHTML = S.view === 'apps' ? vApps() : vJobs();
+  ['[data-jfres]', '[data-jfst]'].forEach(function (sel) { var nw = t.content.querySelector(sel), o = document.querySelector('#app ' + sel); if (nw && o) o.replaceWith(nw); });
+}
+function jfInput(e) { var t = e.target; if (!t || !t.dataset || !t.dataset.jfq || e.isComposing) return; if (t.dataset.jfq === 'apps') af().q = t.value; else jf().q = t.value; jfPatch(); }
+document.addEventListener('input', jfInput);
+document.addEventListener('compositionend', jfInput);
+document.addEventListener('change', function (e) { var t = e.target; if (t && t.dataset && t.dataset.jfsort != null) { jf().sort = t.value; lsSet('sp_jsort', t.value); render(); } });
+/* "Answer them now" and the journey map: if a search hides the card they point to, clear the search first (capture runs before the main handler) */
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-first], [data-jmgo]'); if (!b || S.status !== 'ready' || S.view !== 'jobs' || S.flow || S.deck || !jfOn()) return;
+  var hidden = b.dataset.jmgo ? !document.querySelector('[data-jc="' + cssq(b.dataset.jmgo) + '"]') : !document.querySelector('.jc:not(.s-yes):not(.s-q):not(.s-no):not(.is-closed):not(.s-closed)');
+  if (hidden) { jfReset(); render(); }
+}, true);
 /* ---- render, keeping focus, caret and typed text ---- */
 function focusKey(el) {
   if (!el || el === document.body || !el.closest || !el.closest('#app')) return null;
@@ -1827,7 +2032,8 @@ document.addEventListener('click', function (e) {
   if (d.applyflow) { openFlow('apply', d.applyflow); return; }
   if (d.flowclose != null) { closeFlow(); return; }
   if (d.notyet != null) { closeFlow('No problem. Applying stays as your next step.'); return; }
-  if (d.rvtab) { S.flow.tab = d.rvtab; var tj = jobById(S.flow.job); if (S.changesFor && tj && changeable(tj).some(function (x) { return x.id === d.rvtab; })) { S.changesFor = d.rvtab; render(); } else rvShowTab(); return; }
+  if (d.rvtab) { S.flow.tab = d.rvtab; var tj = jobById(S.flow.job); if (S.changesFor && tj && changeable(tj).some(function (x) { return x.id === d.rvtab; })) S.changesFor = d.rvtab; render(); /* round 3: re-render (previews stay loaded), so the side card names the document in view */ return; }
+  if (d.rvok) { approveOne(S.flow && S.flow.job, d.rvok); return; }
   if (d.looksgood) { approveJob(d.looksgood); return; }
   if (d.rvchange != null) { var rj = S.flow && jobById(S.flow.job), rs = rj ? changeable(rj) : []; S.changesFor = d.rvchange ? ((rs.filter(function (x) { return x.id === S.flow.tab; })[0] || rs[0] || {}).id || null) : null; S.changesDraft = ''; S.changesErr = ''; S.focusTo = S.changesFor ? '#changesText' : '[data-rvchange]'; render(); return; }
   if (d.rvpick) { S.changesFor = d.rvpick; S.focusTo = '[data-rvpick="' + cssq(d.rvpick) + '"]'; render(); return; }
@@ -1913,6 +2119,16 @@ document.addEventListener('keydown', function (e) {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-col]')) { e.preventDefault(); var ck = e.target.closest('[data-col]').dataset.col; S.colOpen[ck] = !S.colOpen[ck]; render(); }
 });
 document.addEventListener('input', function (e) { if (e.target.dataset && e.target.dataset.note) S.notes[e.target.dataset.note] = e.target.value; });
+/* ---- round 3 controls: filter chips, clear, Due, Change my answer ---- */
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('button'); if (!b || S.status !== 'ready') return; var d = b.dataset;
+  if (d.jfchip) { var f = jf().f; f[d.jfchip] = !f[d.jfchip]; S.focusTo = '[data-jfchip="' + cssq(d.jfchip) + '"]'; render(); return; }
+  if (d.afdue != null) { af().due = !af().due; S.focusTo = '[data-afdue]'; render(); return; }
+  if (d.jfclear != null) { if (S.view === 'apps') { af().q = ''; af().due = false; S.focusTo = '#afQ'; } else { jfReset(); S.focusTo = '#jfQ'; } render(); return; }
+  if (d.chgans) { S.chgOpen = S.chgOpen || {}; S.chgOpen[d.chgans] = !S.chgOpen[d.chgans]; S.focusTo = '[data-chgans="' + cssq(d.chgans) + '"]'; render(); return; }
+  /* a Yes from the big buttons folds them away: keep the keyboard on that card, on its Change my answer control */
+  if (d.ans === 'yes' && d.j) { var ae = document.activeElement; if (!ae || ae === document.body || !document.contains(ae)) { var c = document.querySelector('[data-chgans="' + cssq(d.j) + '"]'); if (c) { try { c.focus({ preventScroll: true }); } catch (x) { c.focus(); } } } }
+});
 load();
 </script>
 <script>
