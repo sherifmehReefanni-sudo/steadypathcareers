@@ -244,6 +244,23 @@ body { overflow-x: hidden; }
 .col.closed .app, .col.closed > p { display: none; }
 .app { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 0 0 10px; }
 .app b { color: var(--navy); font-size: 16px; }
+.app .apills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.app .apills .pill { white-space: normal; }
+.app .nact { margin: 8px 0 0; font-size: 15px; }
+.app .amore { margin: 6px 0 0; font-size: 14px; }
+.upbox textarea { min-height: 70px; }
+.due { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.due .sec-h { margin: 0 0 8px; }
+.due ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.due li { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.due li:first-child { border-top: 0; }
+.due .dw { font-size: 13px; font-weight: 800; color: var(--muted); }
+.due li.late .dw { color: #9a3412; }
+.due .dt { overflow-wrap: anywhere; color: var(--ink); }
+.due .who { font-size: 12px; font-weight: 800; border-radius: 99px; padding: 2px 9px; background: var(--sunk); color: var(--navy); white-space: nowrap; }
+.due .who.w-you { background: #fdf3d8; color: #6b4e00; }
+.due .who.w-employer { background: #e8eef7; color: #23406b; }
+@media (max-width: 760px) { .due li { grid-template-columns: minmax(0, 1fr) auto; } .due .dw { grid-column: 1 / -1; } .due .da { grid-column: 2; grid-row: 2; } }
 .logbox { display: grid; gap: 6px; margin-bottom: 4px; }
 .logbox label { font-weight: 700; font-size: 14px; color: var(--ink); margin-top: 6px; }
 .logbox input, .logbox select { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #cfd6e3; border-radius: 10px; font: inherit; background: #fff; min-height: 44px; }
@@ -511,7 +528,7 @@ window.SP_DEMO = function () {
       { id: 'D-6', jobId: 'J-104', name: 'Thank-you note for Demo Shore Dental', link: gd('demo-thanks-104'), status: 'Ready for review', request: '', updated: iso(-1) }
     ],
     apps: [
-      { id: 'A-1', jobId: 'J-104', company: 'Demo Shore Dental', role: 'General Dentist', applied: iso(-6), status: 'Interview scheduled', followUpDue: '', interview: iso(3),
+      { id: 'A-1', jobId: 'J-104', company: 'Demo Shore Dental', role: 'General Dentist', applied: iso(-6), status: 'Interview scheduled', followUpDue: '', interview: iso(3), ivTime: '10:30 AM', nextAction: 'Confirm the interview with Dana', followUpOn: iso(1), contact: 'Dana, office manager', type: 'Application',
         prepBring: 'Your pediatric work: about 30 kids a week at your last practice, with very few needing a second visit.', prepExpect: 'Tell us about yourself; How do you handle an anxious patient?; Walk us through a case you are proud of; Why Demo Shore Dental?', prepAsk: 'How are new patients split between dentists? What does a normal day look like?' }
     ]
   };
@@ -897,6 +914,42 @@ function flowStep(d) {
   if (hw) return { k: 'heard', t: 'Waiting to hear from ' + hw.company, s: 'Heard back? Update it on your Applied tab.', act: '<button class="btn gold" data-go="apps">Applied tab</button>' };
   return { k: 'done', t: 'All caught up' + (first ? ', ' + first : ''), s: 'Nothing to do right now. New job matches show up here.' };
 }
+/* Due next: everything that needs doing across the search, with a date where there is one and who it is waiting on. */
+function dueItems(d) {
+  var out = [], c = counts(), jobs = orderedJobs(d), add = function (when, t, who, act) { out.push({ when: when || '', t: t, who: who, act: act || '' }); };
+  var goApps = '<button class="linkbtn" data-go="apps">Open</button>';
+  (d.apps || []).forEach(function (x) {
+    var st = stageOf(x); if (st === 4 || st === 3) return;
+    var dd = daysFrom(x.interview);
+    if (dd != null && dd >= 0) add(x.interview, 'Interview with ' + x.company + (x.ivTime ? ', ' + x.ivTime : ''), 'you', goApps);
+    else if (dd != null && dd >= -21 && st === 2) add('', 'Tell us how the ' + x.company + ' interview went', 'you', goApps);
+    var fu = daysFrom(x.followUpOn) != null ? x.followUpOn : '';
+    if (x.nextAction) add(fu, x.company + ': ' + x.nextAction, 'you', goApps);
+    else if (fu || String(x.followUpDue).toLowerCase() === 'yes') add(fu, 'Follow up with ' + x.company, 'you', goApps);
+  });
+  if (c.wait) add('', c.wait === 1 ? 'Answer 1 new job' : 'Answer ' + c.wait + ' new jobs', 'you', '<button class="linkbtn" data-first>Open</button>');
+  jobs.filter(function (j) { return ansOf(j) === 'yes'; }).forEach(function (j) {
+    var s = jobState(j);
+    if (s.review.length) add('', 'Read and approve your documents for ' + coName(j), 'you', '<button class="linkbtn" data-review="' + esc(j.id) + '">Open</button>');
+    else if (s.applyReady && !s.app) add('', 'Apply to ' + coName(j), 'you', '<button class="linkbtn" data-applyflow="' + esc(j.id) + '">Open</button>');
+    else if (s.changes.length && !s.app) add('', 'Making your changes for ' + coName(j), 'sherif');
+    else if (!s.app && !s.applyReady) add('', 'Writing your documents for ' + coName(j), 'sherif');
+  });
+  jobs.filter(function (j) { return ansOf(j) === 'q'; }).forEach(function (j) { add('', 'Answering your question about ' + coName(j), 'sherif'); });
+  var waiting = (d.apps || []).filter(function (x) { var st = stageOf(x); return st === 0 || st === 1; }).length;
+  if (waiting) add('', 'Waiting to hear back from ' + waiting + (waiting === 1 ? ' employer' : ' employers'), 'employer', goApps);
+  var rank = { you: 0, sherif: 1, employer: 2 };
+  return out.sort(function (a, b) { if (a.when && b.when) return a.when < b.when ? -1 : a.when > b.when ? 1 : 0; if (a.when || b.when) return a.when ? -1 : 1; return rank[a.who] - rank[b.who]; });
+}
+var WHO = { you: 'You', sherif: 'Sherif', employer: 'Employer' };
+function dueCard(d) {
+  var items = dueItems(d); if (!items.length) return '';
+  var show = S.dueAll ? items : items.slice(0, 6);
+  return '<section class="due" aria-labelledby="due-h"><h2 class="sec-h" id="due-h">Due next</h2><ul>' + show.map(function (x) {
+    var dd = daysFrom(x.when), w = dd == null ? '' : dd < 0 ? 'Overdue · ' + fmtDate(x.when) : dd === 0 ? 'Today' : dd === 1 ? 'Tomorrow' : fmtDate(x.when);
+    return '<li class="' + (dd != null && dd < 0 ? 'late' : '') + '"><span class="dw">' + esc(w) + '</span><span class="dt">' + esc(x.t) + '</span><span class="who w-' + x.who + '">' + WHO[x.who] + '</span>' + (x.act ? '<span class="da">' + x.act + '</span>' : '') + '</li>';
+  }).join('') + '</ul>' + (items.length > 6 ? '<button class="linkbtn" data-dueall aria-expanded="' + !!S.dueAll + '">' + (S.dueAll ? 'Show fewer' : 'Show all ' + items.length) + '</button>' : '') + '</section>';
+}
 function nxCard(n) {
   return '<section class="nx" data-nx="' + n.k + '" aria-labelledby="nx-t"><div class="nx-art" aria-hidden="true"></div><div class="nx-tx"><p class="nx-k">Your next step</p><h2 id="nx-t">' + esc(n.t) + '</h2><p class="nx-s">' + esc(n.s) + '</p></div>' +
     (n.act ? '<div class="nx-acts">' + n.act + '</div>' : '') + '</section>';
@@ -1250,7 +1303,7 @@ function vJobs() {
   return shell('jobs', esc(title), 'Pay is from the employer\'s posting unless marked as an estimate.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
     '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b><span>' + esc(trialText(cl)) + '</span></div>' +
-    nxCard(n) +
+    nxCard(n) + dueCard(d) +
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
     jmap(sorted) +
     (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Sherif' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
@@ -1307,11 +1360,52 @@ function logForm() {
     '<label for="lgRole">Job title</label><input id="lgRole" maxlength="160" autocomplete="off" value="' + v('lgRole') + '">' +
     '<div class="two"><div><label for="lgDate">Date applied</label><input id="lgDate" type="date" value="' + v('lgDate', todayISO()) + '"></div><div><label for="lgStatus">Where it stands</label><select id="lgStatus">' + APP_STATUS.map(function (o) { return '<option' + (L.lgStatus === o ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></div></div>' +
     '<label for="lgIv">Interview date (if any)</label><input id="lgIv" type="date" value="' + v('lgIv') + '">' +
+    '<label for="lgNext">Next action (optional)</label><input id="lgNext" maxlength="200" value="' + v('lgNext') + '">' +
+    '<div class="two"><div><label for="lgFu">Follow up on (optional)</label><input id="lgFu" type="date" value="' + v('lgFu') + '"></div><div><label for="lgType">Type</label><select id="lgType">' + APP_TYPES.map(function (o) { return '<option' + (L.lgType === o ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></div></div>' +
     (S.logErr ? '<div class="warn" style="margin-top:10px">' + esc(S.logErr) + (S.logRe ? reauthBtn() : '') + '</div>' : '') +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn gold" data-logsave ' + (S.logBusy ? 'disabled' : '') + '>' + (S.logBusy ? 'Saving…' : 'Save') + '</button><button class="btn ghost" data-logclose>Cancel</button></div></div>';
 }
 function saveApp(body, done) {
   post(Object.assign({ action: 'app', t: S.token }, body)).then(function (r) { done(r && r.ok ? r : { ok: false, error: (r && r.error) || 'error' }); }).catch(function () { done({ ok: false, error: 'network' }); });
+}
+/* ---- one application card (round 2: next action, follow-up date, interview time, contact, notes, outreach) ---- */
+function ivLabel(x) {
+  var dd = daysFrom(x.interview), st = stageOf(x); if (dd == null) return '';
+  var when = esc(fmtDate(x.interview)) + (x.ivTime ? ', ' + esc(x.ivTime) : '');
+  if (dd >= 0 && st < 4) return '<span class="pill info">Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : when) + (dd <= 1 && x.ivTime ? ', ' + esc(x.ivTime) : '') + '</span>';
+  if (dd < 0 && dd >= -21 && st === 2) return '<span class="pill gold">Interview held ' + esc(fmtDate(x.interview)) + '. How did it go?</span>';
+  return '<span class="pill">Interviewed ' + esc(fmtDate(x.interview)) + '</span>';
+}
+function fuLabel(x) {
+  if (stageOf(x) === 4) return '';
+  var dd = daysFrom(x.followUpOn);
+  if (dd != null) return '<span class="pill ' + (dd <= 0 ? 'gold' : 'info') + '">' + (dd < 0 ? 'Follow-up overdue (' + esc(fmtDate(x.followUpOn)) + ')' : dd === 0 ? 'Follow up today' : 'Follow up ' + esc(fmtDate(x.followUpOn))) + '</span>';
+  return String(x.followUpDue).toLowerCase() === 'yes' ? '<span class="pill gold">Follow-up due</span>' : '';
+}
+var APP_TYPES = ['Application', 'Recruiter outreach'];
+function isOutreach(x) { return /outreach/i.test(x.type || ''); }
+function appCard(x) {
+  var hasQs = prepQs(x).length > 0, hasNotes = !hasQs && (x.prepBring || x.prepAsk), soonIv = daysFrom(x.interview) != null && daysFrom(x.interview) >= 0 && stageOf(x) < 4;
+  var pj = x.jobId ? jobById(x.jobId) : null, pdoc = pj ? jobState(pj).prep : null; if (pdoc && !(isReady(pdoc) || /approved/i.test(pdoc.status || ''))) pdoc = null;
+  var pills = [ivLabel(x), fuLabel(x), isOutreach(x) ? '<span class="pill">Recruiter outreach</span>' : ''].filter(String).join(' ');
+  var h = '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">' + (isOutreach(x) ? 'Contacted ' : 'Applied ') + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
+    (pills ? '<div class="apills">' + pills + '</div>' : '') +
+    (x.nextAction ? '<p class="nact"><b>Next:</b> ' + esc(x.nextAction) + '</p>' : '') +
+    (x.contact ? '<p class="psub amore">Contact: ' + esc(x.contact) + '</p>' : '') +
+    (x.myNotes ? '<p class="psub amore">Your notes: ' + esc(x.myNotes) + '</p>' : '') +
+    (hasQs ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : hasNotes ? '<p style="margin:8px 0 0"><button class="btn ghost" data-prep="' + esc(x.id) + '">Your prep notes</button></p>' : '') +
+    (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : soonIv && !hasQs && !hasNotes ? '<p class="psub" style="margin:8px 0 0">Interview prep in progress.</p>' : '');
+  if (S.updFor !== x.id) return h + '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p></div>';
+  var iso = function (v) { return /^\d{4}-\d\d-\d\d$/.test(v || '') ? v : ''; };
+  return h + '<div class="logbox upbox" style="margin-top:8px">' +
+    '<label for="upStatus">Where it stands</label><select id="upStatus">' + statusOpts(x.status).map(function (o) { return '<option' + (o === x.status ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' +
+    '<div class="two"><div><label for="upIv">Interview date</label><input id="upIv" type="date" value="' + esc(iso(x.interview)) + '"></div><div><label for="upTime">Interview time</label><input id="upTime" maxlength="20" placeholder="3:00 PM" value="' + esc(x.ivTime || '') + '"></div></div>' +
+    '<label for="upNext">Next action</label><input id="upNext" maxlength="200" placeholder="For example: send a thank-you note to Dana" value="' + esc(x.nextAction || '') + '">' +
+    '<label for="upFu">Follow up on</label><input id="upFu" type="date" value="' + esc(iso(x.followUpOn)) + '">' +
+    '<label for="upContact">Contact (name, email or phone)</label><input id="upContact" maxlength="160" value="' + esc(x.contact || '') + '">' +
+    '<label for="upNotes">Your notes</label><textarea id="upNotes" maxlength="1000">' + esc(x.myNotes || '') + '</textarea>' +
+    '<label for="upType">Type</label><select id="upType">' + APP_TYPES.map(function (o) { return '<option' + ((isOutreach(x) ? 'Recruiter outreach' : 'Application') === o ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" data-upsave="' + esc(x.id) + '">Save</button><button class="btn ghost" data-upd="">Cancel</button></div></div></div>';
 }
 function vApps() {
   var d = S.data, cols = ['Applied', 'Heard back', 'Interview', 'Offer', 'Closed'], by = [[], [], [], [], []];
@@ -1330,13 +1424,7 @@ function vApps() {
   return shell('apps', d.apps.length ? d.apps.length + (d.apps.length === 1 ? ' application' : ' applications') + ' tracked' : 'Nothing sent yet', 'Where each one stands. Offers and closed ones have their own columns.') +
     '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + practice + logForm() + (d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
-        var hasQs = prepQs(x).length > 0, hasNotes = !hasQs && (x.prepBring || x.prepAsk), soonIv = daysFrom(x.interview) != null && daysFrom(x.interview) >= 0 && stageOf(x) < 4;
-        var pj = x.jobId ? jobById(x.jobId) : null, pdoc = pj ? jobState(pj).prep : null; if (pdoc && !(isReady(pdoc) || /approved/i.test(pdoc.status || ''))) pdoc = null;
-        return '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">Applied ' + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
-          (x.interview ? '<div style="margin-top:6px"><span class="pill info">Interview ' + esc(fmtDate(x.interview)) + '</span></div>' : '') + (String(x.followUpDue).toLowerCase() === 'yes' ? '<div style="margin-top:6px"><span class="pill gold">Follow-up due</span></div>' : '') +
-          (hasQs ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : hasNotes ? '<p style="margin:8px 0 0"><button class="btn ghost" data-prep="' + esc(x.id) + '">Your prep notes</button></p>' : '') + (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : soonIv && !hasQs && !hasNotes ? '<p class="psub" style="margin:8px 0 0">Interview prep in progress.</p>' : '') +
-          (S.updFor === x.id ? '<div class="logbox" style="margin-top:8px"><label for="upStatus">New status</label><select id="upStatus">' + statusOpts(x.status).map(function (o) { return '<option' + (o === x.status ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select><label for="upIv">Interview date (if any)</label><input id="upIv" type="date" value="' + esc(/^\d{4}-\d\d-\d\d$/.test(x.interview || '') ? x.interview : '') + '"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-upsave="' + esc(x.id) + '">Save</button><button class="btn ghost" data-upd="">Cancel</button></div></div>'
-            : '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p>') + '</div>';
+        return appCard(x);
       }).join('') + '</div>';
     }).join('') + '</div>' : '<div class="card empty e-apps"><p class="psub" style="margin:0">Say Yes to a job, approve your documents, and apply. It shows up here.</p></div>') + '</main>' + tabbar('apps');
 }
@@ -1677,6 +1765,7 @@ document.addEventListener('click', function (e) {
   if (d.signout != null) { signOut(''); return; }
   if (d.hidehint != null) { hideHint(); render(); return; }
   if (d.morenote != null) { S.noteOpen = !S.noteOpen; render(); return; }
+  if (d.dueall != null) { S.dueAll = !S.dueAll; render(); return; }
   if (d.passed != null) { S.passedOpen = !S.passedOpen; render(); return; }
   if (d.closedtog != null) { S.closedOpen = !S.closedOpen; render(); return; }
   if (d.det) { S.open[d.det] = !S.open[d.det]; render(); return; }
@@ -1702,18 +1791,23 @@ document.addEventListener('click', function (e) {
   if (d.logsave != null) {
     if (S.logBusy) return;
     var val = function (id) { var el = $(id); return el ? el.value.trim() : ''; };
-    var body = { company: val('#lgCompany'), role: val('#lgRole'), applied: val('#lgDate'), status: val('#lgStatus'), interview: val('#lgIv') };
+    var body = { company: val('#lgCompany'), role: val('#lgRole'), applied: val('#lgDate'), status: val('#lgStatus'), interview: val('#lgIv'), nextAction: val('#lgNext'), followUpOn: val('#lgFu'), type: val('#lgType') };
     if (!body.company || !body.role) { S.logErr = 'Please add the company and the job title.'; S.focusTo = body.company ? '#lgRole' : '#lgCompany'; render(); return; }
     S.logBusy = true; S.logErr = ''; S.logRe = false; render();
     saveApp(body, function (r) { S.logBusy = false;
-      if (r.ok) { S.data.apps.unshift({ id: r.id, company: body.company, role: body.role, applied: body.applied, status: body.status, interview: body.interview }); S.logOpen = false; S.logDraft = {}; S.logMsg = 'Saved. ' + body.company + ' is on your board.'; if (body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } }
+      if (r.ok) { S.data.apps.unshift({ id: r.id, company: body.company, role: body.role, applied: body.applied, status: body.status, interview: body.interview, nextAction: body.nextAction, followUpOn: body.followUpOn, type: body.type }); S.logOpen = false; S.logDraft = {}; S.logMsg = 'Saved. ' + body.company + ' is on your board.'; if (body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } }
       else { S.logErr = r.error === 'expired' ? 'Your sign-in has expired. Sign in again, then add it.' : 'Sorry, that didn\'t save. Please check your connection and try again.'; S.logRe = r.error === 'expired'; }
       render(); });
     return;
   }
   if (d.upd != null) { S.updFor = d.upd || null; render(); return; }
-  if (d.upsave) { var st = $('#upStatus'), iv = $('#upIv'), id = d.upsave, body2 = { id: id, status: st ? st.value : '', interview: iv ? iv.value : '' };
-    saveApp(body2, function (r) { if (r.ok) { S.data.apps.forEach(function (x) { if (x.id === id) { x.status = body2.status; x.interview = body2.interview; } }); S.updFor = null; S.logMsg = 'Updated.'; if (body2.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } } else S.logMsg = r.error === 'expired' ? 'Your sign-in has expired. Please sign in again.' : 'Sorry, that update didn\'t save. Please try again.'; render(); });
+  if (d.upsave) { var vv = function (sel) { var el = $(sel); return el ? el.value.trim() : ''; }, id = d.upsave;
+    var body2 = { id: id, status: vv('#upStatus'), interview: vv('#upIv'), ivTime: vv('#upTime'), nextAction: vv('#upNext'), followUpOn: vv('#upFu'), contact: vv('#upContact'), myNotes: vv('#upNotes'), type: vv('#upType') };
+    if (S.upBusy) return; S.upBusy = true;
+    saveApp(body2, function (r) { S.upBusy = false;
+      if (r.ok) { S.data.apps.forEach(function (x) { if (x.id === id) { if (APP_STATUS.indexOf(body2.status) >= 0) x.status = body2.status; ['interview', 'ivTime', 'nextAction', 'followUpOn', 'contact', 'myNotes', 'type'].forEach(function (k) { x[k] = body2[k]; }); } }); S.updFor = null; S.logMsg = 'Updated.'; if (body2.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } }
+      else S.logMsg = r.error === 'expired' ? 'Your sign-in has expired. Please sign in again.' : 'Sorry, that update didn\'t save. Please try again.';
+      render(); });
     return; }
   if (d.approve) { docStatus(d.approve, 'Approved', ''); return; }
   if (d.changes) { S.changesFor = d.changes; S.changesDraft = ''; S.changesErr = ''; S.focusTo = '#changesText'; render(); return; }
