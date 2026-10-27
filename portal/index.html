@@ -614,7 +614,8 @@ window.SP_DEMO = function () {
     docs: [
       { id: 'D-8', jobId: 'J-108', name: 'Resume for Demo Bay Dental', link: gd('demo-resume-108'), status: 'Ready for your review', request: '', updated: iso(-3) },
       { id: 'D-1', jobId: '', name: 'Your resume', link: gd('demo-base-resume'), status: 'Approved', request: '', updated: iso(-7) },
-      { id: 'D-2', jobId: 'J-103', name: 'Resume for Example Dental Arts', link: gd('demo-resume-103'), status: 'Approved', request: '', updated: iso(-2), version: '2', changed: 'Added your NY license number and moved your implant work to the top.' },
+      { id: 'D-2', jobId: 'J-103', name: 'Resume for Example Dental Arts', link: gd('demo-resume-103'), status: 'Approved', request: '', updated: iso(-2), version: '2', changed: 'Added your NY license number and moved your implant work to the top.',
+        changeLog: iso(-6) + ': First draft, built from your base resume.\n' + iso(-4) + ': Shortened your summary to two lines, as you asked.' },
       { id: 'D-2p', jobId: 'J-103', name: 'Interview prep: Example Dental Arts', link: gd('demo-prep-103'), status: 'Ready for your review', request: '', updated: iso(-2) },
       { id: 'D-3', jobId: 'J-103', name: 'Cover letter for Example Dental Arts', link: gd('demo-cover-103'), status: 'Approved', request: '', updated: iso(-2) },
       { id: 'D-4', jobId: 'J-104', name: 'Resume for Demo Shore Dental', link: gd('demo-resume-104'), status: 'Approved', request: '', updated: iso(-7) },
@@ -623,11 +624,63 @@ window.SP_DEMO = function () {
     ],
     apps: [
       { id: 'A-1', jobId: 'J-104', company: 'Demo Shore Dental', role: 'General Dentist', applied: iso(-6), status: 'Interview scheduled', followUpDue: '', interview: iso(3), ivTime: '10:30 AM', nextAction: 'Confirm the interview with Dana', followUpOn: iso(1), contact: 'Dana, office manager', type: 'Application', prepDue: iso(2),
-        prepBring: 'Your pediatric work: about 30 kids a week at your last practice, with very few needing a second visit.', prepExpect: 'Tell us about yourself; How do you handle an anxious patient?; Walk us through a case you are proud of; Why Demo Shore Dental?', prepAsk: 'How are new patients split between dentists? What does a normal day look like?' }
+        prepBring: 'Your pediatric work: about 30 kids a week at your last practice, with very few needing a second visit.', prepExpect: 'Tell us about yourself; How do you handle an anxious patient? :: Talk about the parent of a nervous 6-year-old: you explained each step first, and the child came back calm for the next visit.; Walk us through a case you are proud of; Why Demo Shore Dental?', prepAsk: 'How are new patients split between dentists? What does a normal day look like?',
+        ivWhere: '1200 Demo Harbor Road, Port Washington, NY (second floor, ask for Dana)', /* round 6a */
+        prepBrief: 'Demo Shore Dental is a family practice with two dentists and four hygienists, open six days a week. They moved to digital scanners last year and want someone who is comfortable with kids.\nThe owner, Dr. Lee, plans to cut back to three days, so the new dentist would take over many of her family patients.' }
     ]
   };
 };
 </script>
+<style>
+/* ===================== Round 6a: interview prep screen, document change history ===================== */
+.pv .pv-sec { display: grid; gap: 10px; }
+.pv .pv-h { margin: 0; font: 800 19px var(--display); color: var(--navy); }
+.pv .pv-sec p { margin: 0; }
+.pv-dl { margin: 0; display: grid; gap: 8px; }
+.pv-dl > div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.pv-dl dt { color: var(--muted); font-weight: 700; font-size: 14px; }
+.pv-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.pv-dl a { color: var(--navy); font-weight: 700; }
+.pv-dl .pv-map { display: inline-flex; align-items: center; min-height: 44px; }
+.pv .pv-brief p + p { margin-top: 8px; }
+.pv-prog { color: var(--muted); font-weight: 800; font-size: 14px; letter-spacing: .02em; }
+.pv-q { border: 2px solid var(--navy); border-radius: 14px; padding: 16px; display: grid; gap: 10px; background: #fff; }
+.pv-qt { font: 800 19px/1.35 var(--display); color: var(--ink); }
+.pv-qt:focus { outline: none; }
+.pv-qt:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.pv-q .kbtn { justify-self: start; }
+.pv-guide { background: var(--sunk); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; }
+.pv-guide[hidden] { display: none; }
+.pv-guide b { color: var(--navy); font-size: 14px; }
+.pv-notes { display: grid; gap: 6px; }
+.pv-notes label, .pv-after label { font-weight: 800; color: var(--navy); }
+.pv textarea { width: 100%; min-width: 0; min-height: 84px; padding: 10px 12px; border: 1px solid #cfd6e3; border-radius: 10px; font: 16px var(--display); background: #fff; color: var(--ink); resize: vertical; box-sizing: border-box; }
+.pv .meta { color: var(--muted); font-size: 14px; }
+.pv-nav { display: flex; justify-content: space-between; gap: 8px; }
+.pv-nav .btn { min-width: 110px; }
+.pv-list { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.pv-after { border: 2px solid var(--gold); }
+.pv-st { display: flex; flex-wrap: wrap; gap: 8px; }
+.pv-st button { min-height: 44px; padding: 8px 14px; border-radius: 10px; border: 2px solid var(--navy); background: #fff; color: var(--navy); font: 800 15px var(--display); cursor: pointer; }
+.pv-st button[aria-pressed="true"] { background: var(--navy); color: #fff; }
+.pv-msg:empty { display: none; }
+.pv-msg { font-weight: 700; color: var(--navy); }
+.pv-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pv-cta { margin: 10px 0 0; }
+.pv-cta .btn { min-height: 48px; }
+.dhist { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+.dhist summary { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; cursor: pointer; color: var(--navy); font-weight: 800; list-style: none; }
+.dhist summary::-webkit-details-marker { display: none; }
+.dhist summary::before { content: ""; width: 0; height: 0; border-left: 6px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; transition: transform .15s; }
+.dhist[open] summary::before { transform: rotate(90deg); }
+.dhist summary:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+.dhist .dh-n { font-weight: 600; color: var(--muted); }
+.dhist ul { margin: 0 0 4px; padding-left: 20px; display: grid; gap: 4px; color: var(--ink); overflow-wrap: anywhere; }
+.dhist .dh-d { color: var(--muted); font-weight: 700; }
+@media (max-width: 520px) { .pv-dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; } .pv-nav .btn { flex: 1 1 0; min-width: 0; } }
+@media (prefers-reduced-motion: reduce) { .dhist summary::before { transition: none; } }
+@media print { .pv-nav, .pv-st, .pv [data-pvsave], .pv textarea { display: none; } .pv-guide[hidden] { display: grid; } }
+</style>
 </head>
 <body>
 <div id="app"><div class="skel">Opening your portal…</div></div>
@@ -997,7 +1050,7 @@ function flowStep(d) {
     var dd = daysFrom(soon.interview), sj = soon.jobId ? jobById(soon.jobId) : null, prep = sj ? jobState(sj).prep : null;
     var hasQs = prepQs(soon).length > 0; if (prep && !(isReady(prep) || /approved/i.test(prep.status || ''))) prep = null;
     return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. ' + (hasQs ? 'Practice the questions they are likely to ask.' : prep ? 'Read your prep sheet before you go.' : 'Your interview prep is in progress' + prepDueText(soon) + '. Sherif will add it here.'),
-      act: (hasQs ? '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">Practice now</button>' : '') + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
+      act: '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">' + (hasQs ? 'Practice now' : 'Interview details') + '</button>' + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
   }
   var chg = yes.filter(function (j) { return st[j.id].changes.length && !st[j.id].app; })[0];
   if (chg) return { k: 'wait', t: 'Sherif is making your changes for ' + coName(chg), s: whenReady() };
@@ -1029,8 +1082,8 @@ function dueItems(d) {
   (d.apps || []).forEach(function (x) {
     var st = stageOf(x); if (st >= 3) return;
     var dd = daysFrom(x.interview), soon = dd != null && dd >= 0, mine = false;
-    if (soon) { add(dd <= 7 ? 0 : 3, x.interview, 'Interview with ' + coOr(x) + (x.ivTime ? ', ' + x.ivTime : ''), 'you', goApps); mine = true; }
-    else if (dd != null && dd >= -21 && st === 2) { add(2, '', 'Tell us how the ' + coOr(x) + ' interview went', 'you', goApps); mine = true; }
+    if (soon) { add(dd <= 7 ? 0 : 3, x.interview, 'Interview with ' + coOr(x) + (x.ivTime ? ', ' + x.ivTime : ''), 'you', pvDueBtn(x, prepQs(x).length ? 'Practice now' : 'Open')); mine = true; }
+    else if (dd != null && dd >= -21 && st === 2) { add(2, '', 'Tell us how the ' + coOr(x) + ' interview went', 'you', pvDueBtn(x, 'Open')); mine = true; }
     var fd = daysFrom(x.followUpOn), fu = fd != null ? x.followUpOn : '';
     if (x.nextAction) { add(fu ? (fd <= 7 ? 0 : 3) : 4, fu, coOr(x) + ': ' + x.nextAction, 'you', goApps); mine = true; }
     else if (fu) { add(fd <= 7 ? 0 : 3, fu, 'Follow up with ' + coOr(x), 'you', goApps); mine = true; }
@@ -1264,6 +1317,7 @@ window.addEventListener('popstate', function (e) {
   var st = e.state; if (!st || !st.sp || S.status !== 'ready' || S.deck) return;
   S.hist = st.depth || 0;
   if (S.popQuiet) { S.popQuiet = false; return; }
+  if (st.view === 'prep' && prepPop(st)) return; /* round 6a: interview prep screen */
   var j = st.flow ? jobById(st.flow.job) : null, was = !!S.flow, view = /^(jobs|docs|apps|feedback)$/.test(st.view || '') ? st.view : 'jobs';
   if (j) { S.flow = { kind: st.flow.kind === 'apply' ? 'apply' : 'review', job: j.id, from: st.flow.from === 'docs' ? 'docs' : 'jobs' }; S.view = S.flow.from; }
   else { if (!was && S.view === view) return; /* already there (closeFlow got there first) */ S.flow = null; S.view = view; }
@@ -1607,8 +1661,8 @@ function appCard(x) {
     (x.nextAction ? '<p class="nact"><span class="nl">Next:</span> ' + esc(x.nextAction) + '</p>' : '') +
     (x.contact ? '<p class="psub amore">Contact: ' + esc(x.contact) + '</p>' : '') +
     (x.myNotes ? '<p class="psub amore notes">Your notes: ' + esc(x.myNotes) + '</p>' : '') +
-    (hasQs ? '<p style="margin:8px 0 0"><button class="btn" data-prep="' + esc(x.id) + '">Interview practice</button></p>' : hasNotes ? '<p style="margin:8px 0 0"><button class="btn ghost" data-prep="' + esc(x.id) + '">Your prep notes</button></p>' : '') +
-    (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : soonIv && !hasQs && !hasNotes ? '<p class="psub" style="margin:8px 0 0">' + esc(prepWait(x)) + '</p>' : '');
+    appPrepBtn(x) + /* round 6a: opens the interview prep screen */
+    (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : '');
   if (S.updFor !== x.id) return h + '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p></div>';
   var sh = upShown(x), dv = S.upDraft && S.upDraft.id === x.id ? S.upDraft.v : sh, hint = function (raw) { return raw && !ISO_RE.test(raw) ? '<p class="psub" style="margin:2px 0 0">Saved as: ' + esc(raw) + '. Pick a date only if you want to change it.</p>' : ''; };
   return h + '<div class="logbox upbox" style="margin-top:8px">' +
@@ -1765,7 +1819,7 @@ function render() {
   var fk = focusKey(document.activeElement); saveDrafts();
   var y = window.scrollY;
   if (S.flow && S.view !== flowFrom()) S.flow = null; /* a review or apply screen lives on the tab it was opened from */
-  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs }[S.view] || vJobs)();
+  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs, prep: vPrep }[S.view] || vJobs)();
   var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
   if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;
   if (!S.deck) window.scrollTo(0, y);
@@ -2055,6 +2109,7 @@ document.addEventListener('click', function (e) {
   if (d.reauth != null) { S.deck = null; document.body.classList.remove('deck-lock'); signOut('Please sign in again. We\'ll email you a new link.'); return; }
   if (d.fb) { ['#fbHelp', '#fbChange', '#fbWhy', '#fbQuote'].forEach(function (id, i) { var el = $(id); if (el) S.fbText[['help', 'change', 'why', 'quote'][i]] = el.value; }); var v = /^\d+$/.test(d.v) ? Number(d.v) : d.v; S.fb[d.fb] = S.fb[d.fb] === v ? null : v; render(); return; }
   if (d.fbsubmit != null) { sendFeedback(); return; }
+  if (d.prep) { openPrep(d.prep); return; } /* round 6a: the full prep screen */
   if (d.prep != null) { S.prep = d.prep || null; S.card = 0; S.flipped = false; render(); if (S.prep) window.scrollTo(0, 0); return; }
   if (d.card) { S.card = (S.card || 0) + Number(d.card); S.flipped = false; render(); return; }
   if (d.review) { openFlow('review', d.review); return; }
@@ -2066,6 +2121,7 @@ document.addEventListener('click', function (e) {
   if (d.looksgood) { approveJob(d.looksgood); return; }
   if (d.rvchange != null) { var rj = S.flow && jobById(S.flow.job), rs = rj ? changeable(rj) : []; S.changesFor = d.rvchange ? ((rs.filter(function (x) { return x.id === S.flow.tab; })[0] || rs[0] || {}).id || null) : null; S.changesDraft = ''; S.changesErr = ''; S.focusTo = S.changesFor ? '#changesText' : '[data-rvchange]'; render(); return; }
   if (d.rvpick) { S.changesFor = d.rvpick; S.focusTo = '[data-rvpick="' + cssq(d.rvpick) + '"]'; render(); return; }
+  if (d.nxprep) { openPrep(d.nxprep); return; } /* round 6a */
   if (d.nxprep) { S.view = 'apps'; S.flow = null; S.prep = d.nxprep; S.card = 0; S.flipped = false; S.flash = ''; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
   if (d.jmgo) { var jc = document.querySelector('[data-jc="' + cssq(d.jmgo) + '"]'); if (jc) { jc.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); var dt = jc.querySelector('.dtog'); if (dt) dt.focus({ preventScroll: true }); } return; }
   if (d.go) { go(d.go); return; }
@@ -2307,7 +2363,7 @@ function icsFor(x) {
     'BEGIN:STANDARD', 'TZOFFSETFROM:-0400', 'TZOFFSETTO:-0500', 'TZNAME:EST', 'DTSTART:19701101T020000', 'RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU', 'END:STANDARD', 'END:VTIMEZONE']);
   L = L.concat(['BEGIN:VEVENT', 'UID:interview-' + String(x.id || 'app').replace(/[^\w-]/g, '') + '@steadypathcareers.com', 'SEQUENCE:' + Math.floor(now.getTime() / 60000),
     'DTSTAMP:' + now.getUTCFullYear() + p2(now.getUTCMonth() + 1) + p2(now.getUTCDate()) + 'T' + p2(now.getUTCHours()) + p2(now.getUTCMinutes()) + p2(now.getUTCSeconds()) + 'Z',
-    start, end, 'SUMMARY:' + icsText('Interview: ' + (x.company || 'employer')), 'DESCRIPTION:' + icsText(desc), 'TRANSP:OPAQUE', 'END:VEVENT', 'END:VCALENDAR']);
+    start, end, 'SUMMARY:' + icsText('Interview: ' + (x.company || 'employer')), 'DESCRIPTION:' + icsText(desc)].concat(String(x.ivWhere || '').trim() ? ['LOCATION:' + icsText(String(x.ivWhere).trim())] : [], ['TRANSP:OPAQUE', 'END:VEVENT', 'END:VCALENDAR'])); /* round 6a: LOCATION */
   return L.map(icsFold).join('\r\n') + '\r\n';
 }
 function slug(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'interview'; }
@@ -2320,7 +2376,7 @@ IC.cal = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-widt
 function docVerHtml(x) {
   var u = x.updated && /^\d{4}-/.test(x.updated) ? 'Updated ' + fmtDate(x.updated) : '', v = String(x.version == null ? '' : x.version).trim().replace(/^v(ersion)?\s*/i, ''), c = String(x.changed || '').trim();
   var line = [u, v ? 'Version ' + v : ''].filter(String).join(' · ');
-  return (line ? '<p class="meta">' + esc(line) + '</p>' : '') + (c ? '<p class="meta dchg"><b>What changed:</b> ' + esc(c) + '</p>' : '');
+  return (line ? '<p class="meta">' + esc(line) + '</p>' : '') + (c ? '<p class="meta dchg"><b>What changed:</b> ' + esc(c) + '</p>' : '') + docHistHtml(x); /* round 6a */
 }
 function prepDueText(x) { return x && daysFrom(x.prepDue) != null ? ', expected by ' + fmtDate(x.prepDue) : ''; }
 function prepWait(x) { return 'Interview prep in progress' + prepDueText(x) + '.'; }
@@ -2386,6 +2442,151 @@ document.addEventListener('input', function (e) {
   if (S.urg && S.urg.err && !S.pf.re) { S.urg.err = ''; var ue = document.getElementById('urgErr'); if (ue) ue.remove(); var w = document.getElementById('urgWhat'); if (w) { w.removeAttribute('aria-invalid'); w.removeAttribute('aria-describedby'); } }
 });
 /* =================== END ROUND 4 =================== */
+</script>
+<script>
+/* ===================== Round 6a: interview prep screen (S.view 'prep', S.pv = { id, from, i, show }), document change history.
+   Practice notes stay on this device (localStorage, never sent). "How did it go?" and "Notes for next time" save through saveApp,
+   sending only the field that changed. History entries: the "Change log" column, one "YYYY-MM-DD: note" per line. ===================== */
+function appById(id) { return ((S.data && S.data.apps) || []).filter(function (x) { return String(x.id) === String(id); })[0] || null; }
+/* Questions from "Prep: expect to be asked", split like lines(). "Question :: guidance" gives that question its own guidance.
+   When the cell has line breaks, a line with " :: " is kept whole, so its guidance may contain ";". */
+function pvQs(x) {
+  var t = String((x && x.prepExpect) || '');
+  var segs = /\n/.test(t) ? t.split(/\r?\n/).reduce(function (a, l) { return a.concat(l.indexOf(' :: ') >= 0 ? [l.trim()] : lines(l)); }, []) : lines(t);
+  return segs.filter(String).slice(0, 40).map(function (l) { var k = l.indexOf(' :: '); return k < 0 ? { q: l, g: '' } : { q: l.slice(0, k).trim(), g: l.slice(k + 4).trim() }; }).filter(function (o) { return o.q; });
+}
+function pvTxt(v) { return String(v == null ? '' : v).trim(); }
+function pvHas(x) { return !!(pvQs(x).length || pvTxt(x.prepBring) || pvTxt(x.prepAsk) || pvTxt(x.prepBrief)); }
+function pvAsks(x) { return lines(pvTxt(x.prepAsk).replace(/\?\s+(?=[A-Z])/g, '?\n')); }
+function pvDueBtn(x, label) { return '<button class="linkbtn" data-nxprep="' + esc(x.id) + '">' + esc(label) + '</button>'; }
+/* Applied card: the way into the prep screen. Upcoming interviews get the prominent button. */
+function appPrepBtn(x) {
+  var dd = daysFrom(x.interview), st = stageOf(x), has = pvHas(x), qs = pvQs(x).length, id = esc(x.id);
+  if (dd != null && dd >= 0 && st < 4) return '<p class="pv-cta"><button class="btn gold" data-prep="' + id + '">' + (qs ? 'Interview practice' : has ? 'Your prep notes' : 'Interview details') + '</button></p>' + (has ? '' : '<p class="psub" style="margin:8px 0 0">' + esc(prepWait(x)) + '</p>');
+  if (dd != null && dd < 0 && dd >= -21 && st === 2) return '<p style="margin:8px 0 0"><button class="btn gold" data-prep="' + id + '">How did it go?</button></p>';
+  if (has) return '<p style="margin:8px 0 0"><button class="btn' + (qs ? '' : ' ghost') + '" data-prep="' + id + '">' + (qs ? 'Interview practice' : 'Your prep notes') + '</button></p>';
+  return '';
+}
+/* ---- navigation: one history entry, like the review and apply screens ---- */
+function openPrep(id) {
+  var x = appById(id); if (!x) return;
+  var from = S.flow ? flowFrom() : S.view === 'prep' && S.pv ? S.pv.from : /^(jobs|docs|apps)$/.test(S.view) ? S.view : 'apps';
+  /* the entry we leave stands for the tab we were on, so Back lands there */
+  if (!S.flow && S.view !== 'prep') { try { history.replaceState({ sp: 1, depth: S.hist, flow: null, view: from }, '', location.href); } catch (e) {} }
+  S.pv = { id: String(x.id), from: from, i: 0, show: false, next: null, msg: '' };
+  S.flow = null; S.view = 'prep'; S.menu = false; S.flash = ''; S.updFor = null; S.upDraft = null; S.focusTo = '.ptitle h1';
+  try { history.pushState({ sp: 1, depth: S.hist + 1, flow: null, view: 'prep', prep: String(x.id), from: from }, '', location.href); S.hist++; } catch (e) {}
+  render(); window.scrollTo(0, 0);
+}
+function closePrep() {
+  var from = (S.pv && S.pv.from) || 'apps', onEntry = false;
+  try { onEntry = !!(history.state && history.state.view === 'prep'); } catch (e) {}
+  S.view = from; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0);
+  if (S.hist > 0 && onEntry) { quietPop(); try { history.back(); } catch (e) {} }
+}
+function prepPop(st) {
+  var x = appById(st.prep); if (!x) return false;
+  if (!S.pv || S.pv.id !== String(x.id)) S.pv = { id: String(x.id), i: 0, show: false, next: null, msg: '' };
+  S.pv.from = /^(jobs|docs|apps)$/.test(st.from || '') ? st.from : 'apps';
+  S.flow = null; S.view = 'prep'; S.menu = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return true;
+}
+/* ---- practice notes: this device only ---- */
+function pvNotes(appId) { S.pvMem = S.pvMem || {}; if (!S.pvMem[appId]) { var o = {}; try { o = JSON.parse(lsGet('sp_pvnotes_' + appId) || '{}') || {}; if (typeof o !== 'object' || Array.isArray(o)) o = {}; } catch (e) { o = {}; } S.pvMem[appId] = o; } return S.pvMem[appId]; }
+function pvNoteKey(q) { return String(q).slice(0, 200); }
+function pvSaveNote(appId, q, v) { var o = pvNotes(appId); if (v) o[pvNoteKey(q)] = String(v).slice(0, 2000); else delete o[pvNoteKey(q)]; try { lsSet('sp_pvnotes_' + appId, JSON.stringify(o)); } catch (e) {} }
+/* ---- the screen ---- */
+function pvWhere(w) {
+  w = pvTxt(w); if (!w) return '';
+  var m = w.match(/https?:\/\/[^\s<>"']+/i);
+  if (m) { var u = safeUrl(m[0].replace(/[).,;]+$/, '')), k = w.indexOf(m[0]); if (u) return esc(w.slice(0, k)) + '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(u) + '</a>' + esc(w.slice(k + u.length)); }
+  if (!/\d/.test(w) || /\b(phone|video|zoom|teams|meet|call|online|virtual)\b/i.test(w)) return esc(w); /* only an address gets a map link */
+  return esc(w) + '<br><a class="pv-map" href="' + esc('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(w)) + '" target="_blank" rel="noopener noreferrer">Open in Maps</a>';
+}
+function vPrep() {
+  var x = S.pv && appById(S.pv.id);
+  if (!x) { S.view = (S.pv && S.pv.from) || 'apps'; return ({ jobs: vJobs, docs: vDocs, apps: vApps }[S.view] || vApps)(); }
+  var P = S.pv, from = P.from, dd = daysFrom(x.interview), st = stageOf(x), qs = pvQs(x), has = pvHas(x), out = '';
+  var sec = function (k, title, body, cls) { return '<section class="card pv-sec' + (cls ? ' ' + cls : '') + '" aria-labelledby="pv-' + k + '"><h2 class="pv-h" id="pv-' + k + '">' + title + '</h2>' + body + '</section>'; };
+  var row = function (k, v) { return '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>'; };
+  /* 1. logistics */
+  var ivRaw = pvTxt(x.interview), rel = dd == null ? '' : dd === 0 ? 'Today' : dd === 1 ? 'Tomorrow' : dd > 1 ? 'In ' + dd + ' days' : '';
+  var when = [rel, ISO_RE.test(ivRaw) ? fmtY(ivRaw) : ivRaw, pvTxt(x.ivTime)].filter(String).join(', ');
+  var lg = (when ? row('When', esc(when)) : '') + (pvTxt(x.ivWhere) ? row('Where', pvWhere(x.ivWhere)) : '') + (pvTxt(x.contact) ? row('Contact', esc(pvTxt(x.contact))) : '');
+  if (lg) out += sec('when', dd != null && dd < 0 ? 'Your interview' : 'Your interview details', '<dl class="pv-dl">' + lg + '</dl>' + icsBtn(x));
+  var top = out; out = ''; /* after the interview, "How did it go?" goes right under the logistics */
+  /* 2. brief */
+  var brief = pvTxt(x.prepBrief).split(/\r?\n+/).map(pvTxt).filter(String);
+  if (brief.length) out += sec('brief', 'About ' + esc(coOr(x)) + (pvTxt(x.role) ? ' and the role' : ''), '<div class="pv-brief">' + brief.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>');
+  /* 3 + 4. practice, one question at a time, with private notes */
+  if (qs.length) {
+    var i = Math.min(Math.max(P.i || 0, 0), qs.length - 1), q = qs[i], guide = q.g || pvTxt(x.prepBring); P.i = i;
+    var note = pvNotes(x.id)[pvNoteKey(q.q)] || '';
+    out += sec('practice', 'Practice, one question at a time',
+      '<p class="pv-prog" role="status">Question ' + (i + 1) + ' of ' + qs.length + '</p>' +
+      '<div class="pv-q"><p class="pv-qt" id="pvQ" tabindex="-1">' + esc(q.q) + '</p><p class="psub">Answer out loud first, as if you were in the room.</p>' +
+      '<button type="button" class="kbtn" data-pvshow aria-expanded="' + !!P.show + '" aria-controls="pvGuide">' + (P.show ? 'Hide what to bring up' : 'Show what to bring up') + '</button>' +
+      '<div class="pv-guide" id="pvGuide"' + (P.show ? '' : ' hidden') + '><b>' + (q.g ? 'For this question' : 'What to bring up') + '</b><p>' + esc(guide || 'Use a real example with a number in it.') + '</p></div></div>' +
+      '<div class="pv-notes"><label for="pvNote">Your notes on this question</label><textarea id="pvNote" data-pvnote="' + esc(x.id) + '" maxlength="2000" aria-describedby="pvNoteHint">' + esc(note) + '</textarea><p class="meta" id="pvNoteHint">Saved on this device only. Nobody else sees these notes.</p></div>' +
+      '<div class="pv-nav"><button type="button" class="btn ghost" data-pvstep="-1"' + (i ? '' : ' disabled') + '>Back</button><button type="button" class="btn" data-pvstep="1"' + (i < qs.length - 1 ? '' : ' disabled') + '>Next</button></div>');
+  } else if (pvTxt(x.prepBring)) out += sec('bring', 'What to bring up', '<p>' + esc(pvTxt(x.prepBring)) + '</p>');
+  /* 5. questions to ask */
+  var asks = pvAsks(x);
+  if (asks.length) out += sec('ask', 'Questions to ask them', '<ul class="pv-list">' + asks.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>');
+  if (!has && !(dd != null && dd < 0)) out += '<div class="card pv-wait"><p class="psub" style="margin:0">' + esc(prepWait(x)) + ' Sherif will add it here.</p></div>';
+  /* 6. after the interview */
+  if (dd != null && dd < 0) {
+    var opts = [['Heard back', 'Heard back'], ['Interview scheduled', 'Another round'], ['Employer declined', 'Employer declined'], ['Offer', 'Offer']];
+    var j = x.jobId ? jobById(x.jobId) : null, ty = j ? jobDocs(j).filter(function (d) { return /thank/i.test(d.name || '') && safeUrl(d.link); })[0] : null;
+    var nv = P.next != null ? P.next : String(x.myNotes || '');
+    top += sec('after', 'How did it go?',
+      '<p class="psub">Tell us where it stands. It updates your Applied tab.</p><div class="pv-st" role="group" aria-labelledby="pv-after">' + opts.map(function (o) { return '<button type="button" data-pvst="' + esc(o[0]) + '" aria-pressed="' + (x.status === o[0]) + '">' + esc(o[1]) + '</button>'; }).join('') + '</div>' +
+      '<p class="pv-msg" id="pvMsg" role="status">' + esc(P.msg || '') + (P.re ? reauthBtn() : '') + '</p>' +
+      '<p><b>Send a thank-you note</b> to ' + (pvTxt(x.contact) ? esc(pvTxt(x.contact)) : 'the people you met') + ' within a day. Thank them and mention one thing you talked about.</p>' +
+      (ty ? '<p><a class="kbtn" href="' + esc(safeUrl(ty.link)) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Your thank-you note</a></p>' : '') +
+      '<label for="pvNext">Notes for next time</label><textarea id="pvNext" maxlength="2000" aria-describedby="pvNextHint">' + esc(nv) + '</textarea><p class="meta" id="pvNextHint">Saved with this application as your notes, so Sherif sees them too.</p>' +
+      '<div class="pv-row"><button type="button" class="btn" data-pvsave' + (P.busy === 'notes' ? ' disabled' : '') + '>' + (P.busy === 'notes' ? 'Saving…' : 'Save notes') + '</button></div>', 'pv-after');
+  }
+  var back = from === 'apps' ? 'Back to Applied' : from === 'docs' ? 'Back to Documents' : 'Back to your jobs';
+  return shell(from, 'Interview prep: ' + esc(coOr(x)), esc(pvTxt(x.role))) + '<div class="pband" aria-hidden="true"></div>' +
+    '<main class="pmain flow pv" data-pv="' + esc(x.id) + '"><div class="fl-top"><button class="fl-back" data-prepclose>' + IC.chev + back + '</button>' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + '</div>' + top + out + '</main>' + tabbar(from);
+}
+function pvSave(x, body, ok) {
+  S.pv.busy = body.myNotes != null ? 'notes' : 'status'; S.pv.msg = 'Saving…'; S.pv.re = false; render();
+  saveApp(Object.assign({ id: x.id }, body), function (r) {
+    if (!S.pv) return; S.pv.busy = false;
+    if (r.ok) { Object.keys(body).forEach(function (k) { x[k] = body[k]; }); S.pv.msg = ok; }
+    else { S.pv.re = r.error === 'expired'; S.pv.msg = r.error === 'expired' ? 'Your sign-in has expired. Sign in again, then save it.' : 'Sorry, that didn\'t save. Please check your connection and try again.'; }
+    render(); if (r.ok && body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); }
+  });
+}
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('button'); if (!b || !S.data || S.view !== 'prep' || !S.pv) return; var d = b.dataset, x = appById(S.pv.id);
+  if (d.prepclose != null) { closePrep(); return; }
+  if (!x) return;
+  if (d.pvshow != null) { S.pv.show = !S.pv.show; render(); return; }
+  if (d.pvstep) { var n = pvQs(x).length, i = Math.min(Math.max((S.pv.i || 0) + Number(d.pvstep), 0), n - 1); S.pv.i = i; S.pv.show = false; if ((d.pvstep === '1' && i >= n - 1) || (d.pvstep === '-1' && i <= 0)) S.focusTo = '#pvQ'; render(); return; }
+  if (d.pvst) { if (S.pv.busy) return; if (x.status === d.pvst) { S.pv.msg = 'Already saved as ' + d.pvst + '.'; render(); return; }
+    pvSave(x, { status: d.pvst }, d.pvst === 'Interview scheduled' ? 'Saved. When you have the date, add it with Update on your Applied tab.' : d.pvst === 'Offer' ? 'Saved. Congratulations!' : 'Saved. Your Applied tab is up to date.'); return; }
+  if (d.pvsave != null) { if (S.pv.busy) return; var el = document.getElementById('pvNext'), v = el ? el.value.trim() : '';
+    if (v === pvTxt(x.myNotes)) { S.pv.msg = 'Nothing changed.'; S.pv.next = null; render(); return; }
+    S.pv.next = null; pvSave(x, { myNotes: v }, 'Notes saved.'); return; }
+});
+document.addEventListener('input', function (e) {
+  var t = e.target; if (!t || !S.pv || S.view !== 'prep') return;
+  if (t.id === 'pvNext') { S.pv.next = t.value; return; }
+  if (t.dataset && t.dataset.pvnote) { var x = appById(t.dataset.pvnote), q = x && pvQs(x)[S.pv.i || 0]; if (q) pvSaveNote(x.id, q.q, t.value); }
+});
+/* ---- document change history ---- */
+function docHistHtml(x) {
+  var log = pvTxt(x.changeLog); if (!log) return '';
+  var v = parseFloat(String(x.version == null ? '' : x.version).trim().replace(/^v(ersion)?\s*/i, ''));
+  if (!(v > 1) && !pvTxt(x.changed)) return '';
+  var items = log.split(/\r?\n/).map(pvTxt).filter(String).slice(0, 30).map(function (l) { var m = l.match(/^(\d{4}-\d\d-\d\d)\s*:\s*(.*)$/); return m ? '<li><span class="dh-d">' + esc(fmtY(m[1])) + (m[2] ? ':' : '') + '</span> ' + esc(m[2]) + '</li>' : '<li>' + esc(l) + '</li>'; });
+  var key = String(x.id), n = items.length;
+  return '<details class="dhist" data-dhist="' + esc(key) + '"' + (S.dhOpen && S.dhOpen[key] ? ' open' : '') + '><summary>History <span class="dh-n">(' + n + (n === 1 ? ' earlier change' : ' earlier changes') + ')</span></summary><ul>' + items.join('') + '</ul></details>';
+}
+document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.dataset && t.dataset.dhist != null) { S.dhOpen = S.dhOpen || {}; S.dhOpen[t.dataset.dhist] = t.open; } }, true);
+/* =================== END ROUND 6a =================== */
 </script>
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/portal.js?v=20261024e"></script>
