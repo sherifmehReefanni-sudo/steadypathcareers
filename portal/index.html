@@ -701,7 +701,7 @@ window.SP_DEMO = function () {
       { id: 'D-2p', jobId: 'J-103', name: 'Interview prep: Example Dental Arts', link: gd('demo-prep-103'), status: 'Ready for your review', request: '', updated: iso(-2) },
       { id: 'D-3', jobId: 'J-103', name: 'Cover letter for Example Dental Arts', link: gd('demo-cover-103'), status: 'Approved', request: '', updated: iso(-2), approvedPdf: 'https://drive.google.com/uc?export=download&id=demo-cover-103-pdf' },
       { id: 'D-4', jobId: 'J-104', name: 'Resume for Demo Shore Dental', link: gd('demo-resume-104'), status: 'Approved', request: '', updated: iso(-7) },
-      { id: 'D-5', jobId: 'J-104', name: 'Cover letter for Demo Shore Dental', link: gd('demo-cover-104'), status: 'Approved', request: '', updated: iso(-7) },
+      { id: 'D-5', jobId: 'J-104', name: 'Cover letter for Demo Shore Dental', link: gd('demo-cover-104'), status: 'Approved', request: '', updated: iso(-7), pdfState: 'held' },
       { id: 'D-6', jobId: 'J-104', name: 'Thank-you note for Demo Shore Dental', link: gd('demo-thanks-104'), status: 'Ready for review', request: '', updated: iso(-1) }
     ],
     apps: [
@@ -1281,7 +1281,7 @@ function vReview() {
         (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to tap Looks good or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
           : S.demo ? sampleDoc(x, j) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
         '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>') +
-          ((apprPdf(x) || truePdf(x.link)) && docKind(x.name) !== 'prep' && /approved/i.test(x.status || '') && !x.closedJob ? '<a class="kbtn" href="' + esc(apprPdf(x) || truePdf(x.link)) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + 'Download approved PDF</a>' : '') +
+          (docPdf(x, truePdf(x.link)) && docKind(x.name) !== 'prep' && /approved/i.test(x.status || '') && !x.closedJob ? '<a class="kbtn" href="' + esc(docPdf(x, truePdf(x.link))) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + 'Download approved PDF</a>' : '') +
           (card || S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
     }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
     '</main>' + tabbar(flowFrom());
@@ -1361,7 +1361,7 @@ function vApply() {
     var ck = !!checks[AP_KIT[i]];
     return '<li class="ap-st' + (ck ? ' done' : '') + '"><span class="ap-n" aria-hidden="true">' + (ck ? IC.check : i + 1) + '</span><div class="ap-b"><h2>' + title + (ck ? '<span class="ap-ok"> Done</span>' : '') + '</h2><p>' + desc + '</p>' + a + '</div></li>';
   };
-  var dl = function (doc, what, k, i) { var u = doc && (apprPdf(doc) || pdfLink(doc.link)); return u ? '<a class="kbtn solid" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer" data-track="' + k + '" data-job="' + id + '" data-apstep="' + i + '">' + IC.pdf + 'Download ' + what + ' PDF</a>' : '<p class="wait">Not ready yet.</p>'; };
+  var dl = function (doc, what, k, i) { var u = doc && docPdf(doc, pdfLink(doc.link)); return u ? '<a class="kbtn solid" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer" data-track="' + k + '" data-job="' + id + '" data-apstep="' + i + '">' + IC.pdf + 'Download ' + what + ' PDF</a>' : (doc && doc.pdfState === 'held' ? '<p class="wait">Your approved ' + what + ' is being updated. Sherif will let you know when it is ready.</p>' : '<p class="wait">Not ready yet.</p>'); };
   if (done) {
     var app = st.app;
     body = '<section class="ap-done"><div class="ap-doneic" aria-hidden="true">' + IC.checkc + '</div><h2>It is on your Applied tab.</h2><p>' + (app && app.applied ? 'Applied ' + esc(fmtDate(app.applied)) + '. ' : '') + 'When ' + esc(j.company) + ' replies, update it there. Good luck.</p>' +
@@ -1458,6 +1458,8 @@ function tracker(st) {
 function pdfLink(link) { var id = gdocId(link); return id ? 'https://docs.google.com/document/d/' + id + '/export?format=pdf' : safeUrl(link); }
 /* a real PDF: a Google Doc export or a link to a .pdf file; anything else is not offered as a PDF */
 /* v1.24 API: an approved document's frozen PDF (Drive download link), else the live export */
+/* the PDF to offer for an approved document: the frozen copy, nothing while the API holds it (edited after approval), else the live export */
+function docPdf(doc, live) { return apprPdf(doc) || (doc && doc.pdfState === 'held' ? '' : live || ''); }
 function apprPdf(doc) { var u = doc && String(doc.approvedPdf || ''); return /^https:\/\/drive\.google\.com\/uc\?export=download&id=[\w-]{10,}$/.test(u) ? u : ''; }
 function truePdf(link) { return gdocId(link) ? pdfLink(link) : /^https:\/\/[^?#]+\.pdf([?#]|$)/i.test(String(link || '')) ? safeUrl(link) : ''; }
 /* Document kind from the start of its name ("Tailored resume: Discover, ..." must not read as a cover letter). Older free-form names fall back to a word match. */
@@ -1488,8 +1490,8 @@ function applyKit(j) {
   if (js.review.length) h += '<button class="kbtn solid guide" data-review="' + esc(j.id) + '">' + IC.docs + 'Read and approve your documents</button>';
   else if (js.applyReady && !app) h += '<button class="kbtn solid guide" data-applyflow="' + esc(j.id) + '">' + IC.check + 'Apply step by step</button>';
   if (resume || cover) {
-    h += '<div class="pdfs">' + (resume && (apprPdf(resume) || pdfLink(resume.link)) ? '<a class="kbtn solid" href="' + esc(apprPdf(resume) || pdfLink(resume.link)) + '" target="_blank" rel="noopener noreferrer" data-track="resume_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Resume (PDF)</a>' : '') +
-      (cover && (apprPdf(cover) || pdfLink(cover.link)) ? '<a class="kbtn solid" href="' + esc(apprPdf(cover) || pdfLink(cover.link)) + '" target="_blank" rel="noopener noreferrer" data-track="cover_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Cover letter (PDF)</a>' : '') + '</div>';
+    h += '<div class="pdfs">' + (resume && docPdf(resume, pdfLink(resume.link)) ? '<a class="kbtn solid" href="' + esc(docPdf(resume, pdfLink(resume.link))) + '" target="_blank" rel="noopener noreferrer" data-track="resume_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Resume (PDF)</a>' : '') +
+      (cover && docPdf(cover, pdfLink(cover.link)) ? '<a class="kbtn solid" href="' + esc(docPdf(cover, pdfLink(cover.link))) + '" target="_blank" rel="noopener noreferrer" data-track="cover_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Cover letter (PDF)</a>' : '') + '</div>' + ([resume, cover].some(function (d) { return d && d.pdfState === 'held'; }) ? '<p class="wait">Your approved ' + ([resume, cover].filter(function (d) { return d && d.pdfState === 'held'; }).map(function (d) { return d === resume ? 'resume' : 'cover letter'; }).join(' and ')) + ' PDF is being updated. Sherif will let you know when it is ready.</p>' : '');
     if (!resume || !cover) h += '<p class="wait">' + (resume ? 'Your cover letter' : 'Your resume') + (pending ? ' is ready to check in Documents.' : ' is still in progress.') + '</p>';
   } else if (pending) {
     h += '<p class="wait">Your tailored resume and cover letter are ready to check. Approve them to get the PDFs.</p>' + (js.review.length ? '' : '<button class="kbtn" data-go="docs">' + IC.docs + 'Open Documents</button>');
