@@ -256,6 +256,7 @@ function submit() {
     var b = Object.assign({ action: 'intake' }, D);
     if (payNum(D.payFloor)) b.payFloor = String(payNum(D.payFloor));
     b.workAuth = String(D.workAuth || ''); b.sponsorship = String(D.sponsorship || '');
+    b.termsVersion = '2026-10-27'; /* the Terms of Service and Privacy Policy version this page shows; the API records the consent with it */
     var extra = ['Full-time or part-time: ' + (D.hours || 'not answered'), 'What makes a job stand out: ' + ((D.standOut || []).join(', ') || 'none picked') + (D.standOutTop ? ' (most important: ' + D.standOutTop + ')' : '') + (D.standOutOther ? '; also: ' + D.standOutOther : '')].join('\n');
     b.anythingElse = (D.anythingElse ? D.anythingElse + '\n\n' : '') + extra;
     b.standOut = (D.standOut || []).join(', ');

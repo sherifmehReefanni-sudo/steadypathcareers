@@ -55,6 +55,7 @@ body { overflow-x: hidden; }
 .qhint[hidden] { display: none; }
 .jc .det .qlast { background: #fff; border-left: 4px solid var(--q); border-radius: 10px; padding: 8px 10px; white-space: pre-wrap; }
 .jc .det .qlast b { color: var(--q); }
+.jc .det .qlast ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 4px; }
 .errscr .lmsg { margin: 0; }
 .jc .live { margin: 8px 0 0; }
 .jc .live .pill { white-space: normal; text-align: left; }
@@ -824,6 +825,11 @@ function cssq(v) { try { return CSS.escape(String(v)); } catch (e) { return Stri
    Closed jobs never reach answer buttons, counts or the swipe deck: those read S.data.jobs directly. */
 function jobById(id) { var f = function (x) { return String(x.id) === String(id); }; return ((S.data && S.data.jobs) || []).filter(f)[0] || ((S.data && S.data.closed) || []).filter(f)[0]; }
 
+/* round 12: the one-time link key survives a reload of the Continue screen: sessionStorage, 30 minutes, cleared once redeemed */
+var LINKKEY_MS = 30 * 60000;
+function linkKeySave(k) { try { sessionStorage.setItem('sp_linkkey', JSON.stringify({ k: k, at: Date.now() })); } catch (e) {} }
+function linkKeyRead() { try { var o = JSON.parse(sessionStorage.getItem('sp_linkkey') || 'null'); if (o && o.k && Date.now() - o.at < LINKKEY_MS) return String(o.k); sessionStorage.removeItem('sp_linkkey'); } catch (e) {} return null; }
+function linkKeyDrop() { try { sessionStorage.removeItem('sp_linkkey'); } catch (e) {} }
 /* ---- token handling ---- */
 (function () {
   var q = new URLSearchParams(location.search);
@@ -836,7 +842,8 @@ function jobById(id) { var f = function (x) { return String(x.id) === String(id)
   var t = q.get('t'), k = q.get('k');
   if (t) { lsSet('sp_token', t); S.token = t; }
   else S.token = lsGet('sp_token');
-  if (k && !t) S.linkKey = k; /* round 12: the emailed link carries a one-time key; load() trades it once for a session */
+  if (k && !t) { S.linkKey = k; linkKeySave(k); } /* round 12: the emailed link carries a one-time key; traded once, on Continue */
+  else if (!t) { var kept = linkKeyRead(); if (kept) S.linkKey = kept; } /* a reload on the Continue screen keeps the key (30 minutes) */
   if (q.get('expired')) { S.status = 'signin'; S.err = 'That link has expired. Enter your email and we\'ll send you a new one.'; lsDel('sp_token'); S.token = null; }
   if (q.get('answered')) S.flashJob = q.get('answered');
   if (q.get('ask')) S.askJob = q.get('ask'); /* round 12: the email's Question button opens that job with its question box */
@@ -927,9 +934,9 @@ function redeemLink() {
   S.linkBusy = true; S.linkMsg = ''; render();
   post({ action: 'redeem', k: k }).then(function (d) {
     S.linkBusy = false; var e = d && d.error;
-    if (d && d.ok && d.t) { S.linkKey = null; S.token = d.t; setToken(d.t); load(); return; }
+    if (d && d.ok && d.t) { S.linkKey = null; linkKeyDrop(); S.token = d.t; setToken(d.t); load(); return; }
     if (e === 'busy' || !d) { S.linkMsg = 'That took too long on our side. Please tap the button again.'; S.focusTo = '#linkGo'; render(); return; } /* the key is kept */
-    S.linkKey = null;
+    S.linkKey = null; linkKeyDrop();
     if (S.token) { S.linkFlash = e || 'bad'; load(); return; } /* a saved session on this device keeps working */
     S.status = 'signin';
     S.err = e === 'used' ? 'That sign-in link was already used. Each link works once. Enter your email and we\'ll send you a new one.' : e === 'expired' ? 'That link has expired. Links work for 30 minutes. Enter your email and we\'ll send you a new one.' : 'That link didn\'t work. Enter your email and we\'ll send you a new one.';
@@ -970,11 +977,12 @@ function pump(id) {
     if (seq !== q.seq) return; q.busy = false;
     var j = jobById(id); if (!j) { delete S.pending[id]; return; }
     if (d && d.ok) {
+      var prevNote = (S.conf[id] || {}).note || '';
       S.conf[id] = { answer: d.answer || '', note: it.note !== undefined ? it.note : (S.conf[id] || {}).note || '' };
       if (q.next) { pump(id); return; }
       if (S.noteQ[id] != null && it.a === 'q') { var nq = S.noteQ[id]; delete S.noteQ[id]; sendAnswer(id, 'q', nq, {}); return; }
       delete S.pending[id];
-      if (it.a === 'q' && it.note) { delete S.qOpen[id]; delete S.notes[id]; S.newQ = S.newQ || {}; S.newQ[id] = true; } /* a new question: an earlier reply is no longer its answer */ /* round 12: the question is saved, so its box is the normal one */
+      if (it.a === 'q' && it.note) { delete S.qOpen[id]; delete S.notes[id]; if (it.note !== prevNote) moveReply(j); } /* a new question: the API moved the reply to Earlier replies; do the same here */ /* round 12: the question is saved, so its box is the normal one */
       if (!S.deferred[id]) { j.answer = d.answer || ''; if (it.note !== undefined) j.note = it.note; }
       j.answeredOn = d.answer ? todayISO() : '';
       S.justSaved = id;
@@ -1184,13 +1192,20 @@ function orderedJobs(d) { var pos = {}; (S.order || []).forEach(function (id, i)
 function coName(j) { return String(j.company || j.title || 'this job'); }
 /* round 12: Sherif's reply to a client's question (Jobs "Reply" / "Reply date"). A reply the client has not opened yet is their item
    in Due next and the next step; seen replies are remembered on this device, keyed by job id + reply date. */
-/* current = still the answer to the client's question: the job is a Question, the Reply date is on or after Answered on, and no new
-   question was sent here since. With no Reply date, current until the client sends a new question. An older reply stays in Details. */
+/* current = the answer to the client's question: the API clears Reply when a new question comes in (moving it to Earlier replies),
+   so any reply on a Question job is current. After a Yes or No, the last reply and the earlier ones stay in Details. */
 function replyText(j) { return String((j && j.reply) || '').trim(); }
-function replyCurrent(j) {
-  if (!replyText(j) || ansOf(j) !== 'q' || j.closed || (S.newQ && S.newQ[j.id])) return false;
-  var iso = /^\d{4}-\d\d-\d\d/, rd = String(j.replyDate || '').slice(0, 10), ad = String(j.answeredOn || '').slice(0, 10);
-  return !iso.test(rd) || !iso.test(ad) || rd >= ad;
+function replyCurrent(j) { return !!replyText(j) && ansOf(j) === 'q' && !j.closed; }
+/* same as the API: a new question note moves the reply to earlierReplies ("YYYY-MM-DD: text", one per line) */
+function moveReply(j) {
+  var r = replyText(j); if (!r) return;
+  var when = /^\d{4}-\d\d-\d\d/.test(String(j.replyDate || '')) ? String(j.replyDate).slice(0, 10) : todayISO();
+  j.earlierReplies = (String(j.earlierReplies || '').trim() ? String(j.earlierReplies).trim() + '\n' : '') + when + ': ' + r.replace(/\s*\r?\n\s*/g, ' ');
+  j.reply = ''; j.replyDate = '';
+}
+function earlierHtml(j) {
+  var ls = String(j.earlierReplies || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(String); if (!ls.length) return '';
+  return '<div class="qlast"><span class="lab">Earlier answers</span><ul>' + ls.map(function (l) { var m = l.match(/^(\d{4}-\d\d-\d\d)\s*:\s*(.*)$/); return '<li>' + (m ? '<b>Sherif replied ' + esc(fmtY(m[1])) + ':</b> ' + esc(m[2]) : esc(l)) + '</li>'; }).join('') + '</ul></div>';
 }
 function replyOf(j) { return replyCurrent(j) ? replyText(j) : ''; }
 function replyKey(j) { return String(j.id) + '|' + (String(j.replyDate || '').trim() || 'r' + String(j.reply || '').length); }
@@ -1217,21 +1232,24 @@ function flowStep(d) {
   var c = counts(), first = d.client.firstName || '', jobs = orderedJobs(d);
   var yes = jobs.filter(function (j) { return ansOf(j) === 'yes'; }), st = {};
   yes.forEach(function (j) { st[j.id] = jobState(j); });
+  /* round 12: an interview today or tomorrow comes first, then a new answer from Sherif, then the usual order (Due next agrees) */
+  var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0 && stageOf(x) < 4; }).sort(function (x, y) { return daysFrom(x.interview) - daysFrom(y.interview); })[0];
+  var ivStep = function (soon) {
+    var dd = daysFrom(soon.interview), sj = soon.jobId ? jobById(soon.jobId) : null, prep = sj ? jobState(sj).prep : null;
+    var hasQs = prepQs(soon).length > 0; if (prep && !(isReady(prep) || /approved/i.test(prep.status || ''))) prep = null;
+    return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. ' + (hasQs ? 'Practice the questions they are likely to ask.' : prep ? 'Read your prep sheet before you go.' : 'Your interview prep is in progress' + prepDueText(soon) + '. Sherif will add it here.'),
+      act: '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">' + (hasQs ? 'Practice now' : 'Interview details') + '</button>' + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
+  };
+  if (soon && daysFrom(soon.interview) <= 1) return ivStep(soon);
+  var rp = jobs.filter(replyNew)[0];
+  if (rp) return { k: 'reply', t: 'Sherif answered your question about ' + coName(rp), s: 'Read the answer, then decide on this job.', act: '<button class="btn gold" data-seereply="' + esc(rp.id) + '">Read the answer</button>' };
   if (c.wait) return { k: 'answer', t: c.wait === 1 ? '1 new job to answer' : c.wait + ' new jobs to answer', s: 'Say Yes to the ones you want. For each Yes, Sherif writes a resume and cover letter for that job.',
     act: deckButton(c) || '<button class="btn gold" data-first>Answer ' + (c.wait === 1 ? 'it' : 'them') + ' now</button>' };
   var r = yes.filter(function (j) { return st[j.id].review.length; })[0];
   if (r) { var w = docWords(st[r.id].review); return { k: 'review', t: 'Read your ' + w + ' for ' + coName(r), s: (st[r.id].review.length > 1 ? 'They are' : 'It is') + ' ready. Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ', then tap Looks good or ask for a change.', act: '<button class="btn gold" data-review="' + esc(r.id) + '">Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' now</button>' }; }
   var a = yes.filter(function (j) { return st[j.id].applyReady && !st[j.id].app; })[0];
   if (a) return { k: 'apply', t: 'Apply to ' + coName(a), s: 'Your documents are approved. Three short steps and you are done.', act: '<button class="btn gold" data-applyflow="' + esc(a.id) + '">Start applying</button>' };
-  var rp = jobs.filter(replyNew)[0];
-  if (rp) return { k: 'reply', t: 'Sherif answered your question about ' + coName(rp), s: 'Read the answer, then decide on this job.', act: '<button class="btn gold" data-seereply="' + esc(rp.id) + '">Read the answer</button>' };
-  var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0 && stageOf(x) < 4; }).sort(function (x, y) { return daysFrom(x.interview) - daysFrom(y.interview); })[0];
-  if (soon) {
-    var dd = daysFrom(soon.interview), sj = soon.jobId ? jobById(soon.jobId) : null, prep = sj ? jobState(sj).prep : null;
-    var hasQs = prepQs(soon).length > 0; if (prep && !(isReady(prep) || /approved/i.test(prep.status || ''))) prep = null;
-    return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. ' + (hasQs ? 'Practice the questions they are likely to ask.' : prep ? 'Read your prep sheet before you go.' : 'Your interview prep is in progress' + prepDueText(soon) + '. Sherif will add it here.'),
-      act: '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">' + (hasQs ? 'Practice now' : 'Interview details') + '</button>' + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
-  }
+  if (soon) return ivStep(soon);
   var chg = yes.filter(function (j) { return st[j.id].changes.length && !st[j.id].app; })[0];
   if (chg) return { k: 'wait', t: 'Sherif is making your changes for ' + coName(chg), s: whenReady() };
   var writing = yes.filter(function (j) { var s = st[j.id]; return !s.app && !s.applyReady && !s.review.length; });
@@ -1259,13 +1277,13 @@ function dueItems(d) {
     else if (!s.app && !s.applyReady) add(6, daysFrom(j.docsDue) != null && daysFrom(j.docsDue) >= 0 ? j.docsDue : '', 'Writing your documents for ' + coName(j), 'sherif'); /* dated, but never ahead of what the client can do */
   });
   jobs.filter(function (j) { return ansOf(j) === 'q'; }).forEach(function (j) {
-    if (replyNew(j)) add(1, '', 'Sherif answered your question about ' + coName(j), 'you', '<button class="linkbtn" data-seereply="' + esc(j.id) + '">Open</button>');
+    if (replyNew(j)) add(-1, '', 'Sherif answered your question about ' + coName(j), 'you', '<button class="linkbtn" data-seereply="' + esc(j.id) + '">Open</button>');
     else if (!replyOf(j)) add(6, '', 'Answering your question about ' + coName(j), 'sherif');
   });
   (d.apps || []).forEach(function (x) {
     var st = stageOf(x); if (st >= 3) return;
     var dd = daysFrom(x.interview), soon = dd != null && dd >= 0, mine = false;
-    if (soon) { add(dd <= 7 ? 0 : 3, x.interview, 'Interview with ' + coOr(x) + (x.ivTime ? ', ' + x.ivTime : ''), 'you', pvDueBtn(x, prepQs(x).length ? 'Practice now' : 'Open')); mine = true; }
+    if (soon) { add(dd <= 1 ? -2 : dd <= 7 ? 0 : 3, x.interview, 'Interview with ' + coOr(x) + (x.ivTime ? ', ' + x.ivTime : ''), 'you', pvDueBtn(x, prepQs(x).length ? 'Practice now' : 'Open')); mine = true; }
     else if (outcomeDue(x)) { add(2, '', 'Tell us how the ' + coOr(x) + ' interview went', 'you', pvDueBtn(x, 'Open')); mine = true; }
     var fd = daysFrom(x.followUpOn), fu = fd != null ? x.followUpOn : '';
     if (x.nextAction) { add(fu ? (fd <= 7 ? 0 : 3) : 4, fu, coOr(x) + ': ' + x.nextAction, 'you', goApps); mine = true; }
@@ -1702,7 +1720,7 @@ function jobCard(j, hint) {
   if (open) {
     h += '<div class="det" id="det-' + id + '">' + (j.why ? '<p><span class="lab">Why it fits</span>' + esc(j.why) + '</p>' : '') +
       (j.notes ? '<p><span class="lab">Our notes</span>' + esc(j.notes) + '</p>' : '') +
-      (replyText(j) && !replyOf(j) ? '<p class="qlast"><span class="lab">Earlier answer</span><b>Sherif replied' + esc(replyWhen(j)) + ':</b> ' + esc(replyText(j)) + '</p>' : '') + (heads ? '<p class="heads">' + heads + '</p>' : '') +
+      (replyText(j) && !replyOf(j) ? '<p class="qlast"><span class="lab">Sherif\'s answer</span><b>Sherif replied' + esc(replyWhen(j)) + ':</b> ' + esc(replyText(j)) + '</p>' : '') + earlierHtml(j) + (heads ? '<p class="heads">' + heads + '</p>' : '') +
       '<p class="dlinks">' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" data-track="posting" data-job="' + id + '">See the posting</a>' : '') +
       (cm ? '<a href="' + esc(cm) + '" target="_blank" rel="noopener noreferrer">Commute from home</a>' : '') +
       (ans && !busy && !j.closed ? '<button type="button" data-clear="' + id + '">Clear my answer</button>' : '') + '</p>' +
@@ -2132,7 +2150,7 @@ function signOut(msg) {
   /* a shared device keeps nothing of this client: practice notes, kit ticks and screen state */
   try { for (var k = localStorage.length - 1; k >= 0; k--) { var lk = localStorage.key(k); if (/sp_pvnotes_|sp_kit_|sp_replyseen/.test(lk || '')) localStorage.removeItem(lk); } } catch (e) {}
   S.pvMem = null; S.pv = null; S.dhOpen = null; S.jsel = null; if (S.view === 'prep') S.view = 'jobs';
-  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.qOpen = {}; S.notes = {}; S.newQ = {}; S.seenMem = null; S.colOpen = null; S.lastEmail = ''; S.linkKey = null; S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
+  dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.qOpen = {}; S.notes = {}; S.seenMem = null; S.colOpen = null; S.lastEmail = ''; S.linkKey = null; linkKeyDrop(); S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
 }
 
