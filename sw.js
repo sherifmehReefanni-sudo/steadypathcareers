@@ -24,6 +24,8 @@ self.addEventListener('fetch', function (e) {
     }));
     return;
   }
+  /* data files (testimonials, pay data) always come from the network, so a change or a withdrawn quote shows on the next visit */
+  if (/\.json$/i.test(url.pathname)) { e.respondWith(fetch(req).catch(function () { return caches.match(req); })); return; }
   e.respondWith(caches.match(req).then(function (hit) {
     if (hit) return hit;
     return fetch(req).then(function (res) {
