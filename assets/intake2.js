@@ -50,6 +50,7 @@
     { k: 'Door-to-door sales', d: 'Selling in person, house to house', old: 'Door-to-door or cold-call sales' }, { k: 'Call center work', d: 'Phones all day in a queue', old: 'Call center' }
   ];
   var STYLE = [['Working on a team', 'Working on my own'], ['Fast-paced', 'Steady pace'], ['Clear structure', 'Flexible and open'], ['Facing people', 'Behind the scenes']];
+  var OWN_MAX = 10;
   var STRENGTHS = ['Communication', 'Problem solving', 'Teamwork', 'Leadership', 'Training others', 'Organization', 'Customer care', 'Attention to detail', 'Adapting to change', 'Time management', 'Calm under pressure', 'Learning new systems fast'];
 
   /* Fields: tile, the old "Type of work" values it stands for, suggested titles, skills, extra strengths, and its module screens.
@@ -219,8 +220,10 @@
     /* on-screen limits: picks from a fixed list keep only real options; free text lists keep the screen's maximum */
     var only = { settingsPick: O.settings, empTypes: O.empTypes, standOut: O.standOut, companyTypes: O.companyTypes, shifts: O.shifts, software: O.software };
     Object.keys(only).forEach(function (k) { w[k] = w[k].filter(function (t) { return only[k].indexOf(t) >= 0; }); });
-    var CAP = { titles: 5, strengths: 5, rank: 3, strengthsOwn: 10, dream: 15, avoid: 15 };
+    var CAP = { titles: 5, strengths: 5, rank: 3, dream: 15, avoid: 15 };
     Object.keys(CAP).forEach(function (k) { w[k] = uniq(w[k]).slice(0, CAP[k]); });
+    /* own strengths: at most OWN_MAX (the strengths screen shows the same limit); picked ones always stay */
+    w.strengthsOwn = uniq(w.strengths.filter(function (t) { return STRENGTHS.indexOf(t) < 0 && !FIELDS.some(function (k) { return F[k].str.indexOf(t) >= 0; }); }).concat(w.strengthsOwn)).slice(0, OWN_MAX);
     w.rank = w.rank.filter(function (t) { return w.standOut.indexOf(t) >= 0; });
     if (w.payUnit && w.payUnit !== 'Hourly' && w.payUnit !== 'Yearly') delete w.payUnit;
     if (w.urgency && O.urgency.indexOf(w.urgency) < 0) delete w.urgency;
@@ -252,7 +255,8 @@
   fixMod();
   var cur = Math.max(0, Number(D._at) || 0), file = null, parsed = null, parsing = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
   var autoT = null, fromReview = false, laterOpen = false, laterBusy = false, laterMsg = '', laterKind = '', dealAnim = false, parseT = null;
-  function save() { try { var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = cur; c._saved = Date.now(); localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {} }
+  /* returns true only when the saved copy reads back exactly as written */
+  function save() { try { var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = cur; c._saved = Date.now(); var t = JSON.stringify(c); localStorage.setItem(KEY, t); return localStorage.getItem(KEY) === t; } catch (e) { return false; } }
 
   /* ---------------- backend calls (never in PREVIEW) ---------------- */
   /* Same request style as the live form's submit() in /start/: POST, JSON body as text/plain (no CORS preflight), follow the redirect. */
@@ -620,8 +624,10 @@
 
   add({ id: 'strengths', stop: 4, html: function () {
     var pool = uniq(STRENGTHS.concat.apply(STRENGTHS, fieldsAll().map(function (k) { return F[k].str; })).concat(arr(V.strengthsOwn)));
-    var on = arr(V.strengths);
-    return h('Your top strengths', 'Pick up to five.') + '<div class="chips" role="group" aria-label="Strengths">' + pool.map(function (s) { var c = on.indexOf(s) >= 0, full = !c && on.length >= 5; return '<label' + (full ? ' class="off"' : '') + '><input type="checkbox" data-strength="' + esc(s) + '"' + (c ? ' checked' : '') + (full ? ' disabled' : '') + '>' + esc(s) + '</label>'; }).join('') + '</div>' + addOwn('strength', 'Add your own', 'Bilingual: Spanish');
+    var on = arr(V.strengths), ownN = arr(V.strengthsOwn).length;
+    return h('Your top strengths', 'Pick up to five.') + '<div class="chips" role="group" aria-label="Strengths">' + pool.map(function (s) { var c = on.indexOf(s) >= 0, full = !c && on.length >= 5; return '<label' + (full ? ' class="off"' : '') + '><input type="checkbox" data-strength="' + esc(s) + '"' + (c ? ' checked' : '') + (full ? ' disabled' : '') + '>' + esc(s) + '</label>'; }).join('') + '</div>' +
+      (ownN >= OWN_MAX ? '<p class="i2-count" id="i2ownfull" aria-live="polite">You have added ' + OWN_MAX + ' of your own, the most this list holds. Untick one you added to make room for another.</p>' :
+        addOwn('strength', 'Add your own', 'Bilingual: Spanish') + '<p class="i2-count" aria-live="polite">' + ownN + ' of ' + OWN_MAX + ' of your own added</p>');
   } });
   add({ id: 'win', stop: 4, html: function () {
     return h('Your proudest win at work', 'One or two sentences. Numbers help a lot. For example: "Grew my territory 30%" or "Trained 12 new hires."') +
@@ -949,7 +955,7 @@
     if (t.dataset.b2) { V[t.dataset.b2] = t.checked; save(); return; }
     if (t.dataset.also) { var al = arr(V.alsoOpen).filter(function (x) { return x !== t.dataset.also; }); if (t.checked && al.length < 2) al.push(t.dataset.also); V.alsoOpen = al; save(); render(false); return; }
     if (t.dataset.title != null) { var tl = titleList().filter(function (x) { return x !== t.dataset.title; }); if (t.checked && tl.length < 5) tl.push(t.dataset.title); V.titles = tl; clearBad('v2.titles'); save(); render(false); return; }
-    if (t.dataset.strength != null) { var sl = arr(V.strengths).filter(function (x) { return x !== t.dataset.strength; }); if (t.checked && sl.length < 5) sl.push(t.dataset.strength); V.strengths = sl; save(); render(false); return; }
+    if (t.dataset.strength != null) { var sl = arr(V.strengths).filter(function (x) { return x !== t.dataset.strength; }); if (t.checked && sl.length < 5) sl.push(t.dataset.strength); V.strengths = sl; if (!t.checked) V.strengthsOwn = arr(V.strengthsOwn).filter(function (x) { return x !== t.dataset.strength; }); save(); render(false); return; }
   });
   ROOT.addEventListener('input', function (e) {
     var t = e.target;
@@ -1023,7 +1029,7 @@
   function addOwnVal(kind) {
     var el = ROOT.querySelector('[data-own="' + kind + '"]'); if (!el) return; var v = el.value.replace(/\s+/g, ' ').trim().slice(0, 80); if (!v) { el.focus(); return; }
     if (kind === 'title') { var tl = titleList(); if (tl.length >= 5) { msgKind = 'info'; msg = 'You already have 5 titles. Remove one to add another.'; render(); return; } if (tl.indexOf(v) < 0) tl.push(v); V.titles = tl; clearBad('v2.titles'); }
-    else if (kind === 'strength') { V.strengthsOwn = uniq(arr(V.strengthsOwn).concat([v])); var sl = arr(V.strengths); if (sl.length < 5 && sl.indexOf(v) < 0) sl.push(v); V.strengths = sl; }
+    else if (kind === 'strength') { if (arr(V.strengthsOwn).indexOf(v) < 0 && arr(V.strengthsOwn).length >= OWN_MAX) { render(false); return; } V.strengthsOwn = uniq(arr(V.strengthsOwn).concat([v])); var sl = arr(V.strengths); if (sl.length < 5 && sl.indexOf(v) < 0) sl.push(v); V.strengths = sl; }
     else { V[kind] = uniq(arr(V[kind]).concat([v])).slice(0, 15); }
     save(); render(false); var n = ROOT.querySelector('[data-own="' + kind + '"]'); if (n) n.focus();
   }
@@ -1096,9 +1102,12 @@
   function shell(inner) { ROOT.innerHTML = pathbar(0) + '<div class="i2-card-wrap"><section class="i2-sheet" data-screen="draft" aria-labelledby="i2title i2q"><p class="i2-step" id="i2title">Welcome back</p>' + inner + '</section></div>'; var q = document.getElementById('i2q'); if (q) try { q.focus({ preventScroll: true }); } catch (e) {} }
   /* round 3: the backend hands a draft out without using it up; this tells it the answers were applied or set aside */
   function draftDone() { if (PREVIEW || !/^[a-z0-9]{40}$/.test(String(dkey || ''))) return; try { post({ action: 'intakeDraftDone', key: dkey }).catch(function () {}); } catch (e) {} }
+  /* round 4: applied only after a tap (a link scanner opening the page never uses the link up), and done is sent only when the
+     saved copy reads back; if this browser will not save, the answers stay in the tab and the link keeps working */
   function applyDraft() {
-    var st = cleanState(pendingDraft); pendingDraft = null; useState(st); save(); dropKey(); draftDone();
-    msgKind = 'info'; msg = 'Your emailed answers are here, so you can pick up where you left off.' + (lostResume() ? ' Please attach your resume again; files are not saved in the link.' : '');
+    var st = cleanState(pendingDraft); pendingDraft = null; useState(st);
+    if (save()) { dropKey(); draftDone(); msgKind = 'info'; msg = 'Your emailed answers are here, so you can pick up where you left off.' + (lostResume() ? ' Please attach your resume again; files are not saved in the link.' : ''); }
+    else { msgKind = 'err'; msg = 'Your browser is not letting this page save your answers, so keep this tab open until you send the form.'; }
     render();
   }
   ROOT.addEventListener('click', function (e) {
@@ -1115,12 +1124,18 @@
     (/^[a-z0-9]{40}$/.test(dkey) ? post({ action: 'intakeDraftLoad', key: dkey }, 45000) : Promise.resolve({ ok: false, error: 'expired' })).then(function (d) {
       if (d && d.ok && d.draft && typeof d.draft === 'object' && !Array.isArray(d.draft)) {
         pendingDraft = d.draft;
-        if (!hasLocal()) { applyDraft(); return; }
+        if (!hasLocal()) {
+          shell('<h2 class="i2-h" id="i2q" tabindex="-1">Your saved answers are ready</h2><p class="i2-p">Tap below to pick up where you left off.</p>' +
+            '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Open my saved answers</button></div>');
+          return;
+        }
         shell('<h2 class="i2-h" id="i2q" tabindex="-1">Which answers do you want to use?</h2><p class="i2-p">This device already has answers saved from before. I will use one set or the other, never a mix.</p>' +
           '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Use the emailed answers</button><button type="button" class="btn ghost" data-draft="keep">Keep what is on this device</button></div>');
         return;
       }
       if (d && d.error === 'expired') { expired(); return; }
+      /* an old backend that does not know the action: after two such answers for the same link, treat it as used or expired */
+      if (d && d.error === 'unknown action') { var uk = 'sp_i2_unk_' + dkey, un = 0; try { un = Number(sessionStorage.getItem(uk)) + 1; sessionStorage.setItem(uk, String(un)); } catch (e) {} if (un >= 2) { expired(); return; } }
       startAt(); msgKind = 'info'; msg = 'I could not open your saved answers just now, so you are seeing the answers on this device. Reload this page in a few minutes to try the link again.'; render(false);
     }).catch(function (e) {
       startAt(); msgKind = 'info';
