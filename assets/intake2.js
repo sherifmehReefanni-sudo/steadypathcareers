@@ -255,8 +255,36 @@
   fixMod();
   var cur = Math.max(0, Number(D._at) || 0), file = null, parsed = null, parsing = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
   var autoT = null, fromReview = false, laterOpen = false, laterBusy = false, laterMsg = '', laterKind = '', dealAnim = false, parseT = null;
-  /* returns true only when the saved copy reads back exactly as written */
-  function save() { try { var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = cur; c._saved = Date.now(); var t = JSON.stringify(c); localStorage.setItem(KEY, t); return localStorage.getItem(KEY) === t; } catch (e) { return false; } }
+  /* Saving (round 6). base is the saved-at stamp of the copy this tab last read or wrote. A save whose base is older than the
+     stored copy (another tab or window wrote since) is refused: this tab reloads that newer copy instead, so a stale tab never
+     wipes answers another tab saved. force (applying emailed answers the person just chose) writes anyway.
+     Returns true only when the saved copy reads back exactly as written. */
+  var base = Number(D._saved) || 0, startBase = base;
+  function storedCopy() { try { var o = JSON.parse(localStorage.getItem(KEY) || 'null'); return o && typeof o === 'object' && o.v2 && typeof o.v2 === 'object' ? o : null; } catch (e) { return null; } }
+  function save(force) {
+    try {
+      var old = storedCopy(), oldAt = old && typeof old._saved === 'number' ? old._saved : 0;
+      if (!force && oldAt > base) { refreshFromStorage(true); return false; }
+      var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = cur; c._saved = Math.max(Date.now(), oldAt + 1);
+      var t = JSON.stringify(c); localStorage.setItem(KEY, t);
+      if (localStorage.getItem(KEY) !== t) return false;
+      base = c._saved; D._saved = c._saved; return true;
+    } catch (e) { return false; }
+  }
+  /* take the newer copy another tab or window saved; the resume file attached in this tab stays attached */
+  var refreshing = false;
+  function refreshFromStorage(show) {
+    var o = storedCopy(); if (!o || refreshing) return false;
+    refreshing = true;
+    try {
+      D = cleanState(o, true); V = D.v2; fixMod(); base = Number(D._saved) || 0;
+      if (typeof S !== 'undefined' && S.length && ROOT.querySelector('[data-screen]') && !ROOT.querySelector('[data-screen="draft"]')) {
+        cur = Number(D._at) || 0; startAt();
+        if (show) { msgKind = 'info'; msg = 'Your answers were updated in another tab or window, so this tab now shows them.'; render(false); }
+      }
+    } finally { refreshing = false; }
+    return true;
+  }
 
   /* ---------------- backend calls (never in PREVIEW) ---------------- */
   /* Same request style as the live form's submit() in /start/: POST, JSON body as text/plain (no CORS preflight), follow the redirect. */
@@ -1110,12 +1138,19 @@
      saved copy reads back; if this browser will not save, the answers stay in the tab and the link keeps working */
   function applyDraft() {
     var st = cleanState(pendingDraft); pendingDraft = null; useState(st);
-    if (save()) { dropKey(); draftDone(); msgKind = 'info'; msg = 'Your emailed answers are here, so you can pick up where you left off.' + (lostResume() ? ' Please attach your resume again; files are not saved in the link.' : ''); }
+    if (save(true)) { dropKey(); draftDone(); msgKind = 'info'; msg = 'Your emailed answers are here, so you can pick up where you left off.' + (lostResume() ? ' Please attach your resume again; files are not saved in the link.' : ''); }
     else { msgKind = 'err'; msg = 'Your browser is not letting this page save your answers, so keep this tab open until you send the form.'; }
     render();
   }
   var USED = 'That link has already been used or has expired. If you opened it on another device, your answers are there. Otherwise you can start a fresh form here.';
-  function expired() { dropKey(); if (!hasLocal()) cur = 0; startAt(); msgKind = 'info'; msg = USED; render(false); }
+  /* after 'expired', look again: another tab or window may have just opened these answers and saved them */
+  function expired() {
+    dropKey(); refreshFromStorage(false);
+    var newer = (Number(D._saved) || 0) > startBase;
+    if (!hasLocal()) cur = 0; else cur = Number(D._at) || 0; startAt(); msgKind = 'info';
+    msg = hasLocal() && newer ? 'Your saved answers were opened in another tab or window. Here they are.' : hasLocal() ? 'That link has already been used or has expired. The answers saved on this device are still here.' : USED;
+    render(false);
+  }
   /* round 5: nothing is asked of the backend until the person taps Open or Use. The live backend starts a 60-minute clock on the
      first load, so a link scanner or a quick look must never load it. Keep sends only done (always ok) and makes no load call.
      ?d= leaves the address bar only once the draft is applied or set aside, or the link is used, expired or malformed; on a
@@ -1130,9 +1165,9 @@
       if (d && d.error === 'expired') { expired(); return; }
       /* an old backend that does not know the action: after two such answers for the same link, treat it as used or expired */
       if (d && d.error === 'unknown action') { var uk = 'sp_i2_unk_' + dkey, un = 0; try { un = Number(sessionStorage.getItem(uk)) + 1; sessionStorage.setItem(uk, String(un)); } catch (e) {} if (un >= 2) { expired(); return; } }
-      startAt(); msgKind = 'info'; msg = 'I could not open your saved answers just now, so you are seeing the answers on this device. Reload this page in a few minutes to try the link again.'; render(false);
+      refreshFromStorage(false); cur = Number(D._at) || 0; startAt(); msgKind = 'info'; msg = 'I could not open your saved answers just now, so you are seeing the answers on this device. Reload this page in a few minutes to try the link again.'; render(false);
     }).catch(function (e) {
-      loadingDraft = false; startAt(); msgKind = 'info';
+      loadingDraft = false; refreshFromStorage(false); cur = Number(D._at) || 0; startAt(); msgKind = 'info';
       msg = (e && e.name === 'AbortError' ? 'Your saved answers are taking too long to open' : 'I could not reach my server to open your saved answers') + ', so you are seeing the answers on this device. Reload this page to try the link again.';
       render(false);
     });
@@ -1142,12 +1177,23 @@
     if (b.getAttribute('data-draft') === 'use') { loadDraft(); return; }
     dropKey(); draftDone(); dkey = null; startAt(); save(); msgKind = 'info'; msg = 'I kept the answers on this device. The emailed answers were set aside and that link will no longer work.'; render();
   });
-  if (dkey != null && !PREVIEW) {
-    if (!/^[a-z0-9]{40}$/.test(dkey)) expired();
-    else if (!hasLocal()) shell('<h2 class="i2-h" id="i2q" tabindex="-1">Your saved answers are ready</h2><p class="i2-p">Tap below to pick up where you left off.</p>' +
+  /* round 6: another tab or window saved newer answers. On the ready or choice screen, show the right screen for what is now
+     on this device; in the form, take the newer copy. */
+  window.addEventListener('storage', function (e) {
+    if (e.key !== KEY || !e.newValue || loadingDraft) return;
+    var o = storedCopy(); if (!o || (Number(o._saved) || 0) <= base) return;
+    if (ROOT.querySelector('[data-screen="draft"]')) { refreshFromStorage(false); if (dkey) draftScreen(); return; }
+    refreshFromStorage(true);
+  });
+  function draftScreen() {
+    if (!hasLocal()) shell('<h2 class="i2-h" id="i2q" tabindex="-1">Your saved answers are ready</h2><p class="i2-p">Tap below to pick up where you left off.</p>' +
       '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Open my saved answers</button></div>');
     else shell('<h2 class="i2-h" id="i2q" tabindex="-1">Which answers do you want to use?</h2><p class="i2-p">This device already has answers saved from before. If you use the emailed answers, they replace these. I never mix the two.</p>' +
       '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Use the emailed answers</button><button type="button" class="btn ghost" data-draft="keep">Keep what is on this device</button></div>');
+  }
+  if (dkey != null && !PREVIEW) {
+    if (!/^[a-z0-9]{40}$/.test(dkey)) expired();
+    else draftScreen();
   } else {
     if (dkey != null) { dropKey(); msgKind = 'info'; msg = 'Preview: saved-answer links open only on the live form, so nothing was loaded.'; }
     startAt(); render(false);
