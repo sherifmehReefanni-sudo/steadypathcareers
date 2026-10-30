@@ -200,13 +200,14 @@
   function own(o, k) { return !!o && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k); }
   function okKey(k) { return typeof k === 'string' && k.length > 0 && k.length <= 200 && BADKEY.indexOf(k) < 0 && NOSAVE.indexOf(k) < 0; }
   function cStr(v, max) { return typeof v === 'string' ? v.slice(0, max || 4000) : undefined; }
-  function cList(v) { if (!Array.isArray(v)) return undefined; var o = []; for (var i = 0; i < v.length && o.length < 40; i++) if (typeof v[i] === 'string' && v[i].trim()) o.push(v[i].slice(0, 300)); return o; }
+  function cList(v) { if (!Array.isArray(v)) return undefined; var o = []; for (var i = 0; i < v.length && o.length < 40; i++) if (typeof v[i] === 'string' && v[i].trim() && o.indexOf(v[i].slice(0, 300)) < 0) o.push(v[i].slice(0, 300)); return o; }
   function cMap(v, val) { var o = {}; if (!v || typeof v !== 'object' || Array.isArray(v)) return o; var ks = Object.keys(v); for (var i = 0, n = 0; i < ks.length && n < 60; i++) { var k = ks[i]; if (!okKey(k) || !own(v, k)) continue; var x = val(v[k], k); if (x !== undefined) { o[k] = x; n++; } } return o; }
   function cleanState(src, keepMeta) {
     var out = blankState(), v = own(src, 'v2') && src.v2 && typeof src.v2 === 'object' && !Array.isArray(src.v2) ? src.v2 : {}, w = out.v2, x;
     if (!src || typeof src !== 'object' || Array.isArray(src)) return out;
     ST.str.forEach(function (k) { if (own(src, k) && (x = cStr(src[k])) !== undefined) out[k] = x; });
     ST.list.forEach(function (k) { if (own(src, k) && (x = cList(src[k]))) out[k] = x; });
+    out.times = out.times.filter(function (t) { return O.times.indexOf(t) >= 0; });
     if (own(src, '_at') && typeof src._at === 'number' && isFinite(src._at)) out._at = Math.max(0, Math.min(200, Math.floor(src._at)));
     if (keepMeta && own(src, '_saved') && typeof src._saved === 'number') out._saved = src._saved;
     ST.v2str.forEach(function (k) { if (own(v, k) && (x = cStr(v[k])) !== undefined) w[k] = x; });
@@ -215,6 +216,12 @@
     ST.v2list.forEach(function (k) { if (own(v, k) && (x = cList(v[k]))) w[k] = x; });
     if (w.field && FIELDS.indexOf(w.field) < 0) delete w.field;
     w.alsoOpen = w.alsoOpen.filter(function (k) { return FIELDS.indexOf(k) >= 0 && k !== 'other' && k !== w.field; }).slice(0, 2);
+    /* on-screen limits: picks from a fixed list keep only real options; free text lists keep the screen's maximum */
+    var only = { settingsPick: O.settings, empTypes: O.empTypes, standOut: O.standOut, companyTypes: O.companyTypes, shifts: O.shifts, software: O.software };
+    Object.keys(only).forEach(function (k) { w[k] = w[k].filter(function (t) { return only[k].indexOf(t) >= 0; }); });
+    var CAP = { titles: 5, strengths: 5, rank: 3, strengthsOwn: 10, dream: 15, avoid: 15 };
+    Object.keys(CAP).forEach(function (k) { w[k] = uniq(w[k]).slice(0, CAP[k]); });
+    w.rank = w.rank.filter(function (t) { return w.standOut.indexOf(t) >= 0; });
     if (w.payUnit && w.payUnit !== 'Hourly' && w.payUnit !== 'Yearly') delete w.payUnit;
     if (w.urgency && O.urgency.indexOf(w.urgency) < 0) delete w.urgency;
     if (own(v, 'skills')) w.skills = cMap(v.skills, function (s) { return s === 'nice' || s === 'must' ? s : undefined; });
@@ -251,12 +258,12 @@
   /* Same request style as the live form's submit() in /start/: POST, JSON body as text/plain (no CORS preflight), follow the redirect. */
   /* Every call gives up after about 15 seconds (AbortController), so a slow or stuck backend never leaves the page waiting.
      The intake itself gets longer, since it can carry a resume file of up to 10 MB. */
-  var TIMEOUT = Math.max(1000, Number(ROOT.getAttribute('data-timeout')) || 15000);
+  var TIMEOUT = 15000, TEST_TIMEOUT = Math.max(0, Number(ROOT.getAttribute('data-timeout')) || 0); /* data-timeout: tests only */
   function post(body, ms) {
     if (PREVIEW) return Promise.reject(new Error('preview'));
     var ac = null, tm = null; try { ac = new AbortController(); } catch (e) {}
     var opts = { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' };
-    if (ac) { opts.signal = ac.signal; tm = setTimeout(function () { ac.abort(); }, ms || TIMEOUT); }
+    if (ac) { opts.signal = ac.signal; tm = setTimeout(function () { ac.abort(); }, TEST_TIMEOUT || ms || TIMEOUT); }
     return fetch(API, opts)
       .then(function (r) { return r.text().then(function (t) { var d = null; try { d = JSON.parse(t); } catch (e) {} return d && typeof d === 'object' && r.ok ? d : { ok: false, error: 'server' }; }); })
       .then(function (d) { clearTimeout(tm); return d; }, function (e) { clearTimeout(tm); throw e; });
@@ -769,7 +776,7 @@
   }
   function laterBox() {
     var lm = laterMsg ? '<div class="' + (laterKind === 'err' ? 'i2-err' : 'i2-info') + '" id="i2latermsg" role="' + (laterKind === 'err' ? 'alert' : 'status') + '" tabindex="-1">' + laterMsg + '</div>' : '';
-    return '<div class="i2-laterbox" id="i2laterbox"><p class="i2-note">I will email you a private link that opens this form where you left off. It works for 30 days. Your agreement boxes, signature and resume file are not saved in it.</p>' +
+    return '<div class="i2-laterbox" id="i2laterbox"><p class="i2-note">I will email you a private link that opens this form where you left off. This link works for 30 days. Once you open it and pick up where you left off, it stops working. Your agreement boxes, signature and resume file are not saved in it.</p>' +
       '<div class="i2-own"><label class="vh" for="i2lateremail">Email for the link</label><input id="i2lateremail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="' + esc(D.email || '') + '"><button type="button" class="btn ghost" data-act="latersend"' + (laterBusy ? ' disabled' : '') + '>' + (laterBusy ? 'Sending…' : 'Send me the link') + '</button></div>' + lm + '</div>';
   }
   function pathbar(st) {
@@ -1003,10 +1010,14 @@
     if (size > 60000) { done('err', esc(LATER_ERR['too large'])); return; }
     if (PREVIEW) { done('info', '<b>Preview: nothing was sent.</b> The live form would send this and email a link to ' + esc(em) + '.<details class="i2-sent"><summary>What would be sent</summary><pre>' + esc(JSON.stringify(body, null, 2)) + '</pre></details>'); return; }
     laterBusy = true; render(false);
-    post(body).then(function (d) {
-      if (d && d.ok) { done('info', 'Check your email. I sent a link to ' + esc(em) + '. It works for 30 days.'); return; }
+    post(body, 45000).then(function (d) {
+      if (d && d.ok) { done('info', 'Check your email. I sent a link to ' + esc(em) + '. This link works for 30 days. Once you open it and pick up where you left off, it stops working.'); return; }
       var er = d && d.error; done('err', esc(LATER_ERR[er] || 'The link did not send. Please try again later. Your answers are still saved on this device.'));
-    }).catch(function () { done('err', 'The link did not send. Please check your connection and try again. Your answers are still saved on this device.'); });
+    }).catch(function (e) {
+      /* a timeout may still have saved and emailed the link, so do not invite a second try right away */
+      if (e && e.name === 'AbortError') { done('err', 'I am not sure that went through. Check your email in a few minutes before trying again.'); return; }
+      done('err', 'The link did not send. Please check your connection and try again. Your answers are still saved on this device.');
+    });
   }
   function cssq(s) { return String(s).replace(/["\\]/g, '\\$&'); }
   function addOwnVal(kind) {
@@ -1083,21 +1094,25 @@
   function dropKey() { try { var u = new URL(location.href); u.searchParams.delete('d'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) {} }
   var pendingDraft = null;
   function shell(inner) { ROOT.innerHTML = pathbar(0) + '<div class="i2-card-wrap"><section class="i2-sheet" data-screen="draft" aria-labelledby="i2title i2q"><p class="i2-step" id="i2title">Welcome back</p>' + inner + '</section></div>'; var q = document.getElementById('i2q'); if (q) try { q.focus({ preventScroll: true }); } catch (e) {} }
+  /* round 3: the backend hands a draft out without using it up; this tells it the answers were applied or set aside */
+  function draftDone() { if (PREVIEW || !/^[a-z0-9]{40}$/.test(String(dkey || ''))) return; try { post({ action: 'intakeDraftDone', key: dkey }).catch(function () {}); } catch (e) {} }
   function applyDraft() {
-    var st = cleanState(pendingDraft); pendingDraft = null; useState(st); save();
+    var st = cleanState(pendingDraft); pendingDraft = null; useState(st); save(); dropKey(); draftDone();
     msgKind = 'info'; msg = 'Your emailed answers are here, so you can pick up where you left off.' + (lostResume() ? ' Please attach your resume again; files are not saved in the link.' : '');
     render();
   }
   ROOT.addEventListener('click', function (e) {
     var b = e.target.closest('[data-draft]'); if (!b || !pendingDraft) return;
     if (b.getAttribute('data-draft') === 'use') { applyDraft(); return; }
-    pendingDraft = null; startAt(); save(); msgKind = 'info'; msg = 'I kept the answers on this device. The emailed answers were not used.'; render();
+    pendingDraft = null; dropKey(); draftDone(); startAt(); save(); msgKind = 'info'; msg = 'I kept the answers on this device. The emailed answers were set aside and that link will no longer work.'; render();
   });
+  var USED = 'That link has already been used or has expired. If you opened it on another device, your answers are there. Otherwise you can start a fresh form here.';
   if (dkey != null && !PREVIEW) {
     shell('<p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Opening your saved answers…</p>');
-    var expired = function () { dropKey(); if (!hasLocal()) cur = 0; startAt(); msgKind = 'info'; msg = hasLocal() ? 'That link has expired. The answers saved on this device are still here, so you can keep going.' : 'That link has expired, so this is a fresh form. It takes about 10 minutes.'; render(false); };
-    (/^[a-z0-9]{40}$/.test(dkey) ? post({ action: 'intakeDraftLoad', key: dkey }) : Promise.resolve({ ok: false, error: 'expired' })).then(function (d) {
-      dropKey();
+    /* ?d= leaves the address bar only once the draft is applied or set aside, or the link is used, expired or malformed.
+       On a timeout or a busy answer it stays, so a reload tries again (the backend no longer uses the link up on a load). */
+    var expired = function () { dropKey(); if (!hasLocal()) cur = 0; startAt(); msgKind = 'info'; msg = USED; render(false); };
+    (/^[a-z0-9]{40}$/.test(dkey) ? post({ action: 'intakeDraftLoad', key: dkey }, 45000) : Promise.resolve({ ok: false, error: 'expired' })).then(function (d) {
       if (d && d.ok && d.draft && typeof d.draft === 'object' && !Array.isArray(d.draft)) {
         pendingDraft = d.draft;
         if (!hasLocal()) { applyDraft(); return; }
@@ -1106,8 +1121,12 @@
         return;
       }
       if (d && d.error === 'expired') { expired(); return; }
-      startAt(); msgKind = 'err'; msg = 'I could not open your saved answers just now. Please try the link again in a few minutes.'; render(false);
-    }).catch(function () { dropKey(); startAt(); msgKind = 'info'; msg = 'I could not open your saved answers just now, so you are seeing the answers on this device. You can try the link again later.'; render(false); });
+      startAt(); msgKind = 'info'; msg = 'I could not open your saved answers just now, so you are seeing the answers on this device. Reload this page in a few minutes to try the link again.'; render(false);
+    }).catch(function (e) {
+      startAt(); msgKind = 'info';
+      msg = (e && e.name === 'AbortError' ? 'Your saved answers are taking too long to open' : 'I could not reach my server to open your saved answers') + ', so you are seeing the answers on this device. Reload this page to try the link again.';
+      render(false);
+    });
   } else {
     if (dkey != null) { dropKey(); msgKind = 'info'; msg = 'Preview: saved-answer links open only on the live form, so nothing was loaded.'; }
     startAt(); render(false);
