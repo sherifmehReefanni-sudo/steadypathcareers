@@ -625,8 +625,10 @@
   add({ id: 'strengths', stop: 4, html: function () {
     var pool = uniq(STRENGTHS.concat.apply(STRENGTHS, fieldsAll().map(function (k) { return F[k].str; })).concat(arr(V.strengthsOwn)));
     var on = arr(V.strengths), ownN = arr(V.strengthsOwn).length;
-    return h('Your top strengths', 'Pick up to five.') + '<div class="chips" role="group" aria-label="Strengths">' + pool.map(function (s) { var c = on.indexOf(s) >= 0, full = !c && on.length >= 5; return '<label' + (full ? ' class="off"' : '') + '><input type="checkbox" data-strength="' + esc(s) + '"' + (c ? ' checked' : '') + (full ? ' disabled' : '') + '>' + esc(s) + '</label>'; }).join('') + '</div>' +
-      (ownN >= OWN_MAX ? '<p class="i2-count" id="i2ownfull" aria-live="polite">You have added ' + OWN_MAX + ' of your own, the most this list holds. Untick one you added to make room for another.</p>' :
+    return h('Your top strengths', 'Pick up to five.') + '<div class="chips" role="group" aria-label="Strengths">' + pool.map(function (s) { var c = on.indexOf(s) >= 0, full = !c && on.length >= 5, mine = arr(V.strengthsOwn).indexOf(s) >= 0;
+        return '<span class="i2-ownchip"><label' + (full ? ' class="off"' : '') + '><input type="checkbox" data-strength="' + esc(s) + '"' + (c ? ' checked' : '') + (full ? ' disabled' : '') + '>' + esc(s) + '</label>' +
+          (mine ? '<button type="button" class="i2-link i2-rm" data-rmown="' + esc(s) + '" aria-label="Remove ' + esc(s) + '">Remove</button>' : '') + '</span>'; }).join('') + '</div>' +
+      (ownN >= OWN_MAX ? '<p class="i2-count" id="i2ownfull" aria-live="polite">You have added ' + OWN_MAX + ' of your own, the most this list holds. Tap Remove next to one you added to make room for another.</p>' :
         addOwn('strength', 'Add your own', 'Bilingual: Spanish') + '<p class="i2-count" aria-live="polite">' + ownN + ' of ' + OWN_MAX + ' of your own added</p>');
   } });
   add({ id: 'win', stop: 4, html: function () {
@@ -955,7 +957,7 @@
     if (t.dataset.b2) { V[t.dataset.b2] = t.checked; save(); return; }
     if (t.dataset.also) { var al = arr(V.alsoOpen).filter(function (x) { return x !== t.dataset.also; }); if (t.checked && al.length < 2) al.push(t.dataset.also); V.alsoOpen = al; save(); render(false); return; }
     if (t.dataset.title != null) { var tl = titleList().filter(function (x) { return x !== t.dataset.title; }); if (t.checked && tl.length < 5) tl.push(t.dataset.title); V.titles = tl; clearBad('v2.titles'); save(); render(false); return; }
-    if (t.dataset.strength != null) { var sl = arr(V.strengths).filter(function (x) { return x !== t.dataset.strength; }); if (t.checked && sl.length < 5) sl.push(t.dataset.strength); V.strengths = sl; if (!t.checked) V.strengthsOwn = arr(V.strengthsOwn).filter(function (x) { return x !== t.dataset.strength; }); save(); render(false); return; }
+    if (t.dataset.strength != null) { var sl = arr(V.strengths).filter(function (x) { return x !== t.dataset.strength; }); if (t.checked && sl.length < 5) sl.push(t.dataset.strength); V.strengths = sl; save(); render(false); return; }
   });
   ROOT.addEventListener('input', function (e) {
     var t = e.target;
@@ -985,6 +987,8 @@
     if (d.toggle) { V[d.toggle] = !V[d.toggle]; save(); buzz(); render(false); return; }
     if (d.skill != null) { var cur2 = V.skills[d.skill] || ''; V.skills[d.skill] = cur2 === '' ? 'nice' : cur2 === 'nice' ? 'must' : ''; if (!V.skills[d.skill]) delete V.skills[d.skill]; save(); buzz(); render(false); var nb = ROOT.querySelector('[data-skill="' + cssq(d.skill) + '"]'); if (nb) nb.focus(); return; }
     if (d.add) { addOwnVal(d.add); return; }
+    /* round 5: a strength you added stays (unticked) until you remove it */
+    if (d.rmown != null) { var rv = d.rmown; V.strengthsOwn = arr(V.strengthsOwn).filter(function (x) { return x !== rv; }); V.strengths = arr(V.strengths).filter(function (x) { return x !== rv; }); save(); render(false); var nf = ROOT.querySelector('[data-own="strength"]') || ROOT.querySelector('#i2q'); if (nf) nf.focus(); return; }
     if (d.untag) { var ta = arr(V[d.untag]).slice(); ta.splice(+d.i, 1); V[d.untag] = ta; save(); render(false); return; }
     if (d.style != null) { V.style[d.style] = V.style[d.style] === d.v ? '' : d.v; save(); buzz(); render(false); return; }
     if (d.dealAns) { answerDeal(d.dealAns); return; }
@@ -1110,38 +1114,40 @@
     else { msgKind = 'err'; msg = 'Your browser is not letting this page save your answers, so keep this tab open until you send the form.'; }
     render();
   }
-  ROOT.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-draft]'); if (!b || !pendingDraft) return;
-    if (b.getAttribute('data-draft') === 'use') { applyDraft(); return; }
-    pendingDraft = null; dropKey(); draftDone(); startAt(); save(); msgKind = 'info'; msg = 'I kept the answers on this device. The emailed answers were set aside and that link will no longer work.'; render();
-  });
   var USED = 'That link has already been used or has expired. If you opened it on another device, your answers are there. Otherwise you can start a fresh form here.';
-  if (dkey != null && !PREVIEW) {
+  function expired() { dropKey(); if (!hasLocal()) cur = 0; startAt(); msgKind = 'info'; msg = USED; render(false); }
+  /* round 5: nothing is asked of the backend until the person taps Open or Use. The live backend starts a 60-minute clock on the
+     first load, so a link scanner or a quick look must never load it. Keep sends only done (always ok) and makes no load call.
+     ?d= leaves the address bar only once the draft is applied or set aside, or the link is used, expired or malformed; on a
+     timeout or busy answer it stays, so a reload tries again. */
+  var loadingDraft = false;
+  function loadDraft() {
+    if (loadingDraft) return; loadingDraft = true;
     shell('<p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Opening your saved answers…</p>');
-    /* ?d= leaves the address bar only once the draft is applied or set aside, or the link is used, expired or malformed.
-       On a timeout or a busy answer it stays, so a reload tries again (the backend no longer uses the link up on a load). */
-    var expired = function () { dropKey(); if (!hasLocal()) cur = 0; startAt(); msgKind = 'info'; msg = USED; render(false); };
-    (/^[a-z0-9]{40}$/.test(dkey) ? post({ action: 'intakeDraftLoad', key: dkey }, 45000) : Promise.resolve({ ok: false, error: 'expired' })).then(function (d) {
-      if (d && d.ok && d.draft && typeof d.draft === 'object' && !Array.isArray(d.draft)) {
-        pendingDraft = d.draft;
-        if (!hasLocal()) {
-          shell('<h2 class="i2-h" id="i2q" tabindex="-1">Your saved answers are ready</h2><p class="i2-p">Tap below to pick up where you left off.</p>' +
-            '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Open my saved answers</button></div>');
-          return;
-        }
-        shell('<h2 class="i2-h" id="i2q" tabindex="-1">Which answers do you want to use?</h2><p class="i2-p">This device already has answers saved from before. I will use one set or the other, never a mix.</p>' +
-          '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Use the emailed answers</button><button type="button" class="btn ghost" data-draft="keep">Keep what is on this device</button></div>');
-        return;
-      }
+    post({ action: 'intakeDraftLoad', key: dkey }, 45000).then(function (d) {
+      loadingDraft = false;
+      if (d && d.ok && d.draft && typeof d.draft === 'object' && !Array.isArray(d.draft)) { pendingDraft = d.draft; applyDraft(); return; }
       if (d && d.error === 'expired') { expired(); return; }
       /* an old backend that does not know the action: after two such answers for the same link, treat it as used or expired */
       if (d && d.error === 'unknown action') { var uk = 'sp_i2_unk_' + dkey, un = 0; try { un = Number(sessionStorage.getItem(uk)) + 1; sessionStorage.setItem(uk, String(un)); } catch (e) {} if (un >= 2) { expired(); return; } }
       startAt(); msgKind = 'info'; msg = 'I could not open your saved answers just now, so you are seeing the answers on this device. Reload this page in a few minutes to try the link again.'; render(false);
     }).catch(function (e) {
-      startAt(); msgKind = 'info';
+      loadingDraft = false; startAt(); msgKind = 'info';
       msg = (e && e.name === 'AbortError' ? 'Your saved answers are taking too long to open' : 'I could not reach my server to open your saved answers') + ', so you are seeing the answers on this device. Reload this page to try the link again.';
       render(false);
     });
+  }
+  ROOT.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-draft]'); if (!b || loadingDraft || !dkey || !ROOT.querySelector('[data-screen="draft"]')) return;
+    if (b.getAttribute('data-draft') === 'use') { loadDraft(); return; }
+    dropKey(); draftDone(); dkey = null; startAt(); save(); msgKind = 'info'; msg = 'I kept the answers on this device. The emailed answers were set aside and that link will no longer work.'; render();
+  });
+  if (dkey != null && !PREVIEW) {
+    if (!/^[a-z0-9]{40}$/.test(dkey)) expired();
+    else if (!hasLocal()) shell('<h2 class="i2-h" id="i2q" tabindex="-1">Your saved answers are ready</h2><p class="i2-p">Tap below to pick up where you left off.</p>' +
+      '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Open my saved answers</button></div>');
+    else shell('<h2 class="i2-h" id="i2q" tabindex="-1">Which answers do you want to use?</h2><p class="i2-p">This device already has answers saved from before. If you use the emailed answers, they replace these. I never mix the two.</p>' +
+      '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Use the emailed answers</button><button type="button" class="btn ghost" data-draft="keep">Keep what is on this device</button></div>');
   } else {
     if (dkey != null) { dropKey(); msgKind = 'info'; msg = 'Preview: saved-answer links open only on the live form, so nothing was loaded.'; }
     startAt(); render(false);
