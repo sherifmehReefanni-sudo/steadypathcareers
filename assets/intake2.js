@@ -1,7 +1,8 @@
 /* Steady Path Careers: Intake 2.0 (preview). One question per card, five stops on a path, a branching module per field.
    Keeps every field the current intake sends (same keys, same meanings) so the backend and the Sheet columns stay as they are;
-   everything new rides along in b.v2 (the backend stores it in new columns plus one JSON column).
-   PREVIEW mode never sends anything: the last step shows exactly what would be sent. Answers autosave on this device only. */
+   everything new rides along in b.v2. Backend v1.27 stores b.v2 in new columns plus one JSON column; v1.26 (live today) ignores it.
+   PREVIEW mode never makes a network call to the backend (no intake, no draft save or load, no funnel events): the last step shows
+   exactly what would be sent. Answers autosave on this device only. All backend calls go through post(), which refuses in PREVIEW. */
 (function () {
   'use strict';
   var ROOT = document.getElementById('i2');
@@ -192,8 +193,44 @@
     }
   } catch (e) {}
   var V = D.v2;
-  var cur = Math.max(0, Number(D._at) || 0), file = null, parsed = null, parsing = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = 0;
+  /* v2.mod holds one answer set per field (finding 3): { insurance: { role: [...] }, office: {...} }. Older saves kept one flat set. */
+  function plain(o) { return !!o && typeof o === 'object' && !Array.isArray(o); }
+  function fixMod() {
+    if (!plain(V.mod)) V.mod = {};
+    var ks = Object.keys(V.mod), flat = ks.length && ks.some(function (k) { return !plain(V.mod[k]); });
+    if (flat) { var o = {}; o[V.field || '_'] = V.mod; V.mod = o; }
+    if (!plain(V.skills)) V.skills = {}; if (!plain(V.deal)) V.deal = {}; if (!plain(V.style)) V.style = {};
+  }
+  fixMod();
+  var cur = Math.max(0, Number(D._at) || 0), file = null, parsed = null, parsing = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
+  var autoT = null, fromReview = false, laterOpen = false, laterBusy = false, laterMsg = '', laterKind = '', dealAnim = false, parseT = null;
   function save() { try { var c = JSON.parse(JSON.stringify(D)); NOSAVE.forEach(function (k) { delete c[k]; }); c._at = cur; c._saved = Date.now(); localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {} }
+
+  /* ---------------- backend calls (never in PREVIEW) ---------------- */
+  /* Same request style as the live form's submit() in /start/: POST, JSON body as text/plain (no CORS preflight), follow the redirect. */
+  function post(body) {
+    if (PREVIEW) return Promise.reject(new Error('preview'));
+    return fetch(API, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
+      .then(function (r) { return r.text().then(function (t) { var d = null; try { d = JSON.parse(t); } catch (e) {} return d && typeof d === 'object' && r.ok ? d : { ok: false, error: 'server' }; }); });
+  }
+  /* funnel: a random id per browser tab, nothing personal */
+  var SID = (function () {
+    var s = ''; try { s = sessionStorage.getItem('sp_i2_sid') || ''; } catch (e) {}
+    if (!/^[a-z0-9]{12,24}$/.test(s)) {
+      s = ''; var a = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      try { var u = new Uint8Array(16); crypto.getRandomValues(u); for (var i = 0; i < 16; i++) s += a[u[i] % 36]; } catch (e) { for (var j = 0; j < 16; j++) s += a[Math.floor(Math.random() * 36)]; }
+      try { sessionStorage.setItem('sp_i2_sid', s); } catch (e) {}
+    }
+    return s;
+  })();
+  var lastEv = '';
+  function ievent(screen, stop) {
+    if (PREVIEW || !/^[a-zA-Z0-9]{1,20}$/.test(screen) || screen === lastEv) return;
+    lastEv = screen;
+    try { post({ action: 'ievent', sid: SID, screen: screen, stop: Math.max(0, Math.min(4, stop | 0)), field: FIELDS.indexOf(V.field) >= 0 ? V.field : '' }).catch(function () {}); } catch (e) {}
+  }
+  /* "finish later" draft: everything on this device except the agreement boxes, the signature, the honeypot and any file */
+  function draftData() { var c = JSON.parse(JSON.stringify(D)); NOSAVE.concat(['website', 'resume', '_saved']).forEach(function (k) { delete c[k]; }); c._at = cur; return c; }
 
   /* ---------------- helpers that read answers ---------------- */
   function field() { return F[V.field] || null; }
@@ -205,6 +242,53 @@
   function num(v) { var m = String(v == null ? '' : v).replace(/[$,\s]/g, '').match(/^(\d+(?:\.\d+)?)(k)?$/i); if (!m) return NaN; return parseFloat(m[1]) * (m[2] ? 1000 : 1); }
   function payFloorYear() { var n = num(V.payFloor); if (!(n > 0)) return NaN; var y = yearly(n); return y >= 1000 ? y : NaN; }
   function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+  function money2(n) { return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+  /* answers for one field's module (finding 3: each field keeps its own set, so a field you left never leaks into the payload) */
+  function modOf(k) { k = k || V.field || '_'; if (!plain(V.mod[k])) V.mod[k] = {}; return V.mod[k]; }
+  /* every skill offered for the main field plus the also-open fields (no cap, so adding a field never cuts one) */
+  function skillPool() { return uniq([].concat.apply([], fieldsAll().map(function (k) { return F[k].skills; }))); }
+  function skillsPicked(kind) { var pool = skillPool(); return pool.filter(function (s) { return kind ? V.skills[s] === kind : !!V.skills[s]; }); }
+  /* commute counts only once the slider was moved (finding 10): the live form left it blank, which the backend reads as 50 miles */
+  function commuteSet() { return Number(V.commuteMin) > 0; }
+  /* Old "Type of work" values (finding 10). The live form (/start/index.html OPT.types) only accepts:
+       Office and admin, Customer service, Sales, Insurance, Payroll HR or finance, Healthcare admin or front desk, Nursing (RN or LPN),
+       Healthcare support (CNA, medical assistant, techs, aides), Dental, IT and tech, Construction and skilled trades,
+       Facilities and maintenance, Warehouse and logistics, Driving (CDL or delivery), Retail, Hospitality and food service,
+       Education and school jobs, Government and civil service, Social and human services, Security, Other.
+     Mapping from the new fields:
+       clinical -> "Dental" only for a dental specialty (or, with no specialty answered, dental titles); physicians, PAs, therapists,
+                   pharmacists and anything else -> "Other", with the specialty written out in the anythingElse summary line.
+       legal    -> "Office and admin" for paralegal, legal assistant or contracts administration (the closest live value);
+                   attorney or compliance -> "Other". No role answered -> "Office and admin". The role goes in the summary line.
+       other    -> "Other", with the client's own description in the summary line.
+       every other field -> its F[k].old list, unchanged. */
+  var DENTAL = ['General dentistry', 'Pediatric dentistry', 'Orthodontics', 'Oral surgery', 'Endodontics', 'Periodontics', 'Prosthodontics'];
+  function typesFor(k) {
+    var m = plain(V.mod[k]) ? V.mod[k] : {};
+    if (k === 'clinical') { var sp = m.specialty; if (sp) return [DENTAL.indexOf(sp) >= 0 ? 'Dental' : 'Other']; return [titleList().some(function (t) { return /dent/i.test(t); }) ? 'Dental' : 'Other']; }
+    if (k === 'legal') { var r = arr(m.role); if (!r.length) return ['Office and admin']; var o = []; if (r.some(function (x) { return /Paralegal|Legal assistant|Contracts/.test(x); })) o.push('Office and admin'); if (r.some(function (x) { return /Attorney|Compliance/.test(x); })) o.push('Other'); return o; }
+    return F[k].old;
+  }
+  function typesOld() { return uniq([].concat.apply([], fieldsAll().map(typesFor))); }
+  /* words for the summary line, so "Other" never arrives without a description */
+  function typesNote() {
+    return fieldsAll().map(function (k) {
+      var m = plain(V.mod[k]) ? V.mod[k] : {};
+      if (k === 'other') return String(m.describe || '').trim() ? 'In their words: ' + String(m.describe).trim() : '';
+      if (k === 'clinical' && typesFor(k).indexOf('Other') >= 0) return F[k].t + (m.specialty ? ' (' + m.specialty + ')' : '');
+      if (k === 'legal') return F[k].t + (arr(m.role).length ? ' (' + arr(m.role).join(', ') + ')' : '');
+      return '';
+    }).filter(String).join('; ');
+  }
+  /* Old "Full-time or part-time" (finding 10). Live values: Full-time only, Part-time only, Either. There is no contract value, so
+     Contract or Temp-to-hire with neither Full-time nor Part-time sends "Either" (no hours limit), Per diem alone sends
+     "Part-time only", and the summary line spells out the exact kinds picked. */
+  function hoursOld() {
+    var et = arr(V.empTypes), ft = et.indexOf('Full-time') >= 0, pt = et.indexOf('Part-time') >= 0;
+    if (ft && !pt) return 'Full-time only'; if (pt && !ft) return 'Part-time only';
+    if (!ft && !pt && et.length === 1 && et[0] === 'Per diem') return 'Part-time only';
+    return 'Either';
+  }
   function commuteOld(m) { m = Number(m); if (!m) return ''; if (m <= 15) return 'Up to 15 min'; if (m <= 30) return 'Up to 30 min'; if (m <= 45) return 'Up to 45 min'; if (m <= 60) return 'Up to 1 hour'; if (m < 120) return '1 hour or more'; return 'Any distance'; }
   function payAimOld(y) { if (!(y > 0)) return ''; if (y < 40000) return 'Under $40,000'; if (y < 50000) return '$40,000 to $50,000'; if (y < 60000) return '$50,000 to $60,000'; if (y < 75000) return '$60,000 to $75,000'; if (y < 90000) return '$75,000 to $90,000'; return '$90,000 or more'; }
   function dealList() { return DEAL.filter(function (c) { return V.deal[c.k] === 'no'; }).map(function (c) { return c.k; }); }
@@ -251,19 +335,31 @@
     var lines = String(text || '').split(/\r?\n/).map(function (s) { return s.replace(/\s+/g, ' ').trim(); }).filter(String);
     var out = { title: '', employer: '', current: '', years: '', employers: [], education: '', school: '', certs: [], linkedin: '' };
     var li = String(text).match(/(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[A-Za-z0-9_%-]+/i); if (li) out.linkedin = (/^https?:/i.test(li[0]) ? '' : 'https://') + li[0].replace(/^(?:https?:\/\/)?(?:www\.)?/i, 'www.');
-    var jobs = [], firstYear = NaN, lastYear = NaN, nowY = new Date().getFullYear(), stopAt = lines.length, prevJ = -1;
-    for (var i = 0; i < lines.length; i++) if (/^(education|volunteer|skills|certifications?|awards|additional information)\b/i.test(lines[i]) && i > 3) { stopAt = i; break; }
+    var jobs = [], firstYear = NaN, lastYear = NaN, nowY = new Date().getFullYear(), prevJ = -1;
+    /* Sections (finding 6): a heading is a short line that is only a section name. Jobs are read from Experience sections and from
+       lines before any heading; Education, Skills, Certifications and the like are skipped wherever they sit, so an Education or
+       Skills block above Experience no longer ends the job scan. */
+    var SEC = /^(?:((?:professional |work |relevant |career |employment )?(?:experience|history)|employment(?: history)?)|(education|academic background|training)|((?:technical |core |key )?skills|core competencies|competencies|areas of expertise|expertise)|(certifications?|licen[sc]es?|credentials)|(summary|professional summary|profile|professional profile|objective|career objective|about me)|(volunteer(?:ing| work| experience)?|awards|honors|projects|languages|interests|references|additional information|activities|publications))(?:\s+(?:and|&)\s+[a-z ]{3,30})?\s*:?$/i;
+    var secOf = [], kind = '';
+    for (var i = 0; i < lines.length; i++) {
+      var hm = lines[i].length <= 48 ? lines[i].match(SEC) : null;
+      if (hm) { kind = hm[1] ? 'exp' : hm[2] ? 'edu' : hm[3] ? 'skills' : hm[4] ? 'cert' : hm[5] ? 'summary' : 'other'; secOf.push('head'); }
+      else secOf.push(kind || 'none');
+    }
+    function inJobs(n) { return secOf[n] === 'exp' || secOf[n] === 'none'; }
+    var stopAt = lines.length;
     var ROLE = /\b(dentist|physician|doctor|nurse|assistant|associate|specialist|technician|tech|executive|manager|analyst|representative|rep|lead|director|engineer|coordinator|teacher|driver|officer|consultant|administrator|admin|clerk|agent|supervisor|developer|accountant|bookkeeper|paralegal|attorney|producer|underwriter|adjuster|therapist|hygienist|operator|associate|intern|owner|founder|president|cashier|server|electrician|plumber|carpenter|welder|mechanic|designer|writer|recruiter|generalist|advisor|counselor)\b/i;
     var ORG = /\b(inc|llc|corp|corporation|company|co\.|group|dental|hospital|bank|university|college|network|health|associates|services|school|agency|center|clinic|partners|systems|solutions|usa|international)\b/i;
     var PLACE = /^[A-Z][A-Za-z.]+(?: [A-Z][A-Za-z.]+)*,\s*[A-Z]{2}\b/;
     var HEAD = /^[A-Z][A-Z &/]{3,}$/;
     for (var j = 0; j < stopAt; j++) {
+      if (!inJobs(j)) continue;
       var m = lines[j].match(RANGE); if (!m) continue;
       var a = yearOf(m[1]), cur = /present|current|now|today/i.test(m[2]), b = cur ? nowY : yearOf(m[2]);
       if (!(a > 1960) || !(b >= a)) continue;
       /* pieces: the text on the date line, then up to two lines above it (never reaching back into the previous job) */
       var cand = [lines[j].replace(RANGE, '')];
-      for (var up = 1; up <= 2; up++) { var L = lines[j - up]; if (L == null || j - up <= prevJ || RANGE.test(L) || /^[-•·*]/.test(L) || HEAD.test(L) || L.length > 90) break; cand.unshift(L); }
+      for (var up = 1; up <= 2; up++) { var L = lines[j - up]; if (L == null || j - up <= prevJ || secOf[j - up] === 'head' || !inJobs(j - up) || RANGE.test(L) || /^[-•·*]/.test(L) || HEAD.test(L) || L.length > 90) break; cand.unshift(L); }
       prevJ = j;
       var pieces = [];
       cand.forEach(function (c) { c = c.replace(/^[\s|,•·:–—-]+|[\s|,•·:–—-]+$/g, ''); if (!c) return;
@@ -276,7 +372,7 @@
       var ttl = pieces.filter(function (x) { return ROLE.test(x) && !ORG.test(x.replace(/\bassociates\b/i, '')); })[0] || pieces.filter(function (x) { return ROLE.test(x); })[0] || '';
       var emp = pieces.filter(function (x) { return x !== ttl; })[0] || '';
       if (!ttl && pieces.length) { ttl = pieces[0]; emp = pieces[1] || ''; }
-      jobs.push({ title: ttl.slice(0, 80), employer: emp.replace(/,\s*[A-Z]{2}$/, '').slice(0, 80), from: a, to: b, current: cur });
+      jobs.push({ title: ttl.slice(0, 80), employer: emp.replace(/,\s*[A-Z][A-Za-z. ]+,\s*[A-Z]{2}$/, '').replace(/,\s*[A-Z]{2}$/, '').slice(0, 80), from: a, to: b, current: cur });
       if (!(firstYear <= a)) firstYear = a; if (!(lastYear >= b)) lastYear = b;
     }
     if (jobs.length) {
@@ -284,19 +380,37 @@
       out.employers = uniq(jobs.map(function (x) { return x.employer; }).filter(Boolean)).slice(0, 5);
       var yrs = Math.max(0, (lastYear || nowY) - firstYear); out.years = yrs ? String(yrs) : '';
     }
-    var deg = [[/\b(doctor(ate)? of|ph\.?d|d\.?d\.?s|d\.?m\.?d|m\.?d\.?\b|j\.?d\.?\b|pharm\.?d|psy\.?d|dental surgery)/i, 'Doctorate'], [/\b(master|m\.?b\.?a|m\.?s\.?\b|m\.?a\.?\b|m\.?ed)/i, "Master's or higher"], [/\b(bachelor|b\.?s\.?\b|b\.?a\.?\b|b\.?sc)/i, "Bachelor's degree"], [/\b(associate'?s?|a\.?a\.?s?\b)/i, "Associate's degree"], [/\b(ged|high school diploma)/i, 'High school or GED']];
-    var edStart = lines.findIndex(function (s) { return /^education\b/i.test(s); }), edLines = edStart >= 0 ? lines.slice(edStart, edStart + 8) : lines;
-    for (var d = 0; d < deg.length && !out.education; d++) { for (var e = 0; e < edLines.length; e++) if (deg[d][0].test(edLines[e])) { out.education = deg[d][1]; out.school = edLines[e].slice(0, 160); break; } }
-    var cs = lines.findIndex(function (s) { return /^(certifications?( and licenses)?|licenses( and certifications)?)\b/i.test(s); });
-    var certLines = cs >= 0 ? lines.slice(cs + 1, cs + 8).filter(function (s) { return !/^[A-Z][A-Z &]{4,}$/.test(s); }) : [];
-    lines.forEach(function (s) { if (/\b(licen[sc]ed?|certified|certification|license)\b/i.test(s) && s.length < 90 && !/^[-•·]/.test(s) && certLines.indexOf(s) < 0 && !RANGE.test(s)) certLines.push(s.replace(/^[-•·]\s*/, '')); });
+    /* Degrees (finding 6): words match in any case; short forms (MD, MA, MS, BA...) match only in capitals, standing alone, and only
+       after "City, ST" and "ST 12345" are taken out of the line, so a state in an address never reads as a degree. */
+    var AB = function (s) { return new RegExp('(?:^|[^A-Za-z])(?:' + s + ')(?![A-Za-z])'); };
+    var deg = [
+      [[/\b(doctor(ate)? of|doctoral|dental surgery)\b/i, AB('Ph\\.?\\s?D\\.?|D\\.D\\.S\\.?|DDS|D\\.M\\.D\\.?|DMD|M\\.D\\.|MD|J\\.D\\.|JD|Pharm\\.?\\s?D\\.?|Psy\\.?\\s?D\\.?|DPT|DNP|Ed\\.?D\\.?|DVM|O\\.D\\.|OD')], 'Doctorate'],
+      [[/\bmaster'?s?\b/i, AB('M\\.?B\\.?A\\.?|M\\.S\\.?|MS|M\\.A\\.?|MA|M\\.Ed\\.?|MEd|MSN|MPH|MSW|M\\.Sc\\.?|MSc|MPA|LL\\.?M\\.?')], "Master's or higher"],
+      [[/\bbachelor'?s?\b/i, AB('B\\.S\\.?|BS|B\\.A\\.?|BA|B\\.Sc\\.?|BSc|BSN|BBA|B\\.B\\.A\\.?|BFA|B\\.Ed\\.?')], "Bachelor's degree"],
+      [[/\bassociate'?s?\s+(degree|of|in)\b/i, AB('A\\.A\\.S?\\.?|AAS|AA|A\\.S\\.|ASN|A\\.A\\.S\\.')], "Associate's degree"],
+      [[/\b(ged|high school diploma)\b/i], 'High school or GED']
+    ];
+    var noPlace = function (s) { return s.replace(/,\s*[A-Z]{2}(?:\s+\d{5}(?:-\d{4})?)?(?=\s*$|\s*[|•·,;()]|\s+(?:19|20)\d\d|\s+[–—-])/g, '').replace(/\b[A-Z]{2}\s+\d{5}(?:-\d{4})?\b/g, ''); };
+    var edLines = lines.filter(function (s, n) { return secOf[n] === 'edu'; }).slice(0, 12);
+    if (!edLines.length) edLines = lines;
+    for (var d = 0; d < deg.length && !out.education; d++) { for (var e = 0; e < edLines.length; e++) { var tl = noPlace(edLines[e]); if (deg[d][0].some(function (re) { return re.test(tl); })) { out.education = deg[d][1]; out.school = edLines[e].slice(0, 160); break; } } }
+    /* Licenses (finding 6): every line of a Certifications or Licenses section, plus, outside it, only real license lines: a license
+       number, or a short line that starts with License, Licensed in, Certified or Certification (never a job line or a sentence). */
+    var certLines = lines.filter(function (s, n) { return secOf[n] === 'cert' && !/^[A-Z][A-Z &]{4,}$/.test(s); }).slice(0, 8);
+    lines.forEach(function (s, n) {
+      if (secOf[n] === 'cert' || secOf[n] === 'head' || s.length >= 90 || RANGE.test(s) || certLines.indexOf(s) >= 0) return;
+      var t = s.replace(/^[-•·*]\s*/, ''), words = t.split(/\s+/).length;
+      var number = /\blicen[sc]e\s*(?:#|no\.?|number|num\.?)\s*:?\s*[A-Z0-9][A-Z0-9-]{2,}/i.test(t);
+      var starts = /^(licen[sc]e[ds]?\b|licensed in\b|certified\b|certification\b|board certified\b)/i.test(t) || /^[A-Z]{2}\s+[A-Za-z ]{2,40}\blicen[sc]e\b/.test(t);
+      if (number || (starts && secOf[n] !== 'exp' && words <= 10 && !/\.\s*$/.test(t))) certLines.push(t);
+    });
     out.certs = uniq(certLines.map(function (s) { return s.replace(/^[-•·\\]+\s*/, '').trim(); }).filter(function (s) { return s.length > 2; })).slice(0, 6);
     return out;
   }
   window.__i2parse = parseResume; /* for tests */
 
   /* ---------------- screens ---------------- */
-  var STOPS = ['Welcome', 'You', 'Your field', 'Your ideal job', 'Your story'], SHORT = ['Welcome', 'You', 'Field', 'Ideal job', 'Story'];
+  var STOPS = ['Welcome', 'You', 'Your field', 'Your ideal job', 'Your story'], SHORT = ['Start', 'You', 'Field', 'Ideal job', 'Story'];
   var CHEER = ['', 'Nice start. Next, the work you do.', "That's the hardest part done.", 'Almost there. Now the fun part: your story.', ''];
   /* A screen: id, stop (0-4), show() (optional), html(), need() returns missing keys, auto (single-tap screens move on by themselves). */
   var S = [];
@@ -329,9 +443,14 @@
       '<b>' + (file ? esc(file.name) : D.resumeName ? 'Attach ' + esc(D.resumeName) + ' again' : 'Tap to choose a file') + '</b><span>' + (file ? 'Tap to change it' : 'or drag it here') + '</span></span></label>' + st +
       '<button type="button" class="i2-link" data-act="noresume">No resume? No problem. Answer a few questions instead.</button>';
   }, nextLabel: function () { return file ? 'Continue' : 'Skip for now'; } });
-  add({ id: 'confirm', stop: 1, show: function () { return !!(file || V.noResume); }, html: function () {
+  /* shown after a file, after "No resume", and after a reload that lost the file but kept the answers (finding 8) */
+  add({ id: 'confirm', stop: 1, show: function () { return !!(file || V.noResume || D.resumeName); }, html: function () {
     var p = parsed || {};
-    var lead = V.noResume ? h('A few quick questions instead', 'I will build your resume from these. You can add more on a call.') : h('Here is what I found', p.title || p.employer ? 'Check each one. Change anything I got wrong.' : 'I could not read much from that file. Please fill these in.');
+    var lead = V.noResume ? h('A few quick questions instead', 'I will build your resume from these. You can add more on a call.') :
+      parsing ? h('Still reading your resume', 'This takes a few seconds. The boxes below fill in when I finish. Anything you type stays as you typed it.') +
+        '<p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Still reading your resume…</p>' :
+      lostResume() ? h('Check your work details', 'Your answers are saved, but your resume file did not carry over when the page reloaded. Tap Back to attach it again, or keep going and attach it before you send.') :
+      h('Here is what I found', p.title || p.employer || D.jobNowTitle ? 'Check each one. Change anything I got wrong.' : 'I could not read much from that file. Please fill these in.');
     return lead + '<div class="i2-two">' + inp('jobNowTitle', 'Current or most recent job title', 'text', { ph: 'Business Operations Analyst' }) + inp('jobNowEmployer', 'Employer', 'text', { ph: 'AT&T' }) + '</div>' +
       chips('stillThere', 'Still in that job?', O.yesno, { one: 1 }) + (D.stillThere === 'No' ? inp('endedOn', 'Month and year it ended', 'text', { ph: 'September 2026' }) : '') +
       inp('years', 'Years of work experience', 'text', { im: 'numeric', ph: '8' }) +
@@ -347,7 +466,7 @@
   add({ id: 'urgency', stop: 1, need: ['start'], html: function () {
     var set0 = O.urgency.indexOf(V.urgency) >= 0, u = set0 ? O.urgency.indexOf(V.urgency) : 1;
     return h('How soon do you need something?', 'Slide to the spot that fits. Optional.') +
-      '<div class="q"><label class="lab" for="i2urg">' + esc(set0 ? O.urgency[u] : 'Slide to choose') + '</label><input type="range" id="i2urg" min="0" max="3" step="1" value="' + u + '" data-range="urgency" aria-valuetext="' + esc(O.urgency[u]) + '"><div class="i2-ends"><span>As soon as possible</span><span>Taking my time</span></div></div>' +
+      '<div class="q"><label class="lab" for="i2urg">' + esc(set0 ? O.urgency[u] : 'Slide to choose') + '</label><input type="range" id="i2urg" min="0" max="3" step="1" value="' + u + '" data-range="urgency" aria-valuetext="' + esc(set0 ? O.urgency[u] : 'Not chosen') + '"><div class="i2-ends"><span>As soon as possible</span><span>Taking my time</span></div></div>' +
       chips('start', 'Earliest start date', O.start, { one: 1, req: 1 });
   } });
   add({ id: 'auth', stop: 1, need: ['workAuth', 'sponsorship'], html: function () {
@@ -357,14 +476,14 @@
 
   add({ id: 'field', stop: 2, need: ['v2.field'], html: function () {
     return h('What field are you in?', 'Pick your main field. Then, if you like, up to two more you are open to.') +
-      '<div class="i2-tiles" role="radiogroup" aria-label="Main field">' + FIELDS.map(function (k) { var f = F[k], on = V.field === k; return '<button type="button" class="i2-tile' + (on ? ' on' : '') + '" role="radio" aria-checked="' + on + '" data-tile="' + k + '">' + icon(f.ic, 'ic lg') + '<b>' + esc(f.t) + '</b><span>' + esc(f.s) + '</span></button>'; }).join('') + '</div>' +
+      '<div class="i2-tiles" id="g_f_v2_field" role="radiogroup" aria-label="Main field">' + FIELDS.map(function (k) { var f = F[k], on = V.field === k; return '<button type="button" class="i2-tile' + (on ? ' on' : '') + '" role="radio" aria-checked="' + on + '" data-tile="' + k + '">' + icon(f.ic, 'ic lg') + '<b>' + esc(f.t) + '</b><span>' + esc(f.s) + '</span></button>'; }).join('') + '</div>' +
       (V.field ? '<div class="q"><div class="lab" id="l_also">Also open to (up to two, optional)</div><div class="chips" role="group" aria-labelledby="l_also">' + FIELDS.filter(function (k) { return k !== V.field && k !== 'other'; }).map(function (k) { var on = arr(V.alsoOpen).indexOf(k) >= 0, full = !on && arr(V.alsoOpen).length >= 2; return '<label' + (full ? ' class="off"' : '') + '><input type="checkbox" data-also="' + k + '"' + (on ? ' checked' : '') + (full ? ' disabled' : '') + '>' + esc(F[k].t) + '</label>'; }).join('') + '</div></div>' : '');
   } });
   /* module screens: up to 4 per field; only the main field's module runs */
   for (var mi = 0; mi < 4; mi++) (function (mi) {
     add({ id: 'mod' + mi, stop: 2, show: function () { var f = field(); return !!(f && f.mod[mi]); }, need: function () {
       var f = field(); if (!f || !f.mod[mi]) return [];
-      return V.field === 'other' ? (String(V.mod.describe || '').trim() ? [] : ['v2.mod.describe']) : [];
+      return V.field === 'other' ? (String(modOf().describe || '').trim() ? [] : ['v2.mod.describe']) : [];
     }, html: function () {
       var f = field(), qs = f.mod[mi];
       return h(mi === 0 ? f.t : f.t + ', continued', mi === 0 ? 'A few questions just for your field.' : '') + qs.map(function (q) {
@@ -378,12 +497,12 @@
     var sug = uniq([].concat.apply([], fieldsAll().map(function (k) { return F[k].titles; }))).slice(0, 14);
     var on = titleList();
     return h('Job titles to search for', 'Pick at least two, up to five. Add your own if they are missing.') +
-      '<div class="chips" role="group" aria-label="Suggested titles">' + uniq(sug.concat(on)).map(function (t) { var c = on.indexOf(t) >= 0, full = !c && on.length >= 5; return '<label' + (full ? ' class="off"' : '') + '><input type="checkbox" data-title="' + esc(t) + '"' + (c ? ' checked' : '') + (full ? ' disabled' : '') + '>' + esc(t) + '</label>'; }).join('') + '</div>' +
+      '<div class="chips" id="g_f_v2_titles" role="group" aria-label="Suggested titles">' + uniq(sug.concat(on)).map(function (t) { var c = on.indexOf(t) >= 0, full = !c && on.length >= 5; return '<label' + (full ? ' class="off"' : '') + '><input type="checkbox" data-title="' + esc(t) + '"' + (c ? ' checked' : '') + (full ? ' disabled' : '') + '>' + esc(t) + '</label>'; }).join('') + '</div>' +
       addOwn('title', 'Add a title', 'Payroll Analyst') + '<p class="i2-count" aria-live="polite">' + on.length + ' of 5 picked' + (on.length < 2 ? ', pick at least 2' : '') + '</p>';
   } });
   add({ id: 'seniority', stop: 2, auto: 1, need: ['v2.seniority'], html: function () { return h('What level are you aiming for?', '') + cards('v2.seniority', O.seniority); } });
   add({ id: 'skills', stop: 2, show: function () { return fieldsAll().some(function (k) { return F[k].skills.length; }); }, html: function () {
-    var sk = uniq([].concat.apply([], fieldsAll().map(function (k) { return F[k].skills; }))).slice(0, 14);
+    var sk = skillPool();
     return h('Your skills', 'Tap once for a skill you have and want to use. Tap again if it is a must-have in your next job. A third tap clears it.') +
       '<div class="i2-skills">' + sk.map(function (s) { var st = V.skills[s] || ''; return '<button type="button" class="i2-skill ' + st + '" data-skill="' + esc(s) + '" aria-pressed="' + (st ? 'true' : 'false') + '">' + esc(s) + '<em>' + (st === 'must' ? 'Must-have' : st === 'nice' ? 'Have it' : '') + '</em></button>'; }).join('') + '</div>';
   } });
@@ -404,9 +523,10 @@
       chips('v2.travel', 'Travel', O.travel, { one: 1 }) + (remoteOnly() ? '' : chips('nycHybrid', 'Open to a hybrid job in New York City, 2 to 3 days a week?', O.nycHybrid, { one: 1 }));
   } });
   add({ id: 'commute', stop: 3, show: function () { return !remoteOnly(); }, html: function () {
-    var m = Number(V.commuteMin) || 45, lab = m >= 120 ? 'Any distance' : m + ' minutes each way';
-    return h('Your commute', 'From ' + esc(D.city || 'home') + '.') +
-      '<div class="q"><label class="lab" for="i2com">' + esc(lab) + '</label><input type="range" id="i2com" min="15" max="120" step="15" value="' + m + '" data-range="commuteMin" aria-valuetext="' + esc(lab) + '"><div class="i2-ends"><span>15 min</span><span>Any distance</span></div></div>' +
+    var on = commuteSet(), m = on ? Number(V.commuteMin) : 45, lab = !on ? 'Slide to choose your longest commute' : m >= 120 ? 'Any distance' : m + ' minutes each way';
+    /* h() escapes, so the city goes in raw (finding 12: it was escaped twice) */
+    return h('Your commute', 'From ' + (D.city || 'home') + '. Optional. If you skip it, I use about 50 miles.') +
+      '<div class="q"><label class="lab" for="i2com">' + esc(lab) + '</label><input type="range" id="i2com" min="15" max="120" step="15" value="' + m + '" data-range="commuteMin" aria-valuetext="' + esc(on ? lab : 'Not chosen') + '"><div class="i2-ends"><span>15 min</span><span>Any distance</span></div></div>' +
       chips('v2.getThere', 'How do you get to work?', O.getThere, { one: 1 }) +
       (/^Yes/.test(D.relocating || '') ? inp('v2.relocateAreas', 'Areas you are moving to', 'text', { ph: 'Jersey City, Hoboken' }) : '');
   } });
@@ -431,7 +551,7 @@
     var done = DEAL.length - left.length;
     return h('Deal-breakers', 'Swipe left on anything that rules a job out. Swipe right if it is fine. Or use the buttons.') +
       '<div class="i2-deck" aria-live="polite">' + (c ? '<div class="i2-card" id="i2card" data-deal="' + esc(c.k) + '" tabindex="0" aria-label="' + esc(c.k) + '. Press the left arrow for deal-breaker, right arrow for fine."><b>' + esc(c.k) + '</b><span>' + esc(c.d) + '</span><i class="i2-stamp no">Deal-breaker</i><i class="i2-stamp ok">Fine</i></div>' :
-        '<div class="i2-card done"><b>All sorted</b><span>' + (dealList().length ? 'Ruled out: ' + esc(dealList().join(', ')) : 'Nothing ruled out.') + '</span></div>') + '</div>' +
+        '<div class="i2-card done" id="i2done" tabindex="-1"><b>All sorted</b><span>' + (dealList().length ? 'Ruled out: ' + esc(dealList().join(', ')) : 'Nothing ruled out.') + '</span></div>') + '</div>' +
       (c ? '<div class="i2-deckbtns"><button type="button" class="btn ghost" data-deal-ans="no" aria-label="Deal-breaker">&larr; Rules it out</button><span class="i2-count">' + (done + 1) + ' of ' + DEAL.length + '</span><button type="button" class="btn ghost" data-deal-ans="ok" aria-label="Fine">Fine &rarr;</button></div>' :
         '<button type="button" class="i2-link" data-act="dealreset">Start the cards over</button>') +
       (done ? '<button type="button" class="i2-link" data-act="dealundo">Undo last card</button>' : '') +
@@ -475,8 +595,8 @@
 
   /* ---------------- small builders ---------------- */
   function h(t, s) { return '<h2 class="i2-h">' + esc(t) + '</h2>' + (s ? '<p class="i2-p">' + esc(s) + '</p>' : ''); }
-  function get(k) { if (k.indexOf('v2.mod.') === 0) return V.mod[k.slice(7)]; if (k.indexOf('v2.') === 0) return V[k.slice(3)]; return D[k]; }
-  function set(k, v) { if (k.indexOf('v2.mod.') === 0) V.mod[k.slice(7)] = v; else if (k.indexOf('v2.') === 0) V[k.slice(3)] = v; else D[k] = v; }
+  function get(k) { if (k.indexOf('v2.mod.') === 0) return modOf()[k.slice(7)]; if (k.indexOf('v2.') === 0) return V[k.slice(3)]; return D[k]; }
+  function set(k, v) { if (k.indexOf('v2.mod.') === 0) modOf()[k.slice(7)] = v; else if (k.indexOf('v2.') === 0) V[k.slice(3)] = v; else D[k] = v; }
   function idOf(k) { return 'f_' + k.replace(/\W/g, '_'); }
   function inp(k, label, type, o) {
     o = o || {}; var id = idOf(k), v = get(k) == null ? '' : get(k);
@@ -496,7 +616,7 @@
   }
   function cards(k, opts, o) {
     o = o || {}; var v = get(k), many = !!o.many;
-    return '<div class="i2-cards" role="' + (many ? 'group' : 'radiogroup') + '">' + opts.map(function (x) { var on = many ? arr(v).indexOf(x) >= 0 : v === x; return '<button type="button" class="i2-opt' + (on ? ' on' : '') + '" role="' + (many ? 'checkbox' : 'radio') + '" aria-checked="' + on + '" data-card="' + k + '" data-v="' + esc(x) + '"' + (many ? ' data-many="1"' : '') + '>' + esc(x) + '</button>'; }).join('') + '</div>';
+    return '<div class="i2-cards" id="g_' + idOf(k) + '" role="' + (many ? 'group' : 'radiogroup') + '">' + opts.map(function (x) { var on = many ? arr(v).indexOf(x) >= 0 : v === x; return '<button type="button" class="i2-opt' + (on ? ' on' : '') + '" role="' + (many ? 'checkbox' : 'radio') + '" aria-checked="' + on + '" data-card="' + k + '" data-v="' + esc(x) + '"' + (many ? ' data-many="1"' : '') + '>' + esc(x) + '</button>'; }).join('') + '</div>';
   }
   function toggle(k, label, help) { var on = !!V[k]; return '<button type="button" class="i2-toggle' + (on ? ' on' : '') + '" role="switch" aria-checked="' + on + '" data-toggle="' + k + '"><span class="i2-sw" aria-hidden="true"></span><span><b>' + esc(label) + '</b>' + (help ? '<em>' + esc(help) + '</em>' : '') + '</span></button>'; }
   function addOwn(kind, label, ph) { var id = 'own_' + kind; return '<div class="i2-own"><label class="vh" for="' + id + '">' + esc(label) + '</label><input id="' + id + '" type="text" placeholder="' + esc(label + (ph ? ', like ' + ph : '')) + '" data-own="' + kind + '" maxlength="80"><button type="button" class="btn ghost" data-add="' + kind + '">Add</button></div>'; }
@@ -511,7 +631,7 @@
   function strength() {
     var checks = [
       [!!file || !!String(D.history || '').trim(), 'Add your resume or work history'], [!!String(D.linkedin || '').trim(), 'Add your LinkedIn link'],
-      [titleList().length >= 3, 'Pick at least 3 job titles'], [Object.keys(V.skills || {}).some(function (s) { return V.skills[s]; }), 'Mark your skills'],
+      [titleList().length >= 3, 'Pick at least 3 job titles'], [skillsPicked().length > 0, 'Mark your skills'],
       [!!String(V.proudestWin || '').trim(), 'Add a proudest win'], [!!String(D.numbers || '').trim(), 'Add a few numbers from your work'],
       [arr(V.strengths).length >= 3, 'Pick 3 or more strengths'], [arr(V.rank).length > 0, 'Rank what matters most'],
       [!!String(D.licenses || '').trim() || D.education, 'Add your education or licenses'], [DEAL.every(function (c) { return V.deal[c.k]; }), 'Finish the deal-breaker cards']
@@ -525,14 +645,17 @@
   function review() {
     var f = field(), rows = [
       [1, 'You', [D.name, D.email, D.phone, D.city, 'Reach by ' + (D.contactBy || '?'), V.situation, 'Start: ' + (D.start || '?'), 'Work authorization: ' + (D.workAuth || '?') + '; sponsorship: ' + (D.sponsorship || '?')]],
-      [1, 'Your work so far', [(file ? 'Resume: ' + file.name : V.noResume ? 'No resume (I will build one)' : 'No resume attached'), [D.jobNowTitle, D.jobNowEmployer].filter(Boolean).join(', '), D.years ? D.years + ' years of experience' : '', D.education]],
+      [1, 'Your work so far', [(file ? 'Resume: ' + file.name : V.noResume ? 'No resume (I will build one)' : lostResume() ? 'Resume: ' + D.resumeName + ' needs to be attached again' : 'No resume attached'), [D.jobNowTitle, D.jobNowEmployer].filter(Boolean).join(', '), D.years ? D.years + ' years of experience' : '', D.education]],
       [2, 'Your field', [f ? f.t : '?', arr(V.alsoOpen).length ? 'Also open to: ' + V.alsoOpen.map(function (k) { return F[k].t; }).join(', ') : '', 'Titles: ' + (titleList().join(', ') || '?'), V.seniority]],
-      [3, 'Your ideal job', ['Pay floor: ' + (payFloorYear() ? money(payFloorYear()) + ' a year' : '?'), 'Settings: ' + (settingsOld().join(', ') || '?'), remoteOnly() ? '' : 'Commute: ' + (commuteOld(V.commuteMin || 45) || '?'), 'Kinds of work: ' + (arr(V.empTypes).join(', ') || '?'), arr(V.rank).length ? 'Top priorities: ' + V.rank.join(', ') : '', dealList().length ? 'Deal-breakers: ' + dealList().join(', ') : '']],
+      [3, 'Your ideal job', ['Pay floor: ' + (payFloorYear() ? money(payFloorYear()) + ' a year' : '?'), 'Settings: ' + (settingsOld().join(', ') || '?'), remoteOnly() ? '' : 'Commute: ' + (commuteSet() ? commuteOld(V.commuteMin) : 'not set (I use about 50 miles)'), 'Kinds of work: ' + (arr(V.empTypes).join(', ') || '?'), arr(V.rank).length ? 'Top priorities: ' + V.rank.join(', ') : '', dealList().length ? 'Deal-breakers: ' + dealList().join(', ') : '']],
       [4, 'Your story', [arr(V.strengths).length ? 'Strengths: ' + V.strengths.join(', ') : '', V.proudestWin ? 'Proudest win: ' + V.proudestWin : '', V.resumeStyle ? 'Resume style: ' + V.resumeStyle : '']]
     ];
     var jump = { 'You': idx('contact'), 'Your work so far': idx('resume'), 'Your field': idx('field'), 'Your ideal job': idx('pay'), 'Your story': idx('strengths') };
-    return rows.map(function (r) { return '<div class="i2-rev"><div class="i2-revh"><b>' + esc(r[1]) + '</b><button type="button" class="i2-link" data-jump="' + jump[r[1]] + '">Edit</button></div><p>' + r[2].filter(Boolean).map(esc).join('<br>') + '</p></div>'; }).join('') + meter();
+    return reattach() + rows.map(function (r) { return '<div class="i2-rev"><div class="i2-revh"><b>' + esc(r[1]) + '</b><button type="button" class="i2-link" data-jump="' + jump[r[1]] + '" aria-label="Edit ' + esc(r[1]) + '">Edit</button></div><p>' + r[2].filter(Boolean).map(esc).join('<br>') + '</p></div>'; }).join('') + meter();
   }
+  /* finding 8: the file itself never survives a reload (only its name does), so say so where it matters */
+  function lostResume() { return !file && !!D.resumeName && !V.noResume; }
+  function reattach() { return lostResume() ? '<div class="i2-info"><b>Please attach your resume again.</b> ' + esc(D.resumeName) + ' did not carry over when the page reloaded. Your other answers are all here. <button type="button" class="i2-link" data-jump="' + idx('resume') + '">Attach it again</button></div>' : ''; }
   function idx(id) { for (var i = 0; i < S.length; i++) if (S[i].id === id) return i; return 0; }
 
   /* ---------------- flow ---------------- */
@@ -551,24 +674,55 @@
   var LABEL = { name: 'your name', email: 'an email that works', phone: 'a phone number (10 digits)', contactBy: 'the best way to reach you', city: 'your city, state and ZIP', start: 'your earliest start date', workAuth: 'work authorization', sponsorship: 'visa sponsorship', 'v2.situation': 'what fits you best', 'v2.field': 'your main field', 'v2.titles': 'at least 2 job titles', 'v2.seniority': 'a level', payFloor: 'the lowest pay you would accept', 'v2.settingsPick': 'at least one work setting', 'v2.empTypes': 'at least one kind of work', agreeTrue: 'the first box', agreeTrial: 'the second box', signature: 'your signature', 'v2.mod.describe': 'a short description of your field' };
 
   function stopOf(i) { return S[Math.min(Math.max(i, 0), S.length - 1)].stop; }
+  /* Focus (finding 4): after a full render, focus goes to the new question (or to an error); after an in-place render(false),
+     it goes back to the control that was used, found again by its data attributes. */
+  var FKEYS = [['card', 'v'], ['c', 'value'], ['style', 'v'], ['tile'], ['also'], ['title'], ['strength'], ['unit'], ['toggle'], ['swap'], ['skill'], ['k'], ['own'], ['untag', 'i'], ['dealAns'], ['act'], ['nav'], ['b'], ['b2'], ['range'], ['mic'], ['add'], ['jump']];
+  function attrName(k) { return 'data-' + k.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); }); }
+  function focusSel(el) {
+    if (!el || el === document.body || !ROOT.contains(el)) return null;
+    var d = el.dataset || {};
+    for (var i = 0; i < FKEYS.length; i++) {
+      var k = FKEYS[i][0]; if (d[k] == null) continue;
+      var sel = '[' + attrName(k) + '="' + cssq(d[k]) + '"]';
+      var k2 = FKEYS[i][1]; if (k2) { var v2 = k2 === 'value' ? el.value : d[k2]; if (v2 != null) sel += '[' + (k2 === 'value' ? 'value' : attrName(k2)) + '="' + cssq(v2) + '"]'; }
+      return sel;
+    }
+    return el.id ? '#' + cssq(el.id) : null;
+  }
   function render(focus) {
-    var s = S[cur], st = s.stop;
-    var html = pathbar(st) + '<div class="i2-card-wrap"><section class="i2-sheet' + (s.bare ? ' bare' : '') + '" data-screen="' + s.id + '" aria-labelledby="i2title">' +
+    var s = S[cur], st = s.stop, ae = document.activeElement, keep = focus === false ? focusSel(ae) : null, had = focus === false && ae && ROOT.contains(ae) && ae !== ROOT;
+    var caret = null; try { if (keep && ae.selectionStart != null) caret = [ae.selectionStart, ae.selectionEnd]; } catch (e) {}
+    var cls = msgKind === 'err' ? 'i2-err' : 'i2-info', role = msgKind === 'err' ? 'alert' : 'status';
+    var html = pathbar(st) + '<div class="i2-card-wrap"><section class="i2-sheet' + (s.bare ? ' bare' : '') + '" data-screen="' + s.id + '" aria-labelledby="i2title i2q">' +
       '<p class="i2-step" id="i2title">' + (s.bare ? 'Welcome' : 'Stop ' + (st + 1) + ' of 5: ' + esc(STOPS[st])) + '</p>' +
-      (msg ? '<div class="' + (msgKind === 'info' ? 'i2-info' : 'i2-err') + '" id="i2msg" role="' + (msgKind === 'info' ? 'status' : 'alert') + '" tabindex="-1">' + msg + '</div>' : '') +
+      (msg ? '<div class="' + cls + '" id="i2msg" role="' + role + '" tabindex="-1">' + msg + '</div>' : '') +
       s.html() + nav(s) + '</section></div>';
     ROOT.innerHTML = html;
+    var q = ROOT.querySelector('.i2-sheet .i2-h'); if (q) { q.id = 'i2q'; q.setAttribute('tabindex', '-1'); }
     markBad();
     if (focus !== false) focusFirst();
+    else if (had) {
+      var n = null; try { n = keep ? ROOT.querySelector(keep) : null; } catch (e) { n = null; }
+      if (n && !n.disabled) { try { n.focus({ preventScroll: true }); if (caret && n.setSelectionRange) n.setSelectionRange(caret[0], caret[1]); } catch (e) {} }
+      else { var f = document.getElementById('i2done') || q || document.getElementById('i2title'); try { f.focus({ preventScroll: true }); } catch (e) {} }
+    }
     var deck = document.getElementById('i2card'); if (deck) bindDeck(deck);
     var rank = document.getElementById('i2rank'); if (rank) bindRank(rank);
+    ievent(s.id, st);
   }
   function nav(s) {
     var back = nextIdx(cur, -1) >= 0 ? '<button type="button" class="btn ghost" data-nav="back">Back</button>' : '<span></span>';
     var label = typeof s.next === 'function' ? s.next() : s.next || (s.nextLabel ? s.nextLabel() : 'Continue');
     var fwd = s.auto && !needOf(s).length ? '<button type="button" class="btn gold" data-nav="next">Continue</button>' : '<button type="button" class="btn gold" data-nav="next"' + (busy ? ' disabled' : '') + '>' + esc(label) + '</button>';
-    var later = cur > 0 ? '<p class="i2-later">Your answers save on this device.' + (PREVIEW ? '' : ' <button type="button" class="i2-link" data-act="later">Email me a link to finish later</button>') + '</p>' : '';
-    return '<div class="i2-nav">' + back + (s.skip ? '<button type="button" class="i2-link" data-nav="next">Skip</button>' : '') + fwd + '</div>' + later;
+    /* finding 15: after Edit on the review, one tap goes straight back */
+    var toRev = fromReview && s.id !== 'review' && s.id !== 'confirmSend' ? '<p class="i2-torev"><button type="button" class="btn ghost" data-act="toreview">Back to review</button></p>' : '';
+    var later = cur > 0 ? '<div class="i2-later"><p>Your answers save on this device. <button type="button" class="i2-link" data-act="later" aria-expanded="' + laterOpen + '" aria-controls="i2laterbox">Email me a link to finish later</button></p>' + (laterOpen ? laterBox() : '') + '</div>' : '';
+    return '<div class="i2-nav">' + back + (s.skip ? '<button type="button" class="i2-link" data-nav="next">Skip</button>' : '') + fwd + '</div>' + toRev + later;
+  }
+  function laterBox() {
+    var lm = laterMsg ? '<div class="' + (laterKind === 'err' ? 'i2-err' : 'i2-info') + '" id="i2latermsg" role="' + (laterKind === 'err' ? 'alert' : 'status') + '" tabindex="-1">' + laterMsg + '</div>' : '';
+    return '<div class="i2-laterbox" id="i2laterbox"><p class="i2-note">I will email you a private link that opens this form where you left off. It works for 30 days. Your agreement boxes, signature and resume file are not saved in it.</p>' +
+      '<div class="i2-own"><label class="vh" for="i2lateremail">Email for the link</label><input id="i2lateremail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="' + esc(D.email || '') + '"><button type="button" class="btn ghost" data-act="latersend"' + (laterBusy ? ' disabled' : '') + '>' + (laterBusy ? 'Sending…' : 'Send me the link') + '</button></div>' + lm + '</div>';
   }
   function pathbar(st) {
     var pts = [[20, 34], [110, 18], [200, 30], [290, 14], [380, 26]];
@@ -578,44 +732,74 @@
       pts.map(function (p, i) { return '<circle class="i2-dot' + (i < st ? ' on' : i === st ? ' now' : '') + '" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (i === st ? 8 : 6) + '"/>'; }).join('') + '</svg>' +
       '<ol class="i2-stops" aria-hidden="true">' + SHORT.map(function (n, i) { return '<li class="' + (i < st ? 'on' : i === st ? 'now' : '') + '">' + esc(n) + '</li>'; }).join('') + '</ol></div>';
   }
+  /* finding 11: an error or a question about the answer takes focus; the cheer between stops does not (it is a status, read out
+     on its own), so focus lands on the new question */
   function focusFirst() {
-    var t = document.getElementById('i2msg') || document.getElementById('i2title');
+    var t = (msg && msgKind !== 'cheer' && document.getElementById('i2msg')) || document.getElementById('i2q') || document.getElementById('i2title');
     try { t.focus({ preventScroll: true }); } catch (e) {}
     var top = ROOT.getBoundingClientRect().top + (window.pageYOffset || 0) - 12;
     if (Math.abs((window.pageYOffset || 0) - top) > 40) window.scrollTo({ top: top, behavior: RM() ? 'auto' : 'smooth' });
   }
+  /* finding 11: inputs, chip groups, cards, tiles and title groups all carry an id the error can point at */
   function markBad() { bad.forEach(function (k) { var id = idOf(k), el = document.getElementById(id) || document.getElementById('g_' + id) || document.getElementById('a_' + k); if (el) { el.setAttribute('aria-invalid', 'true'); el.setAttribute('aria-describedby', 'i2msg'); el.classList.add('bad'); } }); }
+  /* finding 2 and 15: question pay that looks typed in the wrong box, with words that fit the box the person is in */
+  function payQuestion() {
+    var hr = V.payUnit === 'Hourly', n = num(V.payFloor), y = payFloorYear(), t = num(V.payTarget), ty = t > 0 ? yearly(t) : NaN;
+    if (hr && n > 200) return 'Is ' + money2(n) + ' an hour right? That works out to about ' + money(y) + ' a year. If you meant yearly pay, tap Yearly. If it is right, tap Continue again.';
+    if (!hr && y > 1000000) return 'Is ' + money(y) + ' a year right? That is over a million dollars a year. If it is right, tap Continue again.';
+    if (y < 20000) return hr ? 'Is ' + money2(n) + ' an hour right? That is about ' + money(y) + ' a year full-time. If it is right, tap Continue again.' : 'Is ' + money(y) + ' a year right? If you meant hourly pay, tap Hourly. If it is right, tap Continue again.';
+    if (hr && t > 200) return 'Is ' + money2(t) + ' an hour right for the pay you are aiming for? That is about ' + money(ty) + ' a year. If it is right, tap Continue again.';
+    if (!hr && ty > 1000000) return 'Is ' + money(ty) + ' a year right for the pay you are aiming for? If it is right, tap Continue again.';
+    return '';
+  }
   function go(dir) {
+    if (autoT) { clearTimeout(autoT); autoT = null; }
+    flushDeal();
     if (dir > 0) {
       var s = S[cur], m = needOf(s);
       if (m.length) { bad = m; msgKind = 'err'; msg = 'Please add ' + m.map(function (k) { return LABEL[k] || k; }).join(', ') + '.'; render(); return; }
-      if (s.id === 'pay') { var y = payFloorYear(); if (y < 20000 && payOk !== y) { payOk = y; bad = []; msgKind = 'info'; msg = 'Is ' + money(y) + ' a year right? If yes, tap Continue again. If you meant hourly pay, switch to Hourly.'; render(); return; } }
+      if (s.id === 'pay') { var pq = payQuestion(), pk = (V.payUnit || 'Yearly') + '|' + V.payFloor + '|' + V.payTarget; if (pq && payOk !== pk) { payOk = pk; bad = []; msgKind = 'info'; msg = esc(pq); render(); return; } }
+      if (s.id === 'confirm' && parsing) { msgKind = 'info'; msg = 'Still reading your resume. One moment, and the boxes fill in.'; render(); return; }
       if (s.id === 'confirmSend') { submit(); return; }
     }
     var j = nextIdx(cur, dir); if (j < 0 || j >= S.length) return;
-    var was = stopOf(cur); cur = j; msg = ''; bad = []; save();
+    var was = stopOf(cur); cur = j; msg = ''; bad = []; laterOpen = false; laterMsg = '';
+    if (S[cur].id === 'review' || S[cur].id === 'confirmSend') fromReview = false;
+    save();
     if (dir > 0 && stopOf(cur) > was && CHEER[was]) { cheer(CHEER[was]); }
     render();
   }
-  function cheer(t) { msgKind = 'info'; msg = esc(t); try { if (window.SPFX && window.SPFX.burst && !RM()) { var r = ROOT.getBoundingClientRect(); window.SPFX.burst(r.left + r.width / 2, r.top + 40, { n: 10 }); } } catch (e) {} }
+  /* "Back to review": check every screen up to the review first, so a changed field cannot skip a required answer */
+  function toReview() {
+    var r = idx('review');
+    for (var i = cur; i < r; i++) {
+      if (!visible(i)) continue;
+      var m = needOf(S[i]);
+      if (m.length) { cur = i; bad = m; msgKind = 'err'; msg = 'Please add ' + m.map(function (k) { return LABEL[k] || k; }).join(', ') + '.'; save(); render(); return; }
+      if (S[i].id === 'pay' && payQuestion() && payOk !== (V.payUnit || 'Yearly') + '|' + V.payFloor + '|' + V.payTarget) { cur = i; go(1); return; }
+    }
+    cur = r; fromReview = false; msg = ''; bad = []; save(); render();
+  }
+  function cheer(t) { msgKind = 'cheer'; msg = esc(t); try { if (window.SPFX && window.SPFX.burst && !RM()) { var r = ROOT.getBoundingClientRect(); window.SPFX.burst(r.left + r.width / 2, r.top + 40, { n: 10 }); } } catch (e) {} }
 
   /* ---------------- payload: every old key, plus v2 ---------------- */
   function payload() {
     var f = fieldsAll(), y = payFloorYear(), tgt = (function () { var n = num(V.payTarget); return n > 0 ? yearly(n) : NaN; })();
     var oldNotWant = uniq(DEAL.filter(function (c) { return V.deal[c.k] === 'no' && c.old; }).map(function (c) { return c.old; }));
     var otherDeal = DEAL.filter(function (c) { return V.deal[c.k] === 'no' && !c.old; }).map(function (c) { return c.k.toLowerCase(); });
-    var et = arr(V.empTypes), ft = et.indexOf('Full-time') >= 0, pt = et.indexOf('Part-time') >= 0;
-    var mustSkills = Object.keys(V.skills || {}).filter(function (s) { return V.skills[s] === 'must'; }), haveSkills = Object.keys(V.skills || {}).filter(function (s) { return V.skills[s]; });
+    var et = arr(V.empTypes);
+    /* finding 3: only skills offered for the fields picked now */
+    var mustSkills = skillsPicked('must'), haveSkills = skillsPicked();
     var b = {
       action: 'intake', website: D.website || '',
       name: String(D.name || '').trim(), phone: String(D.phone || '').trim(), email: String(D.email || '').trim(), city: String(D.city || '').trim(),
       relocating: D.relocating || '', moveWhen: [D.moveWhen, V.relocateAreas].filter(Boolean).join('; '),
       workAuth: D.workAuth || '', sponsorship: D.sponsorship || '', linkedin: String(D.linkedin || '').trim(), contactBy: D.contactBy || '', times: arr(D.times),
-      types: uniq([].concat.apply([], f.map(function (k) { return F[k].old; }))), titles: titleList().join('\n'),
+      types: typesOld(), titles: titleList().join('\n'),
       notWant: oldNotWant, notWantOther: [otherDeal.join(', '), D.notWantOther].filter(Boolean).join('; '),
-      settings: settingsOld(), commute: remoteOnly() ? '' : commuteOld(V.commuteMin || 45), getThere: { Driving: 'Car', 'Public transit': 'Public transit', Either: 'Either' }[V.getThere] || '',
+      settings: settingsOld(), commute: remoteOnly() || !commuteSet() ? '' : commuteOld(V.commuteMin), getThere: { Driving: 'Car', 'Public transit': 'Public transit', Either: 'Either' }[V.getThere] || '',
       nycHybrid: remoteOnly() ? '' : (D.nycHybrid || ''), payFloor: y ? String(y) : '', payAim: payAimOld(tgt), start: D.start || '',
-      hours: ft && !pt ? 'Full-time only' : pt && !ft ? 'Part-time only' : 'Either', shifts: arr(V.shifts),
+      hours: hoursOld(), shifts: arr(V.shifts),
       standOut: arr(V.standOut).join(', '), standOutTop: arr(V.rank)[0] || '', standOutOther: D.standOutOther || '',
       history: D.history || '', jobNow: [D.jobNowEmployer, D.jobNowTitle].filter(Boolean).join(', '), stillThere: D.stillThere || '', endedOn: D.stillThere === 'No' ? (D.endedOn || '') : '',
       numbers: D.numbers || '', software: arr(V.software), softwareOther: D.softwareOther || '', education: D.education || '', school: D.school || '', licenses: D.licenses || '',
@@ -624,21 +808,22 @@
       agreeTrue: !!D.agreeTrue, agreeTrial: !!D.agreeTrial, signature: String(D.signature || '').trim(), termsVersion: TERMS_VERSION
     };
     /* same summary lines the current form adds, so nothing is lost before the backend learns the new columns */
-    var extra = ['Full-time or part-time: ' + b.hours, 'What makes a job stand out: ' + (b.standOut || 'none picked') + (b.standOutTop ? ' (most important: ' + b.standOutTop + ')' : '') + (b.standOutOther ? '; also: ' + b.standOutOther : '')].join('\n');
+    var tn = typesNote();
+    var extra = [tn ? 'Type of work: ' + tn : '', 'Full-time or part-time: ' + b.hours + (et.length ? ' (kinds of work picked: ' + et.join(', ') + ')' : ''), 'What makes a job stand out: ' + (b.standOut || 'none picked') + (b.standOutTop ? ' (most important: ' + b.standOutTop + ')' : '') + (b.standOutOther ? '; also: ' + b.standOutOther : '')].filter(String).join('\n');
     b.anythingElse = (D.anythingElse ? D.anythingElse + '\n\n' : '') + extra;
     b.v2 = {
       version: '2', situation: V.situation || '', urgency: V.urgency || '', field: V.field ? F[V.field].t : '', alsoOpen: arr(V.alsoOpen).map(function (k) { return F[k].t; }),
       seniority: V.seniority || '', yearsExperience: String(D.years || ''), mustSkills: mustSkills, skills: haveSkills,
       payType: V.payUnit || 'Yearly', payFloorEntered: String(V.payFloor || ''), payTarget: tgt ? String(tgt) : '', currentPay: String(V.currentPay || ''),
-      travel: V.travel || '', commuteMinutes: remoteOnly() ? '' : String(V.commuteMin || 45), employmentTypes: et, topPriorities: arr(V.rank), companyTypes: arr(V.companyTypes),
+      travel: V.travel || '', commuteMinutes: remoteOnly() || !commuteSet() ? '' : String(V.commuteMin), employmentTypes: et, topPriorities: arr(V.rank), companyTypes: arr(V.companyTypes),
       dreamCompanies: arr(V.dream), dealBreakers: dealList(), workStyle: STYLE.map(function (p, i) { return V.style[i] || ''; }).filter(Boolean),
       strengths: arr(V.strengths), proudestWin: V.proudestWin || '', whyLooking: V.whyLooking || '', accommodations: V.accommodations || '',
-      resumeStyle: V.resumeStyle || '', coverTone: V.coverTone || '', textOk: !!V.textOk, linkedinMakeover: !!V.linkedinMakeover, needsResumeBuild: !!V.noResume && !file,
+      resumeStyle: V.resumeStyle || '', coverTone: V.coverTone || '', textOk: !!V.textOk, linkedinMakeover: !!V.linkedinMakeover, needsResumeBuild: !file && (!!V.noResume || !String(D.history || '').trim()),
       profileStrength: strength().score, fieldAnswers: modAnswers()
     };
     return b;
   }
-  function modAnswers() { var f = field(), o = {}; if (!f) return o; f.mod.forEach(function (sc) { sc.forEach(function (q) { var v = V.mod[q[0]]; if (v != null && (Array.isArray(v) ? v.length : String(v).trim())) o[q[1]] = v; }); }); return o; }
+  function modAnswers() { var f = field(), o = {}, m = modOf(); if (!f) return o; f.mod.forEach(function (sc) { sc.forEach(function (q) { var v = m[q[0]]; if (v != null && (Array.isArray(v) ? v.length : String(v).trim())) o[q[1]] = v; }); }); return o; }
   window.__i2payload = payload; /* for tests */
 
   function toB64(f) { return new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(',')[1]); }; r.onerror = no; r.readAsDataURL(f); }); }
@@ -648,10 +833,10 @@
     busy = true; msg = ''; render(false);
     (file ? toB64(file) : Promise.resolve(null)).then(function (data) {
       if (data) b.resume = { name: file.name, type: file.type, data: data };
-      return fetch(API, { method: 'POST', body: JSON.stringify(b), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }).then(function (r) { return r.text().then(function (t) { var d = null; try { d = JSON.parse(t); } catch (e) {} return d && typeof d === 'object' && r.ok ? d : { ok: false, error: 'server' }; }); });
+      return post(b);
     }).then(function (d) {
       busy = false;
-      if (d.ok) { sent = d; try { localStorage.removeItem(KEY); if (d.token) localStorage.setItem('sp_token', d.token); } catch (e) {} finish(false); return; }
+      if (d.ok) { sent = d; ievent('sent', 4); try { localStorage.removeItem(KEY); if (d.token) localStorage.setItem('sp_token', d.token); } catch (e) {} finish(false); return; }
       msgKind = d.error === 'recent' ? 'info' : 'err';
       msg = d.error === 'recent' ? 'An intake from this email came in a few minutes ago, so this one was not saved twice. You can <a href="/portal/">sign in to your portal</a> anytime.' :
         d.error === 'missing' ? 'A few required answers are missing: ' + esc((d.fields || []).join(', ')) + '.' :
@@ -662,7 +847,7 @@
   function finish(preview) {
     var token = !preview && sent && sent.token ? sent.token : '';
     ROOT.innerHTML = pathbar(4).replace('class="i2-path"', 'class="i2-path done"') + '<div class="i2-card-wrap"><section class="i2-sheet i2-done" aria-labelledby="i2title"><h2 class="i2-h" id="i2title" tabindex="-1">You\'re all set.</h2>' +
-      '<ol class="i2-next"><li><b>I review your answers</b> within about 1 business day.</li><li><b>Your first matches arrive in your portal</b>, each with pay and a link to the posting.</li><li><b>You get an email</b> when they are ready.</li></ol>' +
+      '<ol class="i2-next"><li><b>I review your answers</b>, usually within a business day.</li><li><b>I email you any questions</b> and the job titles I suggest. You tell me which ones to keep.</li><li><b>Your search starts once the titles are agreed.</b> Any matches I find then show up in your portal, each with pay and a link to the posting.</li></ol>' +
       '<div class="i2-ctas">' + (preview ? '' : '<a class="btn gold" href="/portal/' + (token ? '?t=' + encodeURIComponent(token) : '') + '">Open my portal</a>') + '<a class="btn ghost" href="' + BOOK + '" target="_blank" rel="noopener">Book an optional intro call</a></div>' + meter() +
       (preview ? '<details class="i2-sent" open><summary>Preview: what this would send</summary><p class="i2-note">Every field the current form sends is here with the same name. The new answers are under "v2". The resume file itself is attached only when it is really sent.</p><pre>' + esc(JSON.stringify(sent, null, 2)) + '</pre><button type="button" class="btn ghost" data-act="restart">Start the preview over</button></details>' : '') +
       '</section></div>';
@@ -676,16 +861,24 @@
     if (!f) return;
     if (f.size > 10 * 1024 * 1024) { msgKind = 'err'; msg = 'That file is over 10 MB. Please choose a smaller file, or tap "No resume".'; render(); return; }
     file = f; D.resumeName = f.name; V.noResume = false; parsed = null; parsing = true; msg = ''; save(); render(false);
-    fileText(f).then(function (t) { parsed = parseResume(t); }).catch(function () { parsed = {}; }).then(function () {
-      parsing = false;
-      var p = parsed || {};
+    var mine = f, done = false;
+    var fin = function (p) {
+      if (done || file !== mine) return; done = true; clearTimeout(parseT);
+      parsing = false; parsed = p || {};
       /* fill only blanks: never overwrite something the client already typed */
       if (!D.jobNowTitle && p.title) D.jobNowTitle = p.title; if (!D.jobNowEmployer && p.employer) D.jobNowEmployer = p.employer;
       if (!D.stillThere && p.current) D.stillThere = p.current; if (!D.years && p.years) D.years = p.years;
       if (!D.education && p.education) D.education = p.education; if (!D.school && p.school) D.school = p.school;
       if (!D.licenses && p.certs && p.certs.length) D.licenses = p.certs.join('\n'); if (!D.linkedin && p.linkedin) D.linkedin = p.linkedin;
-      save(); if (S[cur].id === 'resume') render(false);
-    });
+      save();
+      /* finding 7: the check screen shows "Still reading" until now, then redraws with what was found */
+      var id = S[cur].id;
+      if (id === 'confirm' && msgKind === 'info' && /^Still reading/.test(msg)) msg = '';
+      if (id === 'resume' || id === 'confirm') render(false);
+    };
+    /* a file that takes too long counts as unreadable, so nobody waits forever */
+    clearTimeout(parseT); parseT = setTimeout(function () { fin({}); }, 20000);
+    fileText(f).then(function (t) { fin(parseResume(t)); }).catch(function () { fin({}); });
   }
   ROOT.addEventListener('change', function (e) {
     var t = e.target;
@@ -705,12 +898,13 @@
   });
   ROOT.addEventListener('input', function (e) {
     var t = e.target;
-    if (t.dataset.k) { set(t.dataset.k, t.value); clearBad(t.dataset.k); if (t.dataset.k === 'v2.payFloor') payOk = 0; save(); return; }
+    if (t.dataset.k) { set(t.dataset.k, t.value); clearBad(t.dataset.k); if (t.dataset.k === 'v2.payFloor' || t.dataset.k === 'v2.payTarget') payOk = ''; save(); return; }
     if (t.dataset.range) { var v = +t.value; if (t.dataset.range === 'urgency') V.urgency = O.urgency[v]; else V.commuteMin = v; save();
       var lab = t.dataset.range === 'urgency' ? O.urgency[v] : (v >= 120 ? 'Any distance' : v + ' minutes each way'); t.setAttribute('aria-valuetext', lab); var l = ROOT.querySelector('label[for="' + t.id + '"]'); if (l) l.textContent = lab; }
   });
   ROOT.addEventListener('keydown', function (e) {
     var t = e.target;
+    if (t.id === 'i2lateremail' && e.key === 'Enter') { e.preventDefault(); sendLater(); return; }
     if (t.dataset && t.dataset.own != null && e.key === 'Enter') { e.preventDefault(); addOwnVal(t.dataset.own); return; }
     if (t.id === 'i2card' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); answerDeal(e.key === 'ArrowLeft' ? 'no' : 'ok'); return; }
     if (e.key === 'Enter' && t.tagName === 'INPUT' && t.type !== 'checkbox' && t.type !== 'radio' && t.type !== 'file' && !t.dataset.own) { e.preventDefault(); go(1); }
@@ -718,11 +912,15 @@
   ROOT.addEventListener('click', function (e) {
     var b = e.target.closest('button, [data-nav]'); if (!b || !ROOT.contains(b)) return;
     var d = b.dataset;
-    if (d.nav) { go(d.nav === 'back' ? -1 : 1); return; }
+    /* finding 5: the second click of a double tap never moves on again */
+    if (d.nav) { if (e.detail > 1) return; go(d.nav === 'back' ? -1 : 1); return; }
     if (d.card) { var k = d.card; if (d.many) { var a = arr(get(k)).slice(), v = d.v; if (a.indexOf(v) >= 0) a = a.filter(function (x) { return x !== v; }); else { if (v === 'Open to all') a = ['Open to all']; else { a = a.filter(function (x) { return x !== 'Open to all'; }); a.push(v); } } set(k, a); clearBad(k); save(); buzz(); render(false); return; }
-      set(k, d.v); clearBad(k); save(); buzz(); render(false); if (S[cur].auto) setTimeout(function () { go(1); }, RM() ? 0 : 260); return; }
+      set(k, d.v); clearBad(k); save(); buzz(); render(false);
+      /* finding 5: one pending move at a time, and only from the screen that was tapped */
+      if (S[cur].auto && !autoT && e.detail < 2) { var sid = S[cur].id; autoT = setTimeout(function () { autoT = null; if (S[cur].id === sid) go(1); }, RM() ? 0 : 260); }
+      return; }
     if (d.tile) { V.field = d.tile; V.alsoOpen = arr(V.alsoOpen).filter(function (x) { return x !== d.tile; }); clearBad('v2.field'); save(); buzz(); render(false); return; }
-    if (d.unit) { V.payUnit = d.unit; payOk = 0; save(); render(false); return; }
+    if (d.unit) { V.payUnit = d.unit; payOk = ''; save(); render(false); return; }
     if (d.toggle) { V[d.toggle] = !V[d.toggle]; save(); buzz(); render(false); return; }
     if (d.skill != null) { var cur2 = V.skills[d.skill] || ''; V.skills[d.skill] = cur2 === '' ? 'nice' : cur2 === 'nice' ? 'must' : ''; if (!V.skills[d.skill]) delete V.skills[d.skill]; save(); buzz(); render(false); var nb = ROOT.querySelector('[data-skill="' + cssq(d.skill) + '"]'); if (nb) nb.focus(); return; }
     if (d.add) { addOwnVal(d.add); return; }
@@ -730,15 +928,38 @@
     if (d.style != null) { V.style[d.style] = V.style[d.style] === d.v ? '' : d.v; save(); buzz(); render(false); return; }
     if (d.dealAns) { answerDeal(d.dealAns); return; }
     if (d.up != null || d.down != null) { var i = +(d.up != null ? d.up : d.down), j = d.up != null ? i - 1 : i + 1; var r = V.rank.slice(); var tmp = r[i]; r[i] = r[j]; r[j] = tmp; V.rank = r; save(); render(false); var fb = ROOT.querySelector('[data-' + (d.up != null ? 'up' : 'down') + '="' + j + '"]') || ROOT.querySelector('[data-r="' + j + '"] button:not([disabled])'); if (fb) fb.focus(); return; }
-    if (d.swap) { syncRank(); var rr = V.rank.slice(); rr[rr.length - 1] = d.swap; V.rank = rr; save(); render(false); return; }
-    if (d.jump != null) { cur = +d.jump; msg = ''; bad = []; save(); render(); return; }
+    if (d.swap) { syncRank(); var rr = V.rank.slice(); rr[rr.length - 1] = d.swap; V.rank = rr; save(); render(false); var sw = ROOT.querySelector('[data-swap]') || ROOT.querySelector('#i2rank button:not([disabled])'); if (sw) sw.focus(); return; }
+    if (d.jump != null) { flushDeal(); fromReview = S[cur].id === 'review'; cur = +d.jump; msg = ''; bad = []; laterOpen = false; save(); render(); return; }
     if (d.mic) { listen(d.mic, b); return; }
-    if (d.act === 'noresume') { V.noResume = true; file = null; D.resumeName = ''; parsed = null; save(); cur = idx('confirm'); render(); return; }
+    if (d.act === 'toreview') { flushDeal(); toReview(); return; }
+    if (d.act === 'noresume') { V.noResume = true; file = null; D.resumeName = ''; parsed = null; parsing = false; save(); cur = idx('confirm'); render(); return; }
     if (d.act === 'dealreset') { V.deal = {}; save(); render(false); return; }
-    if (d.act === 'dealundo') { var ks = DEAL.map(function (c) { return c.k; }).filter(function (k2) { return V.deal[k2]; }); if (ks.length) delete V.deal[ks[ks.length - 1]]; save(); render(false); return; }
+    if (d.act === 'dealundo') { flushDeal(); var ks = DEAL.map(function (c) { return c.k; }).filter(function (k2) { return V.deal[k2]; }); if (ks.length) delete V.deal[ks[ks.length - 1]]; save(); render(false); return; }
     if (d.act === 'restart') { try { localStorage.removeItem(KEY); } catch (er) {} location.reload(); return; }
-    if (d.act === 'later') { msgKind = 'info'; msg = 'Coming with the live version: I will email you a private link that opens this form where you left off.'; render(); return; }
+    if (d.act === 'later') { laterOpen = !laterOpen; laterMsg = ''; render(false); var le = document.getElementById('i2lateremail'); if (le) le.focus(); return; }
+    if (d.act === 'latersend') { sendLater(); return; }
   });
+  /* "Email me a link to finish later" (backend v1.27 intakeDraftSave). In PREVIEW it shows what would be sent and sends nothing. */
+  var LATER_ERR = {
+    'too large': 'Your answers are too long to save in a link. Try shortening your longest answer, or finish the form now.',
+    'bad email': 'That email does not look right. Please check it and try again.',
+    'bad draft': 'I could not save your answers in a link. They are still saved on this device.',
+    busy: 'Too many links were asked for just now. Please try again later. Your answers are still saved on this device.'
+  };
+  function sendLater() {
+    if (laterBusy) return;
+    var el = document.getElementById('i2lateremail'), em = String(el ? el.value : D.email || '').trim();
+    var done = function (kind, text) { laterBusy = false; laterKind = kind; laterMsg = text; laterOpen = true; if (S[cur]) render(false); var m = document.getElementById('i2latermsg'); if (m) try { m.focus({ preventScroll: true }); } catch (e) {} };
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em) || em.length > 254) { done('err', esc(LATER_ERR['bad email'])); return; }
+    var draft = draftData(), body = { action: 'intakeDraftSave', email: em, draft: draft }, size = JSON.stringify(draft).length;
+    if (size > 60000) { done('err', esc(LATER_ERR['too large'])); return; }
+    if (PREVIEW) { done('info', '<b>Preview: nothing was sent.</b> The live form would send this and email a link to ' + esc(em) + '.<details class="i2-sent"><summary>What would be sent</summary><pre>' + esc(JSON.stringify(body, null, 2)) + '</pre></details>'); return; }
+    laterBusy = true; render(false);
+    post(body).then(function (d) {
+      if (d && d.ok) { done('info', 'Check your email. I sent a link to ' + esc(em) + '. It works for 30 days.'); return; }
+      var er = d && d.error; done('err', esc(LATER_ERR[er] || 'The link did not send. Please try again later. Your answers are still saved on this device.'));
+    }).catch(function () { done('err', 'The link did not send. Please check your connection and try again. Your answers are still saved on this device.'); });
+  }
   function cssq(s) { return String(s).replace(/["\\]/g, '\\$&'); }
   function addOwnVal(kind) {
     var el = ROOT.querySelector('[data-own="' + kind + '"]'); if (!el) return; var v = el.value.replace(/\s+/g, ' ').trim().slice(0, 80); if (!v) { el.focus(); return; }
@@ -749,14 +970,26 @@
   }
   function clearBad(k) { bad = bad.filter(function (x) { return x !== k; }); var id = idOf(k), el = document.getElementById(id) || document.getElementById('g_' + id) || document.getElementById('a_' + k); if (el) { el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); el.classList.remove('bad'); } }
 
-  /* deal-breaker deck: drag, keys or buttons */
+  /* deal-breaker deck: drag, keys or buttons. Finding 16: answers given while a card is still flying off wait in a queue and
+     are applied in order; leaving the screen applies them at once. */
+  var dealQ = [], dealCommit = null, dealFlush = false;
   function answerDeal(a) {
-    var c = DEAL.filter(function (x) { return !V.deal[x.k]; })[0]; if (!c) return;
-    var el = document.getElementById('i2card');
-    var commit = function () { V.deal[c.k] = a; save(); buzz(); render(false); var n = document.getElementById('i2card'); if (n) n.focus(); };
-    if (el && !RM() && el.animate) { el.animate([{ transform: el.style.transform || 'none', opacity: 1 }, { transform: 'translateX(' + (a === 'no' ? -420 : 420) + 'px) rotate(' + (a === 'no' ? -14 : 14) + 'deg)', opacity: 0 }], { duration: 220, easing: 'ease-in' }).onfinish = commit; }
-    else commit();
+    if (dealAnim) { dealQ.push(a); return; }
+    var c = DEAL.filter(function (x) { return !V.deal[x.k]; })[0]; if (!c) { dealQ = []; return; }
+    var el = document.getElementById('i2card'), tm = null, did = false;
+    var commit = function () {
+      if (did) return; did = true; clearTimeout(tm); dealAnim = false; dealCommit = null;
+      V.deal[c.k] = a; save(); buzz();
+      if (!dealFlush && S[cur].id === 'deal') render(false);
+      if (dealQ.length) answerDeal(dealQ.shift());
+    };
+    if (el && !dealFlush && !RM() && el.animate) {
+      dealAnim = true; dealCommit = commit;
+      el.animate([{ transform: el.style.transform || 'none', opacity: 1 }, { transform: 'translateX(' + (a === 'no' ? -420 : 420) + 'px) rotate(' + (a === 'no' ? -14 : 14) + 'deg)', opacity: 0 }], { duration: dealQ.length ? 110 : 220, easing: 'ease-in' }).onfinish = commit;
+      tm = setTimeout(commit, 600);
+    } else commit();
   }
+  function flushDeal() { if (!dealAnim && !dealQ.length) return; dealFlush = true; try { if (dealCommit) dealCommit(); while (dealQ.length) answerDeal(dealQ.shift()); } finally { dealFlush = false; } }
   function bindDeck(el) {
     var x0 = null, dx = 0;
     el.addEventListener('pointerdown', function (e) { x0 = e.clientX; dx = 0; try { el.setPointerCapture(e.pointerId); } catch (er) {} });
@@ -786,6 +1019,27 @@
   document.addEventListener('dragleave', function (e) { var z = e.target.closest && e.target.closest('#i2drop'); if (z) z.classList.remove('over'); });
   document.addEventListener('drop', function (e) { var z = e.target.closest && e.target.closest('#i2drop'); if (!z) return; e.preventDefault(); z.classList.remove('over'); onFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
 
-  if (cur >= S.length || !visible(cur)) cur = 0;
-  render(false);
+  /* start: a screen that is hidden now (say, after a reload) falls back to the nearest earlier one, not to the welcome (finding 8) */
+  function startAt() { if (cur >= S.length) cur = 0; while (cur > 0 && !visible(cur)) cur-- }
+  /* "finish later" link: /start/v2/?d=<key> (backend v1.27 intakeDraftLoad). Never in PREVIEW. */
+  var dkey = null; try { dkey = new URLSearchParams(location.search).get('d'); } catch (e) {}
+  function dropKey() { try { var u = new URL(location.href); u.searchParams.delete('d'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) {} }
+  if (dkey != null && !PREVIEW) {
+    ROOT.innerHTML = pathbar(0) + '<div class="i2-card-wrap"><section class="i2-sheet" aria-labelledby="i2title"><p class="i2-step" id="i2title">Welcome back</p><p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Opening your saved answers…</p></section></div>';
+    var expired = function () { dropKey(); if (!(D._saved && D.name)) cur = 0; startAt(); msgKind = 'info'; msg = D._saved && D.name ? 'That link has expired. The answers saved on this device are still here, so you can keep going.' : 'That link has expired, so this is a fresh form. It takes about 10 minutes.'; render(false); };
+    (/^[a-z0-9]{40}$/.test(dkey) ? post({ action: 'intakeDraftLoad', key: dkey }) : Promise.resolve({ ok: false, error: 'expired' })).then(function (d) {
+      if (d && d.ok && plain(d.draft)) {
+        var dr = d.draft; NOSAVE.concat(['website', 'resume']).forEach(function (k) { delete dr[k]; });
+        var nv = Object.assign({}, D.v2, plain(dr.v2) ? dr.v2 : {}); D = Object.assign(D, dr); D.v2 = nv; V = D.v2; fixMod();
+        cur = Math.max(0, Number(dr._at) || 0); startAt(); dropKey(); save();
+        msgKind = 'info'; msg = 'Welcome back. Your saved answers are here, so you can pick up where you left off.' + (lostResume() ? ' Please attach your resume again; files are not saved in the link.' : '');
+        render(); return;
+      }
+      if (d && d.error === 'expired') { expired(); return; }
+      dropKey(); startAt(); msgKind = 'err'; msg = 'I could not open your saved answers just now. Please try the link again in a few minutes.'; render(false);
+    }).catch(function () { dropKey(); startAt(); msgKind = 'err'; msg = 'I could not open your saved answers just now. Please check your connection and try the link again.'; render(false); });
+  } else {
+    if (dkey != null) { msgKind = 'info'; msg = 'Preview: saved-answer links open only on the live form, so nothing was loaded.'; }
+    startAt(); render(false);
+  }
 })();
