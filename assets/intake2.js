@@ -183,14 +183,55 @@
   function icon(n, cls) { return '<svg class="' + (cls || 'ic') + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (IC[n] || IC.spark) + '</svg>'; }
 
   /* ---------------- state ---------------- */
-  var D = { times: [], v2: { alsoOpen: [], titles: [], skills: {}, mod: {}, settingsPick: [], empTypes: [], standOut: [], rank: [], companyTypes: [], dream: [], avoid: [], deal: {}, style: {}, strengths: [], strengthsOwn: [], shifts: [], software: [] } };
-  var NOSAVE = ['agreeTrue', 'agreeTrial', 'signature'];
+  /* Saved answers (this device or an emailed draft) are untrusted. cleanState() builds a brand-new state from an allow-list of
+     known keys, read with hasOwnProperty, each checked for its type. __proto__, constructor and prototype are never copied, and
+     the agreement boxes, signature, honeypot, text-message consent and any file are never restored. The backend (draftClean_ in
+     Code_v1.27.gs) applies the same list before it stores a draft. */
+  function blankState() { return { times: [], v2: { alsoOpen: [], titles: [], skills: {}, mod: {}, settingsPick: [], empTypes: [], standOut: [], rank: [], companyTypes: [], dream: [], avoid: [], deal: {}, style: {}, strengths: [], strengthsOwn: [], shifts: [], software: [] } }; }
+  var NOSAVE = ['agreeTrue', 'agreeTrial', 'signature', 'website', 'resume', 'textOk'];
+  var BADKEY = ['__proto__', 'constructor', 'prototype'];
+  var ST = {
+    str: ['referred', 'name', 'email', 'phone', 'contactBy', 'city', 'relocating', 'moveWhen', 'resumeName', 'jobNowTitle', 'jobNowEmployer', 'stillThere', 'endedOn', 'years', 'licenses', 'history', 'education', 'school', 'linkedin', 'start', 'workAuth', 'sponsorship', 'softwareOther', 'standOutOther', 'notWantOther', 'numbers', 'gaps', 'gapWords', 'neverMention', 'privateSearch', 'anythingElse', 'nycHybrid'],
+    list: ['times'],
+    v2str: ['situation', 'urgency', 'field', 'seniority', 'payUnit', 'payFloor', 'payTarget', 'currentPay', 'travel', 'getThere', 'relocateAreas', 'proudestWin', 'whyLooking', 'accommodations', 'resumeStyle', 'coverTone'],
+    v2num: ['commuteMin'], v2bool: ['noResume', 'linkedinMakeover'],
+    v2list: ['alsoOpen', 'titles', 'settingsPick', 'empTypes', 'standOut', 'rank', 'companyTypes', 'dream', 'avoid', 'strengths', 'strengthsOwn', 'shifts', 'software']
+  };
+  function own(o, k) { return !!o && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k); }
+  function okKey(k) { return typeof k === 'string' && k.length > 0 && k.length <= 200 && BADKEY.indexOf(k) < 0 && NOSAVE.indexOf(k) < 0; }
+  function cStr(v, max) { return typeof v === 'string' ? v.slice(0, max || 4000) : undefined; }
+  function cList(v) { if (!Array.isArray(v)) return undefined; var o = []; for (var i = 0; i < v.length && o.length < 40; i++) if (typeof v[i] === 'string' && v[i].trim()) o.push(v[i].slice(0, 300)); return o; }
+  function cMap(v, val) { var o = {}; if (!v || typeof v !== 'object' || Array.isArray(v)) return o; var ks = Object.keys(v); for (var i = 0, n = 0; i < ks.length && n < 60; i++) { var k = ks[i]; if (!okKey(k) || !own(v, k)) continue; var x = val(v[k], k); if (x !== undefined) { o[k] = x; n++; } } return o; }
+  function cleanState(src, keepMeta) {
+    var out = blankState(), v = own(src, 'v2') && src.v2 && typeof src.v2 === 'object' && !Array.isArray(src.v2) ? src.v2 : {}, w = out.v2, x;
+    if (!src || typeof src !== 'object' || Array.isArray(src)) return out;
+    ST.str.forEach(function (k) { if (own(src, k) && (x = cStr(src[k])) !== undefined) out[k] = x; });
+    ST.list.forEach(function (k) { if (own(src, k) && (x = cList(src[k]))) out[k] = x; });
+    if (own(src, '_at') && typeof src._at === 'number' && isFinite(src._at)) out._at = Math.max(0, Math.min(200, Math.floor(src._at)));
+    if (keepMeta && own(src, '_saved') && typeof src._saved === 'number') out._saved = src._saved;
+    ST.v2str.forEach(function (k) { if (own(v, k) && (x = cStr(v[k])) !== undefined) w[k] = x; });
+    ST.v2num.forEach(function (k) { if (own(v, k) && typeof v[k] === 'number' && isFinite(v[k])) w[k] = v[k]; });
+    ST.v2bool.forEach(function (k) { if (own(v, k) && typeof v[k] === 'boolean') w[k] = v[k]; });
+    ST.v2list.forEach(function (k) { if (own(v, k) && (x = cList(v[k]))) w[k] = x; });
+    if (w.field && FIELDS.indexOf(w.field) < 0) delete w.field;
+    w.alsoOpen = w.alsoOpen.filter(function (k) { return FIELDS.indexOf(k) >= 0 && k !== 'other' && k !== w.field; }).slice(0, 2);
+    if (w.payUnit && w.payUnit !== 'Hourly' && w.payUnit !== 'Yearly') delete w.payUnit;
+    if (w.urgency && O.urgency.indexOf(w.urgency) < 0) delete w.urgency;
+    if (own(v, 'skills')) w.skills = cMap(v.skills, function (s) { return s === 'nice' || s === 'must' ? s : undefined; });
+    if (own(v, 'deal')) w.deal = cMap(v.deal, function (s, k) { return (s === 'no' || s === 'ok') && DEAL.some(function (c) { return c.k === k; }) ? s : undefined; });
+    if (own(v, 'style')) w.style = cMap(v.style, function (s, k) { return typeof s === 'string' && /^[0-3]$/.test(k) ? s.slice(0, 100) : undefined; });
+    if (own(v, 'mod')) {
+      var m = v.mod, ks = m && typeof m === 'object' && !Array.isArray(m) ? Object.keys(m) : [], flat = ks.some(function (k) { return !m[k] || typeof m[k] !== 'object' || Array.isArray(m[k]); });
+      var one = function (q) { return cMap(q, function (a) { return typeof a === 'string' ? a.slice(0, 2000) : cList(a); }); };
+      if (flat) { if (w.field) w.mod[w.field] = one(m); }
+      else ks.forEach(function (k) { if ((FIELDS.indexOf(k) >= 0 || k === '_') && own(m, k)) w.mod[k] = one(m[k]); });
+    }
+    return out;
+  }
+  var D = blankState();
   try {
     var saved = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (saved && typeof saved === 'object' && saved.v2 && typeof saved.v2 === 'object') {
-      NOSAVE.forEach(function (k) { delete saved[k]; });
-      var v2 = Object.assign({}, D.v2, saved.v2); D = Object.assign(D, saved); D.v2 = v2;
-    }
+    if (saved && typeof saved === 'object' && saved.v2 && typeof saved.v2 === 'object') { D = cleanState(saved, true); localStorage.setItem(KEY, JSON.stringify(D)); } /* written back clean */
   } catch (e) {}
   var V = D.v2;
   /* v2.mod holds one answer set per field (finding 3): { insurance: { role: [...] }, office: {...} }. Older saves kept one flat set. */
@@ -204,14 +245,21 @@
   fixMod();
   var cur = Math.max(0, Number(D._at) || 0), file = null, parsed = null, parsing = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
   var autoT = null, fromReview = false, laterOpen = false, laterBusy = false, laterMsg = '', laterKind = '', dealAnim = false, parseT = null;
-  function save() { try { var c = JSON.parse(JSON.stringify(D)); NOSAVE.forEach(function (k) { delete c[k]; }); c._at = cur; c._saved = Date.now(); localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {} }
+  function save() { try { var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = cur; c._saved = Date.now(); localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {} }
 
   /* ---------------- backend calls (never in PREVIEW) ---------------- */
   /* Same request style as the live form's submit() in /start/: POST, JSON body as text/plain (no CORS preflight), follow the redirect. */
-  function post(body) {
+  /* Every call gives up after about 15 seconds (AbortController), so a slow or stuck backend never leaves the page waiting.
+     The intake itself gets longer, since it can carry a resume file of up to 10 MB. */
+  var TIMEOUT = Math.max(1000, Number(ROOT.getAttribute('data-timeout')) || 15000);
+  function post(body, ms) {
     if (PREVIEW) return Promise.reject(new Error('preview'));
-    return fetch(API, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' })
-      .then(function (r) { return r.text().then(function (t) { var d = null; try { d = JSON.parse(t); } catch (e) {} return d && typeof d === 'object' && r.ok ? d : { ok: false, error: 'server' }; }); });
+    var ac = null, tm = null; try { ac = new AbortController(); } catch (e) {}
+    var opts = { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' };
+    if (ac) { opts.signal = ac.signal; tm = setTimeout(function () { ac.abort(); }, ms || TIMEOUT); }
+    return fetch(API, opts)
+      .then(function (r) { return r.text().then(function (t) { var d = null; try { d = JSON.parse(t); } catch (e) {} return d && typeof d === 'object' && r.ok ? d : { ok: false, error: 'server' }; }); })
+      .then(function (d) { clearTimeout(tm); return d; }, function (e) { clearTimeout(tm); throw e; });
   }
   /* funnel: a random id per browser tab, nothing personal */
   var SID = (function () {
@@ -230,11 +278,11 @@
     try { post({ action: 'ievent', sid: SID, screen: screen, stop: Math.max(0, Math.min(4, stop | 0)), field: FIELDS.indexOf(V.field) >= 0 ? V.field : '' }).catch(function () {}); } catch (e) {}
   }
   /* "finish later" draft: everything on this device except the agreement boxes, the signature, the honeypot and any file */
-  function draftData() { var c = JSON.parse(JSON.stringify(D)); NOSAVE.concat(['website', 'resume', '_saved']).forEach(function (k) { delete c[k]; }); c._at = cur; return c; }
+  function draftData() { var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = cur; return c; }
 
   /* ---------------- helpers that read answers ---------------- */
-  function field() { return F[V.field] || null; }
-  function fieldsAll() { return uniq([V.field].concat(arr(V.alsoOpen))).filter(function (k) { return F[k]; }); }
+  function field() { return FIELDS.indexOf(V.field) >= 0 ? F[V.field] : null; }
+  function fieldsAll() { return uniq([V.field].concat(arr(V.alsoOpen))).filter(function (k) { return FIELDS.indexOf(k) >= 0; }); }
   function remoteOnly() { var s = arr(V.settingsPick); return s.length === 1 && s[0] === 'Remote'; }
   var DESK = ['it', 'finance', 'sales', 'insurance', 'office', 'legal'];
   function settingsOld() { var s = arr(V.settingsPick); return s.indexOf('Open to all') >= 0 ? ['On site', 'Hybrid', 'Remote'] : s.filter(function (x) { return x !== 'Open to all'; }); }
@@ -265,7 +313,7 @@
   var DENTAL = ['General dentistry', 'Pediatric dentistry', 'Orthodontics', 'Oral surgery', 'Endodontics', 'Periodontics', 'Prosthodontics'];
   function typesFor(k) {
     var m = plain(V.mod[k]) ? V.mod[k] : {};
-    if (k === 'clinical') { var sp = m.specialty; if (sp) return [DENTAL.indexOf(sp) >= 0 ? 'Dental' : 'Other']; return [titleList().some(function (t) { return /dent/i.test(t); }) ? 'Dental' : 'Other']; }
+    if (k === 'clinical') { var sp = m.specialty; if (sp) return [DENTAL.indexOf(sp) >= 0 ? 'Dental' : 'Other']; return [titleList().some(function (t) { return /\bdent(al|ist)/i.test(t); }) ? 'Dental' : 'Other']; }
     if (k === 'legal') { var r = arr(m.role); if (!r.length) return ['Office and admin']; var o = []; if (r.some(function (x) { return /Paralegal|Legal assistant|Contracts/.test(x); })) o.push('Office and admin'); if (r.some(function (x) { return /Attorney|Compliance/.test(x); })) o.push('Other'); return o; }
     return F[k].old;
   }
@@ -818,7 +866,7 @@
       travel: V.travel || '', commuteMinutes: remoteOnly() || !commuteSet() ? '' : String(V.commuteMin), employmentTypes: et, topPriorities: arr(V.rank), companyTypes: arr(V.companyTypes),
       dreamCompanies: arr(V.dream), dealBreakers: dealList(), workStyle: STYLE.map(function (p, i) { return V.style[i] || ''; }).filter(Boolean),
       strengths: arr(V.strengths), proudestWin: V.proudestWin || '', whyLooking: V.whyLooking || '', accommodations: V.accommodations || '',
-      resumeStyle: V.resumeStyle || '', coverTone: V.coverTone || '', textOk: !!V.textOk, linkedinMakeover: !!V.linkedinMakeover, needsResumeBuild: !file && (!!V.noResume || !String(D.history || '').trim()),
+      resumeStyle: V.resumeStyle || '', coverTone: V.coverTone || '', textOk: !!V.textOk, linkedinMakeover: !!V.linkedinMakeover, needsResumeBuild: !file && (!!V.noResume || (!D.resumeName && !String(D.history || '').trim())), resumeAttached: !!file || !!D.resumeName,
       profileStrength: strength().score, fieldAnswers: modAnswers()
     };
     return b;
@@ -833,7 +881,7 @@
     busy = true; msg = ''; render(false);
     (file ? toB64(file) : Promise.resolve(null)).then(function (data) {
       if (data) b.resume = { name: file.name, type: file.type, data: data };
-      return post(b);
+      return post(b, 120000);
     }).then(function (d) {
       busy = false;
       if (d.ok) { sent = d; ievent('sent', 4); try { localStorage.removeItem(KEY); if (d.token) localStorage.setItem('sp_token', d.token); } catch (e) {} finish(false); return; }
@@ -1019,27 +1067,49 @@
   document.addEventListener('dragleave', function (e) { var z = e.target.closest && e.target.closest('#i2drop'); if (z) z.classList.remove('over'); });
   document.addEventListener('drop', function (e) { var z = e.target.closest && e.target.closest('#i2drop'); if (!z) return; e.preventDefault(); z.classList.remove('over'); onFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]); });
 
-  /* start: a screen that is hidden now (say, after a reload) falls back to the nearest earlier one, not to the welcome (finding 8) */
-  function startAt() { if (cur >= S.length) cur = 0; while (cur > 0 && !visible(cur)) cur-- }
-  /* "finish later" link: /start/v2/?d=<key> (backend v1.27 intakeDraftLoad). Never in PREVIEW. */
+  /* start: never past the first screen with a missing required answer, never straight onto Confirm (at most the review), and a
+     hidden screen falls back to the nearest earlier one, not to the welcome (finding 8) */
+  function startAt() {
+    if (!(cur >= 0) || cur >= S.length) cur = 0;
+    cur = Math.min(cur, idx('review'));
+    for (var i = 0; i < cur; i++) if (visible(i) && needOf(S[i]).length) { cur = i; break; }
+    while (cur > 0 && !visible(cur)) cur--;
+  }
+  function useState(st) { D = st; V = D.v2; fixMod(); file = null; parsed = null; parsing = false; cur = Number(D._at) || 0; startAt(); }
+  function hasLocal() { return !!(D._saved && (String(D.name || '').trim() || String(D.email || '').trim() || V.field)); }
+  /* "finish later" link: /start/v2/?d=<key> (backend v1.27 intakeDraftLoad). Never in PREVIEW. The emailed answers replace the
+     ones on this device as a whole; when this device already has answers, the person picks one set. The two are never mixed. */
   var dkey = null; try { dkey = new URLSearchParams(location.search).get('d'); } catch (e) {}
   function dropKey() { try { var u = new URL(location.href); u.searchParams.delete('d'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) {} }
+  var pendingDraft = null;
+  function shell(inner) { ROOT.innerHTML = pathbar(0) + '<div class="i2-card-wrap"><section class="i2-sheet" data-screen="draft" aria-labelledby="i2title i2q"><p class="i2-step" id="i2title">Welcome back</p>' + inner + '</section></div>'; var q = document.getElementById('i2q'); if (q) try { q.focus({ preventScroll: true }); } catch (e) {} }
+  function applyDraft() {
+    var st = cleanState(pendingDraft); pendingDraft = null; useState(st); save();
+    msgKind = 'info'; msg = 'Your emailed answers are here, so you can pick up where you left off.' + (lostResume() ? ' Please attach your resume again; files are not saved in the link.' : '');
+    render();
+  }
+  ROOT.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-draft]'); if (!b || !pendingDraft) return;
+    if (b.getAttribute('data-draft') === 'use') { applyDraft(); return; }
+    pendingDraft = null; startAt(); save(); msgKind = 'info'; msg = 'I kept the answers on this device. The emailed answers were not used.'; render();
+  });
   if (dkey != null && !PREVIEW) {
-    ROOT.innerHTML = pathbar(0) + '<div class="i2-card-wrap"><section class="i2-sheet" aria-labelledby="i2title"><p class="i2-step" id="i2title">Welcome back</p><p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Opening your saved answers…</p></section></div>';
-    var expired = function () { dropKey(); if (!(D._saved && D.name)) cur = 0; startAt(); msgKind = 'info'; msg = D._saved && D.name ? 'That link has expired. The answers saved on this device are still here, so you can keep going.' : 'That link has expired, so this is a fresh form. It takes about 10 minutes.'; render(false); };
+    shell('<p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Opening your saved answers…</p>');
+    var expired = function () { dropKey(); if (!hasLocal()) cur = 0; startAt(); msgKind = 'info'; msg = hasLocal() ? 'That link has expired. The answers saved on this device are still here, so you can keep going.' : 'That link has expired, so this is a fresh form. It takes about 10 minutes.'; render(false); };
     (/^[a-z0-9]{40}$/.test(dkey) ? post({ action: 'intakeDraftLoad', key: dkey }) : Promise.resolve({ ok: false, error: 'expired' })).then(function (d) {
-      if (d && d.ok && plain(d.draft)) {
-        var dr = d.draft; NOSAVE.concat(['website', 'resume']).forEach(function (k) { delete dr[k]; });
-        var nv = Object.assign({}, D.v2, plain(dr.v2) ? dr.v2 : {}); D = Object.assign(D, dr); D.v2 = nv; V = D.v2; fixMod();
-        cur = Math.max(0, Number(dr._at) || 0); startAt(); dropKey(); save();
-        msgKind = 'info'; msg = 'Welcome back. Your saved answers are here, so you can pick up where you left off.' + (lostResume() ? ' Please attach your resume again; files are not saved in the link.' : '');
-        render(); return;
+      dropKey();
+      if (d && d.ok && d.draft && typeof d.draft === 'object' && !Array.isArray(d.draft)) {
+        pendingDraft = d.draft;
+        if (!hasLocal()) { applyDraft(); return; }
+        shell('<h2 class="i2-h" id="i2q" tabindex="-1">Which answers do you want to use?</h2><p class="i2-p">This device already has answers saved from before. I will use one set or the other, never a mix.</p>' +
+          '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Use the emailed answers</button><button type="button" class="btn ghost" data-draft="keep">Keep what is on this device</button></div>');
+        return;
       }
       if (d && d.error === 'expired') { expired(); return; }
-      dropKey(); startAt(); msgKind = 'err'; msg = 'I could not open your saved answers just now. Please try the link again in a few minutes.'; render(false);
-    }).catch(function () { dropKey(); startAt(); msgKind = 'err'; msg = 'I could not open your saved answers just now. Please check your connection and try the link again.'; render(false); });
+      startAt(); msgKind = 'err'; msg = 'I could not open your saved answers just now. Please try the link again in a few minutes.'; render(false);
+    }).catch(function () { dropKey(); startAt(); msgKind = 'info'; msg = 'I could not open your saved answers just now, so you are seeing the answers on this device. You can try the link again later.'; render(false); });
   } else {
-    if (dkey != null) { msgKind = 'info'; msg = 'Preview: saved-answer links open only on the live form, so nothing was loaded.'; }
+    if (dkey != null) { dropKey(); msgKind = 'info'; msg = 'Preview: saved-answer links open only on the live form, so nothing was loaded.'; }
     startAt(); render(false);
   }
 })();
