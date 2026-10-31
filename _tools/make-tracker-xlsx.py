@@ -121,6 +121,11 @@ for c in ("K12", "K13"):
 ws.freeze_panes = f"A{FIRST}"
 ws.auto_filter.ref = f"A4:I{LAST}"
 ws.sheet_view.zoomScale = 110
+ws.page_setup.orientation = "landscape"
+ws.page_setup.fitToWidth = 1
+ws.page_setup.fitToHeight = 0
+ws.sheet_properties.pageSetUpPr.fitToPage = True
+ws.print_title_rows = "4:4"
 
 if sample:
     today = dt.date.today()
