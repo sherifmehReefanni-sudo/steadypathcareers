@@ -57,11 +57,12 @@ function r18ThanksText(x) {
   var co = String(x.company || '').trim();
   return 'Hi [Name],\n\nThank you for taking the time to talk with me about ' + r18RoleNote(x) + (co ? ' at ' + co : '') + '. I enjoyed learning more about the team and the work, and I am even more interested in the job.\n\nI would welcome the next step. Please let me know if there is anything else I can send you.\n\nThank you again,\n' + r18First();
 }
-/* r1: the thank-you note shows on and after the interview date (for two weeks) while the card sits in Interview; collapsed until opened. */
+/* r1/r2: the thank-you note shows on and after the interview date (for two weeks), or, with no date, from the day the interview was logged, while the card sits in Interview; collapsed until opened. */
 function r18ThanksOn(x) {
   if (!x || boardCol(x) !== 2) return false;
   var iv = daysFrom(x.interview);
-  return iv != null && iv <= 0 && iv >= -14;
+  if (iv != null) return iv <= 0 && iv >= -14; /* a date: on or after it */
+  var lg = daysFrom(x.ivLogged); return lg != null && lg <= 0 && lg >= -14; /* r2: no date: from the day the interview was logged */
 }
 function r18ThanksOpen(x) { return false; }
 function r18Extras(x) {
@@ -126,16 +127,21 @@ var MS_TEXT = {
   offer: { h: 'You got an offer!', p: 'Congratulations. Before you say yes, make sure the pay and benefits are right for you. If you want to talk it through, book a free call with me.' },
   hired: { h: 'Congratulations on your new role!', p: 'It has been a pleasure helping you get here.', ask: 'One small favor, only if you are up for it: share a sentence or two about your experience. It helps other job seekers decide whether to work with me.' }
 };
-/* the same rules as the API (msReached_), from what the portal has */
+/* r2: milestones use an ALLOW-LIST of exact statuses (trimmed, any case), the same definition as the API (Code_v1.29.gs MS_STATUS;
+   a test checks the two are identical). Any other free text reaches nothing past submitted. stageOf's Closed list stays as a guard. */
 function r18Reached(d) {
+  var MS_STATUS = { interview: ['interview scheduled', 'interviewed, waiting to hear', 'next round'], offer: ['offer', 'offer accepted', 'hired'], hired: ['hired', 'offer accepted'] };
+  var key = function (st) { return String(st == null ? '' : st).replace(/\s+/g, ' ').trim().toLowerCase(); };
+  var day = function (v) { var m = String(v || '').match(/^(\d{4})-(\d\d)-(\d\d)/); if (!m) return false; var x = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return x.getUTCMonth() === +m[2] - 1 && x.getUTCDate() === +m[3]; };
   var r = { match: !!((d.jobs || []).length || (d.closed || []).length) };
   (d.apps || []).forEach(function (a) {
-    var st = String(a.status || '');
+    var k = key(a.status);
     if (!isOutreach(a)) r.submitted = true;
-    if (stageOf(a) === 4) return; /* r1: closed or rejected (the same word list as the API's CLOSED_STATUS_RE_) reaches nothing past submitted */
-    if (/interview|next round/i.test(st) || String(a.interview || '').trim() || /offer|hired/i.test(st)) r.interview = true;
-    if (/offer|hired|accepted/i.test(st)) r.offer = true;
-    if (/\bhired\b|accepted/i.test(st)) r.hired = true;
+    if (stageOf(a) === 4) return; /* closed or rejected (the API's CLOSED_STATUS_RE_) */
+    var offer = MS_STATUS.offer.indexOf(k) >= 0;
+    if (MS_STATUS.interview.indexOf(k) >= 0 || offer || day(a.interview)) r.interview = true;
+    if (offer) r.offer = true;
+    if (MS_STATUS.hired.indexOf(k) >= 0) r.hired = true;
   });
   return MS_ORDER.filter(function (k) { return r[k]; });
 }
