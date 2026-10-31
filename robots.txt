@@ -1,5 +1,6 @@
 User-agent: *
 Disallow: /portal/
 Disallow: /intake/
-Sitemap: https://steadypathcareers.com/sitemap.xml
 Disallow: /preview/
+
+Sitemap: https://steadypathcareers.com/sitemap.xml
