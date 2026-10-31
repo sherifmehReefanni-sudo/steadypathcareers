@@ -126,6 +126,7 @@ SOURCES = {
  'hc-cobra': ('HealthCare.gov, COBRA coverage when you&#x27;re unemployed', 'https://www.healthcare.gov/unemployed/cobra-coverage/'),
  'nj-dobi': ('NJ Dept. of Banking and Insurance, Continuation of coverage (COBRA and NJ state continuation)', 'https://www.nj.gov/dobi/division_consumers/insurance/cobra.html'),
  'ny-dfs': ('NY Dept. of Financial Services, Extension of continuation coverage to 36 months', 'https://www.dfs.ny.gov/consumers/health_insurance/cobra_coverage_extension_36_Months'),
+ 'ny-dfs-faq': ('NY Dept. of Financial Services, COBRA FAQs', 'https://www.dfs.ny.gov/consumers/health_insurance/cobra_faqs'),
  'gcnj': ('Get Covered New Jersey', 'https://www.nj.gov/getcoverednj/'),
  'gcnj-sep': ('Get Covered New Jersey, Special Enrollment Period overview (2026)', 'https://www.nj.gov/getcoverednj/library/SEPOverview2026.pdf'),
  'nysoh': ('NY State of Health, the official health plan marketplace', 'https://nystateofhealth.ny.gov/'),
@@ -279,7 +280,7 @@ KIT_BODY = r'''
 <li><b>Waiting week:</b> by law, you serve one unpaid waiting week before any benefits are paid.{{ny-flyer}} You still have to claim that week.{{ny-cert}}</li>
 <li><b>Every week:</b> certify weekly. A week runs Monday to Sunday, and you claim it from that Sunday through the following Saturday.{{ny-when}}</li>
 <li><b>How much:</b> up to $869 a week, the maximum since October 6, 2025,{{ny-mbr}} for up to 26 weeks.{{ny-flyer}}</li>
-<li><b>Severance:</b> if it&#x27;s paid within 30 days of your last day and is more than the maximum weekly benefit, you aren&#x27;t eligible while it lasts. If it&#x27;s equal to or less than the maximum, you may still be eligible. If severance starts within 30 days, call the Telephone Claims Center right away. WARN Act pay doesn&#x27;t count as severance.{{ny-sev}} Either way, file anyway and let NY decide. If you&#x27;re still out of work when your severance ends, file then, or file again if you already did.{{ny-p825}}</li>
+<li><b>Severance:</b> if it&#x27;s paid within 30 days of your last day and is more than the maximum weekly benefit, you aren&#x27;t eligible while it lasts. If it&#x27;s equal to or less than the maximum, you may still be eligible. If severance starts within 30 days, call the Telephone Claims Center right away. WARN Act pay doesn&#x27;t count as severance.{{ny-sev}} Either way, file anyway and let NY decide. If you&#x27;re still out of work when your severance ends, file then, or file again if you already did.{{ny-sev}}{{ny-p825}}</li>
 <li><b>Look for work:</b> complete and record at least three work search activities each week.{{ny-ws}}</li>
 </ul></div>
 </div>
@@ -292,7 +293,7 @@ KIT_BODY = r'''
 <h3>COBRA or the marketplace?</h3>
 <p>You can keep your job&#x27;s plan through COBRA or buy your own through <a href="https://www.nj.gov/getcoverednj/">Get Covered New Jersey</a>{{gcnj}} or <a href="https://nystateofhealth.ny.gov/">NY State of Health</a>.{{nysoh}} Price both before you choose.</p>
 <div class="tw stack" role="region" aria-label="COBRA compared with the marketplace" tabindex="0"><table class="cmp"><thead><tr><th scope="col">&nbsp;</th><th scope="col">COBRA</th><th scope="col">Marketplace plan</th></tr></thead><tbody>
-<tr><th scope="row">Who it covers</th><td data-label="COBRA">Generally, group plans of private employers with at least 20 employees.{{dol-guide}} Smaller employer? NJ and NY have state continuation for insured plans. In NJ it covers employers with 50 or fewer employees.{{nj-dobi}} In NY it covers small and large employers.{{ny-dfs}}</td><td data-label="Marketplace plan">Losing job-based coverage qualifies you for a Special Enrollment Period.{{gcnj}}</td></tr>
+<tr><th scope="row">Who it covers</th><td data-label="COBRA">Generally, group plans of private employers with at least 20 employees.{{dol-guide}} Smaller employer? NJ and NY have state continuation for insured plans. In NJ it covers employers with 50 or fewer employees.{{nj-dobi}} In NY it covers employers with fewer than 20 employees.{{ny-dfs-faq}} Whatever the employer&#x27;s size, NY insured plans can continue after federal COBRA ends (see How long).{{ny-dfs}}</td><td data-label="Marketplace plan">Losing job-based coverage qualifies you for a Special Enrollment Period.{{gcnj}}</td></tr>
 <tr><th scope="row">Deadline</th><td data-label="COBRA">At least 60 days to elect,{{dol-guide}} counted from the later of the day coverage ends or the day your election notice is given or mailed to you.{{dol-faq}}</td><td data-label="Marketplace plan">Up to 60 days before or 60 days after you lose coverage.{{hc-sep}} Get Covered NJ and NY State of Health give 60 days to report the change.{{gcnj-sep}}{{nysoh-sep}}</td></tr>
 <tr><th scope="row">Cost</th><td data-label="COBRA">You usually pay the full premium, including the part your employer paid,{{dol-faq}} up to 102% of the plan&#x27;s cost.{{dol-guide}}</td><td data-label="Marketplace plan">May cost less than COBRA, especially if you qualify for savings based on your income.{{hc-cobra}}</td></tr>
 <tr><th scope="row">How long</th><td data-label="COBRA">18 months under federal law after a job ends, unless it ended for gross misconduct.{{dol-guide}} NJ state continuation lasts the same 18 months.{{nj-dobi}} In NY, insured plans can continue up to 36 months in total. Self-funded plans don&#x27;t get the NY extension.{{ny-dfs}}</td><td data-label="Marketplace plan">Open enrollment for 2027 runs November 1 to January 31 in both NJ and NY.{{gcnj}}{{nysoh-oe}}</td></tr>
@@ -539,6 +540,7 @@ def build_scripts():
     out += '<main id="main" class="trail-main" data-trail>\n'
     out += ('<section class="sec" id="scripts" data-mile style="--a:#FBE3CF;--b:#F7E2C4"><div class="wrap"><div class="scr-intro">'
             '<p>Anything in brackets, like [Company] or [Your name], is yours to fill in. Keep the rest short. Every note here fits on a phone screen, and that&#x27;s on purpose.</p>'
+            '<p>General information, not legal or financial advice.</p>'
             f'<ol class="scr-toc" aria-label="The eight scripts">{toc}</ol></div></div></section>\n')
     out += f'<section class="sec" data-mile style="--a:#F7E2C4;--b:#EDB06C"><div class="wrap"><p id="copy-status" class="vh" role="status" aria-live="polite"></p><ol class="scripts">{cards}</ol></div></section>\n'
     out += ('<section class="sec" data-mile style="--a:#EDB06C;--b:#E9A45C"><div class="wrap"><div class="fx-tips prose" data-reveal><h2>A few rules that help every script</h2><ul>'
@@ -615,6 +617,7 @@ def build_hub():
             '<li>Each one is written by me, Sherif, for job seekers in NJ and NY.</li>'
             '<li>Where a tool states a rule or a deadline, it links to the official source.</li>'
             '<li>Want more reading? The <a href="/guides/">guides</a> cover pay laws, fake postings and your resume.</li>'
+            '<li>General information, not legal or financial advice.</li>'
             '</ul></div></div></section>\n')
     out += finale(OFFER_H, OFFER_P) + '</main>\n' + FOOT + '</body>\n</html>\n'
     return out
