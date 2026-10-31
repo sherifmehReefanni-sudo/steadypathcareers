@@ -230,3 +230,6 @@ body.has-mbar .foot { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0p
   .kick-ph { display: block; flex: none; width: 56px; height: 56px; }
   .kick-ph img { display: block; width: 56px; height: 56px; border-radius: 50%; object-fit: cover; object-position: 50% 18%; border: 2px solid #fff; box-shadow: 0 0 0 2px var(--gold); }
 }
+
+/* WCAG 2.2 2.4.11: keep keyboard focus clear of the phone bar */
+@media (max-width:760px){html{scroll-padding-bottom:84px}}
