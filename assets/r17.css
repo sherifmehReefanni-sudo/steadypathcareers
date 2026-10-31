@@ -71,39 +71,39 @@
 .vm-note { margin: 10px 6px 0; font-size: 14px; color: #C4D0E0; }
 
 /* ---------- 3. Before and after resume slider ---------- */
-.ba { background: #fff; border: 1px solid rgba(31, 58, 95, .12); border-radius: 24px; padding: 22px; box-shadow: 0 18px 40px rgba(16, 33, 58, .1); max-width: 880px; }
-.ba-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; }
-.ba-tabs { display: inline-flex; background: var(--sunk); border-radius: 14px; padding: 4px; gap: 4px; }
-.ba-tabs button { border: 0; background: transparent; min-height: 44px; min-width: 76px; padding: 8px 16px; border-radius: 10px; font-weight: 800; font-size: 16px; color: var(--ink2); }
-.ba-tabs button[aria-selected="true"] { background: var(--midnight); color: var(--cream); }
-.ba-tabs button:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
-.ba-tag { display: inline-flex; align-items: center; font-size: 14px; font-weight: 800; color: #6f5300; background: var(--gold-soft); border-radius: 99px; padding: 5px 12px; }
-.ba-post { display: grid; gap: 2px; background: var(--cream); border: 1px dashed rgba(31, 58, 95, .3); border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; }
-.ba-post .k { font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink2); }
-.ba-post b { font-size: 18px; color: var(--midnight); }
-.ba-post > span:last-child { font-size: 16px; color: var(--ink2); }
-.ba-frame { --p: 50%; position: relative; display: grid; border-radius: 16px; overflow: hidden; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none; }
-.ba-side { grid-area: 1 / 1; padding: 46px 22px 24px; min-height: 170px; display: flex; flex-direction: column; justify-content: center; }
-.ba-side p { margin: 0; font-size: 19px; line-height: 1.45; }
-.ba-before { background: #EFEBE3; color: var(--ink2); }
-.ba-before p { color: #3d4657; }
-.ba-after { background: linear-gradient(135deg, var(--midnight), var(--navy)); color: #fff; clip-path: inset(0 0 0 var(--p)); }
-.ba-after p { color: #fff; font-weight: 600; }
-.ba-lbl { position: absolute; top: 12px; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; border-radius: 99px; padding: 3px 10px; }
-.ba-before .ba-lbl { left: 14px; background: #fff; color: var(--ink2); }
-.ba-after .ba-lbl { right: 14px; background: var(--gold); color: var(--midnight); }
-.ba-handle { position: absolute; top: 0; bottom: 0; left: var(--p); width: 4px; margin-left: -2px; background: var(--gold); pointer-events: none; }
-.ba-handle span { position: absolute; top: 50%; left: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: var(--gold); box-shadow: 0 6px 16px rgba(16, 33, 58, .3); }
-.ba-handle span::before, .ba-handle span::after { content: ""; position: absolute; top: 50%; width: 0; height: 0; border: 7px solid transparent; margin-top: -7px; }
-.ba-handle span::before { left: 6px; border-right: 9px solid var(--midnight); border-left: 0; }
-.ba-handle span::after { right: 6px; border-left: 9px solid var(--midnight); border-right: 0; }
-.ba-range { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
-.ba-frame:focus-within { outline: 3px solid var(--midnight); outline-offset: 3px; }
-.ba-foot { margin: 14px 0 0; font-size: 16px; color: var(--ink2); }
+.rs { background: #fff; border: 1px solid rgba(31, 58, 95, .12); border-radius: 24px; padding: 22px; box-shadow: 0 18px 40px rgba(16, 33, 58, .1); max-width: 880px; }
+.rs-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 16px; }
+.rs-tabs { display: inline-flex; background: var(--sunk); border-radius: 14px; padding: 4px; gap: 4px; }
+.rs-tabs button { border: 0; background: transparent; min-height: 44px; min-width: 76px; padding: 8px 16px; border-radius: 10px; font-weight: 800; font-size: 16px; color: var(--ink2); }
+.rs-tabs button[aria-selected="true"] { background: var(--midnight); color: var(--cream); }
+.rs-tabs button:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
+.rs-tag { display: inline-flex; align-items: center; font-size: 14px; font-weight: 800; color: #6f5300; background: var(--gold-soft); border-radius: 99px; padding: 5px 12px; }
+.rs-post { display: grid; gap: 2px; background: var(--cream); border: 1px dashed rgba(31, 58, 95, .3); border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; }
+.rs-post .k { font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ink2); }
+.rs-post b { font-size: 18px; color: var(--midnight); }
+.rs-post > span:last-child { font-size: 16px; color: var(--ink2); }
+.rs-frame { --p: 50%; position: relative; display: grid; border-radius: 16px; overflow: hidden; touch-action: pan-y; cursor: ew-resize; user-select: none; -webkit-user-select: none; }
+.rs-side { grid-area: 1 / 1; padding: 46px 22px 24px; min-height: 170px; display: flex; flex-direction: column; justify-content: center; }
+.rs-side p { margin: 0; font-size: 19px; line-height: 1.45; }
+.rs-before { background: #EFEBE3; color: var(--ink2); }
+.rs-before p { color: #3d4657; }
+.rs-after { background: linear-gradient(135deg, var(--midnight), var(--navy)); color: #fff; clip-path: inset(0 0 0 var(--p)); }
+.rs-after p { color: #fff; font-weight: 600; }
+.rs-lbl { position: absolute; top: 12px; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; border-radius: 99px; padding: 3px 10px; }
+.rs-before .rs-lbl { left: 14px; background: #fff; color: var(--ink2); }
+.rs-after .rs-lbl { right: 14px; background: var(--gold); color: var(--midnight); }
+.rs-handle { position: absolute; top: 0; bottom: 0; left: var(--p); width: 4px; margin-left: -2px; background: var(--gold); pointer-events: none; }
+.rs-handle span { position: absolute; top: 50%; left: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: var(--gold); box-shadow: 0 6px 16px rgba(16, 33, 58, .3); }
+.rs-handle span::before, .rs-handle span::after { content: ""; position: absolute; top: 50%; width: 0; height: 0; border: 7px solid transparent; margin-top: -7px; }
+.rs-handle span::before { left: 6px; border-right: 9px solid var(--midnight); border-left: 0; }
+.rs-handle span::after { right: 6px; border-left: 9px solid var(--midnight); border-right: 0; }
+.rs-range { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; pointer-events: none; }
+.rs-frame:focus-within { outline: 3px solid var(--midnight); outline-offset: 3px; }
+.rs-foot { margin: 14px 0 0; font-size: 16px; color: var(--ink2); }
 @media (max-width: 760px) {
-  .ba { padding: 16px; border-radius: 20px; }
-  .ba-side { padding: 44px 16px 20px; min-height: 200px; }
-  .ba-side p { font-size: 17px; }
+  .rs { padding: 16px; border-radius: 20px; }
+  .rs-side { padding: 44px 16px 20px; min-height: 200px; }
+  .rs-side p { font-size: 17px; }
 }
 
 /* ---------- 4. Trust: how I check every job, and the founder card ---------- */
@@ -132,9 +132,9 @@
   .sw-card.nudge { transition: none !important; }
 }
 @media print {
-  .me-play, .vmodal, .sw-btns, .sw-status, .sw-help, .ba-handle, .ba-tabs { display: none !important; }
-  .ba-after { clip-path: none !important; position: static; }
-  .ba-frame { display: block; }
+  .me-play, .vmodal, .sw-btns, .sw-status, .sw-help, .rs-handle, .rs-tabs { display: none !important; }
+  .rs-after { clip-path: none !important; position: static; }
+  .rs-frame { display: block; }
   .hero-sw { margin: 20px 0 0 !important; }
 }
 
@@ -163,8 +163,8 @@
   .mk .btn.line:hover, .mk .btn:not(.gold):not(.line):hover { transform: translateY(-2px); }
   .mk .btn.line:active, .mk .btn:not(.gold):not(.line):active { transform: translateY(1px) scale(.98); }
   .hero-sw .sw-btns button:active { transform: scale(.95); }
-  .ba-tabs button { transition: background-color .2s, color .2s, transform .15s; }
-  .ba-tabs button:active { transform: scale(.96); }
+  .rs-tabs button { transition: background-color .2s, color .2s, transform .15s; }
+  .rs-tabs button:active { transform: scale(.96); }
   @media (hover: hover) {
     .mk .trio .card, .mk .fit2 .card, .mk .kfacts div, .checks li, .mk .rcard, .fcard { transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s; }
     .mk .trio .card:hover, .mk .fit2 .card:hover, .mk .kfacts div:hover, .mk .rcard:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(16, 33, 58, .14); }

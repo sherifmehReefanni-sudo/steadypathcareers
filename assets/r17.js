@@ -127,8 +127,9 @@
 
   /* ---------- 3. Before and after slider ---------- */
   (function () {
-    var ba = d.querySelector('.ba'); if (!ba) return;
-    var frame = ba.querySelector('.ba-frame'), range = ba.querySelector('.ba-range'), panel = ba.querySelector('.ba-panel');
+    var ba = d.querySelector('.rs'); if (!ba) return;
+    var frame = ba.querySelector('.rs-frame'), range = ba.querySelector('.rs-range'), panel = ba.querySelector('.rs-panel');
+    if (!frame || !range || !panel) return;
     var tabs = [].slice.call(ba.querySelectorAll('[role="tab"]')), user = false, tween = null;
     function set(v, fromUser) {
       v = Math.max(0, Math.min(100, Math.round(v)));
@@ -153,21 +154,21 @@
     function end(e) { if (!drag || e.pointerId !== pid) return; if (axis === null) set(fromX(e.clientX), true); drag = false; }
     frame.addEventListener('pointerup', end); frame.addEventListener('pointercancel', function () { drag = false; });
     function show(k, focus) {
-      var tpl = ba.querySelector('template[data-ba-ex="' + k + '"]'); if (!tpl) return;
+      var tpl = ba.querySelector('template[data-rs-ex="' + k + '"]'); if (!tpl) return;
       var x = tpl.content;
       panel.querySelector('[data-f="title"]').textContent = x.querySelector('b').textContent;
       panel.querySelector('[data-f="wants"]').textContent = x.querySelector('span').textContent;
       var ps = x.querySelectorAll('p');
       panel.querySelector('[data-f="gen"]').lastChild.textContent = ps[0].textContent;
       panel.querySelector('[data-f="tail"]').lastChild.textContent = ps[1].textContent;
-      tabs.forEach(function (t) { var on = t.getAttribute('data-ba') === k; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; if (on) { panel.setAttribute('aria-labelledby', t.id); if (focus) t.focus(); } });
+      tabs.forEach(function (t) { var on = t.getAttribute('data-rs') === k; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; if (on) { panel.setAttribute('aria-labelledby', t.id); if (focus) t.focus(); } });
       set(50, false);
     }
-    ba.querySelector('.ba-tabs').addEventListener('click', function (e) { var t = e.target.closest('[role="tab"]'); if (t) show(t.getAttribute('data-ba')); });
-    ba.querySelector('.ba-tabs').addEventListener('keydown', function (e) {
+    ba.querySelector('.rs-tabs').addEventListener('click', function (e) { var t = e.target.closest('[role="tab"]'); if (t) show(t.getAttribute('data-rs')); });
+    ba.querySelector('.rs-tabs').addEventListener('keydown', function (e) {
       var n = tabs.indexOf(d.activeElement); if (n < 0) return;
       var m = e.key === 'ArrowRight' ? n + 1 : e.key === 'ArrowLeft' ? n - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : null;
-      if (m === null) return; e.preventDefault(); m = (m + tabs.length) % tabs.length; show(tabs[m].getAttribute('data-ba'), true);
+      if (m === null) return; e.preventDefault(); m = (m + tabs.length) % tabs.length; show(tabs[m].getAttribute('data-rs'), true);
     });
     set(50, false);
     /* With motion, the handle sweeps once when it first comes into view, to show it moves. Any touch stops it. */
@@ -198,10 +199,17 @@
     var lis = [].slice.call(road.children);
     if (RM() || !hasIO) { lis.forEach(function (li) { li.classList.add('lit'); }); return; }
     road.classList.add('armed');
-    var io = new IntersectionObserver(function (es) {
-      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('lit'); io.unobserve(e.target); } });
-    }, { rootMargin: '0px 0px -18% 0px', threshold: 0.5 });
-    lis.forEach(function (li) { io.observe(li); });
+    /* Light every stop whose top has passed 82% of the screen, so a fast scroll or an anchor jump never skips one. */
+    var tick = false;
+    function sweep() {
+      tick = false;
+      var lim = (w.innerHeight || 800) * 0.82;
+      lis = lis.filter(function (li) { if (li.getBoundingClientRect().top < lim) { li.classList.add('lit'); return false; } return true; });
+      if (!lis.length) { w.removeEventListener('scroll', on); w.removeEventListener('resize', on); }
+    }
+    function on() { if (!tick) { tick = true; raf(sweep); } }
+    w.addEventListener('scroll', on, { passive: true }); w.addEventListener('resize', on);
+    sweep();
   });
 
   /* ---------- 6b. Slim progress line on the right edge: how far down the page you are. ---------- */
