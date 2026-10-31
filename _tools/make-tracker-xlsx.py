@@ -114,7 +114,7 @@ def reached(stages):
 
 
 summary = [
-    ("Applications", f'=COUNTIF({A},"?*")', "0"),
+    ("Applications", f'=SUMPRODUCT(--({A}<>""))', "0"),  # same A<>"" test as Replies, so a numeric company name counts
     ("Replies", reached(["Heard back", "Interview", "Offer"]), "0"),
     ("Interviews", reached(["Interview", "Offer"]), "0"),
     ("Offers", reached(["Offer"]), "0"),

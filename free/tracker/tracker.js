@@ -214,7 +214,9 @@
   /* ---------- CSV export ---------- */
   function csvCell(v) {
     v = String(v == null ? '' : v);
-    if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; /* stops a spreadsheet from running it as a formula */
+    /* An apostrophe in front stops a spreadsheet from running it as a formula. A value that already starts with an apostrophe
+       and then one of those characters gets one more, so import (which removes exactly one) gives back what was typed. */
+    if (/^'*[=+\-@\t\r]/.test(v)) v = "'" + v;
     return /[",\r\n]/.test(v) || v !== v.trim() ? '"' + v.replace(/"/g, '""') + '"' : v;
   }
   function toCsv() {
@@ -247,14 +249,14 @@
     if (f !== '' || row.length) { row.push(f); out.push(row); }
     return out.filter(function (r) { return r.some(function (x) { return x.trim() !== ''; }); });
   }
-  function unguard(v) { v = String(v == null ? '' : v); return /^'[=+\-@\t\r]/.test(v) ? v.slice(1) : v; }
+  function unguard(v) { v = String(v == null ? '' : v); return /^'+[=+\-@\t\r]/.test(v) ? v.slice(1) : v; }
   function toIsoDate(v) {
     v = String(v || '').trim(); if (!v) return '';
     if (parseIso(v)) return v;
-    /* A date with a time after it (2026-10-05T00:00:00Z, 2026-10-05 09:30): keep the calendar day as written. Reading it as
-       UTC and converting would move it to the day before for anyone west of London. */
-    var mt = /^(\d{4})-(\d{1,2})-(\d{1,2})[T ]\d{1,2}:\d{2}/.exec(v);
-    if (mt) v = mt[1] + '-' + mt[2] + '-' + mt[3];
+    /* A date with a time after it (2026-10-05T00:00:00Z, 2026-10-05 09:30, 10/5/2026 9:30, 10/5/2026, 9:30 AM): keep the
+       calendar day as written. Reading it as UTC and converting would move it to the day before for anyone west of London. */
+    var mt = /^(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[\/.-]\d{1,2}[\/.-](?:\d{4}|\d{2}))(?:T|,?\s+)\d{1,2}:\d{2}/.exec(v);
+    if (mt) v = mt[1];
     var m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(v);
     if (m) { var x0 = new Date(+m[1], +m[2] - 1, +m[3]); return x0.getMonth() === +m[2] - 1 && x0.getDate() === +m[3] ? iso(x0) : ''; }
     m = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2}|\d{4})$/.exec(v);

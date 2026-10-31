@@ -286,32 +286,66 @@ document.addEventListener('click', function (e) {
   function stN() { return ost === 'NJ' ? 'New Jersey' : 'New York'; }
   function job() { if (!D) return null; for (var i = 0; i < D.jobs.length; i++) if (D.jobs[i].title === pick) return D.jobs[i]; return null; }
   /* Floors. 2026 minimum wage: $15.92 an hour in New Jersey ($15.23 at small and seasonal employers), $16 to $17 in New York.
-     $15 an hour sits under all of them, so anything lower is almost surely a typo. $15,000 a year is about half of full-time minimum wage. */
-  var MINHR = 15, MINYR = 15000, MAXYR = 2000000, MAXHR = 500;
-  /* Strict reading: an optional $, digits with commas only in thousands places, up to 2 decimals, an optional k after.
-     No minus signs, no exponents, no stray commas. Returns null for anything else. */
+     $15 an hour sits under all of them, so anything lower is almost surely a typo. $15,000 a year is about half of full-time minimum wage.
+     Per job, an offer must also sit between half the lowest-paid 25% mark and 2.5 times the highest-paid 25% mark; outside that
+     it is far more likely a typo or the wrong job match than a real offer, so no email is drafted. */
+  var MINHR = 15, MAXHR = 200, MINYR = 15000, MAXYR = 2000000, LOW = 0.5, HIGH = 2.5;
+  /* Strict reading: an optional $, digits with commas only in thousands places, up to 2 decimals, an optional k, and an optional
+     unit at the end ("/hr", "per hour", "an hour", "/yr", "a year"). No minus signs, no exponents, no stray commas. Null for anything else. */
   function parseAmt(t) {
-    var m = /^\$?\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(k)?$/i.exec(String(t || '').trim());
+    t = String(t || '').trim();
+    var unit = '', u = /^(.*?)\s*(?:\/|\bper\b|\ban?\b)?\s*(hours?|hourly|hrs?|h|years?|yearly|annually|annual|yrs?)\.?$/i.exec(t);
+    if (u && u[1]) { t = u[1]; unit = /^h/i.test(u[2]) ? 'hr' : 'yr'; }
+    var m = /^\$?\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(k)?$/i.exec(t);
     if (!m) return null;
     var n = parseFloat(m[1].replace(/,/g, '') + (m[2] ? '.' + m[2] : ''));
-    return { n: m[3] ? n * 1000 : n, cents: !!m[2] && !m[3], k: !!m[3] };
+    return { n: m[3] ? n * 1000 : n, cents: !!m[2] && !m[3], k: !!m[3], unit: unit };
   }
   /* School-year jobs (education occupations, SOC 25-xxxx) are not paid for 52 weeks, so an hourly rate times 2080 hours misleads. */
   function school(j) { return !!j && /^25-/.test(j.soc || ''); }
-  function amount() {
-    var raw = $('oamt').value.trim(); if (!raw) return { v: null };
+  function range(j, st) {
+    var d = j[st] || {}, lo = d.p25 != null ? d.p25 : d.p50, hi = d.p75 != null ? d.p75 : d.p50;
+    return { lo: lo, hi: hi, min: Math.max(MINYR, lo * LOW), max: Math.min(MAXYR, hi * HIGH) };
+  }
+  /* Why a yearly amount does not fit this job ('' when it fits). */
+  function yrWhy(v, R) {
+    if (v < MINYR) return 'That is under $15,000 a year, less than half of full-time pay at minimum wage. Check the amount.';
+    if (v < R.lo * LOW) return 'Your offer, ' + money(v) + ' a year, is less than half of the lowest-paid 25% mark for this job (' + money(R.lo) + '). Check the amount. If it is right, it may be part-time pay or a different job than this match, so I have not drafted an email.';
+    if (v > MAXYR) return 'That is over $2,000,000 a year. Check the amount.';
+    if (v > R.hi * HIGH) return 'Your offer, ' + money(v) + ' a year, is more than 2.5 times the highest-paid 25% mark for this job (' + money(R.hi) + '). Check the amount. If it is right, this match may be the wrong job, so I have not drafted an email.';
+    return '';
+  }
+  /* Why an hourly rate does not fit this job ('' when it fits). */
+  function hrWhy(h, R, j) {
+    if (school(j)) return 'Pay for ' + j.title + ' is usually set for a school year, not 52 weeks, so an hourly rate does not convert cleanly to these yearly figures. Switch to Yearly and enter the yearly pay in the offer.';
+    if (h < MINHR) return 'Under $15 an hour is below the 2026 minimum wage for most jobs in New Jersey ($15.92) and New York ($16 to $17). Check the amount.';
+    if (h > MAXHR) return 'That is over $200 an hour. Check the amount.';
+    var v = h * HRS, t = hrMoney(h) + ' an hour (about ' + money(v) + ' a year)';
+    if (v < R.lo * LOW) return 'Your offer, ' + t + ', is less than half of the lowest-paid 25% mark for this job (' + money(R.lo) + '). Check the amount. If it is right, it may be part-time pay or a different job than this match, so I have not drafted an email.';
+    if (v > R.hi * HIGH) return 'Your offer, ' + t + ', is more than 2.5 times the highest-paid 25% mark for this job (' + money(R.hi) + '). Check the amount. If it is right, this match may be the wrong job, so I have not drafted an email.';
+    return '';
+  }
+  /* The whole decision, with no page access, so it can be tested on its own.
+     Returns { empty } | { stop: message, to: 'hr' or 'yr' when the same text fits the other mode } | { v: yearly, hr: hourly or undefined }.
+     A switch is offered only when the number fits this job in the other mode, so the two modes never bounce. */
+  function judge(raw, mode, j, st) {
+    if (!String(raw || '').trim()) return { empty: true };
     var p = parseAmt(raw);
-    if (!p || !(p.n > 0)) return { v: null, msg: per === 'hr' ? 'Enter the hourly rate as a plain number, like 28.50. Check the amount.' : 'Enter the yearly amount as a plain number, like 58,000 or 58k. Check the amount.' };
-    var n = p.n;
-    if (per === 'hr') {
-      if (n > MAXHR) return { v: null, msg: 'That looks like a yearly amount, not an hourly rate. If it is yearly, switch to Yearly.', to: 'yr' };
-      if (n < MINHR) return { v: null, msg: 'Under $15 an hour is below the 2026 minimum wage for most jobs in New Jersey ($15.92) and New York ($16 to $17). Check the amount.' };
-      return { v: n * HRS, hr: n };
+    if (!p || !(p.n > 0)) return { stop: mode === 'hr' ? 'Enter the hourly rate as a plain number, like 28.50. Check the amount.' : 'Enter the yearly amount as a plain number, like 58,000 or 58k. Check the amount.' };
+    var R = range(j, st), n = p.n;
+    var fitsHr = !p.k && !hrWhy(n, R, j), fitsYr = !yrWhy(n, R);
+    if (mode === 'yr') {
+      var hourly = p.unit === 'hr' || (!p.k && p.unit !== 'yr' && (n < 200 || (p.cents && n < 1000)));
+      if (!hourly) return fitsYr ? { v: n } : { stop: yrWhy(n, R) };
+      if (fitsHr) return { stop: (p.cents ? hrMoney(n) : money(n)) + ' looks like an hourly rate, not a yearly salary. If it is hourly, switch to Hourly. If not, check the amount.', to: 'hr' };
+      return { stop: p.unit === 'hr' ? hrWhy(n, R, j) : (p.cents ? hrMoney(n) : money(n)) + ' is far too low for a yearly salary, and it is not a likely hourly rate for this job either. Check the amount.' };
     }
-    if (!p.k && (n < 200 || (p.cents && n < 1000))) return { v: null, msg: (p.cents ? hrMoney(n) : money(n)) + ' looks like an hourly rate, not a yearly salary. If it is hourly, switch to Hourly. If not, check the amount.', to: 'hr' };
-    if (n < MINYR) return { v: null, msg: 'That is under $15,000 a year, less than half of full-time pay at minimum wage. Check the amount. For part-time work, switch to Hourly and enter the hourly rate.', to: 'hr' };
-    if (n > MAXYR) return { v: null, msg: 'That is over $2,000,000 a year. Check the amount.' };
-    return { v: n };
+    if (p.k || p.unit === 'yr' || n > MAXHR) {
+      if (fitsYr) return { stop: 'That looks like a yearly amount, not an hourly rate. If it is yearly, switch to Yearly.', to: 'yr' };
+      if (p.k) return { stop: 'In Hourly mode, enter the rate without k, like 28.50. Check the amount.' };
+      return { stop: p.unit === 'yr' ? yrWhy(n, R) : hrWhy(n, R, j) };
+    }
+    return fitsHr ? { v: n * HRS, hr: n } : { stop: hrWhy(n, R, j) };
   }
   function hrMoney(n) { return '$' + n.toFixed(2); }
   /* Same thresholds and words as the lookup's "Compare a number". "Middle" is within 5% of the median. */
@@ -365,7 +399,7 @@ document.addEventListener('click', function (e) {
     var out = $('oOut'), mail = $('oMail');
     $('oSrc').innerHTML = D ? $('src').innerHTML : '';
     if (!D) { out.innerHTML = $('oq').value.trim() ? '<div class="rcard"><p class="none" style="margin:0">The pay data is still loading. Try again in a moment.</p></div>' : ''; mail.hidden = true; return; }
-    var q = $('oq').value.trim(), j = job(), a = amount();
+    var q = $('oq').value.trim(), j = job();
     if (!q) { out.innerHTML = ''; mail.hidden = true; return; }
     if (!j) { out.innerHTML = '<div class="rcard"><p class="none" style="margin:0">No match yet for "' + esc(q) + '". Try a simpler word, like "nurse", "technician", "clerk" or "sales".</p></div>'; mail.hidden = true; return; }
     var v = j[ost] || {}, lo = v.p25, mid = v.p50, hi = v.p75;
@@ -377,10 +411,9 @@ document.addEventListener('click', function (e) {
         (to ? '<button type="button" class="btn line ofr-switch" data-oswitch="' + to + '">' + (to === 'hr' ? 'Switch to Hourly' : 'Switch to Yearly') + '</button>' : '') + '</div>';
       mail.hidden = true; $('oText').value = '';
     };
-    if (a.v == null) { stop(a.msg || 'Enter the offer to see where it sits.', a.to); return; }
-    if (a.hr != null && school(j)) { stop('Pay for ' + j.title + ' is usually set for a school year, not 52 weeks, so an hourly rate does not convert cleanly to these yearly figures. Switch to Yearly and enter the yearly pay in the offer.', 'yr'); return; }
-    var floor = (lo != null ? lo : mid) * 0.5;
-    if (a.v < floor) { stop('Your offer, ' + (a.hr != null ? hrMoney(a.hr) + ' an hour (about ' + money(a.v) + ' a year)' : money(a.v) + ' a year') + ', is less than half of the lowest-paid 25% mark for this job (' + money(lo != null ? lo : mid) + '). Check the amount. If it is right, it may be part-time pay or a different job than this match, so I have not drafted an email.'); return; }
+    var a = judge($('oamt').value, per, j, ost);
+    if (a.empty) { stop('Enter the offer to see where it sits.'); return; }
+    if (a.stop) { stop(a.stop, a.to); return; }
     var pl = place(a.v, lo, mid, hi), sg = suggest(a.v, hi), ask = roundAsk(a.v, sg, a.hr);
     var min = Math.min(lo || mid, mid, a.v) * 0.9, max = Math.max(hi || mid, mid, a.v) * 1.08, pct = function (x) { return ((x - min) / (max - min) * 100).toFixed(1) + '%'; };
     var bar = lo != null && hi != null ? '<div class="bar" aria-hidden="true"><div class="span" style="left:' + pct(lo) + ';right:calc(100% - ' + pct(hi) + ')"></div><div class="dot" style="left:' + pct(mid) + '"></div><div class="you" style="left:' + pct(a.v) + '"><span>Offer</span></div></div>' : '';
@@ -393,7 +426,8 @@ document.addEventListener('click', function (e) {
     $('oText').value = draft(j, lo, mid, hi, ask);
     mail.hidden = false; $('oCopyMsg').textContent = '';
   }
-  function later(ms) { clearTimeout(oT); oT = setTimeout(render, ms || 0); }
+  /* Any change hides the old draft at once, so a draft written for an earlier amount is never shown or copied while the new one waits. */
+  function later(ms) { clearTimeout(oT); $('oMail').hidden = true; $('oCopyMsg').textContent = ''; oT = setTimeout(render, ms || 0); }
   $('oq').addEventListener('input', function () { matches(); later(400); });
   $('oMatch').addEventListener('change', function (e) { if (e.target.name === 'ojob') { pick = e.target.value; later(); } });
   $('oamt').addEventListener('input', function () { later(800); });
@@ -410,8 +444,11 @@ document.addEventListener('click', function (e) {
   });
   $('oCopy').addEventListener('click', function () {
     var t = $('oText'), msg = $('oCopyMsg');
-    function fallback() { t.focus(); t.select(); msg.textContent = 'The email is selected. Press Ctrl+C, or Cmd+C on a Mac, to copy it.'; }
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.value).then(function () { msg.textContent = 'Email copied. Fill in the parts in [brackets] before you send it.'; }, fallback);
+    /* Count the [blanks] still in the draft and name the first one. */
+    var left = t.value.match(/\[[^\]\n]{1,80}\]/g) || [];
+    var todo = left.length ? ' ' + left.length + (left.length === 1 ? ' blank' : ' blanks') + ' still to fill in, like ' + left[0] + '.' : '';
+    function fallback() { t.focus(); t.select(); msg.textContent = 'The email is selected. Press Ctrl+C, or Cmd+C on a Mac, to copy it.' + todo; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.value).then(function () { msg.textContent = 'Email copied.' + (todo || ' Read it over before you send it.'); }, fallback);
     else fallback();
   });
   /* Fill in the source line once the lookup has loaded the data. */
