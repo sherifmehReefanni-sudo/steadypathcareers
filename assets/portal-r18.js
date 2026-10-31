@@ -106,7 +106,7 @@ function r18Move(id, stage, closedAs) {
       else {
         var wasIv = boardCol(x) === 2 || !!x.interview; x.status = r.status || (closedAs || BOARD_STATUS[stage]);
         if (stage === 'interview' && !wasIv) x.ivLogged = t;
-        r18Opened(x); toast('Moved to ' + BOARD_COLS[boardCol(x)] + '.'); r18MsCheck(false);
+        r18Opened(x); toast(stage === 'hired' ? 'Marked as hired. Congratulations.' : 'Moved to ' + BOARD_COLS[boardCol(x)] + '.'); r18MsCheck(false);
       }
     } else r18Fail(r && r.error);
     render();
