@@ -85,7 +85,9 @@ BASE_CSS = r'''
 @media print {
   @page { margin: 14mm 13mm; }
   body.mk { font-size: 11pt; }
-  .phero-art, .phero .cta, .finale .ill, .fx-noprint { display: none !important; }
+  .phero-art, .phero .cta, .finale .ill, .fx-noprint, .foot nav, .foot .brand { display: none !important; }
+  .foot { padding: 6px 0 !important; }
+  .finale .btn::after { content: ": steadypathcareers.com/start/"; }
   .phero h1 { font-size: 24pt !important; }
   .sec { padding: 10px 0 !important; }
   a { color: #000 !important; }
@@ -126,14 +128,13 @@ SOURCES = {
 }
 
 KIT_CSS = BASE_CSS + r'''
-.fn { line-height: 0; }
-.fn a { position: relative; font-size: .72em; font-weight: 800; text-decoration: none; color: var(--navy); padding: 0 1px; vertical-align: super; }
+.fn, .fn-c { line-height: 0; font-size: .74em; vertical-align: super; }
+.fn a { position: relative; font-weight: 800; text-decoration: none; color: var(--navy); padding: 0 1px; }
 .fn a::after { content: ""; position: absolute; inset: -14px -6px; }
-.fn + .fn::before { content: ","; font-size: .72em; vertical-align: super; }
-.kit-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
+.prose .kit-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
 .kit-jump a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border-radius: 999px; background: #fff; border: 1px solid rgba(31,58,95,.18); font-weight: 800; font-size: 15px; text-decoration: none; color: var(--midnight); }
 .kit-jump a:hover { border-color: var(--gold); }
-.clocks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 20px 0 0; padding: 0; list-style: none; }
+.prose .clocks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 20px 0 0; padding: 0; list-style: none; }
 .clocks li { background: #fff; border: 1px solid rgba(31,58,95,.14); border-top: 5px solid var(--gold); border-radius: 14px; padding: 14px 16px; }
 .clocks b { display: block; font-size: 17px; color: var(--midnight); line-height: 1.3; }
 .clocks span { display: block; font-size: 16px; color: var(--ink2); line-height: 1.45; margin-top: 4px; }
@@ -151,7 +152,15 @@ KIT_CSS = BASE_CSS + r'''
 .alert b { color: var(--bad); }
 .k-wide { max-width: 980px; }
 .k-wide .prose { max-width: none; }
-.k-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.k-cols { margin-top: 18px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 600px) {
+  .prose .tw.stack { overflow: visible; }
+  .prose .tw.stack .cmp { min-width: 0; }
+  .tw.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tw.stack tr, .tw.stack th, .tw.stack td { display: block; width: auto !important; }
+  .tw.stack tbody th { background: var(--sunk); border-bottom: 0; padding-bottom: 6px; }
+  .tw.stack td::before { content: attr(data-label); display: block; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #6f5300; margin-bottom: 2px; }
+}
 .k-box { background: #fff; border: 1px solid rgba(31,58,95,.14); border-radius: 18px; padding: 20px; }
 .k-box h3 { margin-top: 0; }
 .prose .tw .cmp td:first-child, .prose .tw .cmp th:first-child { width: 22%; font-weight: 800; color: var(--midnight); }
@@ -169,13 +178,18 @@ KIT_CSS = BASE_CSS + r'''
 .srcs a { color: #F2D98A; }
 .srcs a.back { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 8px; font-weight: 800; text-decoration: none; }
 .disc { font-weight: 800; }
-@media (max-width: 900px) { .clocks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pw { display: none; }
+@media (max-width: 900px) { .prose .clocks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .states, .k-cols { grid-template-columns: minmax(0, 1fr); } .state { padding: 16px 16px 4px; } }
-@media (max-width: 420px) { .clocks { grid-template-columns: minmax(0, 1fr); } .dont > li { padding-left: 54px; } }
+@media (max-width: 420px) { .prose .clocks { grid-template-columns: minmax(0, 1fr); } .dont > li { padding-left: 54px; } }
 @media print {
   .kit-jump, .srcs a.back { display: none !important; }
-  .clocks { grid-template-columns: repeat(4, 1fr); }
-  .clocks li, .state, .k-box, .dont > li, .alert { box-shadow: none; break-inside: avoid; }
+  .prose .clocks { grid-template-columns: repeat(4, 1fr); }
+  .clocks li, .dont > li, .alert, .hrq > li, .ck > li, tr { box-shadow: none; break-inside: avoid; }
+  .state, .k-box { break-inside: auto; }
+  .when { display: none !important; }
+  .pw { display: inline; color: #6f5300; }
+  h2, h3 { break-after: avoid; }
   .states, .k-cols { grid-template-columns: 1fr 1fr; gap: 10px; }
   .prose p, .prose li, .state .ck > li { font-size: 10.5pt !important; line-height: 1.45 !important; }
   .when { background: #fff !important; color: #000 !important; border: 2px solid #000; }
@@ -219,7 +233,7 @@ KIT_BODY = r'''
 
 <section class="sec" id="hour-0" data-mile style="--a:#FAEEE0;--b:#F7E2C4"><div class="wrap k-wide"><div class="prose" data-reveal>
 ''' + when('Hour 0 to 1') + r'''
-<h2>Before you leave the meeting</h2>
+<h2><span class="pw">Hour 0 to 1: </span>Before you leave the meeting</h2>
 <ul class="ck">
 <li><b>Don&#x27;t sign anything today.</b> Ask for a copy of any severance agreement to take home. If you&#x27;re 40 or older and it asks you to give up age discrimination claims, the law gives you at least 21 days to consider it (45 in a group layoff).{{eeoc}}</li>
 <li><b>Ask the HR questions</b> in the <a href="#hr">list below</a>. Write down the answers, who gave them, and the date.</li>
@@ -231,7 +245,7 @@ KIT_BODY = r'''
 
 <section class="sec" id="day-1" data-mile style="--a:#F7E2C4;--b:#F4D0A2"><div class="wrap k-wide"><div class="prose" data-reveal>
 ''' + when('Hours 1 to 24') + r'''
-<h2>File for unemployment</h2>
+<h2><span class="pw">Hours 1 to 24: </span>File for unemployment</h2>
 <p>File in the state where you worked. Here is what each state asks for and what happens next.</p>
 <div class="alert" role="note"><b>New York system upgrade:</b> New York&#x27;s unemployment system goes offline at 5 p.m. on Monday, November 2, 2026, for an upgrade expected to take 9 to 12 days. Filing and certifying, online and by phone, pause during that time. The deadline to file or certify before it is 5 p.m. that Monday. Payments will be delayed, but New York says you&#x27;ll get everything you&#x27;re owed once you file or certify in the new system.{{ny-upgrade}}</div>
 </div>
@@ -262,15 +276,15 @@ KIT_BODY = r'''
 
 <section class="sec" id="day-2" data-mile style="--a:#F4D0A2;--b:#F0BC7E"><div class="wrap k-wide"><div class="prose" data-reveal>
 ''' + when('Hours 24 to 48') + r'''
-<h2>Health coverage and your severance</h2>
+<h2><span class="pw">Hours 24 to 48: </span>Health coverage and your severance</h2>
 <h3>COBRA or the marketplace?</h3>
 <p>You can keep your job&#x27;s plan through COBRA or buy your own through <a href="https://www.nj.gov/getcoverednj/">Get Covered New Jersey</a>{{gcnj}} or <a href="https://nystateofhealth.ny.gov/">NY State of Health</a>.{{nysoh}} Price both before you choose.</p>
-<div class="tw" role="region" aria-label="COBRA compared with the marketplace" tabindex="0"><table class="cmp"><thead><tr><th scope="col">&nbsp;</th><th scope="col">COBRA</th><th scope="col">Marketplace plan</th></tr></thead><tbody>
-<tr><th scope="row">Who it covers</th><td>Generally, group plans of private employers with at least 20 employees.{{dol-guide}}</td><td>Losing job-based coverage qualifies you for a Special Enrollment Period.{{gcnj}}</td></tr>
-<tr><th scope="row">Deadline</th><td>At least 60 days to elect,{{dol-guide}} counted from the later of the day coverage ends or the day your election notice is given or mailed to you.{{dol-faq}}</td><td>Up to 60 days before or 60 days after you lose coverage.{{hc-sep}} Get Covered NJ and NY State of Health give 60 days to report the change.{{gcnj-sep}}{{nysoh-sep}}</td></tr>
-<tr><th scope="row">Cost</th><td>You usually pay the full premium, including the part your employer paid,{{dol-faq}} up to 102% of the plan&#x27;s cost.{{dol-guide}}</td><td>May cost less than COBRA, especially if you qualify for savings based on your income.{{hc-cobra}}</td></tr>
-<tr><th scope="row">How long</th><td>18 months after a job ends, unless it ended for gross misconduct.{{dol-guide}}</td><td>Open enrollment for 2027 runs November 1 to January 31 in both NJ and NY.{{gcnj}}{{nysoh-oe}}</td></tr>
-<tr><th scope="row">Start date</th><td>Retroactive to the day you lost your plan, once you elect.{{dol-faq}} You have at least 45 days after electing to make the first payment.{{dol-guide}}</td><td>In NJ, coverage starts the first day of the month after you enroll.{{gcnj-sep}} In NY, enroll by December 15, 2026, for coverage starting January 1, 2027.{{nysoh-oe}}</td></tr>
+<div class="tw stack" role="region" aria-label="COBRA compared with the marketplace" tabindex="0"><table class="cmp"><thead><tr><th scope="col">&nbsp;</th><th scope="col">COBRA</th><th scope="col">Marketplace plan</th></tr></thead><tbody>
+<tr><th scope="row">Who it covers</th><td data-label="COBRA">Generally, group plans of private employers with at least 20 employees.{{dol-guide}}</td><td data-label="Marketplace plan">Losing job-based coverage qualifies you for a Special Enrollment Period.{{gcnj}}</td></tr>
+<tr><th scope="row">Deadline</th><td data-label="COBRA">At least 60 days to elect,{{dol-guide}} counted from the later of the day coverage ends or the day your election notice is given or mailed to you.{{dol-faq}}</td><td data-label="Marketplace plan">Up to 60 days before or 60 days after you lose coverage.{{hc-sep}} Get Covered NJ and NY State of Health give 60 days to report the change.{{gcnj-sep}}{{nysoh-sep}}</td></tr>
+<tr><th scope="row">Cost</th><td data-label="COBRA">You usually pay the full premium, including the part your employer paid,{{dol-faq}} up to 102% of the plan&#x27;s cost.{{dol-guide}}</td><td data-label="Marketplace plan">May cost less than COBRA, especially if you qualify for savings based on your income.{{hc-cobra}}</td></tr>
+<tr><th scope="row">How long</th><td data-label="COBRA">18 months after a job ends, unless it ended for gross misconduct.{{dol-guide}}</td><td data-label="Marketplace plan">Open enrollment for 2027 runs November 1 to January 31 in both NJ and NY.{{gcnj}}{{nysoh-oe}}</td></tr>
+<tr><th scope="row">Start date</th><td data-label="COBRA">Retroactive to the day you lost your plan, once you elect.{{dol-faq}} You have at least 45 days after electing to make the first payment.{{dol-guide}}</td><td data-label="Marketplace plan">In NJ, coverage starts the first day of the month after you enroll.{{gcnj-sep}} In NY, enroll by December 15, 2026, for coverage starting January 1, 2027.{{nysoh-oe}}</td></tr>
 </tbody></table></div>
 <ul class="ck">
 <li><b>Watch your mail for the COBRA notice.</b> Your employer must tell the plan within 30 days, and the plan must send your election notice within 14 days after that.{{dol-guide}}</li>
@@ -290,7 +304,7 @@ KIT_BODY = r'''
 
 <section class="sec" id="day-3" data-mile style="--a:#F0BC7E;--b:#EDB06C"><div class="wrap k-wide"><div class="prose" data-reveal>
 ''' + when('Hours 48 to 72') + r'''
-<h2>Final pay, then a gentle start on the search</h2>
+<h2><span class="pw">Hours 48 to 72: </span>Final pay, then a gentle start on the search</h2>
 <div class="k-cols">
 <div class="k-box"><h3>Final pay and time off</h3><ul class="ck">
 <li><b>NJ final paycheck:</b> your employer may wait until the next regular payday for that pay period.{{nj-wh}}</li>
@@ -352,6 +366,7 @@ def kit_sources_and_refs(body):
         rid = f'r{n}' if counts[k] == 1 else f'r{n}-{counts[k]}'
         return f'<sup class="fn"><a href="#s{n}" id="{rid}" aria-label="Source {n}">{n}</a></sup>'
     body = re.sub(r'\{\{([a-z0-9-]+)\}\}', rep, body)
+    body = body.replace('</a></sup><sup class="fn">', '</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn">')
     items = ''.join(f'<li id="s{i+1}">{SOURCES[k][0]}: <a href="{SOURCES[k][1]}">{SOURCES[k][1]}</a> <a class="back" href="#r{i+1}" aria-label="Back to the first mention of source {i+1}">Back</a></li>' for i, k in enumerate(order))
     unused = [k for k in SOURCES if k not in order]
     if unused: print('unused sources:', unused)
@@ -426,8 +441,8 @@ SCR_CSS = BASE_CSS + r'''
 .script .why { margin: 16px 0 0; font-size: 16px; line-height: 1.55; color: var(--ink2); }
 .script .why b { color: var(--midnight); }
 .script .more { font-size: 16px; margin: 10px 0 0; }
-.tips { max-width: 720px; }
-.tips li { font-size: 18px; line-height: 1.6; }
+.fx-tips { max-width: 720px; }
+.fx-tips li { font-size: 18px; line-height: 1.6; }
 @media (max-width: 760px) { .scr-toc { grid-template-columns: minmax(0, 1fr); } .script { padding: 18px 16px; border-radius: 16px; } .script .txt { font-size: 16px; padding: 14px; } }
 @media (prefers-reduced-motion: no-preference) { .copy { transition: background-color .15s, border-color .15s; } }
 @media print {
@@ -502,7 +517,7 @@ def build_scripts():
             '<p>Anything in brackets, like [Company] or [Your name], is yours to fill in. Keep the rest short. Every note here fits on a phone screen, and that&#x27;s on purpose.</p>'
             f'<ol class="scr-toc" aria-label="The eight scripts">{toc}</ol></div></div></section>\n')
     out += f'<section class="sec" data-mile style="--a:#F7E2C4;--b:#EDB06C"><div class="wrap"><p id="copy-status" class="vh" role="status" aria-live="polite"></p><ol class="scripts">{cards}</ol></div></section>\n'
-    out += ('<section class="sec" data-mile style="--a:#EDB06C;--b:#E9A45C"><div class="wrap"><div class="tips prose" data-reveal><h2>A few rules that help every script</h2><ul>'
+    out += ('<section class="sec" data-mile style="--a:#EDB06C;--b:#E9A45C"><div class="wrap"><div class="fx-tips prose" data-reveal><h2>A few rules that help every script</h2><ul>'
             '<li><b>Use their name</b> and the exact job title from the posting.</li>'
             '<li><b>Send to a person</b> when you can find one, not only a general inbox.</li>'
             '<li><b>One follow-up a week is plenty.</b> After two with no answer, send the closing-the-loop note and put your energy elsewhere.</li>'
@@ -526,8 +541,8 @@ a.tool:hover { transform: translateY(-4px); border-color: var(--gold); box-shado
 .tool.soon { background: rgba(255,255,255,.72); border-style: dashed; border-color: rgba(31,58,95,.35); }
 .tool .badge { align-self: flex-start; margin-top: auto; padding: 5px 12px; border-radius: 999px; background: var(--midnight); color: var(--cream); font-size: 14px; font-weight: 800; }
 .tool svg.ic { width: 48px; height: 48px; }
-.promise { max-width: 720px; }
-.promise li { font-size: 18px; line-height: 1.6; }
+.fx-promise { max-width: 720px; }
+.fx-promise li { font-size: 18px; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) { a.tool { transition: none; } a.tool:hover { transform: none; } }
 @media print { .tool { break-inside: avoid; } }
 '''
@@ -571,7 +586,7 @@ def build_hub():
                  '<a class="btn gold" data-cta href="#tools">See the tools</a>', HUB_ART)
     out += '<main id="main" class="trail-main" data-trail>\n'
     out += (f'<section class="sec" id="tools" data-mile style="--a:#FBE3CF;--b:#F4D0A2"><div class="wrap"><h2>Pick a tool</h2><p class="lead">Two are ready now. Three more are on the way.</p><ul class="tools">{cards}</ul></div></section>\n')
-    out += ('<section class="sec" data-mile style="--a:#F4D0A2;--b:#E9A45C"><div class="wrap"><div class="promise prose" data-reveal><h2>Free means free</h2><ul>'
+    out += ('<section class="sec" data-mile style="--a:#F4D0A2;--b:#E9A45C"><div class="wrap"><div class="fx-promise prose" data-reveal><h2>Free means free</h2><ul>'
             '<li>No account, no email address and nothing to fill in to use them.</li>'
             '<li>Each one is written by me, Sherif, for job seekers in NJ and NY.</li>'
             '<li>Where a tool states a rule or a deadline, it links to the official source.</li>'

@@ -40,20 +40,21 @@
 @media print {
   @page { margin: 14mm 13mm; }
   body.mk { font-size: 11pt; }
-  .phero-art, .phero .cta, .finale .ill, .fx-noprint { display: none !important; }
+  .phero-art, .phero .cta, .finale .ill, .fx-noprint, .foot nav, .foot .brand { display: none !important; }
+  .foot { padding: 6px 0 !important; }
+  .finale .btn::after { content: ": steadypathcareers.com/start/"; }
   .phero h1 { font-size: 24pt !important; }
   .sec { padding: 10px 0 !important; }
   a { color: #000 !important; }
 }
 
-.fn { line-height: 0; }
-.fn a { position: relative; font-size: .72em; font-weight: 800; text-decoration: none; color: var(--navy); padding: 0 1px; vertical-align: super; }
+.fn, .fn-c { line-height: 0; font-size: .74em; vertical-align: super; }
+.fn a { position: relative; font-weight: 800; text-decoration: none; color: var(--navy); padding: 0 1px; }
 .fn a::after { content: ""; position: absolute; inset: -14px -6px; }
-.fn + .fn::before { content: ","; font-size: .72em; vertical-align: super; }
-.kit-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
+.prose .kit-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
 .kit-jump a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border-radius: 999px; background: #fff; border: 1px solid rgba(31,58,95,.18); font-weight: 800; font-size: 15px; text-decoration: none; color: var(--midnight); }
 .kit-jump a:hover { border-color: var(--gold); }
-.clocks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 20px 0 0; padding: 0; list-style: none; }
+.prose .clocks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 20px 0 0; padding: 0; list-style: none; }
 .clocks li { background: #fff; border: 1px solid rgba(31,58,95,.14); border-top: 5px solid var(--gold); border-radius: 14px; padding: 14px 16px; }
 .clocks b { display: block; font-size: 17px; color: var(--midnight); line-height: 1.3; }
 .clocks span { display: block; font-size: 16px; color: var(--ink2); line-height: 1.45; margin-top: 4px; }
@@ -71,7 +72,15 @@
 .alert b { color: var(--bad); }
 .k-wide { max-width: 980px; }
 .k-wide .prose { max-width: none; }
-.k-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.k-cols { margin-top: 18px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 600px) {
+  .prose .tw.stack { overflow: visible; }
+  .prose .tw.stack .cmp { min-width: 0; }
+  .tw.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .tw.stack tr, .tw.stack th, .tw.stack td { display: block; width: auto !important; }
+  .tw.stack tbody th { background: var(--sunk); border-bottom: 0; padding-bottom: 6px; }
+  .tw.stack td::before { content: attr(data-label); display: block; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #6f5300; margin-bottom: 2px; }
+}
 .k-box { background: #fff; border: 1px solid rgba(31,58,95,.14); border-radius: 18px; padding: 20px; }
 .k-box h3 { margin-top: 0; }
 .prose .tw .cmp td:first-child, .prose .tw .cmp th:first-child { width: 22%; font-weight: 800; color: var(--midnight); }
@@ -89,13 +98,18 @@
 .srcs a { color: #F2D98A; }
 .srcs a.back { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 8px; font-weight: 800; text-decoration: none; }
 .disc { font-weight: 800; }
-@media (max-width: 900px) { .clocks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pw { display: none; }
+@media (max-width: 900px) { .prose .clocks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .states, .k-cols { grid-template-columns: minmax(0, 1fr); } .state { padding: 16px 16px 4px; } }
-@media (max-width: 420px) { .clocks { grid-template-columns: minmax(0, 1fr); } .dont > li { padding-left: 54px; } }
+@media (max-width: 420px) { .prose .clocks { grid-template-columns: minmax(0, 1fr); } .dont > li { padding-left: 54px; } }
 @media print {
   .kit-jump, .srcs a.back { display: none !important; }
-  .clocks { grid-template-columns: repeat(4, 1fr); }
-  .clocks li, .state, .k-box, .dont > li, .alert { box-shadow: none; break-inside: avoid; }
+  .prose .clocks { grid-template-columns: repeat(4, 1fr); }
+  .clocks li, .dont > li, .alert, .hrq > li, .ck > li, tr { box-shadow: none; break-inside: avoid; }
+  .state, .k-box { break-inside: auto; }
+  .when { display: none !important; }
+  .pw { display: inline; color: #6f5300; }
+  h2, h3 { break-after: avoid; }
   .states, .k-cols { grid-template-columns: 1fr 1fr; gap: 10px; }
   .prose p, .prose li, .state .ck > li { font-size: 10.5pt !important; line-height: 1.45 !important; }
   .when { background: #fff !important; color: #000 !important; border: 2px solid #000; }
@@ -132,11 +146,11 @@
 
 <section class="sec" id="hour-0" data-mile style="--a:#FAEEE0;--b:#F7E2C4"><div class="wrap k-wide"><div class="prose" data-reveal>
 <p class="when"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#C9A227"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="#10213A" stroke-width="2"/><path d="M12 8v4.4l3 1.8" fill="none" stroke="#10213A" stroke-width="2" stroke-linecap="round"/></svg><span>Hour 0 to 1</span></p>
-<h2>Before you leave the meeting</h2>
+<h2><span class="pw">Hour 0 to 1: </span>Before you leave the meeting</h2>
 <ul class="ck">
 <li><b>Don&#x27;t sign anything today.</b> Ask for a copy of any severance agreement to take home. If you&#x27;re 40 or older and it asks you to give up age discrimination claims, the law gives you at least 21 days to consider it (45 in a group layoff).<sup class="fn"><a href="#s3" id="r3-2" aria-label="Source 3">3</a></sup></li>
 <li><b>Ask the HR questions</b> in the <a href="#hr">list below</a>. Write down the answers, who gave them, and the date.</li>
-<li><b>Ask when your health coverage ends.</b> Get the date in writing if you can. Your COBRA and marketplace windows count from around then.<sup class="fn"><a href="#s6" id="r6" aria-label="Source 6">6</a></sup><sup class="fn"><a href="#s5" id="r5-2" aria-label="Source 5">5</a></sup></li>
+<li><b>Ask when your health coverage ends.</b> Get the date in writing if you can. Your COBRA and marketplace windows count from around then.<sup class="fn"><a href="#s6" id="r6" aria-label="Source 6">6</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn"><a href="#s5" id="r5-2" aria-label="Source 5">5</a></sup></li>
 <li><b>Save your own records.</b> Your recent pay stubs, your benefits summary and your contacts with coworkers you trust. Leave company files alone.</li>
 <li><b>Breathe.</b> Nothing on this list has to happen in the next hour except not signing.</li>
 </ul>
@@ -144,7 +158,7 @@
 
 <section class="sec" id="day-1" data-mile style="--a:#F7E2C4;--b:#F4D0A2"><div class="wrap k-wide"><div class="prose" data-reveal>
 <p class="when"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#C9A227"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="#10213A" stroke-width="2"/><path d="M12 8v4.4l3 1.8" fill="none" stroke="#10213A" stroke-width="2" stroke-linecap="round"/></svg><span>Hours 1 to 24</span></p>
-<h2>File for unemployment</h2>
+<h2><span class="pw">Hours 1 to 24: </span>File for unemployment</h2>
 <p>File in the state where you worked. Here is what each state asks for and what happens next.</p>
 <div class="alert" role="note"><b>New York system upgrade:</b> New York&#x27;s unemployment system goes offline at 5 p.m. on Monday, November 2, 2026, for an upgrade expected to take 9 to 12 days. Filing and certifying, online and by phone, pause during that time. The deadline to file or certify before it is 5 p.m. that Monday. Payments will be delayed, but New York says you&#x27;ll get everything you&#x27;re owed once you file or certify in the new system.<sup class="fn"><a href="#s7" id="r7" aria-label="Source 7">7</a></sup></div>
 </div>
@@ -154,7 +168,7 @@
 <li><b>When:</b> as soon as you&#x27;re out of work, but not before. Your claim doesn&#x27;t begin until you file, and it starts on the Sunday of the week you file.<sup class="fn"><a href="#s1" id="r1-2" aria-label="Source 1">1</a></sup></li>
 <li><b>Have ready:</b> your Social Security number; your NJ driver&#x27;s license or non-driver ID number; your Alien Registration Number if you&#x27;re not a U.S. citizen; for every employer in the last 18 months, its name, address and phone, your job, your start and end dates and why you left; the amount and length of any separation pay; any pension or 401(k) payments; and your bank account and routing numbers for direct deposit.<sup class="fn"><a href="#s9" id="r9" aria-label="Source 9">9</a></sup></li>
 <li><b>First payment request:</b> you certify for the first time on a Wednesday, 17 days after your claim date.<sup class="fn"><a href="#s1" id="r1-3" aria-label="Source 1">1</a></sup></li>
-<li><b>Every week after:</b> certify online each week, or every 2 weeks if you certify by phone. You can only certify after the week has ended.<sup class="fn"><a href="#s1" id="r1-4" aria-label="Source 1">1</a></sup><sup class="fn"><a href="#s10" id="r10" aria-label="Source 10">10</a></sup></li>
+<li><b>Every week after:</b> certify online each week, or every 2 weeks if you certify by phone. You can only certify after the week has ended.<sup class="fn"><a href="#s1" id="r1-4" aria-label="Source 1">1</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn"><a href="#s10" id="r10" aria-label="Source 10">10</a></sup></li>
 <li><b>How much:</b> up to $905 a week in 2026. To qualify, you need at least $310 a week for 20 weeks in your base year, or $15,500 total if you don&#x27;t have 20 such weeks.<sup class="fn"><a href="#s11" id="r11" aria-label="Source 11">11</a></sup></li>
 <li><b>Severance:</b> NJ says to file right away even if you&#x27;re getting severance. If your claim shows it may affect benefits, they&#x27;ll schedule an appointment to talk it through.<sup class="fn"><a href="#s1" id="r1-5" aria-label="Source 1">1</a></sup> Pay in lieu of notice is different: you can&#x27;t collect for a week it covers.<sup class="fn"><a href="#s12" id="r12" aria-label="Source 12">12</a></sup></li>
 <li><b>Look for work:</b> while you collect, you need to be actively looking for work.<sup class="fn"><a href="#s8" id="r8-2" aria-label="Source 8">8</a></sup></li>
@@ -175,19 +189,19 @@
 
 <section class="sec" id="day-2" data-mile style="--a:#F4D0A2;--b:#F0BC7E"><div class="wrap k-wide"><div class="prose" data-reveal>
 <p class="when"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#C9A227"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="#10213A" stroke-width="2"/><path d="M12 8v4.4l3 1.8" fill="none" stroke="#10213A" stroke-width="2" stroke-linecap="round"/></svg><span>Hours 24 to 48</span></p>
-<h2>Health coverage and your severance</h2>
+<h2><span class="pw">Hours 24 to 48: </span>Health coverage and your severance</h2>
 <h3>COBRA or the marketplace?</h3>
 <p>You can keep your job&#x27;s plan through COBRA or buy your own through <a href="https://www.nj.gov/getcoverednj/">Get Covered New Jersey</a><sup class="fn"><a href="#s19" id="r19" aria-label="Source 19">19</a></sup> or <a href="https://nystateofhealth.ny.gov/">NY State of Health</a>.<sup class="fn"><a href="#s20" id="r20" aria-label="Source 20">20</a></sup> Price both before you choose.</p>
-<div class="tw" role="region" aria-label="COBRA compared with the marketplace" tabindex="0"><table class="cmp"><thead><tr><th scope="col">&nbsp;</th><th scope="col">COBRA</th><th scope="col">Marketplace plan</th></tr></thead><tbody>
-<tr><th scope="row">Who it covers</th><td>Generally, group plans of private employers with at least 20 employees.<sup class="fn"><a href="#s4" id="r4-2" aria-label="Source 4">4</a></sup></td><td>Losing job-based coverage qualifies you for a Special Enrollment Period.<sup class="fn"><a href="#s19" id="r19-2" aria-label="Source 19">19</a></sup></td></tr>
-<tr><th scope="row">Deadline</th><td>At least 60 days to elect,<sup class="fn"><a href="#s4" id="r4-3" aria-label="Source 4">4</a></sup> counted from the later of the day coverage ends or the day your election notice is given or mailed to you.<sup class="fn"><a href="#s6" id="r6-2" aria-label="Source 6">6</a></sup></td><td>Up to 60 days before or 60 days after you lose coverage.<sup class="fn"><a href="#s5" id="r5-3" aria-label="Source 5">5</a></sup> Get Covered NJ and NY State of Health give 60 days to report the change.<sup class="fn"><a href="#s21" id="r21" aria-label="Source 21">21</a></sup><sup class="fn"><a href="#s22" id="r22" aria-label="Source 22">22</a></sup></td></tr>
-<tr><th scope="row">Cost</th><td>You usually pay the full premium, including the part your employer paid,<sup class="fn"><a href="#s6" id="r6-3" aria-label="Source 6">6</a></sup> up to 102% of the plan&#x27;s cost.<sup class="fn"><a href="#s4" id="r4-4" aria-label="Source 4">4</a></sup></td><td>May cost less than COBRA, especially if you qualify for savings based on your income.<sup class="fn"><a href="#s23" id="r23" aria-label="Source 23">23</a></sup></td></tr>
-<tr><th scope="row">How long</th><td>18 months after a job ends, unless it ended for gross misconduct.<sup class="fn"><a href="#s4" id="r4-5" aria-label="Source 4">4</a></sup></td><td>Open enrollment for 2027 runs November 1 to January 31 in both NJ and NY.<sup class="fn"><a href="#s19" id="r19-3" aria-label="Source 19">19</a></sup><sup class="fn"><a href="#s24" id="r24" aria-label="Source 24">24</a></sup></td></tr>
-<tr><th scope="row">Start date</th><td>Retroactive to the day you lost your plan, once you elect.<sup class="fn"><a href="#s6" id="r6-4" aria-label="Source 6">6</a></sup> You have at least 45 days after electing to make the first payment.<sup class="fn"><a href="#s4" id="r4-6" aria-label="Source 4">4</a></sup></td><td>In NJ, coverage starts the first day of the month after you enroll.<sup class="fn"><a href="#s21" id="r21-2" aria-label="Source 21">21</a></sup> In NY, enroll by December 15, 2026, for coverage starting January 1, 2027.<sup class="fn"><a href="#s24" id="r24-2" aria-label="Source 24">24</a></sup></td></tr>
+<div class="tw stack" role="region" aria-label="COBRA compared with the marketplace" tabindex="0"><table class="cmp"><thead><tr><th scope="col">&nbsp;</th><th scope="col">COBRA</th><th scope="col">Marketplace plan</th></tr></thead><tbody>
+<tr><th scope="row">Who it covers</th><td data-label="COBRA">Generally, group plans of private employers with at least 20 employees.<sup class="fn"><a href="#s4" id="r4-2" aria-label="Source 4">4</a></sup></td><td data-label="Marketplace plan">Losing job-based coverage qualifies you for a Special Enrollment Period.<sup class="fn"><a href="#s19" id="r19-2" aria-label="Source 19">19</a></sup></td></tr>
+<tr><th scope="row">Deadline</th><td data-label="COBRA">At least 60 days to elect,<sup class="fn"><a href="#s4" id="r4-3" aria-label="Source 4">4</a></sup> counted from the later of the day coverage ends or the day your election notice is given or mailed to you.<sup class="fn"><a href="#s6" id="r6-2" aria-label="Source 6">6</a></sup></td><td data-label="Marketplace plan">Up to 60 days before or 60 days after you lose coverage.<sup class="fn"><a href="#s5" id="r5-3" aria-label="Source 5">5</a></sup> Get Covered NJ and NY State of Health give 60 days to report the change.<sup class="fn"><a href="#s21" id="r21" aria-label="Source 21">21</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn"><a href="#s22" id="r22" aria-label="Source 22">22</a></sup></td></tr>
+<tr><th scope="row">Cost</th><td data-label="COBRA">You usually pay the full premium, including the part your employer paid,<sup class="fn"><a href="#s6" id="r6-3" aria-label="Source 6">6</a></sup> up to 102% of the plan&#x27;s cost.<sup class="fn"><a href="#s4" id="r4-4" aria-label="Source 4">4</a></sup></td><td data-label="Marketplace plan">May cost less than COBRA, especially if you qualify for savings based on your income.<sup class="fn"><a href="#s23" id="r23" aria-label="Source 23">23</a></sup></td></tr>
+<tr><th scope="row">How long</th><td data-label="COBRA">18 months after a job ends, unless it ended for gross misconduct.<sup class="fn"><a href="#s4" id="r4-5" aria-label="Source 4">4</a></sup></td><td data-label="Marketplace plan">Open enrollment for 2027 runs November 1 to January 31 in both NJ and NY.<sup class="fn"><a href="#s19" id="r19-3" aria-label="Source 19">19</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn"><a href="#s24" id="r24" aria-label="Source 24">24</a></sup></td></tr>
+<tr><th scope="row">Start date</th><td data-label="COBRA">Retroactive to the day you lost your plan, once you elect.<sup class="fn"><a href="#s6" id="r6-4" aria-label="Source 6">6</a></sup> You have at least 45 days after electing to make the first payment.<sup class="fn"><a href="#s4" id="r4-6" aria-label="Source 4">4</a></sup></td><td data-label="Marketplace plan">In NJ, coverage starts the first day of the month after you enroll.<sup class="fn"><a href="#s21" id="r21-2" aria-label="Source 21">21</a></sup> In NY, enroll by December 15, 2026, for coverage starting January 1, 2027.<sup class="fn"><a href="#s24" id="r24-2" aria-label="Source 24">24</a></sup></td></tr>
 </tbody></table></div>
 <ul class="ck">
 <li><b>Watch your mail for the COBRA notice.</b> Your employer must tell the plan within 30 days, and the plan must send your election notice within 14 days after that.<sup class="fn"><a href="#s4" id="r4-7" aria-label="Source 4">4</a></sup></li>
-<li><b>Know the trap:</b> dropping COBRA on your own, or stopping payments, doesn&#x27;t open a Special Enrollment Period.<sup class="fn"><a href="#s23" id="r23-2" aria-label="Source 23">23</a></sup><sup class="fn"><a href="#s21" id="r21-3" aria-label="Source 21">21</a></sup> Choosing COBRA first doesn&#x27;t block the marketplace later if you qualify for a new special enrollment.<sup class="fn"><a href="#s6" id="r6-5" aria-label="Source 6">6</a></sup></li>
+<li><b>Know the trap:</b> dropping COBRA on your own, or stopping payments, doesn&#x27;t open a Special Enrollment Period.<sup class="fn"><a href="#s23" id="r23-2" aria-label="Source 23">23</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn"><a href="#s21" id="r21-3" aria-label="Source 21">21</a></sup> Choosing COBRA first doesn&#x27;t block the marketplace later if you qualify for a new special enrollment.<sup class="fn"><a href="#s6" id="r6-5" aria-label="Source 6">6</a></sup></li>
 </ul>
 <h3 id="severance">Before you sign a severance agreement</h3>
 <ul class="ck">
@@ -196,14 +210,14 @@
 <li><b>You can sign early,</b> but only if it&#x27;s truly your choice. Your employer can&#x27;t push you with a threat to change the offer or with better terms for early signers.<sup class="fn"><a href="#s3" id="r3-4" aria-label="Source 3">3</a></sup></li>
 <li><b>Your right to file a charge stays.</b> Even after you sign, no agreement can take away your right to file a charge with the EEOC or to testify.<sup class="fn"><a href="#s3" id="r3-5" aria-label="Source 3">3</a></sup></li>
 <li><b>Get it reviewed.</b> The EEOC suggests considering a lawyer&#x27;s review, and making that appointment promptly instead of waiting until the deadline.<sup class="fn"><a href="#s3" id="r3-6" aria-label="Source 3">3</a></sup></li>
-<li><b>Ask how it&#x27;s paid.</b> A lump sum, salary continuation or pay in lieu of notice can change your unemployment, so check the severance lines in the state section above.<sup class="fn"><a href="#s12" id="r12-2" aria-label="Source 12">12</a></sup><sup class="fn"><a href="#s17" id="r17-2" aria-label="Source 17">17</a></sup></li>
+<li><b>Ask how it&#x27;s paid.</b> A lump sum, salary continuation or pay in lieu of notice can change your unemployment, so check the severance lines in the state section above.<sup class="fn"><a href="#s12" id="r12-2" aria-label="Source 12">12</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn"><a href="#s17" id="r17-2" aria-label="Source 17">17</a></sup></li>
 <li><b>Look for the strings.</b> What claims are you giving up? Is there a non-compete, a non-disparagement clause or a confidentiality clause? Does it say what your employer will tell reference checkers? Mark anything you don&#x27;t understand for the lawyer.</li>
 </ul>
 </div></div></section>
 
 <section class="sec" id="day-3" data-mile style="--a:#F0BC7E;--b:#EDB06C"><div class="wrap k-wide"><div class="prose" data-reveal>
 <p class="when"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#C9A227"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="#10213A" stroke-width="2"/><path d="M12 8v4.4l3 1.8" fill="none" stroke="#10213A" stroke-width="2" stroke-linecap="round"/></svg><span>Hours 48 to 72</span></p>
-<h2>Final pay, then a gentle start on the search</h2>
+<h2><span class="pw">Hours 48 to 72: </span>Final pay, then a gentle start on the search</h2>
 <div class="k-cols">
 <div class="k-box"><h3>Final pay and time off</h3><ul class="ck">
 <li><b>NJ final paycheck:</b> your employer may wait until the next regular payday for that pay period.<sup class="fn"><a href="#s25" id="r25" aria-label="Source 25">25</a></sup></li>
@@ -214,7 +228,7 @@
 </ul></div>
 <div class="k-box"><h3>A 72-hour job search starter</h3><ul class="ck">
 <li><b>Write down your wins</b> from this job while they&#x27;re fresh: numbers, projects, who you helped. <a href="/guides/numbers-on-your-resume/">Turn them into resume lines.</a></li>
-<li><b>Start a simple log</b> of every job you apply to and every contact you make. It doubles as your work search record for unemployment.<sup class="fn"><a href="#s18" id="r18-2" aria-label="Source 18">18</a></sup><sup class="fn"><a href="#s8" id="r8-3" aria-label="Source 8">8</a></sup></li>
+<li><b>Start a simple log</b> of every job you apply to and every contact you make. It doubles as your work search record for unemployment.<sup class="fn"><a href="#s18" id="r18-2" aria-label="Source 18">18</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn"><a href="#s8" id="r8-3" aria-label="Source 8">8</a></sup></li>
 <li><b>Tell five people you trust</b> that you&#x27;re looking. <a href="/free/follow-up-scripts/#referral">Here&#x27;s a referral note you can copy.</a></li>
 <li><b>Know your number</b> before anyone asks. Look it up in the <a href="/pay/">pay lookup</a>.</li>
 <li><b>Use the free help</b> your state offers. <a href="/guides/free-career-help/">Here&#x27;s what&#x27;s available in NJ and NY.</a></li>
@@ -229,8 +243,8 @@
 <li><b>Don&#x27;t sign the severance agreement in the room.</b> Take it home. If you&#x27;re 40 or older, you have at least 21 days by law, and 45 in a group layoff.<sup class="fn"><a href="#s3" id="r3-7" aria-label="Source 3">3</a></sup></li>
 <li><b>Don&#x27;t wait to file for unemployment</b> &quot;until things settle.&quot; In NJ, your claim doesn&#x27;t begin until you file.<sup class="fn"><a href="#s1" id="r1-6" aria-label="Source 1">1</a></sup></li>
 <li><b>Don&#x27;t cash out your 401(k).</b> If the money is paid to you, the plan withholds 20%, and you have 60 days to roll it over. Not rolling it over can mean extra tax, including a possible 10% additional tax unless an exception applies. A direct rollover has nothing withheld.<sup class="fn"><a href="#s29" id="r29" aria-label="Source 29">29</a></sup></li>
-<li><b>Don&#x27;t drop COBRA or skip a payment</b> without another plan lined up. Doing that on your own doesn&#x27;t open a Special Enrollment Period.<sup class="fn"><a href="#s23" id="r23-3" aria-label="Source 23">23</a></sup><sup class="fn"><a href="#s21" id="r21-4" aria-label="Source 21">21</a></sup></li>
-<li><b>Don&#x27;t rush the COBRA decision on day one.</b> You have at least 60 days, and if you elect, coverage reaches back to the day you lost your plan. You pay the premiums back to that date too.<sup class="fn"><a href="#s4" id="r4-8" aria-label="Source 4">4</a></sup><sup class="fn"><a href="#s6" id="r6-6" aria-label="Source 6">6</a></sup></li>
+<li><b>Don&#x27;t drop COBRA or skip a payment</b> without another plan lined up. Doing that on your own doesn&#x27;t open a Special Enrollment Period.<sup class="fn"><a href="#s23" id="r23-3" aria-label="Source 23">23</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn"><a href="#s21" id="r21-4" aria-label="Source 21">21</a></sup></li>
+<li><b>Don&#x27;t rush the COBRA decision on day one.</b> You have at least 60 days, and if you elect, coverage reaches back to the day you lost your plan. You pay the premiums back to that date too.<sup class="fn"><a href="#s4" id="r4-8" aria-label="Source 4">4</a></sup><sup class="fn-c" aria-hidden="true">,</sup><sup class="fn"><a href="#s6" id="r6-6" aria-label="Source 6">6</a></sup></li>
 <li><b>Don&#x27;t post about the layoff while you&#x27;re angry.</b> Future employers read public posts.</li>
 <li><b>Don&#x27;t pay anyone who promises you a job.</b></li>
 </ol>

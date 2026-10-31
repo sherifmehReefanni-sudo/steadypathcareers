@@ -241,4 +241,5 @@ body.has-mbar .foot { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0p
   .mk .topbar .links a { padding-left: 6px; padding-right: 6px; font-size: 14px; }
   .mk .phero .topbar .right { gap: 6px; font-size: 14px; }
   .mk .phero .topbar .right .btn { padding: 9px 14px; font-size: 14px; }
+  .mk .foot nav a { padding: 0 6px; }
 }
