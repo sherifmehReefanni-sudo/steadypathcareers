@@ -1,0 +1,65 @@
+/* Steady Path portal, round 18: board moves, follow-up and thank-you notes, milestone celebration, one-time home screen card. */
+.app .bd-moves { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 0; }
+.app .bd-moves .kbtn { min-height: 44px; }
+.app .bd-moves .kbtn.ghost { background: transparent; border-color: transparent; text-decoration: underline; color: var(--navy); }
+.app .bd-moves .kbtn[aria-disabled="true"] { opacity: .55; cursor: progress; }
+.app .bd-lab { flex: 1 0 100%; margin: 0; font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.app.rdy { border-left: 5px solid var(--gold); }
+.app .bd-note { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+.app .bd-fu { margin: 10px 0 0; background: var(--act-soft, #FBF3DA); border: 1px solid var(--gold); border-radius: 12px; padding: 10px 12px; }
+.app .bd-fuh { margin: 0; font-size: 14.5px; color: var(--ink); }
+.app .bd-fuh .pill { margin-right: 4px; }
+.app .bd-txt { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 500 14.5px/1.5 var(--display, Manrope, system-ui, sans-serif); color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.app .bd-ty { margin: 10px 0 0; border: 1px solid var(--line); border-left: 5px solid var(--navy); border-radius: 12px; padding: 4px 12px 10px; background: #fff; }
+.app .bd-ty summary, .app .bd-fud summary { min-height: 44px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 800; color: var(--navy); list-style: none; }
+.app .bd-ty summary::-webkit-details-marker, .app .bd-fud summary::-webkit-details-marker { display: none; }
+.app .bd-ty summary::before, .app .bd-fud summary::before { content: ""; width: 0; height: 0; border-left: 6px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; transition: transform .15s; }
+.app .bd-ty[open] summary::before, .app .bd-fud[open] summary::before { transform: rotate(90deg); }
+.app .bd-ty summary:focus-visible, .app .bd-fud summary:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; border-radius: 6px; }
+.app .bd-ty .psub { margin: 0; font-size: 14px; }
+.app .bd-ty .kbtn { margin-top: 8px; min-height: 44px; }
+.bd-sub { margin: 0; color: var(--muted); font-size: 15px; }
+
+/* milestone celebration: a short, quiet card; no motion with reduced motion */
+.ms-wrap { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px)); background: rgba(16, 33, 58, .55); }
+.ms-card { width: min(420px, 100%); box-sizing: border-box; background: #FBF6EE; color: #17233A; border-radius: 20px; border-top: 6px solid #C9A227; padding: 22px 20px 18px; text-align: center; box-shadow: 0 24px 60px rgba(16, 33, 58, .35); display: grid; gap: 10px; justify-items: center; }
+.ms-card h2 { margin: 0; font: 800 24px/1.2 var(--display, Manrope, system-ui, sans-serif); color: #1F3A5F; letter-spacing: -0.01em; }
+.ms-card h2:focus { outline: none; }
+.ms-card h2:focus-visible { outline: 3px solid #10213A; outline-offset: 4px; border-radius: 4px; }
+.ms-card p { margin: 0; font-size: 16px; line-height: 1.5; color: #2B2A28; }
+.ms-card .ms-ask { background: #F3E8CF; border-left: 4px solid #C9A227; border-radius: 8px; padding: 10px 12px; text-align: left; font-size: 15px; }
+.ms-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; }
+.ms-acts .btn { min-height: 48px; }
+.ms-acts .btn.ghost { background: transparent; color: #1F3A5F; border: 2px solid #1F3A5F; }
+.ms-acts .btn:focus-visible { outline: 3px solid #10213A; outline-offset: 2px; }
+.ms-sun { width: 64px; height: 40px; position: relative; overflow: hidden; }
+.ms-sun span { position: absolute; left: 8px; right: 8px; bottom: -24px; height: 48px; border-radius: 50%; background: #C9A227; box-shadow: 0 0 0 6px rgba(201, 162, 39, .25); }
+.ms-sun::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px; background: #1F3A5F; }
+@media (prefers-reduced-motion: no-preference) {
+  .ms-wrap:not(.still) { animation: msFade .22s ease-out both; }
+  .ms-wrap:not(.still) .ms-card { animation: msRise .32s cubic-bezier(.2, .8, .2, 1) both; }
+  .ms-wrap:not(.still) .ms-sun span { animation: msSun .9s .12s cubic-bezier(.2, .8, .2, 1) both; }
+  @keyframes msFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes msRise { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+  @keyframes msSun { from { transform: translateY(26px); } to { transform: none; } }
+}
+
+/* one-time home screen card */
+.a2once { grid-template-columns: 36px minmax(0, 1fr); }
+.a2once h2 { margin: 0; font: 800 17px/1.25 var(--display, Manrope, system-ui, sans-serif); color: var(--dawn, #F2D98A); }
+.a2once .a2-steps { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.a2once .a2-os { background: rgba(251, 246, 238, .08); border-radius: 12px; padding: 10px 12px; }
+.a2once h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--dawn, #F2D98A); }
+.a2once ol { margin: 0; padding-left: 20px; color: #E8EDF5; font-size: 14.5px; display: grid; gap: 2px; }
+.a2once .btn { min-height: 44px; }
+.a2once .btn.ghost:focus-visible, .a2once .btn.gold:focus-visible { outline: 3px solid #F2D98A; outline-offset: 2px; }
+
+/* r1: tighter cards on the five-column desktop board */
+@media (min-width: 1101px) {
+  .board .app { padding: 10px; }
+  .board .app .bd-moves { gap: 6px; }
+  .board .app .bd-moves .kbtn { padding-left: 10px; padding-right: 10px; font-size: 14px; }
+  .board .app .bd-txt { font-size: 13.5px; padding: 8px 10px; }
+  .board .app .bd-fu, .board .app .bd-ty { padding-left: 10px; padding-right: 10px; }
+  .board .app .bd-note, .board .app .bd-fuh { font-size: 13.5px; }
+}
