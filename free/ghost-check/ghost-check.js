@@ -1,6 +1,6 @@
 /* Steady Path Careers: Ghost Job Checker (r19c).
    Greenhouse and Lever links are checked here in the browser, straight against their public job APIs (both answer any origin).
-   Workable and Ashby links go to my Apps Script checker (action ghostCheck, v1.31). Until it is live, the old API answers
+   Workable and Ashby links go to my Apps Script checker (action ghostCheck, v1.33). Until it is live, the old API answers
    "unknown action" and the page says the check is coming soon.
    Privacy: the pasted link is never put in the address bar, localStorage, sessionStorage, cookies or analytics. The input has no
    name, so the form can never send it anywhere by itself. The rules below copy the live posting check (postingSource_ and
