@@ -1,6 +1,10 @@
 /* Builds the 1200x630 link-preview images in img/og/ by rendering HTML with Playwright.
    Run from the site root: node _tools/make-og.js
-   (Folders starting with "_" are left out of the GitHub Pages build, so this file is never published.) */
+   (Folders starting with "_" are left out of the GitHub Pages build, so this file is never published.)
+   Fonts: real Manrope and Newsreader from npm, used only here at build time and embedded in the render.
+     npm install --prefix <some build folder> @fontsource/manrope @fontsource/newsreader
+     FONTSOURCE_DIR=<some build folder> node _tools/make-og.js
+   The script stops if the fonts are missing, so it never falls back to a system font. */
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
@@ -12,10 +16,20 @@ const PAGES = [
   { file: 'pay', kicker: 'Free pay lookup', title: 'What does this job pay in NJ and NY?', foot: 'Typical yearly pay from government wage data.' },
   { file: 'sample', kicker: 'Sample report', title: 'Sample weekly report', foot: 'What a client sees each week. Sample data.' },
 ];
+function fontFace(family, pkg, file, weight, style) {
+  const base = process.env.FONTSOURCE_DIR ? [process.env.FONTSOURCE_DIR] : [];
+  const p = require.resolve('@fontsource/' + pkg + '/files/' + file, { paths: base.concat([process.cwd(), __dirname]) });
+  return `@font-face{font-family:"${family}";font-weight:${weight};font-style:${style};src:url(data:font/woff2;base64,${fs.readFileSync(p).toString('base64')}) format("woff2")}`;
+}
+const FONTS = [
+  fontFace('Manrope', 'manrope', 'manrope-latin-600-normal.woff2', 600, 'normal'),
+  fontFace('Manrope', 'manrope', 'manrope-latin-700-normal.woff2', 700, 'normal'),
+  fontFace('Manrope', 'manrope', 'manrope-latin-800-normal.woff2', 800, 'normal'),
+  fontFace('Newsreader', 'newsreader', 'newsreader-latin-500-italic.woff2', 500, 'italic'),
+].join('');
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const html = p => `<!doctype html><html><head><meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,500&display=block">
-<style>
+<style>${FONTS}
 *{box-sizing:border-box}html,body{margin:0}
 body{width:1200px;height:630px;overflow:hidden;font-family:Manrope,system-ui,sans-serif;color:#FBF6EE;
  background:radial-gradient(520px 360px at 930px 400px,rgba(242,217,138,.42),rgba(242,217,138,0) 70%),linear-gradient(160deg,#10213A 0%,#1F3A5F 100%);position:relative}
@@ -55,8 +69,10 @@ svg.scene{position:absolute;right:40px;top:120px;width:420px;height:400px}
   for (const p of PAGES) {
     await pg.setContent(html(p), { waitUntil: 'networkidle' });
     await pg.evaluate(() => document.fonts.ready);
-    const ok = await pg.evaluate(() => document.fonts.check('800 40px Manrope'));
-    if (!ok) console.warn('Manrope did not load for', p.file, '(falls back to system sans)');
+    const ok = await pg.evaluate(async () => { await document.fonts.load('800 40px Manrope'); await document.fonts.load('italic 500 30px Newsreader');
+      return [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family + ' ' + f.weight + ' ' + f.style); });
+    if (!ok.some(f => /Manrope 800/.test(f)) || !ok.some(f => /Newsreader 500 italic/.test(f))) throw new Error('Fonts did not load for ' + p.file + ': ' + ok.join(', '));
+    console.log('  fonts:', ok.join(', '));
     await pg.screenshot({ path: path.join(out, p.file + '.png'), type: 'png' });
     console.log('wrote img/og/' + p.file + '.png');
   }

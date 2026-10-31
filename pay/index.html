@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
 <link rel="stylesheet" href="/assets/site.css?v=20261023a">
 <link rel="stylesheet" href="/assets/path.css?v=20261027a">
-<link rel="stylesheet" href="/assets/r17.css?v=20261030b">
+<link rel="stylesheet" href="/assets/r17.css?v=20261031a">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Steady Path Careers">
 <meta property="og:url" content="https://steadypathcareers.com/pay/">
@@ -78,7 +78,7 @@
 .share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 16px; }
 .share[hidden] { display: none; }
 .share .btn { gap: 8px; }
-.mk .share-msg { margin: 0; font-weight: 700; color: var(--ok); font-size: 16px; }
+.mk .share-msg { margin: 0; font-weight: 700; color: var(--ink); font-size: 16px; }
 .share-link { flex-basis: 100%; padding: 12px; font: inherit; font-size: 15px; border: 2px solid #cfd6e3; border-radius: 10px; background: #fff; }
 @media (prefers-reduced-motion: no-preference) {
   .motion .res.anim .bar .span { animation: payDraw .8s cubic-bezier(.2,.8,.2,1) both; }
@@ -101,7 +101,7 @@
 <footer class="foot"><div class="wrap"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><nav aria-label="Footer"><a href="/services/">What you get</a><a href="/sample/">Sample report</a><a href="/pay/">Pay lookup</a><a href="/guides/">Guides</a><a href="/about/">About</a><a href="https://calendar.app.google/8wyFoDK5k6k1iamT9" target="_blank" rel="noopener">Book a call</a><a href="/portal/">Client sign in</a></nav><p class="where"><span class="wg wt">&copy; 2026 Steady Path Careers</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg wt">Monmouth County, NJ</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="/terms/">Terms</a> &middot; <a href="/privacy/">Privacy</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="tel:+17327590008">(732) 759-0008</a></span></p></div></footer>
 <script src="/assets/site.js?v=20261027a"></script>
 <script src="/assets/path.js?v=20261026a"></script>
-<script src="/assets/r17.js?v=20261030b"></script>
+<script defer src="/assets/r17.js?v=20261031a"></script>
 <script>
 var D = null, st = 'NJ', esc = SP.esc;
 var money = function (n) { return n == null ? 'n/a' : '$' + Math.round(n).toLocaleString('en-US'); };
@@ -111,7 +111,7 @@ function score(j, q) {
   var hit = 0; words.forEach(function (w) { if (at(t, w)) { hit++; s += at(j.title.toLowerCase(), w) ? 2 : 1; } });
   return words.length && hit === words.length ? s : 0;
 }
-var mineV = null, lastKey = '', RM = false;
+var mineV = null, lastKey = '', lastHits = [], sayT = null, RM = false;
 try { RM = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 function stName() { return st === 'NJ' ? 'New Jersey' : 'New York'; }
 /* The visitor's own number: shown as a "You" marker and one sentence. Never saved, never put in a link. */
@@ -141,8 +141,16 @@ function placeMine() {
     var num = function (k) { var x = c.getAttribute(k); return x === '' ? null : +x; };
     if (mineV == null) { if (you) you.hidden = true; say.hidden = true; say.textContent = ''; return; }
     if (you) { you.hidden = false; you.style.left = Math.max(0, Math.min(100, (mineV - min) / (max - min) * 100)).toFixed(1) + '%'; }
-    say.hidden = false; say.textContent = mineLine(num('data-lo'), num('data-mid'), num('data-hi'));
   });
+  /* The sentence sits in the live results area, so it is only written once typing pauses, and read out once. */
+  clearTimeout(sayT);
+  sayT = setTimeout(function () {
+    [].forEach.call(document.querySelectorAll('#res .rcard[data-mid]'), function (c) {
+      var say = c.querySelector('.mine-say'), num = function (k) { var x = c.getAttribute(k); return x === '' ? null : +x; };
+      if (mineV == null) { say.hidden = true; say.textContent = ''; return; }
+      say.hidden = false; say.textContent = mineLine(num('data-lo'), num('data-mid'), num('data-hi'));
+    });
+  }, 800);
 }
 /* Count the numbers up (decoration only: the real value is in the hidden text next to it). */
 function countUp(root) {
@@ -156,7 +164,8 @@ function countUp(root) {
   }
   requestAnimationFrame(step);
 }
-function shareUrl() { var q = document.getElementById('q').value.trim(); return location.origin + '/pay/?q=' + encodeURIComponent(q) + '&st=' + st; }
+/* The shared link holds the matched job title from the data and the state, never what was typed. */
+function shareUrl() { var t = lastHits.length ? lastHits[0].title : ''; return location.origin + '/pay/?q=' + encodeURIComponent(t) + '&st=' + st; }
 /* Source line: the dataset name links to its official page (source_url, https only), opening in a new tab.
    The survey period is part of the source name (e.g. "May 2025 state estimates"); "retrieved" is when we downloaded it,
    shown as the as-of date. */
@@ -172,12 +181,12 @@ function run() {
   var q = document.getElementById('q').value.trim(), out = document.getElementById('res');
   if (!D) return;
   var box = document.getElementById('shareBox');
-  if (!q) { out.innerHTML = ''; lastKey = ''; box.hidden = true; return; }
+  if (!q) { out.innerHTML = ''; lastKey = ''; lastHits = []; box.hidden = true; return; }
   var hits = D.jobs.map(function (j) { return [score(j, q), j]; }).filter(function (x) { return x[0]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, 4).map(function (x) { return x[1]; });
   /* Animate only when the set of results changes, not on every keystroke. */
   var key = st + '|' + hits.map(function (j) { return j.title; }).join('|');
   if (key === lastKey) return;
-  lastKey = key;
+  lastKey = key; lastHits = hits;
   out.innerHTML = hits.length ? hits.map(card).join('') : '<div class="rcard"><p class="none" style="margin:0">No match yet for "' + esc(q) + '". Try a simpler word, like "nurse", "technician", "clerk" or "sales".</p></div>';
   box.hidden = !hits.length; document.getElementById('shareMsg').textContent = ''; document.getElementById('shareLink').hidden = true;
   if (hits.length) { out.classList.remove('anim'); void out.offsetWidth; out.classList.add('anim'); countUp(out); }

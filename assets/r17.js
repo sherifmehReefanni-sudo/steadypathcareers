@@ -94,7 +94,8 @@
     if (!me || !dlg) return;
     var src = (me.getAttribute('data-video') || '').trim(), caps = (me.getAttribute('data-captions') || '').trim();
     var btn = me.querySelector('[data-welcome]');
-    if (!src || !btn || typeof dlg.showModal !== 'function') return;
+    /* The button shows only when both the video and its captions are set. */
+    if (!src || !caps || !btn || typeof dlg.showModal !== 'function') return;
     btn.hidden = false;
     var v = dlg.querySelector('video'), loaded = false;
     function load() {
@@ -248,14 +249,14 @@
 
   /* ---------- 7b. One gold shimmer on the hero "Start free", about 8 seconds after load. Never repeats. ---------- */
   (function () {
-    var b = d.querySelector('.phero [data-cta]'); if (!b) return;
+    var b = d.querySelector('.phero a.btn[data-cta][href="/start/"]'); if (!b) return;
     setTimeout(function () {
       if (RM() || d.hidden) return;
       b.classList.add('shimmer'); setTimeout(function () { b.classList.remove('shimmer'); }, 1400);
     }, 8000);
   })();
 
-  /* ---------- 9. Sticky action bar on phones: after the hero, it shows when you scroll up and hides when you scroll down. ---------- */
+  /* ---------- 9. Sticky action bar on phones: shows once you are past the hero; hidden while typing and while the footer is in view. ---------- */
   (function () {
     var hero = d.querySelector('.phero'); if (!hero) return;
     var bar = d.createElement('div');
@@ -264,22 +265,23 @@
       '<a class="btn line" href="sms:+17327590008" aria-label="Text me at (732) 759-0008"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5h16v10.5H9.5L5.5 19.5V16H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Text me</a>';
     d.body.appendChild(bar); d.body.classList.add('has-mbar');
     var mq2 = null; try { mq2 = w.matchMedia('(max-width: 760px)'); } catch (e) {}
-    var lastY = w.pageYOffset || 0, shown = false, tick = false;
+    var shown = false, tick = false, footIn = false;
     function set(on) { if (on === shown) return; shown = on; bar.classList.toggle('on', on); if (on) bar.removeAttribute('inert'); else bar.setAttribute('inert', ''); }
     set(false); bar.setAttribute('inert', '');
+    /* Hidden while the footer is on screen, so it never covers the footer links. */
+    var foot = d.querySelector('.foot');
+    if (foot && hasIO) new IntersectionObserver(function (es) { footIn = es[0].isIntersecting; check(); }).observe(foot);
     function check() {
       tick = false;
-      var y = w.pageYOffset || de.scrollTop, dy = y - lastY;
-      if (mq2 && !mq2.matches) { set(false); lastY = y; return; }
+      if (mq2 && !mq2.matches) { set(false); return; }
+      var y = w.pageYOffset || de.scrollTop;
       var past = y > hero.offsetTop + hero.offsetHeight - 40;
       var typing = d.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(d.activeElement.tagName);
-      if (!past || typing) set(false);
-      else if (dy < -6) set(true);
-      else if (dy > 6) { if (!bar.contains(d.activeElement)) set(false); }
-      if (Math.abs(dy) > 6) lastY = y;
+      set(past && !typing && !footIn);
     }
     w.addEventListener('scroll', function () { if (!tick) { tick = true; raf(check); } }, { passive: true });
     w.addEventListener('resize', check);
+    d.addEventListener('focusout', function () { setTimeout(check, 0); });
     d.addEventListener('focusin', check);
   })();
 })();
