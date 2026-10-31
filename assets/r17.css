@@ -212,6 +212,7 @@
 .mk .sec:not(.dark) { background-image: url("/img/grain.png"), linear-gradient(180deg, var(--a, var(--cream)), var(--b, var(--cream))); background-size: 96px 96px, auto; }
 .night .moon { position: absolute; top: 6px; right: max(0px, calc((100% - 1100px) / 2 - 40px)); width: min(340px, 52vw); height: auto; z-index: 1; pointer-events: none; }
 .night > .wrap { position: relative; z-index: 2; }
+@media (max-width: 1000px) { .night { padding-top: 140px; } .night .moon { top: 4px; right: 8px; width: 200px; } }
 @media (max-width: 760px) { .night { padding-top: 128px; } .night .moon { top: 4px; right: 0; width: 170px; opacity: .9; } }
 @media print { .night .moon { display: none; } .mk .sec:not(.dark) { background-image: none; } }
 

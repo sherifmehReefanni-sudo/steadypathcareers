@@ -1,6 +1,6 @@
 /* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage, and a page opened with ?t= or ?k= is not stored at all. Assets: cache first. API calls (script.google.com) are never touched, so no client data is ever cached. */
-var V = 'sp-20261031r17r18d';
-var ASSETS = ['/offline.html', '/assets/site.css?v=20261023a', '/assets/site.js?v=20261027a', '/assets/path.css?v=20261027a', '/assets/path.js?v=20261026a', '/assets/r17.css?v=20261031a', '/assets/r17.js?v=20261031a', '/assets/portal.css?v=20261024g', '/assets/portal.js?v=20261024e', '/assets/fx.js?v=20261024d', '/assets/intake.js?v=20261024d', '/assets/intake2.js?v=20261030g', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
+var V = 'sp-20261031r17r18e';
+var ASSETS = ['/offline.html', '/assets/site.css?v=20261023a', '/assets/site.js?v=20261027a', '/assets/path.css?v=20261027a', '/assets/path.js?v=20261026a', '/assets/r17.css?v=20261031b', '/assets/r17.js?v=20261031b', '/assets/portal.css?v=20261024g', '/assets/portal.js?v=20261024e', '/assets/fx.js?v=20261024d', '/assets/intake.js?v=20261024d', '/assets/intake2.js?v=20261030g', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
 /* round 18: the portal's app shell (the page and its round 18 files). Never client data: the API is cross-origin and never touched. */
 ASSETS = ASSETS.concat(['/portal/', '/assets/portal-r18.css?v=20261031c', '/assets/portal-r18.js?v=20261031c']);
 self.addEventListener('install', function (e) {
