@@ -45,11 +45,19 @@
       var raw = localStorage.getItem(KEY), list = raw ? JSON.parse(raw) : [];
       rows = Array.isArray(list) ? list.map(clean).filter(function (r) { return r.company; }) : [];
     } catch (e) { canStore = false; rows = rows || []; }
-    $('trkWarn').hidden = canStore;
+    if (!canStore) warn(WARN_BLOCKED);
   }
+  var WARN_BLOCKED = 'This browser is blocking storage on this page, so your list will be gone when you close it. Use Export CSV to keep a copy.';
+  var WARN_FULL = 'This browser\'s storage is full, so your latest changes are not saved. Use Export CSV to keep a copy, then clear some space or delete old jobs.';
+  function warn(t) { $('trkWarn').querySelector('p').textContent = t; $('trkWarn').hidden = !t; }
   function save() {
     if (!canStore) return;
-    try { localStorage.setItem(KEY, JSON.stringify(rows)); } catch (e) { canStore = false; $('trkWarn').hidden = false; }
+    try { localStorage.setItem(KEY, JSON.stringify(rows)); warn(''); }
+    catch (e) {
+      /* Storage full: keep trying on later saves (a delete may free space). Anything else: storage is off for this visit. */
+      if (e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 || e.code === 1014)) warn(WARN_FULL);
+      else { canStore = false; warn(WARN_BLOCKED); }
+    }
   }
   function find(id) { for (var i = 0; i < rows.length; i++) if (rows[i].id === id) return i; return -1; }
   function name(r) { return r.company + (r.role ? ', ' + r.role : ''); }
@@ -243,6 +251,10 @@
   function toIsoDate(v) {
     v = String(v || '').trim(); if (!v) return '';
     if (parseIso(v)) return v;
+    /* A date with a time after it (2026-10-05T00:00:00Z, 2026-10-05 09:30): keep the calendar day as written. Reading it as
+       UTC and converting would move it to the day before for anyone west of London. */
+    var mt = /^(\d{4})-(\d{1,2})-(\d{1,2})[T ]\d{1,2}:\d{2}/.exec(v);
+    if (mt) v = mt[1] + '-' + mt[2] + '-' + mt[3];
     var m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(v);
     if (m) { var x0 = new Date(+m[1], +m[2] - 1, +m[3]); return x0.getMonth() === +m[2] - 1 && x0.getDate() === +m[3] ? iso(x0) : ''; }
     m = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2}|\d{4})$/.exec(v);
@@ -266,14 +278,23 @@
     var all = parseCsv(text), h = -1, map;
     for (var i = 0; i < Math.min(all.length, 10); i++) { map = headerIndex(all[i]); if (map.company !== undefined) { h = i; break; } }
     if (h < 0) return { error: 'I could not find a Company column. The first row needs column names like Company, Role and Date applied.' };
-    var got = [], skipped = 0;
-    all.slice(h + 1, h + 2001).forEach(function (c) {
+    var got = [], skipped = 0, LIMIT = 2000, over = Math.max(0, all.length - (h + 1) - LIMIT);
+    all.slice(h + 1, h + 1 + LIMIT).forEach(function (c) {
       var g = function (k) { return map[k] === undefined ? '' : unguard(c[map[k]]); };
       var co = str(g('company'), 120); if (!co) { skipped++; return; }
       var s = statusOf(g('status')), reached = stage(statusOf(g('reached')));
       got.push(clean({ company: co, role: g('role'), link: normLink(g('link')), applied: toIsoDate(g('applied')), status: s, next: g('next'), notes: g('notes'), reached: Math.max(reached, stage(s)) }));
     });
-    return { rows: got, skipped: skipped };
+    return { rows: got, skipped: skipped, over: over };
+  }
+  /* Read the file's bytes as UTF-8. If they are not valid UTF-8 (an older Excel "CSV" save), read them as Windows-1252
+     so names like "Café Rouge" come through. A UTF-16 byte order mark is honored too. */
+  function decode(buf) {
+    var b = new Uint8Array(buf);
+    if (b[0] === 0xFF && b[1] === 0xFE) return new TextDecoder('utf-16le').decode(b);
+    if (b[0] === 0xFE && b[1] === 0xFF) return new TextDecoder('utf-16be').decode(b);
+    try { return new TextDecoder('utf-8', { fatal: true }).decode(b); }
+    catch (e) { return new TextDecoder('windows-1252').decode(b); }
   }
   function keyOf(r) { return [r.company, r.role, r.applied].join('|').toLowerCase(); }
   $('bImport').addEventListener('click', function () { $('csvFile').value = ''; $('csvFile').click(); });
@@ -282,18 +303,19 @@
     if (f.size > 2e6) { say('That file is over 2 MB. Pick a smaller CSV file.'); return; }
     var fr = new FileReader();
     fr.onload = function () {
-      var res = readImport(fr.result);
+      var res = readImport(decode(fr.result));
       if (res.error) { openPanel('That file did not work', res.error, [{ label: 'OK', run: function () { closePanel('bImport'); } }]); return; }
       if (!res.rows.length) { openPanel('No jobs found', 'The file has column names but no rows with a company.', [{ label: 'OK', run: function () { closePanel('bImport'); } }]); return; }
       pendingImport = res.rows;
-      var n = res.rows.length, txt = 'Found ' + n + (n === 1 ? ' job' : ' jobs') + ' in ' + f.name + '.' + (res.skipped ? ' ' + res.skipped + ' rows without a company were left out.' : '');
+      var n = res.rows.length, txt = 'Found ' + n + (n === 1 ? ' job' : ' jobs') + ' in ' + f.name + '.' + (res.skipped ? ' ' + res.skipped + ' rows without a company were left out.' : '') +
+        (res.over ? ' I read the first 2,000 rows only, so ' + res.over.toLocaleString('en-US') + (res.over === 1 ? ' more row was' : ' more rows were') + ' left out.' : '');
       var btns = [{ label: rows.length ? 'Add to my tracker' : 'Import ' + n + (n === 1 ? ' job' : ' jobs'), cls: 'gold', run: function () { doImport(false); } }];
       if (rows.length) btns.push({ label: 'Replace my tracker', run: function () { doImport(true); } });
       btns.push({ label: 'Cancel', run: function () { closePanel('bImport'); say('Nothing imported.'); } });
       openPanel('Import this file?', txt + (rows.length ? ' Add them to the ' + rows.length + ' already here, or replace your list with the file.' : ''), btns);
     };
     fr.onerror = function () { say('I could not read that file.'); };
-    fr.readAsText(f);
+    fr.readAsArrayBuffer(f);
   });
   function doImport(replace) {
     var inc = pendingImport || [], old = rows.slice(), added = 0, dup = 0;

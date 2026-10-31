@@ -126,6 +126,7 @@
 .ofr-copy { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .ofr [hidden] { display: none !important; }
 .ofr .bar .you span { white-space: nowrap; }
+.ofr-switch { margin-top: 12px; }
 @media (max-width: 640px) { .ofr-in { grid-template-columns: minmax(0, 1fr); } .ofr-mail { padding: 14px; } }
 </style>
 </head>
@@ -172,7 +173,7 @@ function mineLine(lo, mid, hi) {
   if (mineV == null) return '';
   var m = money(mineV), where;
   if (lo != null && mineV < lo) where = 'under the lowest-paid 25% mark (' + money(lo) + ')';
-  else if (Math.abs(mineV - mid) <= mid * 0.02) where = 'about the median';
+  else if (Math.abs(mineV - mid) <= mid * 0.05) where = 'about the median';
   else if (mineV < mid) where = 'between the lowest-paid 25% mark and the median';
   else if (hi == null || mineV <= hi) where = 'between the median and the highest-paid 25% mark';
   else where = 'over the highest-paid 25% mark (' + money(hi) + ')';
@@ -284,34 +285,59 @@ document.addEventListener('click', function (e) {
   var HRS = 2080; /* 40 hours a week, 52 weeks */
   function stN() { return ost === 'NJ' ? 'New Jersey' : 'New York'; }
   function job() { if (!D) return null; for (var i = 0; i < D.jobs.length; i++) if (D.jobs[i].title === pick) return D.jobs[i]; return null; }
+  /* Floors. 2026 minimum wage: $15.92 an hour in New Jersey ($15.23 at small and seasonal employers), $16 to $17 in New York.
+     $15 an hour sits under all of them, so anything lower is almost surely a typo. $15,000 a year is about half of full-time minimum wage. */
+  var MINHR = 15, MINYR = 15000, MAXYR = 2000000, MAXHR = 500;
+  /* Strict reading: an optional $, digits with commas only in thousands places, up to 2 decimals, an optional k after.
+     No minus signs, no exponents, no stray commas. Returns null for anything else. */
+  function parseAmt(t) {
+    var m = /^\$?\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(k)?$/i.exec(String(t || '').trim());
+    if (!m) return null;
+    var n = parseFloat(m[1].replace(/,/g, '') + (m[2] ? '.' + m[2] : ''));
+    return { n: m[3] ? n * 1000 : n, cents: !!m[2] && !m[3], k: !!m[3] };
+  }
+  /* School-year jobs (education occupations, SOC 25-xxxx) are not paid for 52 weeks, so an hourly rate times 2080 hours misleads. */
+  function school(j) { return !!j && /^25-/.test(j.soc || ''); }
   function amount() {
-    var n = parseFloat($('oamt').value.replace(/[^0-9.]/g, ''));
-    if (!(n > 0)) return { v: null };
-    if (per === 'hr') return n >= 7 && n <= 500 ? { v: n * HRS, hr: n } : { v: null, msg: n > 500 ? 'That looks like a yearly amount. Switch to Yearly, or enter an hourly rate.' : 'Enter an hourly rate of at least $7.' };
-    if (n < 1000) n = n * 1000; /* "58" or "58k" means 58,000, as in Compare a number */
-    return n >= 1000 && n <= 2000000 ? { v: n } : { v: null, msg: 'Enter a yearly amount up to $2,000,000.' };
+    var raw = $('oamt').value.trim(); if (!raw) return { v: null };
+    var p = parseAmt(raw);
+    if (!p || !(p.n > 0)) return { v: null, msg: per === 'hr' ? 'Enter the hourly rate as a plain number, like 28.50. Check the amount.' : 'Enter the yearly amount as a plain number, like 58,000 or 58k. Check the amount.' };
+    var n = p.n;
+    if (per === 'hr') {
+      if (n > MAXHR) return { v: null, msg: 'That looks like a yearly amount, not an hourly rate. If it is yearly, switch to Yearly.', to: 'yr' };
+      if (n < MINHR) return { v: null, msg: 'Under $15 an hour is below the 2026 minimum wage for most jobs in New Jersey ($15.92) and New York ($16 to $17). Check the amount.' };
+      return { v: n * HRS, hr: n };
+    }
+    if (!p.k && (n < 200 || (p.cents && n < 1000))) return { v: null, msg: (p.cents ? hrMoney(n) : money(n)) + ' looks like an hourly rate, not a yearly salary. If it is hourly, switch to Hourly. If not, check the amount.', to: 'hr' };
+    if (n < MINYR) return { v: null, msg: 'That is under $15,000 a year, less than half of full-time pay at minimum wage. Check the amount. For part-time work, switch to Hourly and enter the hourly rate.', to: 'hr' };
+    if (n > MAXYR) return { v: null, msg: 'That is over $2,000,000 a year. Check the amount.' };
+    return { v: n };
   }
   function hrMoney(n) { return '$' + n.toFixed(2); }
-  /* Same thresholds and words as the lookup's "Compare a number". */
+  /* Same thresholds and words as the lookup's "Compare a number". "Middle" is within 5% of the median. */
   function place(v, lo, mid, hi) {
     if (lo != null && v < lo) return [0, 'Below range', 'under the lowest-paid 25% mark (' + money(lo) + ')'];
-    if (Math.abs(v - mid) <= mid * 0.02) return [2, 'Middle', 'about the median'];
+    if (Math.abs(v - mid) <= mid * 0.05) return [2, 'Middle', 'about the median'];
     if (v < mid) return [1, 'Low', 'between the lowest-paid 25% mark and the median'];
     if (hi == null || v <= hi) return [3, 'High', 'between the median and the highest-paid 25% mark'];
     return [3, 'High', 'over the highest-paid 25% mark (' + money(hi) + ')'];
   }
   /* Suggested ask: 10% over the offer, kept at or under the highest-paid 25% mark but never less than 5% over the offer.
-     An offer already over that mark gets a 5% ask. */
+     An offer already over that mark, or so close that the mark is under 5% more, gets a 5% ask.
+     r: how roundAsk rounds the target ('up' for a 5% ask, 'near' otherwise); cap: a 10% ask is rounded down instead if rounding would pass the mark. */
   function suggest(v, hi) {
-    var f, why;
-    if (hi != null && v >= hi) { f = 1.05; why = 'Your offer is already over the highest-paid 25% mark, so I kept the ask small: 5% above the offer.'; }
-    else if (hi == null || v * 1.10 <= hi) { f = 1.10; why = 'That is 10% above the offer, a common size for a counter, and it stays under the highest-paid 25% mark for this job.'; }
-    else { f = Math.max(1.05, hi / v); why = 'That is about the highest-paid 25% mark for this job, at least 5% above the offer.'; }
-    return { f: f, why: why };
+    if (hi != null && v >= hi) return { f: 1.05, r: 'up', why: 'Your offer is already over the highest-paid 25% mark, so I kept the ask small: 5% above the offer.' };
+    if (hi == null || v * 1.10 <= hi) return { f: 1.10, r: 'near', cap: hi, why: 'That is about 10% above the offer, a common size for a counter' + (hi != null ? ', and it stays under the highest-paid 25% mark for this job.' : '.') };
+    if (hi / v < 1.05) return { f: 1.05, r: 'up', why: 'That is 5% above the offer, the smallest counter I suggest. It is a little over the highest-paid 25% mark for this job.' };
+    return { f: hi / v, r: 'near', why: 'That is about the highest-paid 25% mark for this job, at least 5% above the offer.' };
   }
-  function roundAsk(v, f, hr) {
-    if (hr != null) { var h = Math.round(hr * f * 4) / 4; return { hr: h, v: h * HRS }; }
-    return { v: Math.round(v * f / 500) * 500 };
+  /* Round to $500 a year or $0.25 an hour, then make sure the ask is never under 5% above the offer (rounding up when it would be). */
+  function roundAsk(v, sg, hr) {
+    var base = hr != null ? hr : v, step = hr != null ? 0.25 : 500, e = 1e-9, x = base * sg.f / step;
+    var r = (sg.r === 'up' ? Math.ceil(x - e) : Math.round(x)) * step;
+    if (sg.cap != null && (hr != null ? r * HRS : r) > sg.cap) r = Math.floor(x + e) * step;
+    r = Math.max(r, Math.ceil(base * 1.05 / step - e) * step);
+    return hr != null ? { hr: r, v: r * HRS } : { v: r };
   }
   function matches() {
     var q = $('oq').value.trim(), set = $('oMatchSet');
@@ -323,7 +349,9 @@ document.addEventListener('click', function (e) {
     $('oMatch').innerHTML = hits.map(function (j, i) { return '<label><input type="radio" name="ojob" value="' + esc(j.title) + '"' + (j.title === pick ? ' checked' : '') + '>' + esc(j.title) + '</label>'; }).join('');
   }
   function draft(j, lo, mid, hi, ask) {
-    var role = $('oq').value.trim() || j.title;
+    /* The data's job names are group names ("Registered Nurses"), so the opening lines use a [job title] blank for the
+       employer's own title. Never the search box text, which may be half typed. */
+    var role = '[job title]';
     var askT = ask.hr != null ? 'a rate of ' + hrMoney(ask.hr) + ' an hour' : 'a base salary of ' + money(ask.v);
     return 'Subject: The ' + role + ' offer\n\n' +
       'Hi [Hiring manager\'s name],\n\n' +
@@ -344,17 +372,22 @@ document.addEventListener('click', function (e) {
     if (mid == null) { out.innerHTML = '<div class="rcard"><h3>' + esc(j.title) + '</h3><p class="none">No pay data is published for this job in ' + stN() + '.</p></div>'; mail.hidden = true; return; }
     var legend = '<div class="legend">' + (lo != null ? '<span>The lowest-paid 25% earn under <b>' + money(lo) + '</b></span>' : '') + '<span>Median <b>' + money(mid) + '</b></span>' + (hi != null ? '<span>The highest-paid 25% earn over <b>' + money(hi) + '</b></span>' : '') + '</div>';
     var head = '<h3>' + esc(j.title) + '</h3><div class="psub">Typical yearly pay in ' + stN() + '</div>';
-    if (a.v == null) {
-      out.innerHTML = '<div class="rcard">' + head + legend + '<p class="ofr-verdict">' + esc(a.msg || 'Enter the offer to see where it sits.') + '</p></div>';
-      mail.hidden = true; return;
-    }
-    var pl = place(a.v, lo, mid, hi), sg = suggest(a.v, hi), ask = roundAsk(a.v, sg.f, a.hr);
+    var stop = function (msg, to) {
+      out.innerHTML = '<div class="rcard">' + head + legend + '<p class="ofr-verdict ofr-stop">' + esc(msg) + '</p>' +
+        (to ? '<button type="button" class="btn line ofr-switch" data-oswitch="' + to + '">' + (to === 'hr' ? 'Switch to Hourly' : 'Switch to Yearly') + '</button>' : '') + '</div>';
+      mail.hidden = true; $('oText').value = '';
+    };
+    if (a.v == null) { stop(a.msg || 'Enter the offer to see where it sits.', a.to); return; }
+    if (a.hr != null && school(j)) { stop('Pay for ' + j.title + ' is usually set for a school year, not 52 weeks, so an hourly rate does not convert cleanly to these yearly figures. Switch to Yearly and enter the yearly pay in the offer.', 'yr'); return; }
+    var floor = (lo != null ? lo : mid) * 0.5;
+    if (a.v < floor) { stop('Your offer, ' + (a.hr != null ? hrMoney(a.hr) + ' an hour (about ' + money(a.v) + ' a year)' : money(a.v) + ' a year') + ', is less than half of the lowest-paid 25% mark for this job (' + money(lo != null ? lo : mid) + '). Check the amount. If it is right, it may be part-time pay or a different job than this match, so I have not drafted an email.'); return; }
+    var pl = place(a.v, lo, mid, hi), sg = suggest(a.v, hi), ask = roundAsk(a.v, sg, a.hr);
     var min = Math.min(lo || mid, mid, a.v) * 0.9, max = Math.max(hi || mid, mid, a.v) * 1.08, pct = function (x) { return ((x - min) / (max - min) * 100).toFixed(1) + '%'; };
     var bar = lo != null && hi != null ? '<div class="bar" aria-hidden="true"><div class="span" style="left:' + pct(lo) + ';right:calc(100% - ' + pct(hi) + ')"></div><div class="dot" style="left:' + pct(mid) + '"></div><div class="you" style="left:' + pct(a.v) + '"><span>Offer</span></div></div>' : '';
     var offT = a.hr != null ? hrMoney(a.hr) + ' an hour' : money(a.v) + ' a year';
     out.innerHTML = '<div class="rcard">' + head +
       '<p class="ofr-verdict"><span class="ofr-tag t' + pl[0] + '">' + pl[1] + '</span> Your offer, ' + offT + ', is ' + pl[2] + '.</p>' +
-      (a.hr != null ? '<p class="ofr-conv">' + hrMoney(a.hr) + ' an hour is about ' + money(a.v) + ' a year at 40 hours a week.</p>' : '') +
+      (a.hr != null ? '<p class="ofr-conv">' + hrMoney(a.hr) + ' an hour is about ' + money(a.v) + ' a year at 40 hours a week. That assumes full-time work all year, 52 weeks. For part-time or seasonal work, the yearly total is lower.</p>' : '') +
       bar + legend +
       '<div class="ofr-ask"><h4 class="psub" style="margin:0;font-weight:800;color:var(--ink)">A suggested ask</h4><p class="ofr-askv">' + (ask.hr != null ? hrMoney(ask.hr) + ' an hour' : money(ask.v) + ' a year') + '</p><p>' + sg.why + '</p></div></div>';
     $('oText').value = draft(j, lo, mid, hi, ask);
@@ -366,6 +399,7 @@ document.addEventListener('click', function (e) {
   $('oamt').addEventListener('input', function () { later(800); });
   $('offer').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.oswitch) { var tb = document.querySelector('[data-oper="' + b.dataset.oswitch + '"]'); if (tb) tb.click(); $('oamt').focus(); return; }
     if (b.dataset.ost) { ost = b.dataset.ost; document.querySelectorAll('[data-ost]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); later(); }
     if (b.dataset.oper) {
       per = b.dataset.oper; document.querySelectorAll('[data-oper]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });

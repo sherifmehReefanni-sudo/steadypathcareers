@@ -60,17 +60,18 @@
 .mk .trk-tools .btn, .mk .trk-sm { min-height: 44px; padding: 8px 14px; font-size: 15px; }
 .mk .btn.trk-del { color: #8A2A20; }
 .trk-say-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; min-height: 0; margin: 0 0 10px; }
-.mk .trk-say { margin: 0; font-weight: 700; color: var(--ink); font-size: 16px; }
+.mk .trk-say { margin: 0; font-weight: 700; color: var(--ink); font-size: 16px; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
 .trk-say:empty { display: none; }
 .trk-panel { background: #fff; border: 2px solid var(--navy); border-radius: 16px; padding: 16px 18px; margin: 0 0 14px; }
 .trk-panel h4 { margin: 0 0 6px; font: 800 18px/1.3 var(--display); color: var(--midnight); }
 .trk-panel h4:focus { outline: none; }
-.mk .trk-panel p { margin: 0 0 12px; font-size: 16px; }
+.mk .trk-panel p { margin: 0 0 12px; font-size: 16px; overflow-wrap: anywhere; }
+.trk-panel h4 { overflow-wrap: anywhere; }
 .trk-empty { background: rgba(255,255,255,.7); border: 2px dashed rgba(31,58,95,.25); border-radius: 16px; padding: 22px; text-align: center; }
 .mk .trk-empty p { margin: 0; color: var(--ink2); }
 /* The list: a real table on wide screens, the same table drawn as cards on narrow ones. */
-.trk-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid rgba(31,58,95,.16); border-radius: 16px; overflow: hidden; font-size: 15px; }
-.trk-table th, .trk-table td { text-align: left; vertical-align: top; padding: 11px 10px; border-bottom: 1px solid var(--line); overflow-wrap: break-word; }
+.trk-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid rgba(31,58,95,.16); border-radius: 16px; overflow: hidden; font-size: 15px; }
+.trk-table th, .trk-table td { text-align: left; vertical-align: top; padding: 11px 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; hyphens: auto; min-width: 0; }
 .trk-table thead th { background: var(--navy); color: var(--cream); font-size: 14px; font-weight: 800; white-space: nowrap; }
 .trk-table tbody tr:last-child > * { border-bottom: 0; }
 .trk-table tbody th { font-weight: 800; color: var(--midnight); }
@@ -81,14 +82,16 @@
 .trk-table a { color: var(--navy); font-weight: 800; text-underline-offset: 3px; display: inline-flex; align-items: center; min-height: 44px; }
 .trk-table .muted { color: var(--ink2); font-size: 14px; display: block; }
 .trk-act { display: flex; flex-wrap: wrap; gap: 6px; }
-@media (min-width: 980px) { .trk-act { flex-wrap: nowrap; } }
-.trk-act button { font: inherit; font-size: 15px; font-weight: 800; min-height: 44px; min-width: 44px; padding: 6px 12px; border-radius: 10px; border: 2px solid var(--navy); background: #fff; color: var(--midnight); cursor: pointer; }
+.trk-table button, .trk-table select, .trk-table .tag { overflow-wrap: normal; }
+.trk-table .tag { white-space: normal; max-width: 100%; box-sizing: border-box; }
+.trk-table .tag svg { flex: none; }
+.trk-act button { white-space: nowrap; font: inherit; font-size: 15px; font-weight: 800; min-height: 44px; min-width: 44px; padding: 6px 12px; border-radius: 10px; border: 2px solid var(--navy); background: #fff; color: var(--midnight); cursor: pointer; }
 .trk-act button:hover { background: rgba(31,58,95,.08); }
 .trk-act button.del { border-color: #8A2A20; color: #8A2A20; }
 .tag { white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 800; border-radius: 99px; padding: 3px 9px; margin-top: 6px; line-height: 1.3; }
 .tag.flag { background: var(--bad-soft); color: #7A231A; }
 .tag.due { background: var(--gold-soft); color: #5a4300; }
-.c-co { width: 13%; } .c-role { width: 14%; } .c-link { width: 9%; } .c-ap { width: 9%; } .c-fu { width: 11%; } .c-st { width: 12%; } .c-nx { width: 12%; } .c-no { width: 12%; } .c-ac { width: 11%; }
+.c-co { width: 13%; } .c-role { width: 14%; } .c-link { width: 9%; } .c-ap { width: 8%; } .c-fu { width: 11%; } .c-st { width: 15%; } .c-nx { width: 11%; } .c-no { width: 9%; } .c-ac { width: 10%; }
 @media (max-width: 900px) {
   .trk-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -109,7 +112,9 @@
   .trk-table tbody td.c-role { display: block; padding-top: 0; font-weight: 700; }
   .trk-table .lbl { display: block; font-size: 14px; font-weight: 800; color: var(--ink2); padding-top: 2px; }
   .trk-table .c-co .lbl, .trk-table .c-role .lbl { display: none; }
-  .trk-table td.empty { display: none; }
+  /* Empty cells stay in the accessibility tree (visually hidden, not display: none) so every cell keeps its column header. */
+  .trk-table tbody tr { position: relative; }
+  .trk-table tbody td.empty { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
   .trk-table tbody td.c-ac { display: flex; padding-top: 8px; }
   .trk-table .c-ac .lbl { display: none; }
   .trk-table td.c-st .lbl { padding-top: 12px; }
@@ -163,7 +168,7 @@
 </div>
 </div></section>
 <section class="sec" id="how" data-mile style="--a:#FAEEE0;--b:#F7E2C4"><div class="wrap"><h2 data-reveal>How the tracker helps</h2><p class="lead" data-reveal>Four small habits that keep a job search moving.</p><div class="kfacts stagger"><div><b>Follow up at 7 days</b><span>The follow-up date is the day you applied plus 7. When it comes around, the job is marked "Follow up now".</span></div><div><b>Move on at 14 days</b><span>A job still at Applied after 14 days is flagged "No reply in 14+ days". Send one last note, then put your time into new applications.</span></div><div><b>Watch your reply rate</b><span>Replies divided by applications. If it stays low after 20 or so applications, the resume or the job targets usually need work.</span></div><div><b>Keep a copy</b><span>Export CSV saves everything to a file you own. Import CSV brings it back on a new phone or computer.</span></div></div></div></section>
-<section class="sec" id="sheet" data-mile style="--a:#F7E2C4;--b:#F0BC7E"><div class="wrap"><div class="prose"><h2 data-reveal>Prefer a spreadsheet?</h2><p>The same tracker as a spreadsheet, with the same columns. The follow-up date, the 14-day flag and a "Your numbers" box work out by themselves with formulas. It opens in Google Sheets, Excel and Numbers.</p>
+<section class="sec" id="sheet" data-mile style="--a:#F7E2C4;--b:#F0BC7E"><div class="wrap"><div class="prose"><h2 data-reveal>Prefer a spreadsheet?</h2><p>A similar layout for Excel or Google Sheets. Its first nine columns match the tracker&#39;s Export CSV, so you can paste an export straight in, and a Flag column follows. The follow-up date, the 14-day flag and a "Your numbers" box work out by themselves with formulas. Replies count the same way as here: set Furthest stage before you close a job and its reply still counts. It opens in Google Sheets, Excel and Numbers.</p>
 <div class="dl-row"><a class="btn gold" href="/free/tracker/steady-path-job-tracker.xlsx" download>Download the spreadsheet</a><p class="note2">Excel file (.xlsx), about 20 KB</p></div>
 <h3>Open it in Google Sheets: File &gt; Import</h3>
 <ol class="steps2">
@@ -179,7 +184,7 @@
 <script src="/assets/site.js?v=20261027a"></script>
 <script src="/assets/path.js?v=20261026a"></script>
 <script defer src="/assets/r17.js?v=20261031c"></script>
-<script src="/free/tracker/tracker.js?v=20261031a"></script>
+<script src="/free/tracker/tracker.js?v=20261031b"></script>
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6f62d1e0e28847dcab6b431376defda9"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
