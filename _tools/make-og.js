@@ -4,6 +4,7 @@
    Fonts: real Manrope and Newsreader from npm, used only here at build time and embedded in the render.
      npm install --prefix <some build folder> @fontsource/manrope @fontsource/newsreader
      FONTSOURCE_DIR=<some build folder> node _tools/make-og.js
+   ONLY=free renders just that image.
    The script stops if the fonts are missing, so it never falls back to a system font. */
 const { chromium } = require('playwright');
 const fs = require('fs');
@@ -15,7 +16,11 @@ const PAGES = [
   { file: 'guides', kicker: 'Guides', title: 'Job search guides', foot: 'Plain-English help for job seekers in NJ and NY.' },
   { file: 'pay', kicker: 'Free pay lookup', title: 'What does this job pay in NJ and NY?', foot: 'Typical yearly pay from government wage data.' },
   { file: 'sample', kicker: 'Sample report', title: 'Sample weekly report', foot: 'What a client sees each week. Sample data.' },
+  { file: 'free', kicker: 'Free tools', title: 'Free help for your job search', foot: 'Checklists and scripts. No sign-up needed.' },
 ];
+/* ONLY=free node _tools/make-og.js renders just the named images (comma-separated) and leaves the others untouched. */
+const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
+const RUN = ONLY.length ? PAGES.filter(p => ONLY.includes(p.file)) : PAGES;
 function fontFace(family, pkg, file, weight, style) {
   const base = process.env.FONTSOURCE_DIR ? [process.env.FONTSOURCE_DIR] : [];
   const p = require.resolve('@fontsource/' + pkg + '/files/' + file, { paths: base.concat([process.cwd(), __dirname]) });
@@ -66,7 +71,7 @@ svg.scene{position:absolute;right:40px;top:120px;width:420px;height:400px}
   fs.mkdirSync(out, { recursive: true });
   const b = await chromium.launch();
   const pg = await b.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
-  for (const p of PAGES) {
+  for (const p of RUN) {
     await pg.setContent(html(p), { waitUntil: 'networkidle' });
     await pg.evaluate(() => document.fonts.ready);
     const ok = await pg.evaluate(async () => { await document.fonts.load('800 40px Manrope'); await document.fonts.load('italic 500 30px Newsreader');
@@ -79,6 +84,6 @@ svg.scene{position:absolute;right:40px;top:120px;width:420px;height:400px}
   await b.close();
   /* Shrink to a 256-color palette (about 100 KB each) so WhatsApp and iMessage take them without trouble. */
   const py = "from PIL import Image\nimport sys\nfor p in sys.argv[1:]:\n  Image.open(p).convert('RGB').quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG).save(p, optimize=True)";
-  require('child_process').execFileSync('python3', ['-c', py].concat(PAGES.map(p => path.join(out, p.file + '.png'))), { stdio: 'inherit' });
+  require('child_process').execFileSync('python3', ['-c', py].concat(RUN.map(p => path.join(out, p.file + '.png'))), { stdio: 'inherit' });
   console.log('shrunk');
 })();

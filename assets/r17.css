@@ -233,3 +233,13 @@ body.has-mbar .foot { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0p
 
 /* WCAG 2.2 2.4.11: keep keyboard focus clear of the phone bar */
 @media (max-width:760px){html{scroll-padding-bottom:84px}}
+
+/* r19a: the desktop top bar holds eight links (Free tools added), so links and the right side sit a little tighter above 1100px. */
+@media (min-width: 1101px) {
+  .mk .topbar { gap: 10px; }
+  .mk .topbar .links { margin-left: 0; }
+  .mk .topbar .links a { padding-left: 6px; padding-right: 6px; font-size: 14px; }
+  .mk .phero .topbar .right { gap: 6px; font-size: 14px; }
+  .mk .phero .topbar .right .btn { padding: 9px 14px; font-size: 14px; }
+  .mk .foot nav a { padding: 0 6px; }
+}
