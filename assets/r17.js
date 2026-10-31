@@ -189,4 +189,89 @@
       io.observe(frame);
     }
   })();
+
+  /* ======================= Tier 2 ======================= */
+  var hasIO = 'IntersectionObserver' in w, raf = w.requestAnimationFrame || function (f) { return setTimeout(f, 16); };
+
+  /* ---------- 6a. "How it works" stops light up as they come into view. With reduced motion they are simply lit. ---------- */
+  [].forEach.call(d.querySelectorAll('.road[data-stops]'), function (road) {
+    var lis = [].slice.call(road.children);
+    if (RM() || !hasIO) { lis.forEach(function (li) { li.classList.add('lit'); }); return; }
+    road.classList.add('armed');
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('lit'); io.unobserve(e.target); } });
+    }, { rootMargin: '0px 0px -18% 0px', threshold: 0.5 });
+    lis.forEach(function (li) { io.observe(li); });
+  });
+
+  /* ---------- 6b. Slim progress line on the right edge: how far down the page you are. ---------- */
+  (function () {
+    if (!d.querySelector('[data-trail]')) return;
+    var bar = d.createElement('div'); bar.className = 'sp-prog'; bar.setAttribute('aria-hidden', 'true');
+    var fill = d.createElement('i'); bar.appendChild(fill); d.body.appendChild(bar);
+    var tick = false;
+    function paint() {
+      tick = false;
+      var max = Math.max(1, de.scrollHeight - w.innerHeight), y = w.pageYOffset || de.scrollTop;
+      bar.style.display = de.scrollHeight > w.innerHeight * 1.6 ? '' : 'none';
+      fill.style.transform = 'scaleY(' + Math.min(1, Math.max(0, y / max)).toFixed(4) + ')';
+    }
+    function on() { if (!tick) { tick = true; raf(paint); } }
+    w.addEventListener('scroll', on, { passive: true }); w.addEventListener('resize', on); w.addEventListener('load', on);
+    paint();
+  })();
+
+  /* ---------- 7a. Check marks draw themselves when they come into view (motion only). ---------- */
+  if (!RM() && hasIO) {
+    var lists = [].slice.call(d.querySelectorAll('.fit2 ul, .price2 ul'));
+    var cio = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('live'); cio.unobserve(e.target); } });
+    }, { threshold: 0.35 });
+    lists.forEach(function (ul) {
+      /* only lists still below the fold, so nothing already on screen blinks */
+      if (ul.getBoundingClientRect().top < (w.innerHeight || 800)) return;
+      [].forEach.call(ul.querySelectorAll('li > svg'), function (svg) {
+        var ps = svg.querySelectorAll('path'); var p = ps[ps.length - 1]; if (!p) return;
+        p.setAttribute('pathLength', '1'); p.classList.add('ckp');
+      });
+      ul.classList.add('ckdraw'); cio.observe(ul);
+    });
+  }
+
+  /* ---------- 7b. One gold shimmer on the hero "Start free", about 8 seconds after load. Never repeats. ---------- */
+  (function () {
+    var b = d.querySelector('.phero [data-cta]'); if (!b) return;
+    setTimeout(function () {
+      if (RM() || d.hidden) return;
+      b.classList.add('shimmer'); setTimeout(function () { b.classList.remove('shimmer'); }, 1400);
+    }, 8000);
+  })();
+
+  /* ---------- 9. Sticky action bar on phones: after the hero, it shows when you scroll up and hides when you scroll down. ---------- */
+  (function () {
+    var hero = d.querySelector('.phero'); if (!hero) return;
+    var bar = d.createElement('div');
+    bar.className = 'mbar'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Quick actions');
+    bar.innerHTML = '<a class="btn gold" href="/start/">Start free</a>' +
+      '<a class="btn line" href="sms:+17327590008" aria-label="Text me at (732) 759-0008"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5h16v10.5H9.5L5.5 19.5V16H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Text me</a>';
+    d.body.appendChild(bar); d.body.classList.add('has-mbar');
+    var mq2 = null; try { mq2 = w.matchMedia('(max-width: 760px)'); } catch (e) {}
+    var lastY = w.pageYOffset || 0, shown = false, tick = false;
+    function set(on) { if (on === shown) return; shown = on; bar.classList.toggle('on', on); if (on) bar.removeAttribute('inert'); else bar.setAttribute('inert', ''); }
+    set(false); bar.setAttribute('inert', '');
+    function check() {
+      tick = false;
+      var y = w.pageYOffset || de.scrollTop, dy = y - lastY;
+      if (mq2 && !mq2.matches) { set(false); lastY = y; return; }
+      var past = y > hero.offsetTop + hero.offsetHeight - 40;
+      var typing = d.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(d.activeElement.tagName);
+      if (!past || typing) set(false);
+      else if (dy < -6) set(true);
+      else if (dy > 6) { if (!bar.contains(d.activeElement)) set(false); }
+      if (Math.abs(dy) > 6) lastY = y;
+    }
+    w.addEventListener('scroll', function () { if (!tick) { tick = true; raf(check); } }, { passive: true });
+    w.addEventListener('resize', check);
+    d.addEventListener('focusin', check);
+  })();
 })();

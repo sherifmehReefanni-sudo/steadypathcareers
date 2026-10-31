@@ -137,3 +137,85 @@
   .ba-frame { display: block; }
   .hero-sw { margin: 20px 0 0 !important; }
 }
+
+/* ======================= Tier 2 ======================= */
+
+/* ---------- 6. The path comes alive: "how it works" stops light up, and a slim progress line ---------- */
+.road .n .ri { position: absolute; right: -12px; top: -10px; width: 32px; height: 32px; padding: 5px; border-radius: 50%; background: #fff; box-shadow: 0 4px 10px rgba(16, 33, 58, .18); fill: none; stroke: var(--midnight); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.road .n { transition: background-color .45s, color .45s, box-shadow .45s; }
+.road li.lit .n { background: var(--gold); color: var(--midnight); box-shadow: 0 0 0 6px var(--b, var(--cream)), 0 0 0 10px rgba(201, 162, 39, .28); }
+.road .ri .ia { stroke-dasharray: 1; stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .motion .road[data-stops].armed li:not(.lit) .ri { opacity: 0; transform: scale(.4); }
+  .motion .road[data-stops].armed .ri { transition: opacity .35s, transform .5s cubic-bezier(.3, 1.6, .5, 1); }
+  .motion .road[data-stops].armed li:not(.lit) .ri .ia { stroke-dashoffset: 1; }
+  .motion .road[data-stops].armed li.lit .ri .ia { animation: draw .8s .25s cubic-bezier(.4, .1, .2, 1) both; }
+  .motion .road[data-stops].armed li.lit .ri .ib { animation: riSlide 1.4s .2s cubic-bezier(.5, 0, .3, 1) 1; }
+  .motion .road[data-stops].armed li.lit .ri .ic2 { transform-box: fill-box; transform-origin: 20% 100%; animation: pop .55s .25s cubic-bezier(.3, 1.6, .5, 1) both; }
+}
+@keyframes riSlide { 0%, 100% { transform: none; } 45%, 60% { transform: translateX(3px) rotate(6deg); } }
+.sp-prog { position: fixed; top: 0; right: 0; width: 4px; height: 100vh; z-index: 40; pointer-events: none; background: rgba(31, 58, 95, .08); }
+.sp-prog i { display: block; width: 100%; height: 100%; background: linear-gradient(180deg, var(--gold), #D9783F); transform-origin: top; transform: scaleY(0); }
+@media print { .sp-prog { display: none; } }
+
+/* ---------- 7. Micro-interactions (hover only on devices that hover; nothing moves with reduced motion) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .mk .btn.line:hover, .mk .btn:not(.gold):not(.line):hover { transform: translateY(-2px); }
+  .mk .btn.line:active, .mk .btn:not(.gold):not(.line):active { transform: translateY(1px) scale(.98); }
+  .hero-sw .sw-btns button:active { transform: scale(.95); }
+  .ba-tabs button { transition: background-color .2s, color .2s, transform .15s; }
+  .ba-tabs button:active { transform: scale(.96); }
+  @media (hover: hover) {
+    .mk .trio .card, .mk .fit2 .card, .mk .kfacts div, .checks li, .mk .rcard, .fcard { transition: transform .25s cubic-bezier(.2, .8, .2, 1), box-shadow .25s; }
+    .mk .trio .card:hover, .mk .fit2 .card:hover, .mk .kfacts div:hover, .mk .rcard:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(16, 33, 58, .14); }
+    .checks li:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(0, 0, 0, .22); }
+    .fieldgrid a svg { transition: transform .35s cubic-bezier(.3, 1.6, .5, 1); }
+    .fieldgrid a:hover svg { transform: translateY(-3px) rotate(-6deg) scale(1.08); }
+  }
+  /* check marks draw themselves when they come into view (r17.js marks them; without it they are simply there) */
+  .ckdraw:not(.live) .ckp { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .ckdraw.live .ckp { stroke-dasharray: 1; animation: draw .7s cubic-bezier(.4, .1, .2, 1) both; }
+  .ckdraw.live > :nth-child(2) .ckp { animation-delay: .1s; } .ckdraw.live > :nth-child(3) .ckp { animation-delay: .2s; }
+  .ckdraw.live > :nth-child(4) .ckp { animation-delay: .3s; } .ckdraw.live > :nth-child(5) .ckp { animation-delay: .4s; } .ckdraw.live > :nth-child(n+6) .ckp { animation-delay: .5s; }
+  /* one soft gold shimmer on the hero "Start free", about 8 seconds in. Never repeats. */
+  .mk .btn.shimmer { position: relative; overflow: hidden; }
+  .mk .btn.shimmer::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 50%; background: linear-gradient(100deg, rgba(255, 255, 255, 0), rgba(255, 248, 220, .75), rgba(255, 255, 255, 0)); transform: skewX(-18deg); animation: shimmer 1.1s cubic-bezier(.4, 0, .2, 1) 1 both; pointer-events: none; }
+}
+@keyframes shimmer { to { left: 120%; } }
+
+/* ---------- 8. Page transitions between marketing pages (plain navigation where unsupported or with reduced motion) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  ::view-transition-old(root) { animation: vtOut .18s cubic-bezier(.4, 0, 1, 1) both; }
+  ::view-transition-new(root) { animation: vtIn .26s cubic-bezier(0, 0, .2, 1) both; }
+  .mk .topbar { view-transition-name: sp-topbar; }
+  ::view-transition-group(sp-topbar) { animation-duration: 0s; }
+}
+@keyframes vtOut { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes vtIn { from { opacity: 0; transform: translateY(10px); } }
+
+/* ---------- 9. Sticky action bar on phones ---------- */
+.mbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; display: none; gap: 10px; padding: 10px max(14px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px)); background: rgba(16, 33, 58, .96); box-shadow: 0 -10px 30px rgba(16, 33, 58, .25); transform: translateY(110%); visibility: hidden; }
+.mbar.on { transform: none; visibility: visible; }
+.mbar .btn { flex: 1; min-height: 48px; font-size: 16px; padding: 10px 14px; }
+.mk .mbar .btn.gold { box-shadow: none; }
+.mk .mbar .btn.line { color: var(--cream); border-color: rgba(251, 246, 238, .6); }
+.mbar .btn svg { width: 20px; height: 20px; flex: none; }
+.mk .mbar :focus-visible { outline-color: var(--dawn); }
+@media (max-width: 760px) { .mbar { display: flex; } }
+@media (prefers-reduced-motion: no-preference) { .mbar { transition: transform .28s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .28s; } .mbar.on { transition: transform .28s cubic-bezier(.2, .8, .2, 1), visibility 0s; } }
+@media print { .mbar { display: none !important; } }
+
+/* ---------- 10. Visual depth: paper grain on the light sections, and one night section with a moon ---------- */
+.mk .sec:not(.dark) { background-image: url("/img/grain.png"), linear-gradient(180deg, var(--a, var(--cream)), var(--b, var(--cream))); background-size: 96px 96px, auto; }
+.night .moon { position: absolute; top: 6px; right: max(0px, calc((100% - 1100px) / 2 - 40px)); width: min(340px, 52vw); height: auto; z-index: 1; pointer-events: none; }
+.night > .wrap { position: relative; z-index: 2; }
+@media (max-width: 760px) { .night .moon { top: 0; right: 0; width: 190px; opacity: .9; } }
+@media print { .night .moon { display: none; } .mk .sec:not(.dark) { background-image: none; } }
+
+/* ---------- 12. Tidy footer ---------- */
+.foot .wrap { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); align-items: center; gap: 14px 30px; }
+.foot nav { justify-content: flex-end; }
+.foot .where { grid-column: 1 / -1; border-top: 1px solid rgba(251, 246, 238, .14); padding-top: 14px; margin: 4px 0 0; }
+@media (max-width: 900px) { .foot .wrap { grid-template-columns: minmax(0, 1fr); } .foot nav { justify-content: flex-start; margin-left: -8px; } }
+body.has-mbar .foot { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
