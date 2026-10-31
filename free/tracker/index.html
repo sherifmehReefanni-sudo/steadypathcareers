@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="darkreader-lock">
+<meta name="color-scheme" content="only light">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Free Job Search Tracker for your applications · Steady Path Careers</title>
+<meta name="description" content="A free job search tracker that works out your follow-up dates, flags jobs that went quiet after 14 days and counts your reply rate. Saved on your device only. Spreadsheet version included.">
+<link rel="canonical" href="https://steadypathcareers.com/free/tracker/">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
+<link rel="stylesheet" href="/assets/site.css?v=20261023a">
+<link rel="stylesheet" href="/assets/path.css?v=20261027a">
+<link rel="stylesheet" href="/assets/r17.css?v=20261031n">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Steady Path Careers">
+<meta property="og:url" content="https://steadypathcareers.com/free/tracker/">
+<meta property="og:title" content="Free Job Search Tracker">
+<meta property="og:description" content="Follow-up dates, a 14-day no-reply flag and your reply rate, saved on your device only. Spreadsheet version included.">
+<meta property="og:image" content="https://steadypathcareers.com/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+.trk-wrap.wrap { max-width: 1200px; }
+.trk-intro { max-width: 760px; }
+.trk-priv { display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 2px solid var(--gold); border-radius: 16px; padding: 14px 18px; margin: 0 0 22px; max-width: 760px; }
+.trk-priv svg { flex: none; margin-top: 2px; }
+.mk .trk-priv p { margin: 0; font-size: 17px; color: var(--ink); }
+.trk-warn { background: var(--bad-soft); border: 2px solid #8A2A20; border-radius: 14px; padding: 12px 16px; margin: 0 0 18px; max-width: 760px; }
+.mk .trk-warn p { margin: 0; color: #5E1A13; font-weight: 700; }
+.trk-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0 0 8px; padding: 0; }
+.trk-stats div { background: #fff; border: 1px solid rgba(31,58,95,.14); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column-reverse; justify-content: flex-end; }
+.trk-stats dt { font-size: 15px; font-weight: 700; color: var(--ink2); }
+.trk-stats dd { margin: 0; font: 800 34px/1.1 var(--display); color: var(--midnight); letter-spacing: -0.02em; }
+.trk-stats div:last-child dd { color: var(--navy); }
+.mk .trk-statnote { font-size: 15px; color: var(--ink2); margin: 0 0 26px; }
+.trk-add { max-width: 100%; background: #fff; border: 1px solid rgba(31,58,95,.14); border-radius: 18px; padding: 20px; box-shadow: 0 10px 30px rgba(16,33,58,.06); }
+.trk-add h3 { margin: 0 0 14px; }
+.trk-add h3:focus { outline: none; }
+.fld { display: grid; gap: 5px; margin: 0 0 14px; }
+.fld label { font-weight: 800; color: var(--ink); font-size: 16px; }
+.fld label small { font-weight: 600; color: var(--ink2); font-size: 15px; }
+.fld input, .fld select, .fld textarea { font: inherit; font-size: 17px; color: var(--ink); background: #fff; border: 2px solid #b9c3d6; border-radius: 12px; padding: 10px 12px; min-height: 48px; width: 100%; box-sizing: border-box; }
+.fld textarea { min-height: 72px; resize: vertical; }
+.fld input[aria-invalid="true"] { border-color: #8A2A20; }
+.mk .fld .hint { margin: 0; font-size: 15px; color: var(--ink2); }
+.mk .fld .err { margin: 0; font-size: 15px; color: #8A2A20; font-weight: 800; }
+.trk-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 14px; align-items: start; }
+.trk-fields .s2 { grid-column: span 2; } .trk-fields .s4 { grid-column: 1 / -1; }
+.trk-wrap [hidden] { display: none !important; }
+.trk-list { margin-top: 28px; }
+.trk-btns { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.trk-list-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin: 0 0 12px; }
+.trk-list-head h3 { margin: 0; }
+.trk-list-head h3:focus { outline: none; }
+.trk-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.mk .trk-tools .btn, .mk .trk-sm { min-height: 44px; padding: 8px 14px; font-size: 15px; }
+.mk .btn.trk-del { color: #8A2A20; }
+.trk-say-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; min-height: 0; margin: 0 0 10px; }
+.mk .trk-say { margin: 0; font-weight: 700; color: var(--ink); font-size: 16px; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.trk-say:empty { display: none; }
+.trk-panel { background: #fff; border: 2px solid var(--navy); border-radius: 16px; padding: 16px 18px; margin: 0 0 14px; }
+.trk-panel h4 { margin: 0 0 6px; font: 800 18px/1.3 var(--display); color: var(--midnight); }
+.trk-panel h4:focus { outline: none; }
+.mk .trk-panel p { margin: 0 0 12px; font-size: 16px; overflow-wrap: anywhere; }
+.trk-panel h4 { overflow-wrap: anywhere; }
+.trk-empty { background: rgba(255,255,255,.7); border: 2px dashed rgba(31,58,95,.25); border-radius: 16px; padding: 22px; text-align: center; }
+.mk .trk-empty p { margin: 0; color: var(--ink2); }
+/* The list: a real table on wide screens, the same table drawn as cards on narrow ones. */
+.trk-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid rgba(31,58,95,.16); border-radius: 16px; overflow: hidden; font-size: 15px; }
+.trk-table th, .trk-table td { text-align: left; vertical-align: top; padding: 11px 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; hyphens: auto; min-width: 0; }
+.trk-table thead th { background: var(--navy); color: var(--cream); font-size: 14px; font-weight: 800; white-space: nowrap; }
+.trk-table tbody tr:last-child > * { border-bottom: 0; }
+.trk-table tbody th { font-weight: 800; color: var(--midnight); }
+.trk-table .lbl { display: none; }
+.trk-table tr.is-flag > :first-child { box-shadow: inset 5px 0 0 #8A2A20; }
+.trk-table tr.is-due > :first-child { box-shadow: inset 5px 0 0 var(--gold); }
+.trk-table select { font: inherit; font-size: 15px; min-height: 44px; border: 2px solid #b9c3d6; border-radius: 10px; padding: 6px 8px; background: #fff; color: var(--ink); max-width: 100%; }
+.trk-table a { color: var(--navy); font-weight: 800; text-underline-offset: 3px; display: inline-flex; align-items: center; min-height: 44px; }
+.trk-table .muted { color: var(--ink2); font-size: 14px; display: block; }
+.trk-act { display: flex; flex-wrap: wrap; gap: 6px; }
+.trk-table button, .trk-table select, .trk-table .tag { overflow-wrap: normal; }
+.trk-table .tag { white-space: normal; hyphens: none; max-width: 100%; box-sizing: border-box; }
+.trk-table .tag svg { flex: none; }
+.trk-act button { white-space: nowrap; font: inherit; font-size: 15px; font-weight: 800; min-height: 44px; min-width: 44px; padding: 6px 12px; border-radius: 10px; border: 2px solid var(--navy); background: #fff; color: var(--midnight); cursor: pointer; }
+.trk-act button:hover { background: rgba(31,58,95,.08); }
+.trk-act button.del { border-color: #8A2A20; color: #8A2A20; }
+.tag { white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 800; border-radius: 99px; padding: 3px 9px; margin-top: 6px; line-height: 1.3; }
+.tag.flag { background: var(--bad-soft); color: #7A231A; }
+.tag.due { background: var(--gold-soft); color: #5a4300; }
+.c-co { width: 13%; } .c-role { width: 14%; } .c-link { width: 9%; } .c-ap { width: 8%; } .c-fu { width: 11%; } .c-st { width: 15%; } .c-nx { width: 11%; } .c-no { width: 9%; } .c-ac { width: 10%; }
+@media (max-width: 900px) {
+  .trk-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .trk-fields { grid-template-columns: minmax(0, 1fr); }
+  .trk-fields .s2 { grid-column: auto; }
+}
+@media (max-width: 979px) {
+  .trk-table, .trk-table tbody, .trk-table tr, .trk-table td, .trk-table tbody th { display: block; width: auto; }
+  .trk-table { background: transparent; border: 0; border-radius: 0; overflow: visible; }
+  .trk-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .trk-table tbody tr { background: #fff; border: 1px solid rgba(31,58,95,.16); border-radius: 16px; padding: 12px 14px; margin: 0 0 12px; box-shadow: 0 6px 18px rgba(16,33,58,.05); }
+  .trk-table tr.is-flag { border-left: 6px solid #8A2A20; }
+  .trk-table tr.is-due { border-left: 6px solid var(--gold); }
+  .trk-table tr.is-flag > :first-child, .trk-table tr.is-due > :first-child { box-shadow: none; }
+  .trk-table tbody tr > * { border: 0; padding: 5px 0; display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 16px; }
+  .trk-table tbody th.c-co { display: block; font-size: 19px; padding-top: 0; }
+  .trk-table tbody td.c-role { display: block; padding-top: 0; font-weight: 700; }
+  .trk-table .lbl { display: block; font-size: 14px; font-weight: 800; color: var(--ink2); padding-top: 2px; }
+  .trk-table .c-co .lbl, .trk-table .c-role .lbl { display: none; }
+  /* Empty cells stay in the accessibility tree (visually hidden, not display: none) so every cell keeps its column header. */
+  .trk-table tbody tr { position: relative; }
+  .trk-table tbody td.empty { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .trk-table tbody td.c-ac { display: flex; padding-top: 8px; }
+  .trk-table .c-ac .lbl { display: none; }
+  .trk-table td.c-st .lbl { padding-top: 12px; }
+}
+@media (max-width: 760px) {
+  .trk-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .trk-stats dd { font-size: 30px; }
+}
+@media (max-width: 400px) {
+  .trk-add { padding: 16px; }
+}
+.steps2 { counter-reset: s; list-style: none; padding: 0; margin: 18px 0; display: grid; gap: 10px; max-width: 720px; }
+.steps2 li { counter-increment: s; position: relative; padding: 12px 14px 12px 58px; background: rgba(255,255,255,.85); border: 1px solid rgba(31,58,95,.12); border-radius: 14px; }
+.steps2 li::before { content: counter(s); position: absolute; left: 14px; top: 10px; width: 32px; height: 32px; border-radius: 50%; background: var(--navy); color: var(--cream); font-weight: 800; display: grid; place-items: center; font-size: 16px; }
+.dl-row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 6px 0 4px; }
+.mk .dl-row .note2 { margin: 0; }
+.mk .kbd { font-weight: 800; color: var(--midnight); }
+</style>
+</head>
+<body class="mk">
+<a class="skip" href="#main">Skip to content</a>
+<header class="phero "><div class="wrap"><nav class="topbar" aria-label="Main"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><div class="links"><a href="/#how">How it works</a><a href="/services/">What you get</a><a href="/sample/">Sample report</a><a href="/pay/">Pay lookup</a><a href="/guides/">Guides</a><a href="/free/" aria-current="true">Free tools</a><a href="/about/">About</a></div><div class="right"><a href="/portal/">Client sign in</a><a class="btn gold" href="/start/">Start free</a></div></nav></div>
+<div class="wrap phero-in"><div class="phero-copy"><p class="kicker">Free tool</p><h1>Job Search Tracker</h1><p class="sub">Every application in one place. It works out your follow-up dates and flags the jobs that went quiet. No sign-up.</p><div class="cta"><a class="btn gold" data-cta href="#tracker">Open the tracker</a><a class="btn line" href="#sheet">Get the spreadsheet</a></div></div><div class="phero-art"><svg class="hero-svg" viewBox="0 0 320 240" aria-hidden="true" focusable="false" data-live><g transform="translate(160 124)"><g class="rise"><rect x="-82" y="-100" width="164" height="200" rx="18" fill="#fff" stroke="#1F3A5F" stroke-width="5"/><rect x="-34" y="-112" width="68" height="26" rx="10" fill="#1F3A5F"/><g fill="#DCE4F3"><rect x="-26" y="-58" width="88" height="12" rx="6"/><rect x="-26" y="-18" width="70" height="12" rx="6"/><rect x="-26" y="22" width="80" height="12" rx="6"/><rect x="-26" y="62" width="56" height="12" rx="6"/></g><circle cx="-52" cy="-52" r="11" fill="#1f7a46"/><circle cx="-52" cy="-12" r="11" fill="#1f7a46"/><circle cx="-52" cy="28" r="11" fill="#C9A227"/><circle cx="-52" cy="68" r="11" fill="none" stroke="#9AACCD" stroke-width="4"/></g></g><path class="draw d2" pathLength="1" d="M102 72 l5 5 l9 -10 M102 112 l5 5 l9 -10" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><g transform="translate(262 70)"><g class="pop d3"><circle r="24" fill="#C9A227"/><path d="M0 -12 V0 L8 6" stroke="#10213A" stroke-width="4" fill="none" stroke-linecap="round"/></g></g><g transform="translate(52 64) scale(1)"><g class="pop d4"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#C9A227"/></g></g></svg></div></div><svg class="horizon" viewBox="0 0 1440 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 30 C 240 6 420 20 640 26 C 900 34 1120 4 1440 18 V48 H0Z" fill="#F3D2B6" opacity=".6"/><path d="M0 40 C 260 22 520 38 760 36 C 1000 34 1200 22 1440 32 V48 H0Z" fill="#FBE3CF"/></svg></header>
+<main id="main" class="trail-main" data-trail>
+<section class="sec" id="tracker" data-mile style="--a:#FBE3CF;--b:#FAEEE0"><div class="wrap trk-wrap">
+<div class="trk-intro"><h2>Your tracker</h2><p class="lead">Add each job when you apply. I fill in the follow-up date, flag anything that has gone quiet for 14 days, and keep your numbers up to date.</p></div>
+<div class="trk-priv"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><rect x="4" y="10" width="16" height="11" rx="3" fill="#1F3A5F"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#1F3A5F" stroke-width="2.4"/><circle cx="12" cy="15.5" r="2" fill="#F2D98A"/></svg><p><b>Saved on this device only. I never see it.</b> Your list lives in this browser. Clearing your browsing data deletes it, so use Export CSV now and then to keep a copy.</p></div>
+<div class="trk-warn" id="trkWarn" hidden><p>This browser is blocking storage on this page, so your list will be gone when you close it. Use Export CSV to keep a copy.</p></div>
+<h3 class="vh" id="numsHead">Your numbers</h3>
+<dl class="trk-stats" aria-labelledby="numsHead"><div><dt>Applications</dt><dd id="nApps">0</dd></div><div><dt>Replies</dt><dd id="nReplies">0</dd></div><div><dt>Interviews</dt><dd id="nInts">0</dd></div><div><dt>Reply rate</dt><dd id="nRate">0%</dd></div></dl>
+<p class="trk-statnote" id="statNote">A reply is any job you mark Heard back, Interview or Offer. It still counts if you close the job later.</p>
+<form class="trk-add" id="addForm" aria-labelledby="formHead" novalidate>
+<h3 id="formHead" tabindex="-1">Add a job</h3>
+<div class="trk-fields">
+<div class="fld"><label for="fCo">Company</label><input id="fCo" type="text" maxlength="120" autocomplete="off" aria-describedby="fCoErr" required><p class="err" id="fCoErr" hidden></p></div>
+<div class="fld"><label for="fRole">Role</label><input id="fRole" type="text" maxlength="120" autocomplete="off"></div>
+<div class="fld s2"><label for="fLink">Link to the posting <small>(optional)</small></label><input id="fLink" type="text" inputmode="url" maxlength="600" autocomplete="off" placeholder="https://"></div>
+<div class="fld"><label for="fDate">Date applied</label><input id="fDate" type="date" aria-describedby="fuHint"><p class="hint" id="fuHint"></p></div>
+<div class="fld"><label for="fSt">Status</label><select id="fSt"><option>Applied</option><option>Heard back</option><option>Interview</option><option>Offer</option><option>Closed</option></select></div>
+<div class="fld s2"><label for="fNext">Next step <small>(optional)</small></label><input id="fNext" type="text" maxlength="160" autocomplete="off" placeholder="For example: send a thank-you note"></div>
+<div class="fld s4"><label for="fNotes">Notes <small>(optional)</small></label><textarea id="fNotes" maxlength="1000" autocomplete="off"></textarea></div>
+</div>
+<div class="trk-btns"><button class="btn gold" type="submit" id="fSave">Add to my tracker</button><button class="btn line" type="button" id="fCancel" hidden>Cancel edit</button></div>
+</form>
+<div class="trk-list">
+<div class="trk-list-head"><h3 id="listHead" tabindex="-1">Your jobs</h3><div class="trk-tools"><button class="btn line" type="button" id="bExport">Export CSV</button><button class="btn line" type="button" id="bImport">Import CSV</button><button class="btn line trk-del" type="button" id="bClear">Delete all</button><input type="file" id="csvFile" accept=".csv,text/csv" hidden></div></div>
+<div class="trk-say-row"><p class="trk-say" id="trkSay" role="status" aria-live="polite"></p><button class="btn line trk-sm" type="button" id="bUndo" hidden>Undo</button></div>
+<div class="trk-panel" id="panel" hidden><h4 id="panelHead" tabindex="-1"></h4><p id="panelText"></p><div class="trk-btns" id="panelBtns"></div></div>
+<div class="trk-empty" id="empty"><p>No jobs yet. Add the first one and it shows up here.</p></div>
+<table class="trk-table" id="tbl" role="table" hidden><caption class="vh">Your jobs, newest first</caption><thead role="rowgroup"><tr role="row"><th role="columnheader" scope="col" class="c-co">Company</th><th role="columnheader" scope="col" class="c-role">Role</th><th role="columnheader" scope="col" class="c-link">Link</th><th role="columnheader" scope="col" class="c-ap">Applied</th><th role="columnheader" scope="col" class="c-fu">Follow up</th><th role="columnheader" scope="col" class="c-st">Status</th><th role="columnheader" scope="col" class="c-nx">Next step</th><th role="columnheader" scope="col" class="c-no">Notes</th><th role="columnheader" scope="col" class="c-ac">Actions</th></tr></thead><tbody role="rowgroup" id="tbody"></tbody></table>
+</div>
+</div></section>
+<section class="sec" id="how" data-mile style="--a:#FAEEE0;--b:#F7E2C4"><div class="wrap"><h2 data-reveal>How the tracker helps</h2><p class="lead" data-reveal>Four small habits that keep a job search moving.</p><div class="kfacts stagger"><div><b>Follow up at 7 days</b><span>The follow-up date is the day you applied plus 7. When it comes around, the job is marked "Follow up now".</span></div><div><b>Move on at 14 days</b><span>A job still at Applied after 14 days is flagged "No reply in 14+ days". Send one last note, then put your time into new applications.</span></div><div><b>Watch your reply rate</b><span>Replies divided by applications. If it stays low after 20 or so applications, the resume or the job targets usually need work.</span></div><div><b>Keep a copy</b><span>Export CSV saves everything to a file you own. Import CSV brings it back on a new phone or computer.</span></div></div></div></section>
+<section class="sec" id="sheet" data-mile style="--a:#F7E2C4;--b:#F0BC7E"><div class="wrap"><div class="prose"><h2 data-reveal>Prefer a spreadsheet?</h2><p>A similar layout for Excel or Google Sheets. Its first nine columns match the tracker&#39;s Export CSV, so you can paste an export straight in, and a Flag column follows. The follow-up date, the 14-day flag and a "Your numbers" box work out by themselves with formulas. Replies count the same way as here: set Furthest stage before you close a job and its reply still counts. It opens in Google Sheets, Excel and Numbers.</p>
+<div class="dl-row"><a class="btn gold" href="/free/tracker/steady-path-job-tracker.xlsx" download>Download the spreadsheet</a><p class="note2">Excel file (.xlsx), about 20 KB</p></div>
+<h3>Open it in Google Sheets: File &gt; Import</h3>
+<ol class="steps2">
+<li>Download the spreadsheet above.</li>
+<li>Go to <a href="https://sheets.new" target="_blank" rel="noopener">sheets.new<span class="vh"> (opens in a new tab)</span></a> to start a blank Google Sheet.</li>
+<li>Choose <span class="kbd">File &gt; Import</span>, then the <span class="kbd">Upload</span> tab, and pick <span class="kbd">steady-path-job-tracker.xlsx</span>.</li>
+<li>For Import location, choose <span class="kbd">Replace spreadsheet</span>, then <span class="kbd">Import data</span>.</li>
+</ol>
+<p>The file lives in your own Drive or computer. I never see it.</p></div></div></section>
+<section class="finale" data-mile style="--a:#0B4A52"><svg class="hilltop" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 34 C 200 6 380 10 560 30 C 760 52 980 8 1200 16 C 1310 20 1390 30 1440 36 V60 H0Z" fill="#0B4A52"/></svg><div class="wrap"><h2>Want me to track it for you, plus find the jobs and write the documents?</h2><p>Free for 60 days while Steady Path is in its pilot.</p><a class="btn gold" href="/start/">Start free</a></div><svg class="ill" viewBox="0 0 760 320" aria-hidden="true" focusable="false" data-live><defs><radialGradient id="fin-g"><stop offset="0" stop-color="#FFE7A6" stop-opacity=".95"/><stop offset=".5" stop-color="#F2B65A" stop-opacity=".45"/><stop offset="1" stop-color="#E9A23B" stop-opacity="0"/></radialGradient><linearGradient id="fin-r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBF6EE"/><stop offset="1" stop-color="#F7E7CC"/></linearGradient></defs><circle class="breathe" cx="380" cy="300" r="250" fill="url(#fin-g)"/><g transform="translate(380 300)"><g class="spin"><path d="M0 -150 V-196" transform="rotate(0)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(15)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(30)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(45)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(60)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(75)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(90)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(105)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(120)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(135)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(150)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(165)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(180)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(195)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(210)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(225)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(240)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(255)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(270)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(285)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(300)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(315)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(330)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(345)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/></g></g><g transform="translate(380 300)"><g class="rise"><circle r="122" fill="#C9A227"/><circle r="122" fill="#F2D98A" opacity=".35"/></g></g><path d="M-1000 270 C -600 240 -200 262 0 262 C 120 236 230 250 330 262 C 430 274 540 238 760 252 C 1000 262 1400 236 1760 258 V330 H-1000Z" fill="#7A2E5C" opacity=".85"/><path d="M-1000 292 C -600 276 -200 296 0 290 C 150 272 260 286 380 288 C 500 290 620 270 760 282 C 1000 290 1400 272 1760 286 V330 H-1000Z" fill="#10213A"/><path d="M 372 292 C 368 300 330 312 300 320 L 460 320 C 430 312 392 300 388 292Z" fill="url(#fin-r)"/><g class="drift"><path d="M150 120 q9 -9 18 0 q9 -9 18 0" fill="none" stroke="#FBF6EE" stroke-width="3" stroke-linecap="round"/><path d="M196 96 q6 -6 12 0 q6 -6 12 0" fill="none" stroke="#FBF6EE" stroke-width="2.5" stroke-linecap="round"/><path d="M590 140 q8 -8 16 0 q8 -8 16 0" fill="none" stroke="#FBF6EE" stroke-width="3" stroke-linecap="round"/></g><g transform="translate(90 70) scale(1.2)"><g class="twinkle"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#F2D98A"/></g></g><g transform="translate(670 60) scale(1.1)"><g class="twinkle d2"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#F2D98A"/></g></g><g transform="translate(560 110) scale(0.8)"><g class="twinkle d3"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#FBF6EE"/></g></g><g transform="translate(230 40) scale(0.8)"><g class="twinkle d2"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#FBF6EE"/></g></g></svg></section>
+</main>
+<footer class="foot"><div class="wrap"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><nav aria-label="Footer"><a href="/services/">What you get</a><a href="/sample/">Sample report</a><a href="/pay/">Pay lookup</a><a href="/guides/">Guides</a><a href="/free/">Free tools</a><a href="/about/">About</a><a href="https://calendar.app.google/8wyFoDK5k6k1iamT9" target="_blank" rel="noopener">Book a call</a><a href="/portal/">Client sign in</a></nav><p class="where"><span class="wg wt">&copy; 2026 Steady Path Careers</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg wt">Monmouth County, NJ</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="/terms/">Terms</a> &middot; <a href="/privacy/">Privacy</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="tel:+17327590008">(732) 759-0008</a></span></p></div></footer>
+<script src="/assets/site.js?v=20261027a"></script>
+<script src="/assets/path.js?v=20261026a"></script>
+<script defer src="/assets/r17.js?v=20261031c"></script>
+<script src="/free/tracker/tracker.js?v=20261031c"></script>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6f62d1e0e28847dcab6b431376defda9"}'></script><!-- End Cloudflare Web Analytics -->
+</body>
+</html>

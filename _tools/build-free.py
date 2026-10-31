@@ -584,8 +584,8 @@ ICONS = {
 TOOLS = [
  ('kit', 'Free tool 1', 'Laid off in NJ or NY: your first 72 hours', 'An hour-by-hour checklist for unemployment, severance, health coverage and final pay, with official sources. Prints cleanly.', '/free/laid-off-72-hours/', False),
  ('mail', 'Free tool 2', 'Emails for every step of the search', 'Eight copy-ready scripts: follow-ups, thank-you notes, offer questions, a counter-offer, a decline and a referral ask.', '/free/follow-up-scripts/', False),
- ('track', 'Free tool 3', 'Job Search Tracker', 'Keep every application, its status and your follow-up dates in one place.', '/free/tracker/', True),
- ('offer', 'Free tool 4', 'Offer Check', 'See how an offer compares with typical pay for the job in NJ or NY.', '/pay/#offer', True),
+ ('track', 'Free tool 3', 'Job Search Tracker', 'Keep every application, its status and your follow-up dates in one place.', '/free/tracker/', False),
+ ('offer', 'Free tool 4', 'Offer Check', 'See how an offer compares with typical pay for the job in NJ or NY.', '/pay/#offer', False),
  ('ghost', 'Free tool 5', 'Ghost Job Checker', 'Check whether a posting is still open before you spend time on it.', '/free/ghost-check/', False),
 ]
 
@@ -611,7 +611,7 @@ def build_hub():
     out += phero('/free/', 'Free tools', 'Free help for your job search.', 'Checklists, scripts and tools for job seekers in New Jersey and New York. No sign-up and no email needed. Use them, print them, share them.',
                  '<a class="btn gold" data-cta href="#tools">See the tools</a>', HUB_ART)
     out += '<main id="main" class="trail-main" data-trail>\n'
-    out += (f'<section class="sec" id="tools" data-mile style="--a:#FBE3CF;--b:#F4D0A2"><div class="wrap"><h2>Pick a tool</h2><p class="lead">Three are ready now. Two more are on the way.</p><ul class="tools">{cards}</ul></div></section>\n')
+    out += (f'<section class="sec" id="tools" data-mile style="--a:#FBE3CF;--b:#F4D0A2"><div class="wrap"><h2>Pick a tool</h2><p class="lead">All five are ready now.</p><ul class="tools">{cards}</ul></div></section>\n')
     out += ('<section class="sec" data-mile style="--a:#F4D0A2;--b:#E9A45C"><div class="wrap"><div class="fx-promise prose" data-reveal><h2>Free means free</h2><ul>'
             '<li>No account, no email address and nothing to fill in to use them.</li>'
             '<li>Each one is written by me, Sherif, for job seekers in NJ and NY.</li>'
