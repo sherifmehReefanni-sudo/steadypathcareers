@@ -166,7 +166,8 @@
         if (o.ok === false && o.error === 'busy') return { ats: ats, status: 'unknown', reason: 'busy' };
         if (o.ok === false && o.error === 'off') return { ats: ats, status: 'unknown', reason: 'paused' };
         if (o.ok !== true || ['open', 'closed', 'unknown'].indexOf(o.status) < 0) return { ats: ats, status: 'unknown', reason: 'down' };
-        return { ats: ats, status: o.status, reason: o.status === 'unknown' ? 'unclear' : '', title: text(o.title), company: text(o.company), postedOn: GC.day(o.postedOn) };
+        /* v1.32 adds reason:"limit" when my own time or request limit stopped the check; older replies have no reason */
+        return { ats: ats, status: o.status, reason: o.status === 'unknown' ? (o.reason === 'limit' ? 'limit' : 'unclear') : '', title: text(o.title), company: text(o.company), postedOn: GC.day(o.postedOn) };
       })
       .catch(function () { clearTimeout(timer); return { ats: src.kind === 'workableAts' ? 'workable' : src.kind, status: 'unknown', reason: 'down' }; });
   };
@@ -245,12 +246,13 @@
         empty: 'Paste a job posting link first.',
         bad: 'That doesn\'t look like a web link. Copy the full address of the job posting and paste it here.',
         soon: 'This check is coming soon for ' + name + ' links.',
-        rate: 'You have checked a lot of links in a short time. Please wait a few minutes and try again.',
+        rate: 'A lot of links are being checked right now. Please try again in a few minutes.',
         busy: 'A lot of people are checking links right now. Please try again in a minute.',
         down: 'I couldn\'t reach my checker just now. Try again in a minute.',
         paused: 'Checks for ' + name + ' links are paused right now. Please try again later.',
         unreachable: 'I couldn\'t reach ' + (name || 'the job system') + ' just now. Try again in a minute.',
-        unclear: (name || 'The job system') + ' didn\'t give a clear answer for this link, so I won\'t guess.'
+        limit: 'I ran out of time on my side before I got a clear answer. Try again later, or open the posting and look for an Apply button.',
+        unclear: 'I couldn\'t get a clear answer this time. Try again later, or open the posting and look for an Apply button.'
       }[res.reason];
       if (res.reason === 'unsupported') {
         if (res.site && !res.src.notPosting && GC.SUPPORTED_SITES.indexOf(res.site) >= 0) card.appendChild(el('p', 'gc-why', 'This kind of ' + res.site + ' link isn\'t one I can check yet.'));
@@ -259,7 +261,7 @@
         manual(card, res.site, '', true);
       } else {
         if (why) card.appendChild(el('p', 'gc-why', why));
-        var wait = res.reason === 'rate' || res.reason === 'busy', blip = wait || { down: 1, unreachable: 1, paused: 1 }[res.reason];   /* a blip on my side: the scam guide is not the point */
+        var wait = res.reason === 'rate' || res.reason === 'busy', blip = wait || { down: 1, unreachable: 1, paused: 1, soon: 1, limit: 1 }[res.reason];   /* a blip on my side, or not live yet: the scam guide is not the point */
         if (res.reason !== 'empty' && res.reason !== 'bad') manual(card, '', wait ? 'While you wait, here is how to check it yourself' : 'Here is how to check it yourself', !blip);
       }
       if (why) summary += '. ' + why;
