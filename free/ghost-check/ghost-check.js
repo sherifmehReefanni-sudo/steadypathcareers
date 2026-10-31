@@ -1,6 +1,6 @@
 /* Steady Path Careers: Ghost Job Checker (r19c).
    Greenhouse and Lever links are checked here in the browser, straight against their public job APIs (both answer any origin).
-   Workable and Ashby links go to my Apps Script checker (action ghostCheck, v1.30). Until v1.30 is live, the old API answers
+   Workable and Ashby links go to my Apps Script checker (action ghostCheck, v1.31). Until it is live, the old API answers
    "unknown action" and the page says the check is coming soon.
    Privacy: the pasted link is never put in the address bar, localStorage, sessionStorage, cookies or analytics. The input has no
    name, so the form can never send it anywhere by itself. The rules below copy the live posting check (postingSource_ and
@@ -25,7 +25,7 @@
     if (u && !/^[a-z][a-z0-9+.-]*:/i.test(u) && /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/|$)/i.test(u)) u = 'https://' + u;
     return u.replace(/[).,;'"\]>]+$/, '');
   };
-  /* Same patterns as postingSource_ in Code_v1.29.gs, behind the same strict host check as ghostParse_ in Code_v1.30.gs. */
+  /* Same patterns as postingSource_ in Code_v1.29.gs, behind the same strict host check as ghostParse_ in Code_v1.31.gs. */
   GC.parse = function (raw) {
     var u = GC.clean(raw);
     if (!u) return { kind: 'empty' };
@@ -45,6 +45,8 @@
     if ((r = s.match(/^https?:\/\/apply\.workable\.com\/j\/([A-Za-z0-9]{6,16})(?:[\/?#]|$)/i))) return { kind: 'workableAts', url: s };
     return { kind: 'other', site: site, notPosting: true };
   };
+  /* Job systems I check, but only on the exact hosts in GC.HOSTS (an EU or company host of the same system is not one of them). */
+  GC.SUPPORTED_SITES = ['Greenhouse', 'Lever', 'Workable', 'Ashby'];
   GC.site = function (host) {
     host = String(host || '').toLowerCase();
     var known = [[/(^|\.)linkedin\.com$/, 'LinkedIn'], [/(^|\.)indeed\.com$/, 'Indeed'], [/(^|\.)(myworkdayjobs|myworkdaysite|workday)\.com$/, 'Workday'],
@@ -93,16 +95,21 @@
   /* Same loose title key as looseTitle_ in the posting check. */
   var ABBR = { sr: 'senior', jr: 'junior', mgr: 'manager', assoc: 'associate', asst: 'assistant', rep: 'representative', exec: 'executive', acct: 'account', dir: 'director', ii: '2', iii: '3', i: '1' };
   GC.looseTitle = function (s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(String).map(function (w) { return ABBR[w] || w; }).sort().join(' '); };
-  function city(loc) { return String(loc || '').split(/[,(]/)[0].trim().toLowerCase(); }
-  /* Other live listings with the same title and the same city on the same board. Pure. Returns a count, or -1 when unknown. */
+  /* Same place rule as the posting check (cityOf_ and stateOf_ in Code_v1.29.gs): the city AND the state must both be named and match. */
+  var STATES = { alabama: 'al', alaska: 'ak', arizona: 'az', arkansas: 'ar', california: 'ca', colorado: 'co', connecticut: 'ct', delaware: 'de', florida: 'fl', georgia: 'ga', hawaii: 'hi', idaho: 'id', illinois: 'il', indiana: 'in', iowa: 'ia', kansas: 'ks', kentucky: 'ky', louisiana: 'la', maine: 'me', maryland: 'md', massachusetts: 'ma', michigan: 'mi', minnesota: 'mn', mississippi: 'ms', missouri: 'mo', montana: 'mt', nebraska: 'ne', nevada: 'nv', 'new hampshire': 'nh', 'new jersey': 'nj', 'new mexico': 'nm', 'new york': 'ny', 'north carolina': 'nc', 'north dakota': 'nd', ohio: 'oh', oklahoma: 'ok', oregon: 'or', pennsylvania: 'pa', 'rhode island': 'ri', 'south carolina': 'sc', 'south dakota': 'sd', tennessee: 'tn', texas: 'tx', utah: 'ut', vermont: 'vt', virginia: 'va', washington: 'wa', 'west virginia': 'wv', wisconsin: 'wi', wyoming: 'wy', 'district of columbia': 'dc' };
+  GC.city = function (loc) { return String(loc || '').split(/[,(]/)[0].trim().toLowerCase(); };
+  GC.state = function (loc) { var s = String(loc || '').split(',')[1]; s = String(s || '').replace(/\(.*$/, '').replace(/\d{5}(-\d{4})?/, '').trim().toLowerCase(); return STATES[s] || (/^[a-z]{2}$/.test(s) ? s : ''); };
+  /* Other live listings with the same title in the same city and state on the same board. Pure. Returns a count, -1 when the
+     list could not be read, or -2 when this posting does not name a city and state (so there is nothing fair to compare). */
   GC.repeats = function (src, d, list) {
     var L = list && list.code === 200 ? json(list.body) : null, jobs = src.kind === 'greenhouse' ? (L && L.jobs) : L;
     if (!Array.isArray(jobs) || !d.title) return -1;
-    var t = GC.looseTitle(d.title), c = city(d.place);
+    var t = GC.looseTitle(d.title), c = GC.city(d.place), st = GC.state(d.place);
+    if (!c || !st) return -2;
     return jobs.filter(function (x) {
       if (!x || typeof x !== 'object' || String(x.id).toLowerCase() === src.id) return false;
       var xt = src.kind === 'greenhouse' ? x.title : x.text, xl = src.kind === 'greenhouse' ? (x.location && x.location.name) : (x.categories && x.categories.location);
-      return GC.looseTitle(xt) === t && city(xl) === c;
+      return GC.looseTitle(xt) === t && GC.city(xl) === c && GC.state(xl) === st;
     }).length;
   };
   GC.boardUrl = function (src) { return src.kind === 'greenhouse' ? 'https://job-boards.greenhouse.io/' + src.board : src.kind === 'lever' ? 'https://jobs.lever.co/' + src.co : ''; };
@@ -141,6 +148,7 @@
   /* The repeat-listing look, run after the result is on screen. Resolves a count or -1. */
   GC.repeatLook = function (src, res, fetchFn) {
     if (res.status !== 'open' || !res.title) return Promise.resolve(-1);
+    if (!GC.city(res.place) || !GC.state(res.place)) return Promise.resolve(-2);   /* no city and state: nothing fair to compare, so no request */
     return get(fetchFn, GC.listUrl(src, src.kind === 'lever' ? res.place : '')).then(function (list) { return GC.repeats(src, { title: res.title, place: res.place }, list); });
   };
   /* Server check through my Apps Script. The body is sent as text/plain, like every other call to that API (no preflight). */
@@ -152,14 +160,15 @@
       .then(function (o) {
         clearTimeout(timer);
         var ats = src.kind === 'workableAts' ? 'workable' : src.kind;
-        if (!o || typeof o !== 'object') return { ats: ats, status: 'unknown', reason: 'unreachable' };
+        if (!o || typeof o !== 'object') return { ats: ats, status: 'unknown', reason: 'down' };
         if (o.ok === false && o.error === 'unknown action') return { ats: ats, status: 'unknown', reason: 'soon' };
         if (o.ok === false && o.error === 'rate') return { ats: ats, status: 'unknown', reason: 'rate' };
+        if (o.ok === false && o.error === 'busy') return { ats: ats, status: 'unknown', reason: 'busy' };
         if (o.ok === false && o.error === 'off') return { ats: ats, status: 'unknown', reason: 'paused' };
-        if (o.ok !== true || ['open', 'closed', 'unknown'].indexOf(o.status) < 0) return { ats: ats, status: 'unknown', reason: 'unreachable' };
+        if (o.ok !== true || ['open', 'closed', 'unknown'].indexOf(o.status) < 0) return { ats: ats, status: 'unknown', reason: 'down' };
         return { ats: ats, status: o.status, reason: o.status === 'unknown' ? 'unclear' : '', title: text(o.title), company: text(o.company), postedOn: GC.day(o.postedOn) };
       })
-      .catch(function () { clearTimeout(timer); return { ats: src.kind === 'workableAts' ? 'workable' : src.kind, status: 'unknown', reason: 'unreachable' }; });
+      .catch(function () { clearTimeout(timer); return { ats: src.kind === 'workableAts' ? 'workable' : src.kind, status: 'unknown', reason: 'down' }; });
   };
   GC.check = function (raw, fetchFn, sid) {
     var src = GC.parse(raw);
@@ -188,7 +197,7 @@
   function el(tag, cls, txt) { var e = d.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
   function link(href, txt) { var a = el('a', '', txt); a.href = href; a.rel = 'noopener noreferrer'; a.target = '_blank'; return a; }
   function fact(dl, k, v) { var w = el('div'); w.appendChild(el('dt', '', k)); var dd = el('dd'); if (typeof v === 'string') dd.textContent = v; else dd.appendChild(v); w.appendChild(dd); dl.appendChild(w); return dd; }
-  function manual(card, site, lead) {
+  function manual(card, site, lead, guide) {
     var box = el('div', 'gc-manual');
     box.appendChild(el('h3', '', lead || 'I can\'t check this kind of link yet. Here is how to check it yourself'));
     var ol = el('ol');
@@ -201,8 +210,7 @@
     ol.appendChild(li2);
     ol.appendChild(el('li', '', 'Search the job title plus the company name. If the same job shows up posted again and again over months, ask the recruiter if it is still being filled before you spend an evening on it.'));
     box.appendChild(ol);
-    var p = el('p', 'gc-more'); p.appendChild(d.createTextNode('More signs to watch for: ')); var g = el('a', '', 'how to spot a fake job posting'); g.href = '/guides/fake-job-postings/'; p.appendChild(g); p.appendChild(d.createTextNode('.'));
-    box.appendChild(p);
+    if (guide) { var p = el('p', 'gc-more'); p.appendChild(d.createTextNode('More signs to watch for: ')); var g = el('a', '', 'how to spot a fake job posting'); g.href = '/guides/fake-job-postings/'; p.appendChild(g); p.appendChild(d.createTextNode('.')); box.appendChild(p); }
     card.appendChild(box);
   }
   function render(res) {
@@ -223,7 +231,7 @@
       var rep = GC.BROWSER[src.kind] ? fact(dl, 'Looks reposted?', 'Looking at their other listings...') : fact(dl, 'Looks reposted?', 'I can\'t tell for ' + name + ' links yet.');
       card.appendChild(dl);
       if (GC.BROWSER[src.kind]) GC.repeatLook(src, res, root.fetch.bind(root)).then(function (c) {
-        rep.textContent = c < 0 ? 'I couldn\'t compare it with their other listings this time.' : c === 0 ? 'No. I found no second listing with the same title in the same place on their board.' : 'Maybe. They list the same title in the same place ' + (c === 1 ? 'once more' : c + ' more times') + '. That can mean more than one opening, or the same job posted again.';
+        rep.textContent = c === -2 ? 'I can\'t tell. This posting doesn\'t name a city and state, so I have nothing fair to compare it with.' : c < 0 ? 'I couldn\'t compare it with their other listings this time.' : c === 0 ? 'No. I found no second listing with the same title in the same place on their board.' : 'Maybe. They list the same title in the same place ' + (c === 1 ? 'once more' : c + ' more times') + '. That can mean more than one opening, or the same job posted again.';
       });
       card.appendChild(el('p', 'gc-note', 'Open on their system is a good sign, not a promise. A job can stay listed after the employer has stopped looking.'));
     } else if (st === 'closed') {
@@ -238,17 +246,21 @@
         bad: 'That doesn\'t look like a web link. Copy the full address of the job posting and paste it here.',
         soon: 'This check is coming soon for ' + name + ' links.',
         rate: 'You have checked a lot of links in a short time. Please wait a few minutes and try again.',
+        busy: 'A lot of people are checking links right now. Please try again in a minute.',
+        down: 'I couldn\'t reach my checker just now. Try again in a minute.',
         paused: 'Checks for ' + name + ' links are paused right now. Please try again later.',
         unreachable: 'I couldn\'t reach ' + (name || 'the job system') + ' just now. Try again in a minute.',
         unclear: (name || 'The job system') + ' didn\'t give a clear answer for this link, so I won\'t guess.'
       }[res.reason];
       if (res.reason === 'unsupported') {
-        if (res.site && !res.src.notPosting) card.appendChild(el('p', 'gc-why', res.site + ' links are not on my list yet.'));
+        if (res.site && !res.src.notPosting && GC.SUPPORTED_SITES.indexOf(res.site) >= 0) card.appendChild(el('p', 'gc-why', 'This kind of ' + res.site + ' link isn\'t one I can check yet.'));
+        else if (res.site && !res.src.notPosting) card.appendChild(el('p', 'gc-why', res.site + ' links are not on my list yet.'));
         else if (res.src && res.src.notPosting) card.appendChild(el('p', 'gc-why', 'This looks like a ' + (res.site || 'job system') + ' page, but not a single job posting. Open the job itself and copy that link.'));
-        manual(card, res.site);
+        manual(card, res.site, '', true);
       } else {
         if (why) card.appendChild(el('p', 'gc-why', why));
-        if (res.reason !== 'empty' && res.reason !== 'bad') manual(card, '', res.reason === 'rate' ? 'While you wait, here is how to check it yourself' : 'Here is how to check it yourself');
+        var wait = res.reason === 'rate' || res.reason === 'busy', blip = wait || { down: 1, unreachable: 1, paused: 1 }[res.reason];   /* a blip on my side: the scam guide is not the point */
+        if (res.reason !== 'empty' && res.reason !== 'bad') manual(card, '', wait ? 'While you wait, here is how to check it yourself' : 'Here is how to check it yourself', !blip);
       }
       if (why) summary += '. ' + why;
     }
