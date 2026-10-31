@@ -13,6 +13,18 @@
 <meta name="theme-color" content="#10213A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Steady Path">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- round 18: navy launch screens when the portal is opened from an iPhone home screen -->
+<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/img/splash/launch-1290x2796.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/img/splash/launch-1179x2556.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/img/splash/launch-1170x2532.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/img/splash/launch-1284x2778.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/img/splash/launch-1125x2436.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/img/splash/launch-828x1792.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/img/splash/launch-1242x2688.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/img/splash/launch-750x1334.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/img/splash/launch-1206x2622.png">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/img/splash/launch-1320x2868.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
 <link rel="stylesheet" href="../assets/site.css?v=20261023a">
@@ -563,6 +575,7 @@ body.deck-lock { overflow: hidden; }
 }
 </style>
 <link rel="stylesheet" href="../assets/portal.css?v=20261024g">
+<link rel="stylesheet" href="../assets/portal-r18.css?v=20261031a">
 <style>
 /* ---- round 4: search settings, data, calendar, versions, urgent help ---- */
 /* the account menu can hang below a short header; keep the header content (and its menu) above main, which is z-index 1 */
@@ -864,12 +877,14 @@ function demoApi(b) {
   else if (b.action === 'answer') r = { ok: true, job: b.job, answer: { yes: 'Yes', no: 'No', q: 'Question' }[b.a] || '' };
   else if (b.action === 'app') r = b.id ? { ok: true, id: b.id } : { ok: true, id: 'A-D' + (++demoN) };
   else if (b.action === 'redeem') r = { ok: true, t: 'demo' };
+  else if (b.action === 'board') r = { ok: true, id: b.id || 'A-D' + (++demoN), stage: b.stage, status: b.closedAs || { submitted: 'Applied', interview: 'Interview scheduled', offer: 'Offer', hired: 'Hired' }[b.stage] || '' }; /* round 18 */
   return new Promise(function (res) { setTimeout(function () { res(r); }, 120); });
 }
 
 /* ---- API ---- */
-function get(params) { if (S.demo) return demoApi(params); var u = API + '?' + new URLSearchParams(params).toString(); return fetch(u, { redirect: 'follow' }).then(function (r) { return r.json(); }); }
-function post(body, keepalive) { if (S.demo) return demoApi(body); return fetch(API, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', keepalive: !!keepalive }).then(function (r) { return r.json(); }); }
+/* round 18: cache 'no-store', so no API answer (client data) is ever kept in the browser's HTTP cache */
+function get(params) { if (S.demo) return demoApi(params); var u = API + '?' + new URLSearchParams(params).toString(); return fetch(u, { redirect: 'follow', cache: 'no-store' }).then(function (r) { return r.json(); }); }
+function post(body, keepalive) { if (S.demo) return demoApi(body); return fetch(API, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', keepalive: !!keepalive, cache: 'no-store' }).then(function (r) { return r.json(); }); }
 /* Whole-word match: "Yes" / "yes, apply" are Yes, "No" / "No, too far" are No; any other text (Question, Maybe, None, Not sure) is a question. */
 function ansOf(j) { var a = String((j && j.answer) || '').trim(); if (!a) return ''; if (/^yes\b/i.test(a)) return 'yes'; if (/^no\b/i.test(a)) return 'no'; return 'q'; }
 function errText(e, thing) {
@@ -924,8 +939,9 @@ function load() {
       else S.flash = 'We couldn\'t find that job. Here are all your jobs.';
     }
     render();
+    if (typeof r18AfterLoad === 'function') r18AfterLoad(); /* round 18: a milestone not celebrated yet on any device */
   }).catch(function (x) {
-    if (x && x.spNet) { try { console.error('Portal: could not reach the server.', x.cause); } catch (e) {} S.errKind = 'network'; }
+    if (x && x.spNet) { try { console.error('Portal: could not reach the server.', x.cause); } catch (e) {} S.errKind = navigator.onLine === false ? 'offline' : 'network'; } /* round 18: offline has its own screen */
     else { try { console.error('Portal: the page could not be built.', x); } catch (e) {} S.errKind = 'render'; }
     S.status = 'error'; S.focusTo = '#errH'; render();
   });
@@ -1293,7 +1309,7 @@ function dueItems(d) {
     var fd = daysFrom(x.followUpOn), fu = fd != null ? x.followUpOn : '';
     if (x.nextAction) { add(fu ? (fd <= 7 ? 0 : 3) : 4, fu, coOr(x) + ': ' + x.nextAction, 'you', goApps); mine = true; }
     else if (fu) { add(fd <= 7 ? 0 : 3, fu, 'Follow up with ' + coOr(x), 'you', goApps); mine = true; }
-    else if (fuFlag(x) && !soon) { flagged.push(x); mine = true; }
+    else if ((fuFlag(x) || r18FollowDue(x)) && !soon) { flagged.push(x); mine = true; } /* round 18: a week in Submitted with no update */
     if (!mine && (st === 0 || st === 1)) waiting++;
   });
   if (flagged.length > 2) add(5, '', 'Follow up with ' + flagged.length + ' employers you haven\'t heard from', 'you', goApps);
@@ -1535,17 +1551,8 @@ window.addEventListener('popstate', function (e) {
 var installEvt = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvt = e; if (S.status === 'ready' && S.view === 'jobs') render(); });
 function standalone() { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } }
-function installCard() {
-  if (standalone()) return '';
-  var hid = lsGet('sp_a2hs'); if (hid && Date.now() - Number(hid) < 30 * 864e5) return '';
-  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  if (!installEvt && !isIOS) return '';
-  var ic = '<div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#F2D98A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M12 7 v7 M8.8 10.8 12 14 l3.2 -3.2"/></svg></div>';
-  var body = isIOS && !installEvt
-    ? '<div><b>Add to your home screen</b><p>In Safari, tap Share, then "Add to Home Screen".</p></div><div class="row"><button class="btn ghost" data-a2hs-hide>Maybe later</button></div>'
-    : '<div><b>Add to your home screen</b><p>One tap to your jobs, like an app.</p></div><div class="row"><button class="btn gold" data-a2hs-go>Add it</button><button class="btn ghost" data-a2hs-hide>Maybe later</button></div>';
-  return '<div class="a2hs">' + ic + body + '</div>';
-}
+/* round 18: the one-time card with iPhone and Android steps (assets/portal-r18.js) */
+function installCard() { return typeof r18InstallCard === 'function' ? r18InstallCard() : ''; }
 function celebrate() {
   if (REDUCED) return;
   var box = document.createElement('div'); box.className = 'confetti'; box.setAttribute('aria-hidden', 'true');
@@ -1823,7 +1830,7 @@ function docCard(x, i, grp) {
 function stageOf(x) { var t = String(x.status || '').toLowerCase(); if (/reject|declin|turned it down|not selected|closed|no longer|withdr|no offer|not hired|rescind|filled|not moving|not proceed|unsuccessful|passed on|went with another/.test(t)) return 4; if (/offer|hired|accepted/.test(t)) return 3; if (x.interview || /interview/.test(t)) return 2; if (/reply|heard|screen|call|contact/.test(t)) return 1; return 0; }
 function prepQs(x) { return lines(x && x.prepExpect); }
 function lines(t) { return String(t || '').split(/\n|;|(?:\s\d+\.\s)/).map(function (z) { return z.trim(); }).filter(String); }
-var APP_STATUS = ['Applied', 'Heard back', 'Interview scheduled', 'Interviewed, waiting to hear', 'Next round', 'Offer', 'Employer declined', 'I turned it down', 'Withdrew'];
+var APP_STATUS = ['Applied', 'Heard back', 'Interview scheduled', 'Interviewed, waiting to hear', 'Next round', 'Offer', 'Hired', 'Employer declined', 'I turned it down', 'Withdrew']; /* round 18: Hired (API v1.29) */
 /* an interview in the last 3 weeks that the client has not told us about yet */
 function outcomeDue(x) { var dd = daysFrom(x.interview); return dd != null && dd < 0 && dd >= -21 && stageOf(x) === 2 && !/waiting to hear|next round/i.test(x.status || ''); }
 /* a status outside the list (old "Declined", or a note Sherif typed) is listed first and selected, so saving a date never changes it */
@@ -1882,7 +1889,8 @@ function appCard(x) {
     (x.contact ? '<p class="psub amore">Contact: ' + esc(x.contact) + '</p>' : '') +
     (x.myNotes ? '<p class="psub amore notes">Your notes: ' + esc(x.myNotes) + '</p>' : '') +
     appPrepBtn(x) + /* round 6a: opens the interview prep screen */
-    (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : '');
+    (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : '') +
+    (typeof r18Extras === 'function' ? r18Extras(x) : ''); /* round 18: follow-up note, thank-you note, one-tap moves */
   if (S.updFor !== x.id) return h + '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p></div>';
   var sh = upShown(x), dv = S.upDraft && S.upDraft.id === x.id ? S.upDraft.v : sh, hint = function (raw) { return raw && !ISO_RE.test(raw) ? '<p class="psub" style="margin:2px 0 0">Saved as: ' + esc(raw) + '. Pick a date only if you want to change it.</p>' : ''; };
   return h + '<div class="logbox upbox" style="margin-top:8px">' +
@@ -1895,17 +1903,20 @@ function appCard(x) {
     '<label for="upType">Type</label><select id="upType">' + typeOpts(x.type).map(function (o) { return '<option' + (o === dv.type ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" data-upsave="' + esc(x.id) + '"' + (S.upBusy ? ' disabled' : '') + '>' + (S.upBusy ? 'Saving…' : 'Save') + '</button><button class="btn ghost" data-upd="">Cancel</button></div></div></div>';
 }
+/* round 18: the board. Ready to submit (Yes jobs with approved documents, from the job list), then Submitted (Applied and Heard back),
+   Interview, Offer (and Hired) and Closed, from the client's applications. Cards move with one tap (assets/portal-r18.js). */
 function vApps() {
-  var d = S.data, cols = ['Applied', 'Heard back', 'Interview', 'Offer', 'Closed'], by = [[], [], [], [], []];
-  d.apps.forEach(function (x) { by[stageOf(x)].push(x); });
+  var d = S.data, cols = BOARD_COLS, ready = r18ReadyJobs(d), by = [ready, [], [], [], []];
+  d.apps.forEach(function (x) { by[boardCol(x)].push(x); });
   var mob = false; try { mob = matchMedia('(max-width: 760px)').matches; } catch (e) {}
   if (!S.colOpen) { S.colOpen = {}; cols.forEach(function (c, k) { S.colOpen[k] = mob ? by[k].length > 0 && by[k].length <= 6 : k < 4 || by[k].length <= 6; }); }
   if (S.openCol != null) { S.colOpen[S.openCol] = true; S.openCol = null; }
   var afx = afApps(d); /* round 3: search and Due filter (more than 6 applications) */
-  return shell('apps', d.apps.length ? d.apps.length + (d.apps.length === 1 ? ' application' : ' applications') + ' tracked' : 'Nothing sent yet', 'Where each one stands. Offers and closed ones have their own columns.') +
-    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : d.apps.length ? '<div class="board">' + cols.map(function (c, k) {
+  var n = d.apps.length, title = n ? n + (n === 1 ? ' application' : ' applications') + ' tracked' : ready.length ? ready.length + (ready.length === 1 ? ' application' : ' applications') + ' ready to submit' : 'Nothing sent yet';
+  return shell('apps', title, r18BoardSub()) +
+    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : n || ready.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
-        return appCard(x);
+        return k === 0 ? r18ReadyCard(x) : appCard(x);
       }).join('') + '</div>';
     }).join('') + '</div>' : '<div class="card empty e-apps"><p class="psub" style="margin:0">Say Yes to a job, approve your documents, and apply. It shows up here.</p></div>') + '</div></main>' + tabbar('apps');
 }
@@ -2125,6 +2136,10 @@ function render() {
 /* round 12: the full-page error, with the logo, Try again, Sign in again and the help links. A connection problem and a page
    that could not be built get different words; the real error is in the console. */
 function vError() {
+  /* round 18: offline. Nothing about the client is kept on the device, so there is nothing to show until the connection is back. */
+  if (S.errKind === 'offline') return '<div class="login errscr"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a></div>' +
+    '<div class="box" role="alert"><h2 id="errH" tabindex="-1">You\'re offline.</h2><p class="psub" style="margin:0">Your portal needs a connection to show your jobs and save your answers. It opens again as soon as you are back online.</p>' +
+    '<div class="row"><button class="btn gold" data-retry>Try again</button></div><p class="ehelp"><b>Need help?</b> ' + helpHtml() + '</p></div></div>';
   var net = S.errKind !== 'render';
   return '<div class="login errscr"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a></div>' +
     '<div class="box" role="alert"><h2 id="errH" tabindex="-1">' + (net ? 'We couldn\'t reach your portal.' : 'Something went wrong opening your portal.') + '</h2>' +
@@ -2139,7 +2154,7 @@ function appScroll() {
   S.scrollApp = null; try { el.scrollIntoView({ block: 'center', behavior: 'auto' }); } catch (e) { el.scrollIntoView(); }
   return true;
 }
-function openAppCol(x) { var k = stageOf(x); if (S.colOpen) S.colOpen[k] = true; else S.openCol = k; S.scrollApp = x.id; }
+function openAppCol(x) { var k = boardCol(x); if (S.colOpen) S.colOpen[k] = true; else S.openCol = k; S.scrollApp = x.id; }
 function go(view) {
   /* leaving a review or apply screen by the tab bar: that history entry now stands for the new tab, so Back goes to Jobs, not nowhere */
   /* Jobs goes back to the portal's first entry, so a review-then-tab-bar loop never grows history; another tab replaces the current entry */
@@ -2154,6 +2169,7 @@ function signOut(msg) {
   if (S.token) { try { post({ action: 'signout', t: S.token }, true).catch(function () {}); } catch (e) {} }
   /* a shared device keeps nothing of this client: practice notes, kit ticks and screen state */
   try { for (var k = localStorage.length - 1; k >= 0; k--) { var lk = localStorage.key(k); if (/sp_pvnotes_|sp_kit_|sp_replyseen/.test(lk || '')) localStorage.removeItem(lk); } } catch (e) {}
+  if (typeof r18ClearDevice === 'function') r18ClearDevice(); /* round 18: every portal key, the cached portal page, an open celebration */
   S.pvMem = null; S.pv = null; S.dhOpen = null; S.jsel = null; if (S.view === 'prep') S.view = 'jobs';
   dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.qOpen = {}; S.notes = {}; S.seenMem = null; S.colOpen = null; S.lastEmail = ''; S.linkKey = null; linkKeyDrop(); S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
@@ -2179,7 +2195,8 @@ function markApplied(jobId) {
     S.applyBusy = null;
     if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' });
       openAppCol(jobApp(j)); /* round 12: the Applied column that got it opens, and the card is scrolled into view there */ /* on the apply screen the done card says it, so no toast on top of it */
-      if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; } else toast('Nice work. It is on your Applied tab.'); }
+      if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; } else toast('Nice work. It is on your Applied tab.');
+      var ax0 = jobApp(j); if (ax0 && !ax0.submittedOn) { ax0.submittedOn = todayISO(); ax0.lastUpdate = todayISO(); } r18MsCheck(false); } /* round 18 */
     else { if (r.error === 'expired') S.jobErr[j.id] = { msg: errText('expired'), re: true }; toast(errText(r.error, 'job')); }
     render();
   });
@@ -2497,7 +2514,7 @@ document.addEventListener('click', function (e) {
     if (!body.company || !body.role) { S.logErr = 'Please add the company and the job title.'; S.focusTo = body.company ? '#lgRole' : '#lgCompany'; render(); return; }
     S.logBusy = true; S.logErr = ''; S.logRe = false; render();
     saveApp(body, function (r) { S.logBusy = false;
-      if (r.ok) { S.data.apps.unshift({ id: r.id, company: body.company, role: body.role, applied: body.applied, status: body.status, interview: body.interview, nextAction: body.nextAction, followUpOn: body.followUpOn, type: body.type, ivTime: body.ivTime, contact: body.contact, myNotes: body.myNotes }); S.logOpen = false; S.logDraft = {}; S.logMsg = 'Saved. ' + body.company + ' is on your board.'; openAppCol(S.data.apps[0]); if (body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } }
+      if (r.ok) { S.data.apps.unshift({ id: r.id, company: body.company, role: body.role, applied: body.applied, status: body.status, interview: body.interview, nextAction: body.nextAction, followUpOn: body.followUpOn, type: body.type, ivTime: body.ivTime, contact: body.contact, myNotes: body.myNotes }); S.logOpen = false; S.logDraft = {}; S.logMsg = 'Saved. ' + body.company + ' is on your board.'; openAppCol(S.data.apps[0]); S.data.apps[0].submittedOn = S.data.apps[0].lastUpdate = todayISO(); if (!r18MsCheck(false) && body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } }
       else { S.logErr = r.error === 'expired' ? 'Your sign-in has expired. Sign in again, then add it.' : 'Sorry, that didn\'t save. Please check your connection and try again.'; S.logRe = r.error === 'expired'; }
       render(); });
     return;
@@ -2509,7 +2526,7 @@ document.addEventListener('click', function (e) {
     if (!changed) { S.updFor = null; S.upDraft = null; S.logMsg = 'Nothing changed.'; render(); return; }
     S.upBusy = true; render();
     saveApp(body2, function (r) { S.upBusy = false;
-      if (r.ok) { UP_FIELDS.forEach(function (f) { var k = f[0]; if (!(k in body2)) return; if (k === 'status' && APP_STATUS.indexOf(body2.status) < 0) return; ax[k] = body2[k]; }); S.updFor = null; S.upDraft = null; S.logMsg = 'Updated.'; if (body2.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } }
+      if (r.ok) { UP_FIELDS.forEach(function (f) { var k = f[0]; if (!(k in body2)) return; if (k === 'status' && APP_STATUS.indexOf(body2.status) < 0) return; ax[k] = body2[k]; }); ax.lastUpdate = todayISO(); S.updFor = null; S.upDraft = null; S.logMsg = 'Updated.'; if (!r18MsCheck(false) && body2.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); } }
       else S.logMsg = r.error === 'expired' ? 'Your sign-in has expired. Please sign in again.' : 'Sorry, that update didn\'t save. Please try again.';
       render(); });
     return; }
@@ -2951,6 +2968,7 @@ function docHistHtml(x) {
 document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.dataset && t.dataset.dhist != null) { S.dhOpen = S.dhOpen || {}; S.dhOpen[t.dataset.dhist] = t.open; } }, true);
 /* =================== END ROUND 6a =================== */
 </script>
+<script src="../assets/portal-r18.js?v=20261031a"></script>
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/portal.js?v=20261024e"></script>
 </body>
