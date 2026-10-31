@@ -33,17 +33,18 @@ function r18Moves(x) {
       BOARD_CLOSED.map(function (w) { return '<button type="button" class="kbtn" data-bclosed="' + esc(w) + '" data-bid="' + id + '"' + (busy ? ' aria-disabled="true"' : '') + '>' + esc(w) + '</button>'; }).join('') +
       '<button type="button" class="kbtn ghost" data-bcancel="' + id + '">Cancel</button></div>';
   }
-  var hired = /\bhired\b|accepted/i.test(x.status || '');
-  var moves = c === 1 ? [['interview', 'Interview'], ['closed', 'Closed']] : c === 2 ? [['offer', 'Offer'], ['closed', 'Closed'], ['submitted', 'Back to Submitted']] :
-    c === 3 ? (hired ? [] : [['hired', 'I accepted it'], ['closed', 'Closed']]) : [['submitted', 'Reopen']];
+  var hired = /\bhired\b|accepted/i.test(x.status || ''), ivd = !!String(x.interview || '').trim();
+  /* r1: with an interview date there is no "Back to Submitted" (the API refuses it); Reopen goes back to Interview */
+  var moves = c === 1 ? [['interview', 'Interview'], ['closed', 'Closed']] : c === 2 ? [['offer', 'Offer'], ['closed', 'Closed']].concat(ivd ? [] : [['submitted', 'Back to Submitted']]) :
+    c === 3 ? (hired ? [] : [['hired', 'I accepted it'], ['closed', 'Closed']]) : [[ivd ? 'interview' : 'submitted', 'Reopen']];
   if (!moves.length) return '';
   return '<div class="bd-moves" role="group" aria-labelledby="bdm-' + id + '"><p class="bd-lab" id="bdm-' + id + '">' + (busy ? 'Saving…' : 'Move to') + '</p>' +
-    moves.map(function (m) { return '<button type="button" class="kbtn' + (m[0] === 'closed' || m[0] === 'submitted' ? '' : ' solid') + '" data-bmove="' + m[0] + '" data-bid="' + id + '" aria-label="' + esc((m[0] === 'submitted' && c === 4 ? 'Reopen ' + co : 'Move ' + co + ' to ' + m[1])) + '"' + (busy ? ' aria-disabled="true"' : '') + '>' + esc(m[1]) + '</button>'; }).join('') + '</div>';
+    moves.map(function (m) { return '<button type="button" class="kbtn' + (m[0] === 'closed' || m[0] === 'submitted' ? '' : ' solid') + '" data-bmove="' + m[0] + '" data-bid="' + id + '" aria-label="' + esc((c === 4 ? 'Reopen ' + co : 'Move ' + co + ' to ' + m[1])) + '"' + (busy ? ' aria-disabled="true"' : '') + '>' + esc(m[1]) + '</button>'; }).join('') + '</div>';
 }
 function r18Ref(x) { return [x.submittedOn, x.applied, x.lastUpdate, x.followUpSent].filter(function (v) { return realISO(v); }).map(function (v) { return String(v).slice(0, 10); }).sort().pop() || ''; }
 /* 7 to 30 days in Submitted with no update from the client (and no follow-up logged): time for a short follow-up */
 function r18FollowDue(x) {
-  if (!x || boardCol(x) !== 1 || isOutreach(x) || !/^(applied)?$/i.test(String(x.status || '').trim())) return false;
+  if (!x || boardCol(x) !== 1 || isOutreach(x) || String(x.interview || '').trim() || !/^(applied)?$/i.test(String(x.status || '').trim())) return false;
   var dd = daysFrom(r18Ref(x)); return dd != null && dd <= -7 && dd >= -30;
 }
 function r18First() { var c = (S.data && S.data.client) || {}; return c.firstName || String(c.name || '').split(' ')[0] || '[Your name]'; }
@@ -56,24 +57,24 @@ function r18ThanksText(x) {
   var co = String(x.company || '').trim();
   return 'Hi [Name],\n\nThank you for taking the time to talk with me about ' + r18RoleNote(x) + (co ? ' at ' + co : '') + '. I enjoyed learning more about the team and the work, and I am even more interested in the job.\n\nI would welcome the next step. Please let me know if there is anything else I can send you.\n\nThank you again,\n' + r18First();
 }
-/* The thank-you note shows from the day an interview is logged (or from the interview day for older rows) while it sits in Interview. */
+/* r1: the thank-you note shows on and after the interview date (for two weeks) while the card sits in Interview; collapsed until opened. */
 function r18ThanksOn(x) {
   if (!x || boardCol(x) !== 2) return false;
-  var lg = daysFrom(x.ivLogged), iv = daysFrom(x.interview);
-  return (lg != null && lg <= 0) || (iv != null && iv <= 0 && iv >= -14);
+  var iv = daysFrom(x.interview);
+  return iv != null && iv <= 0 && iv >= -14;
 }
-function r18ThanksOpen(x) { var lg = daysFrom(x.ivLogged), iv = daysFrom(x.interview); return lg === 0 || iv === 0 || iv === -1; }
+function r18ThanksOpen(x) { return false; }
 function r18Extras(x) {
   var id = esc(x.id), h = '';
   if (r18FollowDue(x)) {
     var t = r18FollowText(x);
-    h += '<div class="bd-fu" role="note"><p class="bd-fuh"><span class="pill gold">No update in a week</span> A short, polite follow-up can help you stand out. Here is a note you can copy and send to the recruiter or hiring manager.</p>' +
-      '<pre class="bd-txt" id="fu-' + id + '">' + esc(t) + '</pre><div class="bd-moves"><button type="button" class="kbtn" data-copy="' + esc(t) + '" aria-describedby="fu-' + id + '">Copy the note</button>' +
+    h += '<div class="bd-fu" role="note"><p class="bd-fuh"><span class="pill gold">No update in a week</span> A short, polite follow-up can help you stand out.</p>' +
+      '<details class="bd-fud"><summary>Show a note to send</summary><pre class="bd-txt" id="fu-' + id + '">' + esc(t) + '</pre></details><div class="bd-moves"><button type="button" class="kbtn" data-copy="' + esc(t) + '" aria-label="Copy the follow-up note for ' + esc(coOr(x)) + '">Copy the note</button>' +
       '<button type="button" class="kbtn" data-bfollow="' + id + '"' + (S.bdBusy[x.id] ? ' aria-disabled="true"' : '') + '>I followed up</button></div></div>';
   }
   if (r18ThanksOn(x)) {
     var tt = r18ThanksText(x), open = S.tyOpen && S.tyOpen[x.id] != null ? S.tyOpen[x.id] : r18ThanksOpen(x);
-    h += '<details class="bd-ty" data-ty="' + id + '"' + (open ? ' open' : '') + '><summary>Thank-you note to send after your interview</summary>' +
+    h += '<details class="bd-ty" data-ty="' + id + '"' + (open ? ' open' : '') + '><summary>Thank-you note for your interview</summary>' +
       '<p class="psub">Send it the same day. Swap in the interviewer\'s name and one thing you talked about.</p><pre class="bd-txt" id="ty-' + id + '">' + esc(tt) + '</pre>' +
       '<button type="button" class="kbtn" data-copy="' + esc(tt) + '" aria-describedby="ty-' + id + '">Copy the note</button></details>';
   }
@@ -104,7 +105,7 @@ function r18Move(id, stage, closedAs) {
       var t = todayISO(); x.lastUpdate = t; S.bdClose = null;
       if (stage === 'followedup') { x.followUpSent = t; S.focusTo = '[data-app="' + cssq(x.id) + '"] .bd-moves button'; toast('Noted. No reminder about this one for another week.'); }
       else {
-        var wasIv = boardCol(x) === 2 || !!x.interview; x.status = r.status || (closedAs || BOARD_STATUS[stage]);
+        var wasIv = !!x.ivLogged || boardCol(x) === 2 || !!x.interview; x.status = r.status || (closedAs || BOARD_STATUS[stage]);
         if (stage === 'interview' && !wasIv) x.ivLogged = t;
         r18Opened(x); toast(stage === 'hired' ? 'Marked as hired. Congratulations.' : 'Moved to ' + BOARD_COLS[boardCol(x)] + '.'); r18MsCheck(false);
       }
@@ -114,7 +115,7 @@ function r18Move(id, stage, closedAs) {
 }
 /* after a move: open the column it landed in, scroll to it, keep the keyboard on that card */
 function r18Opened(x) { var k = boardCol(x); if (S.colOpen) S.colOpen[k] = true; else S.openCol = k; S.scrollApp = x.id; S.focusTo = '[data-app="' + cssq(x.id) + '"] .bd-moves button, [data-app="' + cssq(x.id) + '"] [data-upd]'; }
-function r18Fail(e) { if (e === 'expired') { S.reauthMsg = true; toast('Your sign-in has expired. Nothing was saved.'); } else if (e === 'limit') toast('That is a lot of moves in one hour. Please try again a little later.'); else toast(errText(e, 'application')); }
+function r18Fail(e) { if (e === 'has interview') toast('This one has an interview date, so it stays in Interview. Change the date with Update if it was a mistake.'); else if (e === 'expired') { S.reauthMsg = true; toast('Your sign-in has expired. Nothing was saved.'); } else if (e === 'limit') toast('That is a lot of moves in one hour. Please try again a little later.'); else toast(errText(e, 'application')); }
 
 /* ---- milestones: first match, first application submitted, first interview, offer, hired ---- */
 var MS_ORDER = ['match', 'submitted', 'interview', 'offer', 'hired'];
@@ -131,6 +132,7 @@ function r18Reached(d) {
   (d.apps || []).forEach(function (a) {
     var st = String(a.status || '');
     if (!isOutreach(a)) r.submitted = true;
+    if (stageOf(a) === 4) return; /* r1: closed or rejected (the same word list as the API's CLOSED_STATUS_RE_) reaches nothing past submitted */
     if (/interview|next round/i.test(st) || String(a.interview || '').trim() || /offer|hired/i.test(st)) r.interview = true;
     if (/offer|hired|accepted/i.test(st)) r.offer = true;
     if (/\bhired\b|accepted/i.test(st)) r.hired = true;

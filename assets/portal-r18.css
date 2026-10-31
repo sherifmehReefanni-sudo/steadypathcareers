@@ -11,11 +11,11 @@
 .app .bd-fuh .pill { margin-right: 4px; }
 .app .bd-txt { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 500 14.5px/1.5 var(--display, Manrope, system-ui, sans-serif); color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
 .app .bd-ty { margin: 10px 0 0; border: 1px solid var(--line); border-left: 5px solid var(--navy); border-radius: 12px; padding: 4px 12px 10px; background: #fff; }
-.app .bd-ty summary { min-height: 44px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 800; color: var(--navy); list-style: none; }
-.app .bd-ty summary::-webkit-details-marker { display: none; }
-.app .bd-ty summary::before { content: ""; width: 0; height: 0; border-left: 6px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; transition: transform .15s; }
-.app .bd-ty[open] summary::before { transform: rotate(90deg); }
-.app .bd-ty summary:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; border-radius: 6px; }
+.app .bd-ty summary, .app .bd-fud summary { min-height: 44px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 800; color: var(--navy); list-style: none; }
+.app .bd-ty summary::-webkit-details-marker, .app .bd-fud summary::-webkit-details-marker { display: none; }
+.app .bd-ty summary::before, .app .bd-fud summary::before { content: ""; width: 0; height: 0; border-left: 6px solid currentColor; border-top: 5px solid transparent; border-bottom: 5px solid transparent; transition: transform .15s; }
+.app .bd-ty[open] summary::before, .app .bd-fud[open] summary::before { transform: rotate(90deg); }
+.app .bd-ty summary:focus-visible, .app .bd-fud summary:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; border-radius: 6px; }
 .app .bd-ty .psub { margin: 0; font-size: 14px; }
 .app .bd-ty .kbtn { margin-top: 8px; min-height: 44px; }
 .bd-sub { margin: 0; color: var(--muted); font-size: 15px; }
@@ -53,3 +53,13 @@
 .a2once ol { margin: 0; padding-left: 20px; color: #E8EDF5; font-size: 14.5px; display: grid; gap: 2px; }
 .a2once .btn { min-height: 44px; }
 .a2once .btn.ghost:focus-visible, .a2once .btn.gold:focus-visible { outline: 3px solid #F2D98A; outline-offset: 2px; }
+
+/* r1: tighter cards on the five-column desktop board */
+@media (min-width: 1101px) {
+  .board .app { padding: 10px; }
+  .board .app .bd-moves { gap: 6px; }
+  .board .app .bd-moves .kbtn { padding-left: 10px; padding-right: 10px; font-size: 14px; }
+  .board .app .bd-txt { font-size: 13.5px; padding: 8px 10px; }
+  .board .app .bd-fu, .board .app .bd-ty { padding-left: 10px; padding-right: 10px; }
+  .board .app .bd-note, .board .app .bd-fuh { font-size: 13.5px; }
+}
