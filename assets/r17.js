@@ -96,7 +96,7 @@
     var btn = me.querySelector('[data-welcome]');
     /* The button shows only when both the video and its captions are set. */
     if (!src || !caps || !btn || typeof dlg.showModal !== 'function') return;
-    btn.hidden = false;
+    btn.hidden = false; me.classList.add('has-play');
     var v = dlg.querySelector('video'), loaded = false;
     function load() {
       if (loaded) return; loaded = true;

@@ -16,7 +16,7 @@
 .me-play[hidden] { display: none; }
 .me-play:hover { background: var(--navy); }
 .me-play:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-.me:has(.me-play:not([hidden])) figcaption { margin-top: 14px; }
+.me.has-play figcaption { margin-top: 14px; }
 
 /* swipe stack in the hero */
 .hero-sw .sw-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 10px; }
@@ -51,7 +51,7 @@
   .me figcaption span { font-size: 14px; }
   .me-play { left: auto; right: -12px; bottom: 4px; transform: none; padding: 0; width: 44px; justify-content: center; }
   .me-play span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .me:has(.me-play:not([hidden])) figcaption { margin-top: 0; }
+  .me.has-play figcaption { margin-top: 0; }
   .stage .hero-sw { grid-column: 1; grid-row: 2; margin: 22px auto 0; max-width: 400px; justify-self: center; }
   .hero-sw .sw-stack { height: 280px; }
 }
