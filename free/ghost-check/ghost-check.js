@@ -18,7 +18,9 @@
   GC.clean = function (raw) {
     var u = String(raw == null ? '' : raw).trim();
     var m = /https?:\/\/\S+/i.exec(u);
+    var bare = /(^|\s)([a-z0-9-]+(?:\.[a-z0-9-]+)+\/\S*)/i.exec(u);
     if (m && m.index > 0) u = m[0];
+    else if (!m && bare && /\s/.test(u)) u = bare[2];
     else if (/\s/.test(u)) u = u.split(/\s+/)[0];
     if (u && !/^[a-z][a-z0-9+.-]*:/i.test(u) && /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/|$)/i.test(u)) u = 'https://' + u;
     return u.replace(/[).,;'"\]>]+$/, '');
