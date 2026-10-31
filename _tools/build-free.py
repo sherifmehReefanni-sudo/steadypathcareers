@@ -87,6 +87,13 @@ BASE_CSS = r'''
   body.mk { font-size: 11pt; }
   .phero-art, .phero .cta, .finale .ill, .fx-noprint, .foot nav, .foot .brand { display: none !important; }
   .foot { padding: 6px 0 !important; }
+  .foot .where { flex-direction: row !important; align-items: center !important; font-size: 9pt; }
+  .foot .where .ws { display: inline !important; }
+  .foot .where .wt { min-height: 0 !important; padding: 0 !important; }
+  .finale { padding: 14px 0 !important; }
+  .finale h2 { font-size: 18pt !important; margin-bottom: 6px !important; }
+  .finale p { font-size: 10.5pt !important; margin: 0 auto 8px !important; }
+  .foot { break-inside: avoid; }
   .finale .btn::after { content: ": steadypathcareers.com/start/"; }
   .phero h1 { font-size: 24pt !important; }
   .sec { padding: 10px 0 !important; }
@@ -110,11 +117,15 @@ SOURCES = {
  'ny-mbr': ('NY Dept. of Labor, What is the maximum benefit rate?', 'https://dol.ny.gov/mbr'),
  'ny-ws': ('NY Dept. of Labor, Work search requirements and recordkeeping', 'https://dol.ny.gov/services/ui/wsr'),
  'ny-sev': ('NY Dept. of Labor, Dismissal/severance pay and pensions FAQ', 'https://dol.ny.gov/dismissalseverance-pay-and-pensions-frequently-asked-questions'),
+ 'ny-p825': ('NY Dept. of Labor, Dismissal or severance pay and your UI benefit (P825)', 'https://dol.ny.gov/dismissal-or-severance-pay-and-your-ui-benefit-p825-english'),
+ 'nj-warn': ('NJ WARN Act as amended (statute PDF)', 'https://www.nj.gov/labor/assets/PDFs/WARN/NJ_WARN_ACT_2023law.pdf'),
  'eeoc': ('U.S. EEOC, Understanding waivers of discrimination claims in employee severance agreements', 'https://www.eeoc.gov/laws/guidance/qa-understanding-waivers-discrimination-claims-employee-severance-agreements'),
  'dol-guide': ('U.S. Dept. of Labor, An Employee&#x27;s Guide to Health Benefits Under COBRA', 'https://www.dol.gov/sites/dolgov/files/ebsa/about-ebsa/our-activities/resource-center/publications/an-employees-guide-health-benefits-under-cobra-2022.pdf'),
  'dol-faq': ('U.S. Dept. of Labor, FAQs on COBRA continuation health coverage for workers', 'https://www.dol.gov/agencies/ebsa/about-ebsa/our-activities/resource-center/faqs/cobra-continuation-health-coverage-workers'),
  'hc-sep': ('HealthCare.gov, Getting health coverage outside Open Enrollment', 'https://www.healthcare.gov/coverage-outside-open-enrollment/special-enrollment-period/'),
  'hc-cobra': ('HealthCare.gov, COBRA coverage when you&#x27;re unemployed', 'https://www.healthcare.gov/unemployed/cobra-coverage/'),
+ 'nj-dobi': ('NJ Dept. of Banking and Insurance, Continuation of coverage (COBRA and NJ state continuation)', 'https://www.nj.gov/dobi/division_consumers/insurance/cobra.html'),
+ 'ny-dfs': ('NY Dept. of Financial Services, Extension of continuation coverage to 36 months', 'https://www.dfs.ny.gov/consumers/health_insurance/cobra_coverage_extension_36_Months'),
  'gcnj': ('Get Covered New Jersey', 'https://www.nj.gov/getcoverednj/'),
  'gcnj-sep': ('Get Covered New Jersey, Special Enrollment Period overview (2026)', 'https://www.nj.gov/getcoverednj/library/SEPOverview2026.pdf'),
  'nysoh': ('NY State of Health, the official health plan marketplace', 'https://nystateofhealth.ny.gov/'),
@@ -189,7 +200,7 @@ KIT_CSS = BASE_CSS + r'''
   .state, .k-box { break-inside: auto; }
   .when { display: none !important; }
   .pw { display: inline; color: #6f5300; }
-  h2, h3 { break-after: avoid; }
+  h2, h3 { break-inside: avoid; break-after: avoid; }
   .states, .k-cols { grid-template-columns: 1fr 1fr; gap: 10px; }
   .prose p, .prose li, .state .ck > li { font-size: 10.5pt !important; line-height: 1.45 !important; }
   .when { background: #fff !important; color: #000 !important; border: 2px solid #000; }
@@ -247,6 +258,7 @@ KIT_BODY = r'''
 ''' + when('Hours 1 to 24') + r'''
 <h2><span class="pw">Hours 1 to 24: </span>File for unemployment</h2>
 <p>File in the state where you worked. Here is what each state asks for and what happens next.</p>
+<!-- REMOVE OR REWORD AFTER NY SYSTEM RELAUNCH (~Nov 14, 2026) -->
 <div class="alert" role="note"><b>New York system upgrade:</b> New York&#x27;s unemployment system goes offline at 5 p.m. on Monday, November 2, 2026, for an upgrade expected to take 9 to 12 days. Filing and certifying, online and by phone, pause during that time. The deadline to file or certify before it is 5 p.m. that Monday. Payments will be delayed, but New York says you&#x27;ll get everything you&#x27;re owed once you file or certify in the new system.{{ny-upgrade}}</div>
 </div>
 <div class="states" data-reveal>
@@ -267,7 +279,7 @@ KIT_BODY = r'''
 <li><b>Waiting week:</b> by law, you serve one unpaid waiting week before any benefits are paid.{{ny-flyer}} You still have to claim that week.{{ny-cert}}</li>
 <li><b>Every week:</b> certify weekly. A week runs Monday to Sunday, and you claim it from that Sunday through the following Saturday.{{ny-when}}</li>
 <li><b>How much:</b> up to $869 a week, the maximum since October 6, 2025,{{ny-mbr}} for up to 26 weeks.{{ny-flyer}}</li>
-<li><b>Severance:</b> if it&#x27;s paid within 30 days of your last day and is more than the maximum weekly benefit, you aren&#x27;t eligible while it lasts. If it&#x27;s equal to or less than the maximum, you may still be eligible. If severance starts within 30 days, call the Telephone Claims Center right away. WARN Act pay doesn&#x27;t count as severance.{{ny-sev}}</li>
+<li><b>Severance:</b> if it&#x27;s paid within 30 days of your last day and is more than the maximum weekly benefit, you aren&#x27;t eligible while it lasts. If it&#x27;s equal to or less than the maximum, you may still be eligible. If severance starts within 30 days, call the Telephone Claims Center right away. WARN Act pay doesn&#x27;t count as severance.{{ny-sev}} Either way, file anyway and let NY decide. If you&#x27;re still out of work when your severance ends, file then, or file again if you already did.{{ny-p825}}</li>
 <li><b>Look for work:</b> complete and record at least three work search activities each week.{{ny-ws}}</li>
 </ul></div>
 </div>
@@ -280,15 +292,15 @@ KIT_BODY = r'''
 <h3>COBRA or the marketplace?</h3>
 <p>You can keep your job&#x27;s plan through COBRA or buy your own through <a href="https://www.nj.gov/getcoverednj/">Get Covered New Jersey</a>{{gcnj}} or <a href="https://nystateofhealth.ny.gov/">NY State of Health</a>.{{nysoh}} Price both before you choose.</p>
 <div class="tw stack" role="region" aria-label="COBRA compared with the marketplace" tabindex="0"><table class="cmp"><thead><tr><th scope="col">&nbsp;</th><th scope="col">COBRA</th><th scope="col">Marketplace plan</th></tr></thead><tbody>
-<tr><th scope="row">Who it covers</th><td data-label="COBRA">Generally, group plans of private employers with at least 20 employees.{{dol-guide}}</td><td data-label="Marketplace plan">Losing job-based coverage qualifies you for a Special Enrollment Period.{{gcnj}}</td></tr>
+<tr><th scope="row">Who it covers</th><td data-label="COBRA">Generally, group plans of private employers with at least 20 employees.{{dol-guide}} Smaller employer? NJ and NY have state continuation for insured plans. In NJ it covers employers with 50 or fewer employees.{{nj-dobi}} In NY it covers small and large employers.{{ny-dfs}}</td><td data-label="Marketplace plan">Losing job-based coverage qualifies you for a Special Enrollment Period.{{gcnj}}</td></tr>
 <tr><th scope="row">Deadline</th><td data-label="COBRA">At least 60 days to elect,{{dol-guide}} counted from the later of the day coverage ends or the day your election notice is given or mailed to you.{{dol-faq}}</td><td data-label="Marketplace plan">Up to 60 days before or 60 days after you lose coverage.{{hc-sep}} Get Covered NJ and NY State of Health give 60 days to report the change.{{gcnj-sep}}{{nysoh-sep}}</td></tr>
 <tr><th scope="row">Cost</th><td data-label="COBRA">You usually pay the full premium, including the part your employer paid,{{dol-faq}} up to 102% of the plan&#x27;s cost.{{dol-guide}}</td><td data-label="Marketplace plan">May cost less than COBRA, especially if you qualify for savings based on your income.{{hc-cobra}}</td></tr>
-<tr><th scope="row">How long</th><td data-label="COBRA">18 months after a job ends, unless it ended for gross misconduct.{{dol-guide}}</td><td data-label="Marketplace plan">Open enrollment for 2027 runs November 1 to January 31 in both NJ and NY.{{gcnj}}{{nysoh-oe}}</td></tr>
+<tr><th scope="row">How long</th><td data-label="COBRA">18 months under federal law after a job ends, unless it ended for gross misconduct.{{dol-guide}} NJ state continuation lasts the same 18 months.{{nj-dobi}} In NY, insured plans can continue up to 36 months in total. Self-funded plans don&#x27;t get the NY extension.{{ny-dfs}}</td><td data-label="Marketplace plan">Open enrollment for 2027 runs November 1 to January 31 in both NJ and NY.{{gcnj}}{{nysoh-oe}}</td></tr>
 <tr><th scope="row">Start date</th><td data-label="COBRA">Retroactive to the day you lost your plan, once you elect.{{dol-faq}} You have at least 45 days after electing to make the first payment.{{dol-guide}}</td><td data-label="Marketplace plan">In NJ, coverage starts the first day of the month after you enroll.{{gcnj-sep}} In NY, enroll by December 15, 2026, for coverage starting January 1, 2027.{{nysoh-oe}}</td></tr>
 </tbody></table></div>
 <ul class="ck">
 <li><b>Watch your mail for the COBRA notice.</b> Your employer must tell the plan within 30 days, and the plan must send your election notice within 14 days after that.{{dol-guide}}</li>
-<li><b>Know the trap:</b> dropping COBRA on your own, or stopping payments, doesn&#x27;t open a Special Enrollment Period.{{hc-cobra}}{{gcnj-sep}} Choosing COBRA first doesn&#x27;t block the marketplace later if you qualify for a new special enrollment.{{dol-faq}}</li>
+<li><b>Know the trap:</b> dropping COBRA on your own, or stopping payments, doesn&#x27;t open a Special Enrollment Period.{{hc-cobra}}{{gcnj-sep}} The exception is open enrollment: from November 1 to January 31 (for 2027 coverage in NJ and NY), you can switch from COBRA to a marketplace plan for any reason.{{hc-cobra}}{{gcnj}}{{nysoh-oe}} Choosing COBRA first doesn&#x27;t block the marketplace later if you qualify for a new special enrollment.{{dol-faq}}</li>
 </ul>
 <h3 id="severance">Before you sign a severance agreement</h3>
 <ul class="ck">
@@ -330,7 +342,7 @@ KIT_BODY = r'''
 <li><b>Don&#x27;t sign the severance agreement in the room.</b> Take it home. If you&#x27;re 40 or older, you have at least 21 days by law, and 45 in a group layoff.{{eeoc}}</li>
 <li><b>Don&#x27;t wait to file for unemployment</b> &quot;until things settle.&quot; In NJ, your claim doesn&#x27;t begin until you file.{{nj-pr94}}</li>
 <li><b>Don&#x27;t cash out your 401(k).</b> If the money is paid to you, the plan withholds 20%, and you have 60 days to roll it over. Not rolling it over can mean extra tax, including a possible 10% additional tax unless an exception applies. A direct rollover has nothing withheld.{{irs-roll}}</li>
-<li><b>Don&#x27;t drop COBRA or skip a payment</b> without another plan lined up. Doing that on your own doesn&#x27;t open a Special Enrollment Period.{{hc-cobra}}{{gcnj-sep}}</li>
+<li><b>Don&#x27;t drop COBRA or skip a payment</b> without another plan lined up. Doing that on your own doesn&#x27;t open a Special Enrollment Period.{{hc-cobra}}{{gcnj-sep}} The exception: during open enrollment, November 1 to January 31 for 2027 coverage in NJ and NY, you can switch to a marketplace plan for any reason.{{hc-cobra}}{{gcnj}}{{nysoh-oe}}</li>
 <li><b>Don&#x27;t rush the COBRA decision on day one.</b> You have at least 60 days, and if you elect, coverage reaches back to the day you lost your plan. You pay the premiums back to that date too.{{dol-guide}}{{dol-faq}}</li>
 <li><b>Don&#x27;t post about the layoff while you&#x27;re angry.</b> Future employers read public posts.</li>
 <li><b>Don&#x27;t pay anyone who promises you a job.</b></li>
@@ -346,6 +358,7 @@ KIT_BODY = r'''
 <li>What day does my health, dental and vision coverage end? When will the COBRA election notice be sent?<span class="ans" aria-hidden="true"></span></li>
 <li>Is severance offered? How much, and is it a lump sum or paid out over time? When is it paid?<span class="ans" aria-hidden="true"></span></li>
 <li>How long do I have to review the agreement? If this is a group layoff and I&#x27;m 40 or older, where is the list of job titles and ages?<span class="ans" aria-hidden="true"></span></li>
+<li>Is this a mass layoff under NJ&#x27;s WARN law? Does my severance include the mandatory amount? (In a covered NJ mass layoff, that&#x27;s one week of pay per full year you worked.{{nj-warn}})<span class="ans" aria-hidden="true"></span></li>
 <li>What happens to my 401(k), any unvested company match, and my HSA or FSA balance?<span class="ans" aria-hidden="true"></span></li>
 <li>Can I convert or keep my life or disability insurance?<span class="ans" aria-hidden="true"></span></li>
 <li>Are any bonus or commission payments still owed to me? When?<span class="ans" aria-hidden="true"></span></li>
@@ -403,7 +416,7 @@ SCRIPTS = [
   'It gives them one easy last chance to reply, leaves the door open for the next opening, and lets you move on without guessing.'),
  ('thanks', 'Same-day thank-you after an interview', 'The same day, within a few hours. Send a separate note to each person who interviewed you.',
   'Subject: Thank you for today\n\nHi [Name],\n\nThank you for taking the time to talk with me about the [Job title] role at [Company]. I enjoyed learning more about the team and the work, and I am even more interested in the job.\n\n[One sentence linking something they said to something you have done.]\n\nI would welcome the next step. Please let me know if there is anything else I can send you.\n\nThank you again,\n[Your name]',
-  'Most candidates skip it or send it days later. One specific sentence shows you listened, and it keeps you in mind while they compare notes.'),
+  'Many candidates skip it or send it days later. One specific sentence shows you listened, and it keeps you in mind while they compare notes.'),
  ('posted-pay', '&quot;The posting said X, the offer is Y&quot;', 'After you get the written offer and before you accept, if the pay is below the posted range or at its very bottom.',
   'Subject: Question about the offer for [Job title]\n\nHi [Name],\n\nThank you for the offer. I am excited about the [Job title] role and the team.\n\nI want to ask about one thing before I decide. The job posting listed a pay range of [posted range], and the offer is [offered amount]. Could you help me understand how that number was set? Given [the skill or experience from the posting that you bring], I was expecting an offer closer to [your number].\n\nI am glad to talk it through by phone if that is easier.\n\nThank you,\n[Your name]',
   'You point to the employer&#x27;s own number and ask a question instead of making an accusation, which makes it easy for them to fix.'),
@@ -438,6 +451,12 @@ SCR_CSS = BASE_CSS + r'''
 .copy:hover { background: var(--navy); border-color: var(--navy); }
 .copy svg { width: 20px; height: 20px; flex: none; }
 .copy.done { background: var(--ok); border-color: var(--ok); }
+.copy[hidden] { display: none; }
+.script .subj { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin: 0 0 14px; }
+.script .stxt { flex: 1 1 260px; margin: 0; overflow-wrap: anywhere; font: 600 17px/1.5 var(--display); color: var(--ink); background: var(--cream); border: 1px solid rgba(31,58,95,.12); border-left: 5px solid var(--gold); border-radius: 12px; padding: 10px 16px; }
+.copy.sm { min-height: 44px; padding: 8px 16px; font-size: 15px; background: #fff; color: var(--midnight); }
+.copy.sm:hover { background: var(--sunk); border-color: var(--midnight); }
+.copy.sm.done { color: #fff; }
 .script .why { margin: 16px 0 0; font-size: 16px; line-height: 1.55; color: var(--ink2); }
 .script .why b { color: var(--midnight); }
 .script .more { font-size: 16px; margin: 10px 0 0; }
@@ -448,7 +467,7 @@ SCR_CSS = BASE_CSS + r'''
 @media print {
   .copy, .scr-toc { display: none !important; }
   .script { break-inside: avoid; border: 1px solid #999; padding: 12px; }
-  .script .txt { background: #fff !important; font-size: 10.5pt; }
+  .script .txt, .script .stxt { background: #fff !important; font-size: 10.5pt; }
 }
 '''
 
@@ -458,13 +477,14 @@ COPY_JS = r'''<script>
 /* Copy buttons: clipboard first; if that is blocked, select the text so the person can copy it by hand. Results are announced in #copy-status. */
 (function () {
   var d = document, st = d.getElementById('copy-status');
+  var bs = d.querySelectorAll('[data-copy-for]'); for (var i = 0; i < bs.length; i++) bs[i].hidden = false;
   function say(m) { if (!st) return; st.textContent = ''; setTimeout(function () { st.textContent = m; }, 30); }
   function select(el) {
     try { var r = d.createRange(); r.selectNodeContents(el); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); return true; } catch (e) { return false; }
   }
   function done(b) {
     var l = b.querySelector('span'); b.classList.add('done'); l.textContent = 'Copied'; say('Copied');
-    clearTimeout(b._t); b._t = setTimeout(function () { b.classList.remove('done'); l.textContent = 'Copy'; }, 2500);
+    clearTimeout(b._t); b._t = setTimeout(function () { b.classList.remove('done'); l.textContent = b.getAttribute('data-label') || 'Copy'; }, 2500);
   }
   function fallback(el) {
     if (select(el)) say('Copy did not work here. The text is selected, so press Control C, or Command C on a Mac, to copy it.');
@@ -497,19 +517,23 @@ def build_scripts():
     toc = ''.join(f'<li><a href="#{k}">{t}</a></li>' for k, t, *_ in SCRIPTS)
     cards = ''
     for k, t, wh, txt, why in SCRIPTS:
+        subj, body = txt.split('\n\n', 1)
+        assert subj.startswith('Subject: '); subj = subj[len('Subject: '):]
         more = ''
         if k == 'posted-pay': more = '<p class="more">Not sure what NJ and NY say about pay ranges in postings? <a href="/guides/pay-transparency/">Read my guide.</a></p>'
         if k == 'counter': more = '<p class="more">Need a number to ask for? Start with the <a href="/pay/">pay lookup</a>.</p>'
         cards += (f'<li class="script" id="{k}"><h2 id="{k}-h">{t}</h2>'
                   f'<p class="lbl">When to send</p><p class="wh">{wh}</p>'
-                  f'<p class="lbl" id="{k}-l">The script</p><pre class="txt" id="{k}-t" aria-labelledby="{k}-h {k}-l">{txt}</pre>'
-                  f'<div class="row"><button type="button" class="copy" data-copy-for="{k}-t" aria-describedby="{k}-h">{COPY_ICON}<span>Copy</span></button></div>'
+                  f'<p class="lbl" id="{k}-sl">Subject line</p><div class="subj"><p class="stxt" id="{k}-s">{subj}</p>'
+                  f'<button type="button" class="copy sm" data-copy-for="{k}-s" data-label="Copy subject" aria-describedby="{k}-h" hidden>{COPY_ICON}<span>Copy subject</span></button></div>'
+                  f'<p class="lbl" id="{k}-l">The email</p><pre class="txt" id="{k}-t" aria-labelledby="{k}-h {k}-l">{body}</pre>'
+                  f'<div class="row"><button type="button" class="copy" data-copy-for="{k}-t" data-label="Copy email" aria-describedby="{k}-h" hidden>{COPY_ICON}<span>Copy email</span></button></div>'
                   f'<p class="why"><b>Why it works:</b> {why}</p>{more}</li>')
-    title = 'The Emails That Get Replies: 8 Free Job Search Scripts · Steady Path'
+    title = 'Emails for Every Step of the Search: 8 Free Job Search Scripts · Steady Path'
     desc = 'Eight free, copy-ready emails for your job search: follow-ups, thank-you notes, offer questions, a counter-offer, a polite decline and a referral ask.'
-    ld = '{"@context": "https://schema.org", "@type": "Article", "headline": "The Emails That Get Replies", "description": "' + desc + '", "author": {"@type": "Person", "name": "Sherif Mehanni"}, "publisher": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "dateModified": "2026-10-31", "mainEntityOfPage": "https://steadypathcareers.com/free/follow-up-scripts/", "image": "https://steadypathcareers.com/img/og/free.png", "isAccessibleForFree": true}'
+    ld = '{"@context": "https://schema.org", "@type": "Article", "headline": "Emails for Every Step of the Search", "description": "' + desc + '", "author": {"@type": "Person", "name": "Sherif Mehanni"}, "publisher": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "dateModified": "2026-10-31", "mainEntityOfPage": "https://steadypathcareers.com/free/follow-up-scripts/", "image": "https://steadypathcareers.com/img/og/free.png", "isAccessibleForFree": true}'
     out = head('/free/follow-up-scripts/', title, desc, 'free.png', 'Free tools from Steady Path Careers', SCR_CSS, ld)
-    out += phero('/free/', 'Free scripts', 'The emails that get replies',
+    out += phero('/free/', 'Free scripts', 'Emails for every step of the search',
                  'Eight short, copy-ready notes for the moments that matter in a job search. Fill in the brackets, read it once out loud, and send.',
                  '<a class="btn gold" data-cta href="#scripts">See the scripts</a><a class="btn line" href="/free/">All free tools</a>', SCR_ART)
     out += '<main id="main" class="trail-main" data-trail>\n'
@@ -557,10 +581,10 @@ ICONS = {
 
 TOOLS = [
  ('kit', 'Free tool 1', 'Laid off in NJ or NY: your first 72 hours', 'An hour-by-hour checklist for unemployment, severance, health coverage and final pay, with official sources. Prints cleanly.', '/free/laid-off-72-hours/', False),
- ('mail', 'Free tool 2', 'The emails that get replies', 'Eight copy-ready scripts: follow-ups, thank-you notes, offer questions, a counter-offer, a decline and a referral ask.', '/free/follow-up-scripts/', False),
- ('track', 'Free tool 3', 'Job Search Tracker', 'Keep every application, contact and follow-up date in one place.', '/free/tracker/', True),
- ('offer', 'Free tool 4', 'Offer Check', 'See how an offer compares with typical pay for the job near you.', '/pay/#offer', True),
- ('ghost', 'Free tool 5', 'Ghost Job Checker', 'Check a posting for signs it may not be a real, open job.', '/free/ghost-check/', True),
+ ('mail', 'Free tool 2', 'Emails for every step of the search', 'Eight copy-ready scripts: follow-ups, thank-you notes, offer questions, a counter-offer, a decline and a referral ask.', '/free/follow-up-scripts/', False),
+ ('track', 'Free tool 3', 'Job Search Tracker', 'Keep every application, its status and your follow-up dates in one place.', '/free/tracker/', True),
+ ('offer', 'Free tool 4', 'Offer Check', 'See how an offer compares with typical pay for the job in NJ or NY.', '/pay/#offer', True),
+ ('ghost', 'Free tool 5', 'Ghost Job Checker', 'Check whether a posting is still open before you spend time on it.', '/free/ghost-check/', True),
 ]
 
 HUB_ART = ('<svg class="hero-svg" viewBox="0 0 320 240" aria-hidden="true" focusable="false" data-live>'
