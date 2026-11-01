@@ -10,7 +10,7 @@
   var PREVIEW = ROOT.getAttribute('data-preview') !== 'off';
   var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
   var KEY = PREVIEW ? 'sp_intake2_preview' : 'sp_intake2';
-  var TERMS_VERSION = '2026-10-27';
+  var TERMS_VERSION = '2026-11-01';
   var BOOK = 'https://calendar.app.google/8wyFoDK5k6k1iamT9';
   var HEADSHOT = ROOT.getAttribute('data-headshot') || '/img/sherif-mehanni.jpg';
 
