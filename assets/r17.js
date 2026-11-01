@@ -101,7 +101,8 @@
     function load() {
       if (loaded) return; loaded = true;
       v.src = src;
-      if (caps) {
+      /* data-captions="burned" means the captions are part of the picture, so no track is added. */
+      if (caps && caps !== 'burned') {
         var t = d.createElement('track'); t.kind = 'captions'; t.srclang = 'en'; t.label = 'English'; t.src = caps; t.default = true;
         v.appendChild(t);
       }
