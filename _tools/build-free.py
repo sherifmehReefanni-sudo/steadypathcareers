@@ -20,7 +20,7 @@ FOOT = ('<footer class="foot"><div class="wrap"><a class="brand" href="/"><span 
         '<script src="/assets/site.js?v=20261027a"></script>\n<script src="/assets/path.js?v=20261026a"></script>\n<script defer src="/assets/r17.js?v=20261031d"></script>\n'
         """<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6f62d1e0e28847dcab6b431376defda9"}'></script><!-- End Cloudflare Web Analytics -->\n""")
 
-R17 = '20261031n'
+R17 = '20261031v'
 
 def head(path, title, desc, og_img, og_alt, css, ld):
     url = SITE + path
