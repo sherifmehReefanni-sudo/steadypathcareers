@@ -73,8 +73,8 @@ def phero(cur, kicker, h1, sub, cta, art):
 def finale(h2, p):
     return f'<section class="finale" data-mile style="--a:#0B4A52"><div class="wrap"><h2>{h2}</h2><p>{p}</p><a class="btn gold" href="/start/">Start free</a></div>{FIN_SVG}</section>\n'
 
-OFFER_H = 'Want me to run your search for you? Free for 60 days.'
-OFFER_P = 'When you&#x27;re ready, I&#x27;ll find and check openings that fit, show the pay on every one, and tailor your resume for each job you pick. You send every application. Free for 60 days while Steady Path is in its pilot.'
+OFFER_H = 'Want me to run your search for you? Free for 30 days.'
+OFFER_P = 'When you&#x27;re ready, I&#x27;ll find and check openings that fit, show the pay on every one, and tailor your resume for each job you pick. You send every application. Free for 30 days while Steady Path is in its pilot.'
 
 # ---------------------------------------------------------------- shared small CSS for /free/ pages
 BASE_CSS = r'''
