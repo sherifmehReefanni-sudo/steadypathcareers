@@ -103,6 +103,7 @@
 .fx-ring { position: absolute; width: 64px; height: 64px; border-radius: 50%; border: 3px solid #C9A227; will-change: transform, opacity; }
 @media (max-width: 420px) { .ih-row { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; } .ih-art { width: 72px; height: 58px; } .ih-art svg { width: 66px; height: 53px; } .ih-cheer { font-size: 17px; } .ihead { padding: 12px 14px 6px; } }
 @media print { .ihead { background: #fff !important; color: #000 !important; box-shadow: none; } .ih-cheer, .ih-next { color: #000 !important; } .fx-layer { display: none; } }
+@media (display-mode: standalone) { .foot nav a[href="/app/"] { display: none; } }
 </style>
 </head>
 <body class="mk">
