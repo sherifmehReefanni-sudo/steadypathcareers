@@ -266,3 +266,6 @@ body.has-mbar .foot { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0p
   .mk .phero .topbar .right .btn { padding: 9px 14px; font-size: 14px; }
   .mk .foot nav a { padding: 0 6px; }
 }
+
+/* r24: inside the installed app (standalone), public pages hide the "Get the app" link */
+@media (display-mode: standalone) { .mk .foot nav a[href="/app/"] { display: none; } }

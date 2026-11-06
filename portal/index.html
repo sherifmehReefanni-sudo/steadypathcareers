@@ -1151,7 +1151,7 @@ function vSignin() {
       '<p class="fine" style="margin:0"><button type="button" class="linkbtn" data-newlink>Send a new link</button></p>' :
       '<p class="psub">We\'ll email you a sign-in link and a code. Each works once. No password to remember.</p>' + (S.err ? '<div class="warn">' + esc(S.err) + '</div>' : '') +
       '<form id="linkForm"><input type="email" id="email" required placeholder="you@example.com" aria-label="Email" autocomplete="email" value="' + esc(S.lastEmail || '') + '"><button class="btn gold" id="linkBtn" type="submit" style="width:100%;margin-top:10px">Email me a sign-in link</button></form>') +
-    '<p class="fine">Not a client yet? <a href="/start/">Join the free pilot</a>.</p><p class="fine">Your information is private. Only Steady Path and the tools listed in the privacy policy, including an AI service, handle it.</p>' + legalLinks('fine legal') + '</div></div>';
+    '<p class="fine">Not a client yet? <a href="/start/">Join the free pilot</a>.</p>' + (standalone() ? '' : '<p class="fine"><a href="/app/">Get the app</a> for your phone. No app store needed.</p>') + '<p class="fine">Your information is private. Only Steady Path and the tools listed in the privacy policy, including an AI service, handle it.</p>' + legalLinks('fine legal') + '</div></div>';
 }
 
 /* ---- feedback ---- */
@@ -1773,7 +1773,7 @@ function vJobs() {
   var jfx = jfJobs(d, main, passed, hintId); main = jfx.main; passed = jfx.passed; /* round 3: search, sort, filters (the list only) */
   var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110, jl = jlOn(); /* round 6b: list + detail at 1100px and wider */
   var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : n.k === 'done' ? 'All caught up.' : 'Your matches are reviewed. Here\'s what\'s next.';
-  return shell('jobs', esc(title), 'Pay is from the employer\'s posting unless marked as an estimate.') + '<div class="pband" aria-hidden="true"></div>' +
+  return shell('jobs', esc(title), 'Pay is shown as the employer posted it. When it isn\'t posted, the card says so.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain' + (jl ? ' xl' : '') + '">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
     '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b><span>' + esc(trialText(cl)) + '</span></div>' +
     nxCard(n) + dueCard(d) +

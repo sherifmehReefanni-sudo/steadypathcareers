@@ -9,8 +9,86 @@
   "background_color": "#1F3A5F",
   "theme_color": "#10213A",
   "icons": [
-    { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "en-US",
+  "orientation": "portrait",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "shortcuts": [
+    {
+      "name": "Jobs",
+      "short_name": "Jobs",
+      "description": "Your job matches",
+      "url": "/portal/?v=jobs",
+      "icons": [
+        {
+          "src": "/img/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "short_name": "Documents",
+      "description": "Your tailored documents",
+      "url": "/portal/?v=docs",
+      "icons": [
+        {
+          "src": "/img/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "short_name": "Applied",
+      "description": "Your application tracker",
+      "url": "/portal/?v=apps",
+      "icons": [
+        {
+          "src": "/img/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/img/app/screen-jobs.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Jobs: your next step and new matches (sample data)"
+    },
+    {
+      "src": "/img/app/screen-docs.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Documents: open and approve your tailored resume (sample data)"
+    }
   ]
 }
