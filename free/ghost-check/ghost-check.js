@@ -1,6 +1,6 @@
 /* Steady Path Careers: Ghost Job Checker (r19c).
    Greenhouse and Lever links are checked here in the browser, straight against their public job APIs (both answer any origin).
-   Workable and Ashby links go to my Apps Script checker (action ghostCheck, v1.33). Until it is live, the old API answers
+   Workable and Ashby links go to our Apps Script checker (action ghostCheck, v1.33). Until it is live, the old API answers
    "unknown action" and the page says the check is coming soon.
    Privacy: the pasted link is never put in the address bar, localStorage, sessionStorage, cookies or analytics. The input has no
    name, so the form can never send it anywhere by itself. The rules below copy the live posting check (postingSource_ and
@@ -114,7 +114,7 @@
   };
   GC.boardUrl = function (src) { return src.kind === 'greenhouse' ? 'https://job-boards.greenhouse.io/' + src.board : src.kind === 'lever' ? 'https://jobs.lever.co/' + src.co : ''; };
 
-  /* ---------- talking to the job systems and to my checker ---------- */
+  /* ---------- talking to the job systems and to our checker ---------- */
   function get(fetchFn, url, ms) {
     var ctl = typeof AbortController === 'function' ? new AbortController() : null, timer = ctl ? setTimeout(function () { ctl.abort(); }, ms || 12000) : 0;
     return fetchFn(url, { method: 'GET', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', redirect: 'error', signal: ctl ? ctl.signal : undefined })
@@ -151,7 +151,7 @@
     if (!GC.city(res.place) || !GC.state(res.place)) return Promise.resolve(-2);   /* no city and state: nothing fair to compare, so no request */
     return get(fetchFn, GC.listUrl(src, src.kind === 'lever' ? res.place : '')).then(function (list) { return GC.repeats(src, { title: res.title, place: res.place }, list); });
   };
-  /* Server check through my Apps Script. The body is sent as text/plain, like every other call to that API (no preflight). */
+  /* Server check through our Apps Script. The body is sent as text/plain, like every other call to that API (no preflight). */
   GC.checkThere = function (src, fetchFn, sid) {
     var ctl = typeof AbortController === 'function' ? new AbortController() : null, timer = ctl ? setTimeout(function () { ctl.abort(); }, 25000) : 0;
     return fetchFn(GC.API, { method: 'POST', body: JSON.stringify({ action: 'ghostCheck', url: src.url, sid: sid }), headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -166,7 +166,7 @@
         if (o.ok === false && o.error === 'busy') return { ats: ats, status: 'unknown', reason: 'busy' };
         if (o.ok === false && o.error === 'off') return { ats: ats, status: 'unknown', reason: 'paused' };
         if (o.ok !== true || ['open', 'closed', 'unknown'].indexOf(o.status) < 0) return { ats: ats, status: 'unknown', reason: 'down' };
-        /* v1.32 adds reason:"limit" when my own time or request limit stopped the check; older replies have no reason */
+        /* v1.32 adds reason:"limit" when our own time or request limit stopped the check; older replies have no reason */
         return { ats: ats, status: o.status, reason: o.status === 'unknown' ? (o.reason === 'limit' ? 'limit' : 'unclear') : '', title: text(o.title), company: text(o.company), postedOn: GC.day(o.postedOn) };
       })
       .catch(function () { clearTimeout(timer); return { ats: src.kind === 'workableAts' ? 'workable' : src.kind, status: 'unknown', reason: 'down' }; });
@@ -256,12 +256,12 @@
       }[res.reason];
       if (res.reason === 'unsupported') {
         if (res.site && !res.src.notPosting && GC.SUPPORTED_SITES.indexOf(res.site) >= 0) card.appendChild(el('p', 'gc-why', 'This kind of ' + res.site + ' link isn\'t one we can check yet.'));
-        else if (res.site && !res.src.notPosting) card.appendChild(el('p', 'gc-why', res.site + ' links are not on my list yet.'));
+        else if (res.site && !res.src.notPosting) card.appendChild(el('p', 'gc-why', res.site + ' links are not on our list yet.'));
         else if (res.src && res.src.notPosting) card.appendChild(el('p', 'gc-why', 'This looks like a ' + (res.site || 'job system') + ' page, but not a single job posting. Open the job itself and copy that link.'));
         manual(card, res.site, '', true);
       } else {
         if (why) card.appendChild(el('p', 'gc-why', why));
-        var wait = res.reason === 'rate' || res.reason === 'busy', blip = wait || { down: 1, unreachable: 1, paused: 1, soon: 1, limit: 1 }[res.reason];   /* a blip on my side, or not live yet: the scam guide is not the point */
+        var wait = res.reason === 'rate' || res.reason === 'busy', blip = wait || { down: 1, unreachable: 1, paused: 1, soon: 1, limit: 1 }[res.reason];   /* a blip on our side, or not live yet: the scam guide is not the point */
         if (res.reason !== 'empty' && res.reason !== 'bad') manual(card, '', wait ? 'While you wait, here is how to check it yourself' : 'Here is how to check it yourself', !blip);
       }
       if (why) summary += '. ' + why;

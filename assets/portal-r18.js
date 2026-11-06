@@ -124,7 +124,7 @@ var MS_TEXT = {
   match: { h: 'Your first match is here.', p: 'Take a look and say yes to the ones you want. For each yes, your tailored resume and cover letter are drafted automatically.' },
   submitted: { h: 'First application sent.', p: 'You submitted your first application. That is a real step forward. Keep your board up to date and we will help with the next one.' },
   interview: { h: 'You landed an interview!', p: 'Nice work. Practice the questions they are likely to ask, and send a thank-you note the same day. It is on the card in Interview.' },
-  offer: { h: 'You got an offer!', p: 'Congratulations. Before you say yes, make sure the pay and benefits are right for you. Offer questions go to a person, who answers within 1 business day.' },
+  offer: { h: 'You got an offer!', p: 'Congratulations. Before you say yes, make sure the pay and benefits are right for you. Offer questions go to a person, who answers, usually within 1 business day.' },
   hired: { h: 'Congratulations on your new role!', p: 'It has been a pleasure helping you get here.', ask: 'One small favor, only if you are up for it: share a sentence or two about your experience. It helps other job seekers decide whether to work with Steady Path.' }
 };
 /* r2: milestones use an ALLOW-LIST of exact statuses (trimmed, any case), the same definition as the API (Code_v1.29.gs MS_STATUS;

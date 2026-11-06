@@ -2,7 +2,7 @@
 """Convert SRT captions to WebVTT for the home page welcome video.
 
 Where the real files go (nothing is published until these exist and the flag is set):
-  1. Put Sherif's recorded video at        video/welcome.mp4   (H.264 + AAC, 16:9, about 60 seconds)
+  1. Put the recorded video at        video/welcome.mp4   (H.264 + AAC, 16:9, about 60 seconds)
   2. Make the captions:  python3 _tools/srt2vtt.py welcome.srt video/welcome.vtt
      Read the captions once: they must say "I", never "we".
   3. In index.html, on <figure class="me" id="me">, set

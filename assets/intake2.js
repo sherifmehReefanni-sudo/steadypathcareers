@@ -597,7 +597,7 @@
 
   add({ id: 'pay', stop: 3, need: ['payFloor'], html: function () {
     var hr = V.payUnit === 'Hourly', fy = payFloorYear(), ty = (function () { var n = num(V.payTarget); return n > 0 ? yearly(n) : NaN; })();
-    return h('Pay', 'We only send jobs whose posted pay reaches your floor.') +
+    return h('Pay', 'We skip jobs whose posted pay tops out below your floor. If a job doesn\'t post pay, its card says so.') +
       '<div class="i2-seg" role="radiogroup" aria-label="Pay type">' + ['Yearly', 'Hourly'].map(function (u) { var on = (V.payUnit || 'Yearly') === u; return '<button type="button" role="radio" aria-checked="' + on + '" class="' + (on ? 'on' : '') + '" data-unit="' + u + '">' + u + '</button>'; }).join('') + '</div>' +
       '<div class="i2-two">' + inp('v2.payFloor', hr ? 'Lowest hourly pay you would accept' : 'Lowest yearly pay you would accept', 'text', { req: 1, im: 'decimal', ph: hr ? '28' : '65000', help: hr ? 'Dollars per hour.' : 'Like 65000 or 65k.' }) +
         inp('v2.payTarget', hr ? 'Hourly pay you are aiming for' : 'Pay you are aiming for', 'text', { im: 'decimal', ph: hr ? '34' : '80000' }) + '</div>' +
