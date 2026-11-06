@@ -10,7 +10,7 @@
   var PREVIEW = ROOT.getAttribute('data-preview') !== 'off';
   var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
   var KEY = PREVIEW ? 'sp_intake2_preview' : 'sp_intake2';
-  var TERMS_VERSION = '2026-11-XX'; /* [GO-LIVE DATE] placeholder: the orchestrator sets the real date at release. Must match start/classic and the backend CONSENT_RECORD_. */
+  var TERMS_VERSION = '2026-11-09';
   var BOOK = 'https://calendar.app.google/8wyFoDK5k6k1iamT9';
   var MARK = '/assets/favicon.svg';
 
