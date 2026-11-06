@@ -116,7 +116,7 @@
   /* ---------- the add / edit form ---------- */
   function fuHint() {
     var v = $('fDate').value;
-    $('fuHint').textContent = parseIso(v) ? 'Follow-up date: ' + nice(addDays(v, 7)) + ' (7 days after you apply).' : 'Pick a date and I work out the follow-up date, 7 days later.';
+    $('fuHint').textContent = parseIso(v) ? 'Follow-up date: ' + nice(addDays(v, 7)) + ' (7 days after you apply).' : 'Pick a date and the tracker works out the follow-up date, 7 days later.';
   }
   function resetForm() {
     editId = null;
@@ -279,7 +279,7 @@
   function readImport(text) {
     var all = parseCsv(text), h = -1, map;
     for (var i = 0; i < Math.min(all.length, 10); i++) { map = headerIndex(all[i]); if (map.company !== undefined) { h = i; break; } }
-    if (h < 0) return { error: 'I could not find a Company column. The first row needs column names like Company, Role and Date applied.' };
+    if (h < 0) return { error: 'We could not find a Company column. The first row needs column names like Company, Role and Date applied.' };
     var got = [], skipped = 0, LIMIT = 2000, over = Math.max(0, all.length - (h + 1) - LIMIT);
     all.slice(h + 1, h + 1 + LIMIT).forEach(function (c) {
       var g = function (k) { return map[k] === undefined ? '' : unguard(c[map[k]]); };
@@ -310,13 +310,13 @@
       if (!res.rows.length) { openPanel('No jobs found', 'The file has column names but no rows with a company.', [{ label: 'OK', run: function () { closePanel('bImport'); } }]); return; }
       pendingImport = res.rows;
       var n = res.rows.length, txt = 'Found ' + n + (n === 1 ? ' job' : ' jobs') + ' in ' + f.name + '.' + (res.skipped ? ' ' + res.skipped + ' rows without a company were left out.' : '') +
-        (res.over ? ' I read the first 2,000 rows only, so ' + res.over.toLocaleString('en-US') + (res.over === 1 ? ' more row was' : ' more rows were') + ' left out.' : '');
+        (res.over ? ' Only the first 2,000 rows were read, so ' + res.over.toLocaleString('en-US') + (res.over === 1 ? ' more row was' : ' more rows were') + ' left out.' : '');
       var btns = [{ label: rows.length ? 'Add to my tracker' : 'Import ' + n + (n === 1 ? ' job' : ' jobs'), cls: 'gold', run: function () { doImport(false); } }];
       if (rows.length) btns.push({ label: 'Replace my tracker', run: function () { doImport(true); } });
       btns.push({ label: 'Cancel', run: function () { closePanel('bImport'); say('Nothing imported.'); } });
       openPanel('Import this file?', txt + (rows.length ? ' Add them to the ' + rows.length + ' already here, or replace your list with the file.' : ''), btns);
     };
-    fr.onerror = function () { say('I could not read that file.'); };
+    fr.onerror = function () { say('We could not read that file.'); };
     fr.readAsArrayBuffer(f);
   });
   function doImport(replace) {

@@ -263,7 +263,7 @@
     var bar = d.createElement('div');
     bar.className = 'mbar'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Quick actions');
     bar.innerHTML = '<a class="btn gold" href="/start/">Start free</a>' +
-      '<a class="btn line" href="sms:+17327590008" aria-label="Text me at (732) 759-0008"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5h16v10.5H9.5L5.5 19.5V16H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Text me</a>';
+      '<a class="btn line" href="sms:+17327590008" aria-label="Text us at (732) 759-0008"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5h16v10.5H9.5L5.5 19.5V16H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Text us</a>';
     d.body.appendChild(bar); d.body.classList.add('has-mbar');
     var mq2 = null; try { mq2 = w.matchMedia('(max-width: 760px)'); } catch (e) {}
     var shown = false, tick = false, footIn = false;

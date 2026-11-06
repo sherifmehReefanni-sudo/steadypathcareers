@@ -1,7 +1,7 @@
 /* Steady Path Careers, design upgrade (r17). Loaded only on marketing pages, after path.css. /start/ and /portal/ never load it.
    Rules: every effect has a still fallback; motion only runs with html.motion (set by path.js) and prefers-reduced-motion: no-preference. */
 
-/* ---------- 1 + 2. Hero stage: the road, Sherif, and the live swipe stack ---------- */
+/* ---------- 1 + 2. Hero stage: the road and the live swipe stack ---------- */
 .phero-art.stage { display: grid; grid-template-columns: minmax(0, 36%) minmax(0, 64%); align-items: start; }
 .stage .hero-svg { grid-column: 1 / -1; grid-row: 1; }
 .stage .me { grid-column: 1; grid-row: 1 / span 2; align-self: start; margin: 46% 0 0; position: relative; z-index: 3; display: grid; justify-items: center; gap: 10px; }
@@ -129,7 +129,7 @@
   .rs-side p { font-size: 17px; }
 }
 
-/* ---------- 4. Trust: how I check every job, and the founder card ---------- */
+/* ---------- 4. Trust: how every job is checked (founder card no longer used on the home page) ---------- */
 .checks { list-style: none; margin: 0 0 34px; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
 .checks li { display: flex; flex-direction: column; gap: 6px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(251, 246, 238, .2); border-radius: 18px; padding: 18px 16px; }
 .checks .ck { width: 32px; height: 32px; margin-bottom: 4px; }

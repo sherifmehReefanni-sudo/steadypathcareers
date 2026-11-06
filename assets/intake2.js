@@ -10,9 +10,9 @@
   var PREVIEW = ROOT.getAttribute('data-preview') !== 'off';
   var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
   var KEY = PREVIEW ? 'sp_intake2_preview' : 'sp_intake2';
-  var TERMS_VERSION = '2026-11-01';
+  var TERMS_VERSION = '2026-11-XX'; /* [GO-LIVE DATE] placeholder: the orchestrator sets the real date at release. Must match start/classic and the backend CONSENT_RECORD_. */
   var BOOK = 'https://calendar.app.google/8wyFoDK5k6k1iamT9';
-  var HEADSHOT = ROOT.getAttribute('data-headshot') || '/img/sherif-mehanni.jpg';
+  var MARK = '/assets/favicon.svg';
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function arr(v) { return Array.isArray(v) ? v : []; }
@@ -157,10 +157,10 @@
         [['role', 'Kind of role', 'many', ['Attorney', 'Paralegal', 'Legal assistant', 'Compliance', 'Contracts administration']], ['bar', 'Bar admissions', 'many', ['New York', 'New Jersey', 'Another state', 'None']]],
         [['areas', 'Practice areas', 'many', ['Litigation', 'Corporate', 'Real estate', 'Family', 'Immigration', 'Employment', 'Intellectual property', 'Personal injury', 'Something else']], ['where', 'Firm or in-house', 'one', ['Law firm', 'In-house', 'Government', 'Either']]]
       ] },
-    other: { t: 'Something else', s: 'Tell me in your own words', ic: 'spark', old: ['Other'],
+    other: { t: 'Something else', s: 'Tell us in your own words', ic: 'spark', old: ['Other'],
       titles: [], skills: [], str: [],
       mod: [
-        [['describe', 'Describe the work you do or want', 'area', null, 'For example: security officer, social services caseworker, government clerk. I may text you a quick question.']]
+        [['describe', 'Describe the work you do or want', 'area', null, 'For example: security officer, social services caseworker, government clerk. We may text you a quick question.']]
       ] }
   };
   var FIELDS = ['clinical', 'nursing', 'it', 'finance', 'sales', 'insurance', 'office', 'trades', 'education', 'retail', 'logistics', 'legal', 'other'];
@@ -505,27 +505,27 @@
 
   add({ id: 'welcome', stop: 0, bare: 1, html: function () {
     var resume = D._saved && D.name ? '<p class="i2-note">Welcome back, ' + esc(String(D.name).split(' ')[0]) + '. Your answers are saved on this device, so you can pick up where you left off.</p>' : '';
-    return '<div class="i2-hi"><img class="i2-face" src="' + esc(HEADSHOT) + '" alt="Sherif Mehanni" width="88" height="88" decoding="async"><div><p class="i2-k">Steady Path Careers</p><h2 class="i2-h">Hi, I\'m Sherif.</h2><p class="i2-p">A few minutes here helps me find jobs that actually fit you.</p></div></div>' +
+    return '<div class="i2-hi"><img class="i2-face i2-mark" src="' + esc(MARK) + '" alt="" width="88" height="88" decoding="async"><div><p class="i2-k">Steady Path Careers</p><h2 class="i2-h">Hi, welcome.</h2><p class="i2-p">A few minutes here helps us find jobs that actually fit you.</p></div></div>' +
       '<ul class="i2-facts"><li>' + icon('spark', 'ic sm') + '<span>About 10 minutes, mostly taps</span></li><li>' + icon('shield', 'ic sm') + '<span>Answers save on this device as you go</span></li><li>' + icon('clip', 'ic sm') + '<span>Have your resume handy, if you have one</span></li></ul>' + resume +
       (PREVIEW ? '<p class="i2-warn"><b>Preview.</b> This version sends nothing. At the end you will see exactly what it would send.</p>' : '');
   }, next: "Let's go" });
-  add({ id: 'referred', stop: 0, html: function () { return h('Did someone send you my way?', 'Optional. It helps me thank them.') + inp('referred', 'Their name', 'text', { ph: 'First and last name', ac: 'off' }); }, skip: 1 });
+  add({ id: 'referred', stop: 0, html: function () { return h('Did someone send you our way?', 'Optional. It helps us thank them.') + inp('referred', 'Their name', 'text', { ph: 'First and last name', ac: 'off' }); }, skip: 1 });
 
   add({ id: 'contact', stop: 1, need: ['name', 'email', 'phone'], html: function () {
-    return h('First, how do I reach you?', 'Your email is also how you sign in to your portal.') +
+    return h('First, how do we reach you?', 'Your email is also how you sign in to your portal.') +
       inp('name', 'First and last name, as it should appear on your resume', 'text', { ac: 'name', req: 1 }) +
       inp('email', 'Email you check daily', 'email', { ac: 'email', req: 1, im: 'email' }) +
       inp('phone', 'Phone', 'tel', { ac: 'tel', req: 1, im: 'tel', ph: '732-555-0123' });
   } });
   add({ id: 'reach', stop: 1, need: ['contactBy'], html: function () { return h('Best way to reach you?', '') + chips('contactBy', '', O.contactBy, { one: 1 }) + chips('times', 'Best times (optional)', O.times, {}); } });
   add({ id: 'where', stop: 1, need: ['city'], html: function () {
-    return h('Where do you live?', 'City, state and ZIP. I measure commutes from here.') + inp('city', 'Home city, state, ZIP', 'text', { req: 1, ph: 'Maplewood, NJ 07040', ac: 'address-level2' }) +
+    return h('Where do you live?', 'City, state and ZIP. We measure commutes from here.') + inp('city', 'Home city, state, ZIP', 'text', { req: 1, ph: 'Maplewood, NJ 07040', ac: 'address-level2' }) +
       chips('relocating', 'Moving to New Jersey or New York?', O.relocating, { one: 1 }) + (/^Yes/.test(D.relocating || '') ? inp('moveWhen', 'When, and to what town or area?', 'text', { ph: 'March 2027, Jersey City or Hoboken' }) : '');
   } });
   add({ id: 'resume', stop: 1, html: function () {
     var st = parsing ? '<p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Reading your resume…</p>' :
-      parsed ? '<p class="i2-okline" role="status">' + icon('shield', 'ic sm') + 'Read it. Next, you will check what I found.</p>' : '';
-    return h('Upload your resume', 'PDF or Word, up to 10 MB. I read it right here on your device to fill in the next screen. Any version is fine.') +
+      parsed ? '<p class="i2-okline" role="status">' + icon('shield', 'ic sm') + 'Read it. Next, you will check what we found.</p>' : '';
+    return h('Upload your resume', 'PDF or Word, up to 10 MB. It is read right here on your device to fill in the next screen. Any version is fine.') +
       '<label class="i2-drop" id="i2drop"><input type="file" id="i2file" accept=".pdf,.doc,.docx,.rtf,.txt"><span class="i2-dropin">' + icon('clip', 'ic') +
       '<b>' + (file ? esc(file.name) : D.resumeName ? 'Attach ' + esc(D.resumeName) + ' again' : 'Tap to choose a file') + '</b><span>' + (file ? 'Tap to change it' : 'or drag it here') + '</span></span></label>' + st +
       '<button type="button" class="i2-link" data-act="noresume">No resume? No problem. Answer a few questions instead.</button>';
@@ -533,23 +533,23 @@
   /* shown after a file, after "No resume", and after a reload that lost the file but kept the answers (finding 8) */
   add({ id: 'confirm', stop: 1, show: function () { return !!(file || V.noResume || D.resumeName); }, html: function () {
     var p = parsed || {};
-    var lead = V.noResume ? h('A few quick questions instead', 'I will build your resume from these. You can add more on a call.') :
-      parsing ? h('Still reading your resume', 'This takes a few seconds. The boxes below fill in when I finish. Anything you type stays as you typed it.') +
+    var lead = V.noResume ? h('A few quick questions instead', 'We will build your resume from these. You can add more later.') :
+      parsing ? h('Still reading your resume', 'This takes a few seconds. The boxes below fill in when it finishes. Anything you type stays as you typed it.') +
         '<p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Still reading your resume…</p>' :
       lostResume() ? h('Check your work details', 'Your answers are saved, but your resume file did not carry over when the page reloaded. Tap Back to attach it again, or keep going and attach it before you send.') :
-      h('Here is what I found', p.title || p.employer || D.jobNowTitle ? 'Check each one. Change anything I got wrong.' : 'I could not read much from that file. Please fill these in.');
+      h('Here is what we found', p.title || p.employer || D.jobNowTitle ? 'Check each one. Change anything we got wrong.' : 'We could not read much from that file. Please fill these in.');
     return lead + '<div class="i2-two">' + inp('jobNowTitle', 'Current or most recent job title', 'text', { ph: 'Business Operations Analyst' }) + inp('jobNowEmployer', 'Employer', 'text', { ph: 'AT&T' }) + '</div>' +
       chips('stillThere', 'Still in that job?', O.yesno, { one: 1 }) + (D.stillThere === 'No' ? inp('endedOn', 'Month and year it ended', 'text', { ph: 'September 2026' }) : '') +
       inp('years', 'Years of work experience', 'text', { im: 'numeric', ph: '8' }) +
       inp('licenses', 'Licenses and certifications: exact name, state, active or expired', 'area', { help: 'Only ones you hold, written exactly as issued.' }) +
       (V.noResume ? inp('history', 'Your work history: employer, title, dates, what you did', 'area', { ph: 'Comfort Dental, General Dentist, Nov 2024 to Mar 2025…' }) : '');
   } });
-  add({ id: 'edu', stop: 1, html: function () { return h('Highest education to show', 'I use this on your resume and to skip jobs that need a degree you do not want shown.') + chips('education', '', O.education, { one: 1 }) + inp('school', 'School or program, and years if you want them shown (optional)', 'text'); } });
+  add({ id: 'edu', stop: 1, html: function () { return h('Highest education to show', 'We use this on your resume and to skip jobs that need a degree you do not want shown.') + chips('education', '', O.education, { one: 1 }) + inp('school', 'School or program, and years if you want them shown (optional)', 'text'); } });
   add({ id: 'linkedin', stop: 1, html: function () {
     return h('Your LinkedIn', 'Optional. Recruiters check it, so it should match your resume.') + inp('linkedin', 'LinkedIn profile link', 'url', { ph: 'https://www.linkedin.com/in/…', im: 'url' }) +
-      toggle('linkedinMakeover', 'I am interested in a LinkedIn makeover too', 'Just tells me you are interested. Nothing is added or charged.');
+      toggle('linkedinMakeover', 'I am interested in a LinkedIn makeover too', 'Just tells us you are interested. Nothing is added or charged.');
   } });
-  add({ id: 'situation', stop: 1, auto: 1, need: ['v2.situation'], html: function () { return h('Which fits you best right now?', 'No judgment. It helps me pitch you the right way.') + cards('v2.situation', O.situation); } });
+  add({ id: 'situation', stop: 1, auto: 1, need: ['v2.situation'], html: function () { return h('Which fits you best right now?', 'No judgment. It helps us pitch you the right way.') + cards('v2.situation', O.situation); } });
   add({ id: 'urgency', stop: 1, need: ['start'], html: function () {
     var set0 = O.urgency.indexOf(V.urgency) >= 0, u = set0 ? O.urgency.indexOf(V.urgency) : 1;
     return h('How soon do you need something?', 'Slide to the spot that fits. Optional.') +
@@ -557,7 +557,7 @@
       chips('start', 'Earliest start date', O.start, { one: 1, req: 1 });
   } });
   add({ id: 'auth', stop: 1, need: ['workAuth', 'sponsorship'], html: function () {
-    return h('Two questions employers always ask', 'Your answers help me pick jobs that fit.') + chips('workAuth', 'Are you legally authorized to work in the United States?', O.workAuth, { one: 1, req: 1 }) +
+    return h('Two questions employers always ask', 'Your answers help us pick jobs that fit.') + chips('workAuth', 'Are you legally authorized to work in the United States?', O.workAuth, { one: 1, req: 1 }) +
       chips('sponsorship', 'Will you now or in the future need visa sponsorship?', O.sponsorship, { one: 1, req: 1 });
   } });
 
@@ -597,12 +597,12 @@
 
   add({ id: 'pay', stop: 3, need: ['payFloor'], html: function () {
     var hr = V.payUnit === 'Hourly', fy = payFloorYear(), ty = (function () { var n = num(V.payTarget); return n > 0 ? yearly(n) : NaN; })();
-    return h('Pay', 'I only send jobs whose posted pay reaches your floor.') +
+    return h('Pay', 'We only send jobs whose posted pay reaches your floor.') +
       '<div class="i2-seg" role="radiogroup" aria-label="Pay type">' + ['Yearly', 'Hourly'].map(function (u) { var on = (V.payUnit || 'Yearly') === u; return '<button type="button" role="radio" aria-checked="' + on + '" class="' + (on ? 'on' : '') + '" data-unit="' + u + '">' + u + '</button>'; }).join('') + '</div>' +
       '<div class="i2-two">' + inp('v2.payFloor', hr ? 'Lowest hourly pay you would accept' : 'Lowest yearly pay you would accept', 'text', { req: 1, im: 'decimal', ph: hr ? '28' : '65000', help: hr ? 'Dollars per hour.' : 'Like 65000 or 65k.' }) +
         inp('v2.payTarget', hr ? 'Hourly pay you are aiming for' : 'Pay you are aiming for', 'text', { im: 'decimal', ph: hr ? '34' : '80000' }) + '</div>' +
       (hr && fy ? '<p class="i2-note">That is about ' + money(fy) + ' a year full-time' + (ty ? ', aiming for about ' + money(ty) : '') + '.</p>' : '') +
-      '<p class="i2-why"><b>Why I ask:</b> I use this to filter jobs, never to share. Employers do not see it.</p>' +
+      '<p class="i2-why"><b>Why we ask:</b> We use this to filter jobs, never to share. Employers do not see it.</p>' +
       inp('v2.currentPay', 'Current or last pay (optional, for negotiation prep)', 'text', { ph: hr ? '25 an hour' : '72000' });
   } });
   add({ id: 'setting', stop: 3, need: ['v2.settingsPick'], html: function () {
@@ -612,7 +612,7 @@
   add({ id: 'commute', stop: 3, show: function () { return !remoteOnly(); }, html: function () {
     var on = commuteSet(), m = on ? Number(V.commuteMin) : 45, lab = !on ? 'Slide to choose your longest commute' : m >= 120 ? 'Any distance' : m + ' minutes each way';
     /* h() escapes, so the city goes in raw (finding 12: it was escaped twice) */
-    return h('Your commute', 'From ' + (D.city || 'home') + '. Optional. If you skip it, I use about 50 miles.') +
+    return h('Your commute', 'From ' + (D.city || 'home') + '. Optional. If you skip it, we use about 50 miles.') +
       '<div class="q"><label class="lab" for="i2com">' + esc(lab) + '</label><input type="range" id="i2com" min="15" max="120" step="15" value="' + m + '" data-range="commuteMin" aria-valuetext="' + esc(on ? lab : 'Not chosen') + '"><div class="i2-ends"><span>15 min</span><span>Any distance</span></div></div>' +
       chips('v2.getThere', 'How do you get to work?', O.getThere, { one: 1 }) +
       (/^Yes/.test(D.relocating || '') ? inp('v2.relocateAreas', 'Areas you are moving to', 'text', { ph: 'Jersey City, Hoboken' }) : '');
@@ -624,14 +624,14 @@
   add({ id: 'standout', stop: 3, html: function () { return h('What makes a job stand out?', 'Select all that apply. Pay is covered already.') + chips('v2.standOut', '', O.standOut, {}) + inp('standOutOther', 'Anything else? (optional)', 'text', { ph: 'A mentor, free parking, a guaranteed daily rate' }); } });
   add({ id: 'rank', stop: 3, show: function () { return arr(V.standOut).length >= 2; }, html: function () {
     syncRank(); var r = V.rank;
-    return h('Rank your top ' + Math.min(3, r.length), 'Drag to reorder, or use the arrows. The top one counts most when I rank your matches.') +
+    return h('Rank your top ' + Math.min(3, r.length), 'Drag to reorder, or use the arrows. The top one counts most when we rank your matches.') +
       '<ol class="i2-rank" id="i2rank">' + r.map(function (x, i) { return '<li draggable="true" data-r="' + i + '"><span class="i2-n">' + (i + 1) + '</span><span class="i2-rt">' + esc(x) + '</span><span class="i2-rb"><button type="button" data-up="' + i + '" aria-label="Move ' + esc(x) + ' up"' + (i ? '' : ' disabled') + '>&uarr;</button><button type="button" data-down="' + i + '" aria-label="Move ' + esc(x) + ' down"' + (i < r.length - 1 ? '' : ' disabled') + '>&darr;</button></span></li>'; }).join('') + '</ol>' +
       (arr(V.standOut).length > 3 ? '<p class="i2-note">Want a different top 3? Tap one below to swap it in.</p><div class="chips">' + arr(V.standOut).filter(function (x) { return r.indexOf(x) < 0; }).map(function (x) { return '<button type="button" class="i2-chipbtn" data-swap="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>' : '');
   } });
   add({ id: 'companies', stop: 3, html: function () {
     return h('Kinds of employers', 'Pick any you like.') + chips('v2.companyTypes', '', O.companyTypes, {}) +
       '<div class="q"><div class="lab">Dream employers (optional)</div>' + tags('dream') + addOwn('dream', 'Add an employer', 'Northwell Health') + '</div>' +
-      '<div class="q"><div class="lab">Employers to skip (optional)</div><div class="help">A past employer, or anywhere you would rather not go. <b>Why I ask:</b> I never send you their jobs or contact them.</div>' + tags('avoid') + addOwn('avoid', 'Add an employer to skip', 'Company name') + '</div>';
+      '<div class="q"><div class="lab">Employers to skip (optional)</div><div class="help">A past employer, or anywhere you would rather not go. <b>Why we ask:</b> We never send you their jobs or contact them.</div>' + tags('avoid') + addOwn('avoid', 'Add an employer to skip', 'Company name') + '</div>';
   } });
   add({ id: 'deal', stop: 3, html: function () {
     var left = DEAL.filter(function (c) { return !V.deal[c.k]; }), c = left[0];
@@ -664,13 +664,13 @@
       inp('v2.proudestWin', 'Your proudest win', 'area', { voice: 1 }) +
       inp('numbers', 'Any other numbers worth showing? People, accounts, dollars, volume (optional)', 'area', { ph: 'Payroll for about 3,000 employees in 6 states, biweekly' });
   } });
-  add({ id: 'why', stop: 4, html: function () { return h('Why are you looking? (optional)', 'Private. Only I see it. It helps me set the right tone in your cover letters and interview prep.') + inp('v2.whyLooking', 'In your own words', 'area'); } });
+  add({ id: 'why', stop: 4, html: function () { return h('Why are you looking? (optional)', 'Private. Employers never see it. It helps set the right tone in your cover letters and interview prep.') + inp('v2.whyLooking', 'In your own words', 'area'); } });
   add({ id: 'know', stop: 4, html: function () {
-    return h('Anything I should know?', 'All optional. Only I see these.') +
-      chips('gaps', 'Any gaps of 3 months or more in your work history?', O.yesno, { one: 1 }) + (D.gaps === 'Yes' ? inp('gapWords', 'How do you want the gap described? (your words)', 'area', { help: 'I use your wording, not mine.' }) : '') +
-      inp('v2.accommodations', 'Anything I should plan around? (optional)', 'text', { help: 'Only if you want me to know. For example: schedule needs or a workplace accommodation.' }) +
-      inp('neverMention', 'Anything you do NOT want mentioned anywhere', 'area', { help: 'A hard rule. I check it on every document.' }) +
-      chips('privateSearch', 'Should your search stay private?', O.privateSearch, { one: 1, help: 'Private means I search job postings only, never public job-board profiles.' }) +
+    return h('Anything we should know?', 'All optional. Employers never see these.') +
+      chips('gaps', 'Any gaps of 3 months or more in your work history?', O.yesno, { one: 1 }) + (D.gaps === 'Yes' ? inp('gapWords', 'How do you want the gap described? (your words)', 'area', { help: 'We use your wording, not ours.' }) : '') +
+      inp('v2.accommodations', 'Anything we should plan around? (optional)', 'text', { help: 'Only if you want us to know. For example: schedule needs or a workplace accommodation.' }) +
+      inp('neverMention', 'Anything you do NOT want mentioned anywhere', 'area', { help: 'A hard rule. Every document is checked against it.' }) +
+      chips('privateSearch', 'Should your search stay private?', O.privateSearch, { one: 1, help: 'Private means we search job postings only, never public job-board profiles.' }) +
       inp('anythingElse', 'Anything else', 'area');
   } });
   add({ id: 'docs', stop: 4, html: function () { return h('How should your documents sound?', '') + chips('v2.resumeStyle', 'Resume style', O.resumeStyle, { one: 1 }) + chips('v2.coverTone', 'Cover letter tone', O.coverTone, { one: 1 }); } });
@@ -736,9 +736,9 @@
   function review() {
     var f = field(), rows = [
       [1, 'You', [D.name, D.email, D.phone, D.city, 'Reach by ' + (D.contactBy || '?'), V.situation, 'Start: ' + (D.start || '?'), 'Work authorization: ' + (D.workAuth || '?') + '; sponsorship: ' + (D.sponsorship || '?')]],
-      [1, 'Your work so far', [(file ? 'Resume: ' + file.name : V.noResume ? 'No resume (I will build one)' : lostResume() ? 'Resume: ' + D.resumeName + ' needs to be attached again' : 'No resume attached'), [D.jobNowTitle, D.jobNowEmployer].filter(Boolean).join(', '), D.years ? D.years + ' years of experience' : '', D.education]],
+      [1, 'Your work so far', [(file ? 'Resume: ' + file.name : V.noResume ? 'No resume (we will build one)' : lostResume() ? 'Resume: ' + D.resumeName + ' needs to be attached again' : 'No resume attached'), [D.jobNowTitle, D.jobNowEmployer].filter(Boolean).join(', '), D.years ? D.years + ' years of experience' : '', D.education]],
       [2, 'Your field', [f ? f.t : '?', arr(V.alsoOpen).length ? 'Also open to: ' + V.alsoOpen.map(function (k) { return F[k].t; }).join(', ') : '', 'Titles: ' + (titleList().join(', ') || '?'), V.seniority]],
-      [3, 'Your ideal job', ['Pay floor: ' + (payFloorYear() ? money(payFloorYear()) + ' a year' : '?'), 'Settings: ' + (settingsOld().join(', ') || '?'), remoteOnly() ? '' : 'Commute: ' + (commuteSet() ? commuteOld(V.commuteMin) : 'not set (I use about 50 miles)'), 'Kinds of work: ' + (arr(V.empTypes).join(', ') || '?'), arr(V.rank).length ? 'Top priorities: ' + V.rank.join(', ') : '', dealList().length ? 'Deal-breakers: ' + dealList().join(', ') : '']],
+      [3, 'Your ideal job', ['Pay floor: ' + (payFloorYear() ? money(payFloorYear()) + ' a year' : '?'), 'Settings: ' + (settingsOld().join(', ') || '?'), remoteOnly() ? '' : 'Commute: ' + (commuteSet() ? commuteOld(V.commuteMin) : 'not set (we use about 50 miles)'), 'Kinds of work: ' + (arr(V.empTypes).join(', ') || '?'), arr(V.rank).length ? 'Top priorities: ' + V.rank.join(', ') : '', dealList().length ? 'Deal-breakers: ' + dealList().join(', ') : '']],
       [4, 'Your story', [arr(V.strengths).length ? 'Strengths: ' + V.strengths.join(', ') : '', V.proudestWin ? 'Proudest win: ' + V.proudestWin : '', V.resumeStyle ? 'Resume style: ' + V.resumeStyle : '']]
     ];
     var jump = { 'You': idx('contact'), 'Your work so far': idx('resume'), 'Your field': idx('field'), 'Your ideal job': idx('pay'), 'Your story': idx('strengths') };
@@ -812,7 +812,7 @@
   }
   function laterBox() {
     var lm = laterMsg ? '<div class="' + (laterKind === 'err' ? 'i2-err' : 'i2-info') + '" id="i2latermsg" role="' + (laterKind === 'err' ? 'alert' : 'status') + '" tabindex="-1">' + laterMsg + '</div>' : '';
-    return '<div class="i2-laterbox" id="i2laterbox"><p class="i2-note">I will email you a private link that opens this form where you left off. This link works for 30 days. Once you open it and pick up where you left off, it stops working. Your agreement boxes, signature and resume file are not saved in it.</p>' +
+    return '<div class="i2-laterbox" id="i2laterbox"><p class="i2-note">We will email you a private link that opens this form where you left off. This link works for 30 days. Once you open it and pick up where you left off, it stops working. Your agreement boxes, signature and resume file are not saved in it.</p>' +
       '<div class="i2-own"><label class="vh" for="i2lateremail">Email for the link</label><input id="i2lateremail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="' + esc(D.email || '') + '"><button type="button" class="btn ghost" data-act="latersend"' + (laterBusy ? ' disabled' : '') + '>' + (laterBusy ? 'Sending…' : 'Send me the link') + '</button></div>' + lm + '</div>';
   }
   function pathbar(st) {
@@ -931,14 +931,14 @@
       msgKind = d.error === 'recent' ? 'info' : 'err';
       msg = d.error === 'recent' ? 'An intake from this email came in a few minutes ago, so this one was not saved twice. You can <a href="/portal/">sign in to your portal</a> anytime.' :
         d.error === 'missing' ? 'A few required answers are missing: ' + esc((d.fields || []).join(', ')) + '.' :
-        d.error === 'file too large' ? 'That resume file is over 10 MB. Try a PDF, or go back and choose "No resume".' : 'Something went wrong on my side. Please try again in a few minutes, or email hello@steadypathcareers.com.';
+        d.error === 'file too large' ? 'That resume file is over 10 MB. Try a PDF, or go back and choose "No resume".' : 'Something went wrong on our side. Please try again in a few minutes, or email hello@steadypathcareers.com.';
       render();
     }).catch(function () { busy = false; msgKind = 'err'; msg = 'Your intake did not send. Please check your connection and try again. Your answers are saved on this device.'; render(); });
   }
   function finish(preview) {
     var token = !preview && sent && sent.token ? sent.token : '';
     ROOT.innerHTML = pathbar(4).replace('class="i2-path"', 'class="i2-path done"') + '<div class="i2-card-wrap"><section class="i2-sheet i2-done" aria-labelledby="i2title"><h2 class="i2-h" id="i2title" tabindex="-1">You\'re all set.</h2>' +
-      '<ol class="i2-next"><li><b>I review your answers</b>, usually within a business day.</li><li><b>I email you any questions</b> and the job titles I suggest. You tell me which ones to keep.</li><li><b>Your search starts once the titles are agreed.</b> Any matches I find then show up in your portal, each with pay and a link to the posting.</li></ol>' +
+      '<ol class="i2-next"><li><b>We go through your answers and resume</b>, usually within a business day.</li><li><b>We email you any questions</b> and the job titles we suggest. You tell us which ones to keep.</li><li><b>Your search starts once the titles are agreed.</b> Matches that pass our automated checks then show up in your portal, each with pay and a link to the posting.</li></ol>' +
       '<div class="i2-ctas">' + (preview ? '' : '<a class="btn gold" href="/portal/' + (token ? '?t=' + encodeURIComponent(token) : '') + '">Open my portal</a>') + '<a class="btn ghost" href="' + BOOK + '" target="_blank" rel="noopener">Book an optional intro call</a></div>' + meter() +
       (preview ? '<details class="i2-sent" open><summary>Preview: what this would send</summary><p class="i2-note">Every field the current form sends is here with the same name. The new answers are under "v2". The resume file itself is attached only when it is really sent.</p><pre>' + esc(JSON.stringify(sent, null, 2)) + '</pre><button type="button" class="btn ghost" data-act="restart">Start the preview over</button></details>' : '') +
       '</section></div>';
@@ -1036,7 +1036,7 @@
   var LATER_ERR = {
     'too large': 'Your answers are too long to save in a link. Try shortening your longest answer, or finish the form now.',
     'bad email': 'That email does not look right. Please check it and try again.',
-    'bad draft': 'I could not save your answers in a link. They are still saved on this device.',
+    'bad draft': 'We could not save your answers in a link. They are still saved on this device.',
     busy: 'Too many links were asked for just now. Please try again later. Your answers are still saved on this device.'
   };
   function sendLater() {
@@ -1049,11 +1049,11 @@
     if (PREVIEW) { done('info', '<b>Preview: nothing was sent.</b> The live form would send this and email a link to ' + esc(em) + '.<details class="i2-sent"><summary>What would be sent</summary><pre>' + esc(JSON.stringify(body, null, 2)) + '</pre></details>'); return; }
     laterBusy = true; render(false);
     post(body, 45000).then(function (d) {
-      if (d && d.ok) { done('info', 'Check your email. I sent a link to ' + esc(em) + '. This link works for 30 days. Once you open it and pick up where you left off, it stops working.'); return; }
+      if (d && d.ok) { done('info', 'Check your email. We sent a link to ' + esc(em) + '. This link works for 30 days. Once you open it and pick up where you left off, it stops working.'); return; }
       var er = d && d.error; done('err', esc(LATER_ERR[er] || 'The link did not send. Please try again later. Your answers are still saved on this device.'));
     }).catch(function (e) {
       /* a timeout may still have saved and emailed the link, so do not invite a second try right away */
-      if (e && e.name === 'AbortError') { done('err', 'I am not sure that went through. Check your email in a few minutes before trying again.'); return; }
+      if (e && e.name === 'AbortError') { done('err', 'We are not sure that went through. Check your email in a few minutes before trying again.'); return; }
       done('err', 'The link did not send. Please check your connection and try again. Your answers are still saved on this device.');
     });
   }
@@ -1165,17 +1165,17 @@
       if (d && d.error === 'expired') { expired(); return; }
       /* an old backend that does not know the action: after two such answers for the same link, treat it as used or expired */
       if (d && d.error === 'unknown action') { var uk = 'sp_i2_unk_' + dkey, un = 0; try { un = Number(sessionStorage.getItem(uk)) + 1; sessionStorage.setItem(uk, String(un)); } catch (e) {} if (un >= 2) { expired(); return; } }
-      refreshFromStorage(false); cur = Number(D._at) || 0; startAt(); msgKind = 'info'; msg = 'I could not open your saved answers just now, so you are seeing the answers on this device. Reload this page in a few minutes to try the link again.'; render(false);
+      refreshFromStorage(false); cur = Number(D._at) || 0; startAt(); msgKind = 'info'; msg = 'We could not open your saved answers just now, so you are seeing the answers on this device. Reload this page in a few minutes to try the link again.'; render(false);
     }).catch(function (e) {
       loadingDraft = false; refreshFromStorage(false); cur = Number(D._at) || 0; startAt(); msgKind = 'info';
-      msg = (e && e.name === 'AbortError' ? 'Your saved answers are taking too long to open' : 'I could not reach my server to open your saved answers') + ', so you are seeing the answers on this device. Reload this page to try the link again.';
+      msg = (e && e.name === 'AbortError' ? 'Your saved answers are taking too long to open' : 'We could not reach our server to open your saved answers') + ', so you are seeing the answers on this device. Reload this page to try the link again.';
       render(false);
     });
   }
   ROOT.addEventListener('click', function (e) {
     var b = e.target.closest('[data-draft]'); if (!b || loadingDraft || !dkey || !ROOT.querySelector('[data-screen="draft"]')) return;
     if (b.getAttribute('data-draft') === 'use') { loadDraft(); return; }
-    dropKey(); draftDone(); dkey = null; startAt(); save(); msgKind = 'info'; msg = 'I kept the answers on this device. The emailed answers were set aside and that link will no longer work.'; render();
+    dropKey(); draftDone(); dkey = null; startAt(); save(); msgKind = 'info'; msg = 'We kept the answers on this device. The emailed answers were set aside and that link will no longer work.'; render();
   });
   /* round 6: another tab or window saved newer answers. On the ready or choice screen, show the right screen for what is now
      on this device; in the form, take the newer copy. */
@@ -1188,7 +1188,7 @@
   function draftScreen() {
     if (!hasLocal()) shell('<h2 class="i2-h" id="i2q" tabindex="-1">Your saved answers are ready</h2><p class="i2-p">Tap below to pick up where you left off.</p>' +
       '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Open my saved answers</button></div>');
-    else shell('<h2 class="i2-h" id="i2q" tabindex="-1">Which answers do you want to use?</h2><p class="i2-p">This device already has answers saved from before. If you use the emailed answers, they replace these. I never mix the two.</p>' +
+    else shell('<h2 class="i2-h" id="i2q" tabindex="-1">Which answers do you want to use?</h2><p class="i2-p">This device already has answers saved from before. If you use the emailed answers, they replace these. We never mix the two.</p>' +
       '<div class="i2-ctas"><button type="button" class="btn gold" data-draft="use">Use the emailed answers</button><button type="button" class="btn ghost" data-draft="keep">Keep what is on this device</button></div>');
   }
   if (dkey != null && !PREVIEW) {

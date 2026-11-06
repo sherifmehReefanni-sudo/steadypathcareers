@@ -57,7 +57,7 @@ body { overflow-x: hidden; }
 .errscr .row .btn { flex: 1 1 140px; min-height: 48px; }
 .errscr .ehelp { margin: 0; font-size: 15px; color: var(--muted); }
 .errscr .ehelp b { color: var(--ink); }
-/* round 12: Sherif's reply to a question */
+/* round 12: Steady Path's reply to a question */
 .jc .qreply { margin: 0; background: #fff; border: 1px solid var(--q-line); border-left: 5px solid var(--q); border-radius: 12px; padding: 10px 12px; font-size: 15.5px; line-height: 1.45; color: var(--ink); white-space: pre-wrap; }
 .jc .qreply b { color: var(--q); }
 .jc .qreply:focus { outline: none; }
@@ -633,7 +633,7 @@ body.deck-lock { overflow: hidden; }
 <style>
 /* ---- round 6b: color roles, lighter chrome, desktop list + detail ----
    Roles: --struct (navy) for structure; --act (gold) only for the primary action and the selected state; --ok (green) for done or
-   approved; --attn (amber) for "needs you"; questions waiting on Sherif use the info blue (--q). Contrast checked with
+   approved; --attn (amber) for "needs you"; questions waiting on Steady Path use the info blue (--q). Contrast checked with
    /home/claude/spc/r6b-test/contrast.js (WCAG AA, light mode). */
 :root { --struct: var(--navy); --act: var(--gold); --act-ink: var(--midnight); --act-soft: #FBF3DA; --act-edge: #9C7A10;
   --attn: #8A4300; --attn-soft: #FDEBD5; --attn-line: #EDB77A; --attn-badge: #F0A04B;
@@ -651,7 +651,7 @@ body.deck-lock { overflow: hidden; }
 .jc.s-q .jwatch { background: #fff; }
 .jc .det .heads { background: var(--attn-soft); }
 .dc.ready { border-color: var(--attn-line); box-shadow: none; background-image: none; }
-/* states on the job card: navy until answered, green for Yes, blue while Sherif finds out */
+/* states on the job card: navy until answered, green for Yes, blue while Steady Path finds out */
 .jc::before, .jc.s-q::before, .jc.s-yes::before { width: 5px; }
 .jc::before { background: var(--struct); }
 .jc.s-yes::before { background: var(--ok); }
@@ -722,7 +722,7 @@ window.SP_DEMO = function () {
     ok: true, notify: true,
     prefs: { roles: ['Associate Dentist', 'General Dentist'], payFloor: '190000', commute: 'Up to 45 minutes', setting: 'On site', contact: 'Email', status: 'active' }, requests: [], /* round 4 */
     client: { id: 'C-DEMO', name: 'Jordan T.', firstName: 'Jordan', stage: 'Trial', startDate: iso(-8), trialEnds: iso(9), payFloor: '$190,000', lastTouch: iso(-1), lastFeedback: '', home: 'Hicksville, NY', std: 'Authorized to work in the US: Yes\nNeed visa sponsorship: No\nNY dental license: Yes, active',
-      weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. I also heard back from Sample Community Dental about loan repayment. My answer is on that job. Two new Nassau County openings came in on Monday.' },
+      weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. Your question about loan repayment at Sample Community Dental has an answer on that job. Two new Nassau County openings came in on Monday.' },
     jobs: [
       { id: 'J-101', fit: 'Strong fit', concern: 'Four days a week, so ask how new patients are split between dentists.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Smiles Dental', title: 'Associate Dentist', location: 'Garden City, NY', setting: 'On-site', pay: '$195,000 - $235,000 a year', payLow: 195000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Family practice with 4 chairs and a full hygiene team. Mostly restorative and some cosmetic work, which matches your last 5 years.', link: 'https://example.com/jobs/bright-smiles-associate', notes: 'Four days a week, no Sundays.', answer: '', note: '', answeredOn: '', kit: { pay: '', start: '', why: '' } },
       { id: 'J-102', fit: 'Possible fit', concern: 'Hourly pay, and the posting lists no benefits.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Dental Partners', title: 'General Dentist', location: 'Huntington, NY', setting: 'On-site', pay: '$90 - $115 an hour', payLow: 90, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Busy group practice with in-house lab. Open to dentists who want to build implant skills.', link: 'https://example.com/jobs/lidp-general', notes: '', answer: '', note: '', answeredOn: '' },
@@ -1005,7 +1005,7 @@ function pump(id) {
       j.answeredOn = d.answer ? todayISO() : '';
       S.justSaved = id;
       if (it.opts.keepalive) toast('Saved.'); /* app switch inside the undo window: the card stays answered, say it saved */
-      else if (!it.opts.quiet) toast(it.a === 'yes' ? 'Saved. Your documents are being prepared.' : it.a === 'q' ? (it.note ? 'Sent. Sherif can see your question.' : 'Saved as Question.') : it.a === 'no' ? (it.note ? 'Sent. Thank you.' : 'Moved to Passed.') : 'Answer cleared.');
+      else if (!it.opts.quiet) toast(it.a === 'yes' ? 'Saved. Your documents are being prepared.' : it.a === 'q' ? (it.note ? 'Sent. We have your question.' : 'Saved as Question.') : it.a === 'no' ? (it.note ? 'Sent. Thank you.' : 'Moved to Passed.') : 'Answer cleared.');
     } else fail(d && d.error);
     render();
   }).catch(function () { if (seq !== q.seq) return; q.busy = false; fail('network'); render(); });
@@ -1083,7 +1083,7 @@ function docStatus(docId, status, request, done, quiet) {
   S.docBusy[docId] = true; render();
   post({ action: 'docStatus', t: S.token, doc: docId, status: status, request: request, seen: (S.data && S.data.serverTime) || '' }).then(function (d) {
     delete S.docBusy[docId];
-    if (d && d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } if (status === 'Changes requested') S.changesDraft = ''; if (!quiet) toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent to Sherif.'); }
+    if (d && d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } if (status === 'Changes requested') S.changesDraft = ''; if (!quiet) toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent. Thank you.'); }
     else { if (d && d.error === 'expired') S.reauthMsg = true; toast(errText(d && d.error, 'document')); if (d && d.error === 'changed') { if (done) done(false); else render(); setTimeout(function () { try { location.reload(); } catch (e) { load(); } }, 2500); return; } /* a reload keeps the review screen open (history state) and shows the new version */ }
     if (done) done(!!(d && d.ok)); else render();
   }).catch(function () { delete S.docBusy[docId]; toast(errText('network')); if (done) done(false); else render(); });
@@ -1117,10 +1117,10 @@ function isReady(x) { var st = String(x.status || ''); return !x.closedJob && /r
 function docsReady() { return ((S.data && S.data.docs) || []).filter(needsOk).length; }
 var TABS = [['jobs', 'Jobs'], ['docs', 'Documents'], ['apps', 'Applied']];
 function tabCount(k) { var c = counts(); return k === 'jobs' ? c.wait : k === 'docs' ? docsReady() : 0; }
-/* "Email hello@... or text Sherif." with real links; email only until SP_TEXT_NUMBER is set */
+/* "Email hello@... or text us." with real links; email only until SP_TEXT_NUMBER is set */
 function helpHtml() {
   var mail = '<a class="hlink" href="mailto:' + esc(SP_EMAIL) + '">' + esc(SP_EMAIL) + '</a>', num = String(SP_TEXT_NUMBER || '').replace(/[^\d+]/g, '');
-  var sms = num ? '<a class="hlink" href="sms:' + esc(num) + '">text Sherif</a>' : '';
+  var sms = num ? '<a class="hlink" href="sms:' + esc(num) + '">text us</a>' : '';
   return 'Email ' + (sms ? mail + ' or ' : '') + '<span class="hnw">' + (sms || mail) + '.</span>'; /* the period stays on the line of the last link */
 }
 function legalLinks(cls) { return '<p class="' + (cls || 'legal') + '"><a href="/privacy/">Privacy policy</a> · <a href="/terms/">Terms</a></p>'; }
@@ -1141,7 +1141,7 @@ function reauthBtn() { return ' <button type="button" class="btn ghost sm" data-
 
 /* ---- sign in ---- */
 function vSignin() {
-  return '<div class="login"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a><h1>Your next job, one honest step at a time.</h1><p>Real openings. Posted pay. A person who checked every one.</p><ul><li>Pay shown on every match</li><li>Each posting checked live before it reaches you</li><li>Your resume and cover letter tailored for every Yes</li></ul></div>' +
+  return '<div class="login"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a><h1>Your next job, one honest step at a time.</h1><p>Real openings. Posted pay. Every one checked live.</p><ul><li>Posted pay on every match, or a clear note when it isn&#39;t posted</li><li>Each posting checked live before it reaches you</li><li>Your resume and cover letter tailored for every Yes</li></ul></div>' +
     '<div class="box"><div><h2>Welcome back</h2><p class="tag">Sign in with your email.</p></div>' +
     (S.sent ? '<div class="sent">Your link is on its way to ' + esc(S.sent) + '. It works once, within 30 minutes. Open it on this device to stay signed in for 90 days.</div>' +
       '<div class="codebox"><label for="code">Or type the 6-digit code from that email</label>' + (S.codeErr ? '<div class="warn">' + esc(S.codeErr) + '</div>' : '') +
@@ -1151,7 +1151,7 @@ function vSignin() {
       '<p class="fine" style="margin:0"><button type="button" class="linkbtn" data-newlink>Send a new link</button></p>' :
       '<p class="psub">We\'ll email you a sign-in link and a code. Each works once. No password to remember.</p>' + (S.err ? '<div class="warn">' + esc(S.err) + '</div>' : '') +
       '<form id="linkForm"><input type="email" id="email" required placeholder="you@example.com" aria-label="Email" autocomplete="email" value="' + esc(S.lastEmail || '') + '"><button class="btn gold" id="linkBtn" type="submit" style="width:100%;margin-top:10px">Email me a sign-in link</button></form>') +
-    '<p class="fine">Not a client yet? <a href="/start/">Join the free pilot</a>.</p><p class="fine">Your information is private. Sherif and the tools listed in the privacy policy handle it.</p>' + legalLinks('fine legal') + '</div></div>';
+    '<p class="fine">Not a client yet? <a href="/start/">Join the free pilot</a>.</p><p class="fine">Your information is private. Only Steady Path and the tools listed in the privacy policy, including an AI service, handle it.</p>' + legalLinks('fine legal') + '</div></div>';
 }
 
 /* ---- feedback ---- */
@@ -1164,7 +1164,7 @@ function vFeedback() {
   var f = S.fb;
   var scale = function (key, from, to) { var out = ''; for (var i = from; i <= to; i++) out += '<button type="button" data-fb="' + key + '" data-v="' + i + '" aria-pressed="' + (f[key] === i) + '">' + i + '</button>'; return '<div class="scale">' + out + '</div>'; };
   var pick = function (key, opts) { return '<div class="scale">' + opts.map(function (o) { return '<button type="button" data-fb="' + key + '" data-v="' + o + '" aria-pressed="' + (f[key] === o) + '">' + o + '</button>'; }).join('') + '</div>'; };
-  if (S.fbDone) return shell('feedback', 'Thank you.', 'Sherif reads every answer himself.') + '<div class="pband" aria-hidden="true"></div><main class="pmain"><div class="card"><p style="margin:0">Got it. If you asked something, Sherif will get back to you.</p><p style="margin:12px 0 0"><button class="btn gold" data-go="jobs">Back to your jobs</button></p></div></main>' + tabbar('');
+  if (S.fbDone) return shell('feedback', 'Thank you.', 'Your answers help improve the service.') + '<div class="pband" aria-hidden="true"></div><main class="pmain"><div class="card"><p style="margin:0">Got it. If you asked something, we&#39;ll get back to you here.</p><p style="margin:12px 0 0"><button class="btn gold" data-go="jobs">Back to your jobs</button></p></div></main>' + tabbar('');
   return shell('feedback', 'How is it going?', 'About two minutes. Be blunt; it helps.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain">' + urgentBox() + '<div class="card">' +
     '<div class="fbq"><div class="lab">How likely are you to recommend Steady Path to a friend?</div>' + scale('rec', 0, 10) + '<div class="scale-ends"><span>Not at all</span><span>Definitely</span></div></div>' +
@@ -1208,7 +1208,7 @@ function jobState(j) {
 }
 function orderedJobs(d) { var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; }); return d.jobs.slice().sort(function (a, b) { var pa = pos[a.id] != null ? pos[a.id] : -1, pb = pos[b.id] != null ? pos[b.id] : -1; return pa - pb; }); }
 function coName(j) { return String(j.company || j.title || 'this job'); }
-/* round 12: Sherif's reply to a client's question (Jobs "Reply" / "Reply date"). A reply the client has not opened yet is their item
+/* round 12: Steady Path's reply to a client's question (Jobs "Reply" / "Reply date"). A reply the client has not opened yet is their item
    in Due next and the next step; seen replies are remembered on this device, keyed by job id + reply date. */
 /* current = the answer to the client's question: the API clears Reply when a new question comes in (moving it to Earlier replies),
    so any reply on a Question job is current. After a Yes or No, the last reply and the earlier ones stay in Details. */
@@ -1223,7 +1223,7 @@ function moveReply(j) {
 }
 function earlierHtml(j) {
   var ls = String(j.earlierReplies || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(String); if (!ls.length) return '';
-  return '<div class="qlast"><span class="lab">Earlier answers</span><ul>' + ls.map(function (l) { var m = l.match(/^(\d{4}-\d\d-\d\d)\s*:\s*(.*)$/); return '<li>' + (m ? '<b>Sherif replied' + (realISO(m[1]) ? ' ' + esc(fmtY(m[1])) : '') + ':</b> ' + esc(m[2]) : esc(l)) + '</li>'; }).join('') + '</ul></div>';
+  return '<div class="qlast"><span class="lab">Earlier answers</span><ul>' + ls.map(function (l) { var m = l.match(/^(\d{4}-\d\d-\d\d)\s*:\s*(.*)$/); return '<li>' + (m ? '<b>Steady Path answered' + (realISO(m[1]) ? ' ' + esc(fmtY(m[1])) : '') + ':</b> ' + esc(m[2]) : esc(l)) + '</li>'; }).join('') + '</ul></div>';
 }
 function replyOf(j) { return replyCurrent(j) ? replyText(j) : ''; }
 function replyKey(j) { return String(j.id) + '|' + (String(j.replyDate || '').trim() || 'r' + String(j.reply || '').length); }
@@ -1247,24 +1247,24 @@ function docWords(list) {
   list.forEach(function (x) { if (!/^(resume|cover|prep)$/.test(docKind(x.name))) w.push(docShort(x.name)); });
   return w.length > 1 ? w.slice(0, -1).join(', ') + ' and ' + w[w.length - 1] : w[0] || 'documents';
 }
-/* " (expected by Oct 30)" when Sherif has set a date for this job's documents */
-function docsDue(j) { var dd = j && daysFrom(j.docsDue); return dd == null ? '' : dd < 0 ? ' (they were expected ' + fmtY(j.docsDue) + '; Sherif will update you)' : (dd === 0 ? ' (expected today)' : dd === 1 ? ' (expected tomorrow)' : ' (expected by ' + fmtY(j.docsDue) + ')'); }
+/* " (expected by Oct 30)" when Steady Path has set a date for this job's documents */
+function docsDue(j) { var dd = j && daysFrom(j.docsDue); return dd == null ? '' : dd < 0 ? ' (they were expected ' + fmtY(j.docsDue) + '; we will update you)' : (dd === 0 ? ' (expected today)' : dd === 1 ? ' (expected tomorrow)' : ' (expected by ' + fmtY(j.docsDue) + ')'); }
 function flowStep(d) {
   var c = counts(), first = d.client.firstName || '', jobs = orderedJobs(d);
   var yes = jobs.filter(function (j) { return ansOf(j) === 'yes'; }), st = {};
   yes.forEach(function (j) { st[j.id] = jobState(j); });
-  /* round 12: an interview today or tomorrow comes first, then a new answer from Sherif, then the usual order (Due next agrees) */
+  /* round 12: an interview today or tomorrow comes first, then a new answer from Steady Path, then the usual order (Due next agrees) */
   var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0 && stageOf(x) < 4; }).sort(function (x, y) { return daysFrom(x.interview) - daysFrom(y.interview); })[0];
   var ivStep = function (soon) {
     var dd = daysFrom(soon.interview), sj = soon.jobId ? jobById(soon.jobId) : null, prep = sj ? jobState(sj).prep : null;
     var hasQs = prepQs(soon).length > 0; if (prep && !(isReady(prep) || /approved/i.test(prep.status || ''))) prep = null;
-    return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. ' + (hasQs ? 'Practice the questions they are likely to ask.' : prep ? 'Read your prep sheet before you go.' : 'Your interview prep is in progress' + prepDueText(soon) + '. Sherif will add it here.'),
+    return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. ' + (hasQs ? 'Practice the questions they are likely to ask.' : prep ? 'Read your prep sheet before you go.' : 'Your interview prep is in progress' + prepDueText(soon) + '. It will appear here.'),
       act: '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">' + (hasQs ? 'Practice now' : 'Interview details') + '</button>' + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
   };
   if (soon && daysFrom(soon.interview) <= 1) return ivStep(soon);
   var rp = jobs.filter(replyNew)[0];
-  if (rp) return { k: 'reply', t: 'Sherif answered your question about ' + coName(rp), s: 'Read the answer, then decide on this job.', act: '<button class="btn gold" data-seereply="' + esc(rp.id) + '">Read the answer</button>' };
-  if (c.wait) return { k: 'answer', t: c.wait === 1 ? '1 new job to answer' : c.wait + ' new jobs to answer', s: 'Say Yes to the ones you want. For each Yes, Sherif writes a resume and cover letter for that job.',
+  if (rp) return { k: 'reply', t: 'Steady Path answered your question about ' + coName(rp), s: 'Read the answer, then decide on this job.', act: '<button class="btn gold" data-seereply="' + esc(rp.id) + '">Read the answer</button>' };
+  if (c.wait) return { k: 'answer', t: c.wait === 1 ? '1 new job to answer' : c.wait + ' new jobs to answer', s: 'Say Yes to the ones you want. For each Yes, a resume and cover letter for that job are drafted automatically, usually within about an hour, and checked against your own resume.',
     act: deckButton(c) || '<button class="btn gold" data-first>Answer ' + (c.wait === 1 ? 'it' : 'them') + ' now</button>' };
   var r = yes.filter(function (j) { return st[j.id].review.length; })[0];
   if (r) { var w = docWords(st[r.id].review); return { k: 'review', t: 'Read your ' + w + ' for ' + coName(r), s: (st[r.id].review.length > 1 ? 'They are' : 'It is') + ' ready. Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ', then tap Looks good or ask for a change.', act: '<button class="btn gold" data-review="' + esc(r.id) + '">Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' now</button>' }; }
@@ -1272,12 +1272,12 @@ function flowStep(d) {
   if (a) return { k: 'apply', t: 'Apply to ' + coName(a), s: 'Your documents are approved. Three short steps and you are done.', act: '<button class="btn gold" data-applyflow="' + esc(a.id) + '">Start applying</button>' };
   if (soon) return ivStep(soon);
   var chg = yes.filter(function (j) { return st[j.id].changes.length && !st[j.id].app; })[0];
-  if (chg) return { k: 'wait', t: 'Sherif is making your changes for ' + coName(chg), s: whenReady() };
+  if (chg) return { k: 'wait', t: 'Your changes are being made for ' + coName(chg), s: whenReady() };
   var writing = yes.filter(function (j) { var s = st[j.id]; return !s.app && !s.applyReady && !s.review.length; });
   if (writing.length) return { k: 'write', t: 'We\'re writing your documents for ' + coName(writing[0]) + (writing.length > 1 ? ' and ' + (writing.length - 1) + ' more' : ''), s: (function () { var wj = writing.filter(function (j) { var dd = daysFrom(j.docsDue); return dd != null && dd >= 0; }).sort(function (a, b) { return a.docsDue < b.docsDue ? -1 : 1; })[0]; if (!wj) return ''; var dd = daysFrom(wj.docsDue), w = dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : fmtY(wj.docsDue); return writing.length > 1 ? 'Documents for ' + coName(wj) + ' expected ' + (dd > 1 ? 'by ' : '') + w + '. ' : 'Expected ' + (dd > 1 ? 'by ' : '') + w + '. '; })() + whenReady() };
   var qj = jobs.filter(function (j) { return ansOf(j) === 'q' && !replyOf(j); })[0];
-  if (qj) return { k: 'wait', t: 'Sherif is looking into your question', s: 'About ' + coName(qj) + '. Sherif will reply to your question.' };
-  if (!d.jobs.length && !(d.closed || []).length) return { k: 'start', t: 'Sherif is reading your resume', s: 'Your first job matches will show up here.' };
+  if (qj) return { k: 'wait', t: 'We\'re looking into your question', s: 'About ' + coName(qj) + '. We\'ll reply to your question here.' };
+  if (!d.jobs.length && !(d.closed || []).length) return { k: 'start', t: 'Getting your search ready', s: 'Your first job matches will show up here.' };
   var hw = (d.apps || []).filter(function (x) { return stageOf(x) === 0; })[0];
   if (hw) return { k: 'heard', t: 'Waiting to hear from ' + hw.company, s: 'Heard back? Update it on your Applied tab.', act: '<button class="btn gold" data-go="apps">Applied tab</button>' };
   return { k: 'done', t: 'All caught up' + (first ? ', ' + first : ''), s: 'Nothing to do right now. New job matches show up here.' };
@@ -1285,7 +1285,7 @@ function flowStep(d) {
 /* Due next: everything that needs doing across the search, with a date where there is one and who it is waiting on. */
 /* Order: anything dated within a week (overdue first), then the service steps (new jobs, documents, apply, interview feedback),
    then later dates, then other next actions, then flagged follow-ups (folded into one line when there are more than 2),
-   then Sherif's work, then employers. */
+   then Steady Path's work, then employers. */
 function dueItems(d) {
   var out = [], c = counts(), jobs = orderedJobs(d), n = 0, add = function (p, when, t, who, act) { out.push({ p: p, n: n++, when: when || '', t: t, who: who, act: act || '' }); };
   var goApps = '<button class="linkbtn" data-go="apps">Open</button>', flagged = [], waiting = 0;
@@ -1294,12 +1294,12 @@ function dueItems(d) {
     var s = jobState(j);
     if (s.review.length) add(1, '', 'Read and approve your documents for ' + coName(j), 'you', '<button class="linkbtn" data-review="' + esc(j.id) + '">Open</button>');
     else if (s.applyReady && !s.app) add(1, '', 'Apply to ' + coName(j), 'you', '<button class="linkbtn" data-applyflow="' + esc(j.id) + '">Open</button>');
-    else if (s.changes.length && !s.app) add(6, '', 'Making your changes for ' + coName(j), 'sherif');
-    else if (!s.app && !s.applyReady) add(6, daysFrom(j.docsDue) != null && daysFrom(j.docsDue) >= 0 ? j.docsDue : '', 'Writing your documents for ' + coName(j), 'sherif'); /* dated, but never ahead of what the client can do */
+    else if (s.changes.length && !s.app) add(6, '', 'Making your changes for ' + coName(j), 'sp');
+    else if (!s.app && !s.applyReady) add(6, daysFrom(j.docsDue) != null && daysFrom(j.docsDue) >= 0 ? j.docsDue : '', 'Writing your documents for ' + coName(j), 'sp'); /* dated, but never ahead of what the client can do */
   });
   jobs.filter(function (j) { return ansOf(j) === 'q'; }).forEach(function (j) {
-    if (replyNew(j)) add(-1, '', 'Sherif answered your question about ' + coName(j), 'you', '<button class="linkbtn" data-seereply="' + esc(j.id) + '">Open</button>');
-    else if (!replyOf(j)) add(6, '', 'Answering your question about ' + coName(j), 'sherif');
+    if (replyNew(j)) add(-1, '', 'Steady Path answered your question about ' + coName(j), 'you', '<button class="linkbtn" data-seereply="' + esc(j.id) + '">Open</button>');
+    else if (!replyOf(j)) add(6, '', 'Answering your question about ' + coName(j), 'sp');
   });
   (d.apps || []).forEach(function (x) {
     var st = stageOf(x); if (st >= 3) return;
@@ -1317,7 +1317,7 @@ function dueItems(d) {
   if (waiting) add(7, '', 'Waiting to hear back from ' + waiting + (waiting === 1 ? ' employer' : ' employers'), 'employer', goApps);
   return out.sort(function (a, b) { return a.p - b.p || (a.when < b.when ? -1 : a.when > b.when ? 1 : 0) || a.n - b.n; });
 }
-var WHO = { you: 'You', sherif: 'Sherif', employer: 'Employer' };
+var WHO = { you: 'You', sp: 'Steady Path', employer: 'Employer' };
 function dueCard(d) {
   var items = dueItems(d); if (!items.length) return '';
   var show = S.dueAll ? items : items.slice(0, 6);
@@ -1386,7 +1386,7 @@ function changeBox(st, j) {
   var cands = changeable(j), pick = cands.filter(function (x) { return x.id === S.changesFor; })[0]; if (!pick) return '';
   return '<div class="notebox rv-note">' + (cands.length > 1 ? '<p class="rv-which" id="rvw">Which one?</p><div class="rv-picks" role="group" aria-labelledby="rvw">' + cands.map(function (x) { return '<button type="button" class="btn ghost sm" data-rvpick="' + esc(x.id) + '" aria-pressed="' + (x.id === pick.id) + '">' + esc(docLabel(x)) + '</button>'; }).join('') + '</div>' : '') +
     '<label for="changesText">What should change in your ' + esc(docNoun(pick)) + '?</label>' + (S.changesErr ? '<p class="err" role="alert" id="chErr">' + esc(S.changesErr) + '</p>' : '') + '<textarea id="changesText"' + (S.changesErr ? ' aria-invalid="true" aria-describedby="chErr"' : '') + ' placeholder="For example: add my NJ license, or remove my 2015 job.">' + esc(S.changesDraft || '') + '</textarea>' +
-    '<div class="row"><button class="btn gold" data-sendchanges="' + esc(pick.id) + '"' + (S.docBusy[pick.id] ? ' disabled' : '') + '>' + (S.docBusy[pick.id] ? 'Sending…' : 'Send to Sherif') + '</button><button class="btn ghost" data-rvchange="">Cancel</button></div></div>';
+    '<div class="row"><button class="btn gold" data-sendchanges="' + esc(pick.id) + '"' + (S.docBusy[pick.id] ? ' disabled' : '') + '>' + (S.docBusy[pick.id] ? 'Sending…' : 'Send changes') + '</button><button class="btn ghost" data-rvchange="">Cancel</button></div></div>';
 }
 function flowFrom() { return S.flow && S.flow.from === 'docs' ? 'docs' : 'jobs'; }
 function backWord() { return flowFrom() === 'docs' ? 'Back to Documents' : 'Back to your jobs'; }
@@ -1406,7 +1406,7 @@ function vReview() {
     '<button class="kbtn" data-rvchange="' + (S.changesFor ? '' : 'open') + '" aria-expanded="' + !!S.changesFor + '"' + (busy ? ' disabled' : '') + '>Ask for a change</button>' + changeBox(st, j) + '</div>';
   else if (st.app) side = '<div class="rv-card ok"><h2>You applied</h2><p>Applied ' + esc(fmtDate(st.app.applied)) + '. It is on your Applied tab.</p><button class="btn gold" data-go="apps">Applied tab</button></div>';
   else if (st.applyReady) side = '<div class="rv-card ok"><h2>All approved</h2><p>Your next step is to apply. It takes three short steps.</p><button class="kdone" data-applyflow="' + id + '">' + IC.check + 'Start applying</button></div>';
-  else side = '<div class="rv-card"><h2>Nothing to approve right now</h2><p>' + (st.changes.length ? 'Sherif is making your changes. ' : '') + whenReady('your documents') + '</p><button class="btn ghost" data-flowclose>' + backWord() + '</button></div>';
+  else side = '<div class="rv-card"><h2>Nothing to approve right now</h2><p>' + (st.changes.length ? 'Your changes are being made. ' : '') + whenReady('your documents') + '</p><button class="btn ghost" data-flowclose>' + backWord() + '</button></div>';
   /* nothing to approve, but a document (often interview prep) can still get a change request */
   if (!nRv && changeable(j).length) side = side.replace(/<\/div>$/, '<button class="kbtn" data-rvchange="' + (S.changesFor ? '' : 'open') + '" aria-expanded="' + !!S.changesFor + '"' + (busy ? ' disabled' : '') + '>Ask for a change</button>' + changeBox(st, j) + '</div>');
   return shell(flowFrom(), 'Read your documents', esc(j.title + ' at ' + j.company)) + '<div class="pband wide" aria-hidden="true"></div>' +
@@ -1420,7 +1420,7 @@ function vReview() {
         (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to tap Looks good or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
           : S.demo ? sampleDoc(x, j) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
         '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>') +
-          (docPdf(x, truePdf(x.link)) && docKind(x.name) !== 'prep' && /approved/i.test(x.status || '') && !x.closedJob ? '<a class="kbtn" href="' + esc(docPdf(x, truePdf(x.link))) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + 'Download approved PDF</a>' : (x.pdfState === 'held' && docKind(x.name) !== 'prep' ? '<p class="meta">Your approved PDF is being updated. Sherif will let you know when it is ready.</p>' : '')) +
+          (docPdf(x, truePdf(x.link)) && docKind(x.name) !== 'prep' && /approved/i.test(x.status || '') && !x.closedJob ? '<a class="kbtn" href="' + esc(docPdf(x, truePdf(x.link))) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + 'Download approved PDF</a>' : (x.pdfState === 'held' && docKind(x.name) !== 'prep' ? '<p class="meta">Your approved PDF is being updated. We will let you know when it is ready.</p>' : '')) +
           (card || S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
     }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
     '</main>' + tabbar(flowFrom());
@@ -1500,7 +1500,7 @@ function vApply() {
     var ck = !!checks[AP_KIT[i]];
     return '<li class="ap-st' + (ck ? ' done' : '') + '"><span class="ap-n" aria-hidden="true">' + (ck ? IC.check : i + 1) + '</span><div class="ap-b"><h2>' + title + (ck ? '<span class="ap-ok"> Done</span>' : '') + '</h2><p>' + desc + '</p>' + a + '</div></li>';
   };
-  var dl = function (doc, what, k, i) { var u = doc && docPdf(doc, pdfLink(doc.link)); return u ? '<a class="kbtn solid" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer" data-track="' + k + '" data-job="' + id + '" data-apstep="' + i + '">' + IC.pdf + 'Download ' + what + ' PDF</a>' : (doc && doc.pdfState === 'held' ? '<p class="wait">Your approved ' + what + ' is being updated. Sherif will let you know when it is ready.</p>' : '<p class="wait">Not ready yet.</p>'); };
+  var dl = function (doc, what, k, i) { var u = doc && docPdf(doc, pdfLink(doc.link)); return u ? '<a class="kbtn solid" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer" data-track="' + k + '" data-job="' + id + '" data-apstep="' + i + '">' + IC.pdf + 'Download ' + what + ' PDF</a>' : (doc && doc.pdfState === 'held' ? '<p class="wait">Your approved ' + what + ' is being updated. We will let you know when it is ready.</p>' : '<p class="wait">Not ready yet.</p>'); };
   if (done) {
     var app = st.app;
     body = '<section class="ap-done"><div class="ap-doneic" aria-hidden="true">' + IC.checkc + '</div><h2>It is on your Applied tab.</h2><p>' + (app && app.applied ? 'Applied ' + esc(fmtDate(app.applied)) + '. ' : '') + 'When ' + esc(j.company) + ' replies, update it there. Good luck.</p>' +
@@ -1511,7 +1511,7 @@ function vApply() {
     body = '<p class="ap-intro">Do these in order. Each one opens in a new tab, so this page stays right here.</p><ol class="ap-steps">' +
       step(0, 'Download your resume', 'Save the PDF. You upload it in step 3.', dl(st.resume, 'resume', 'resume_pdf', 0)) +
       step(1, 'Download your cover letter', 'Save this PDF too.', dl(st.cover, 'cover letter', 'cover_pdf', 1)) +
-      step(2, 'Open the posting and apply', link ? 'Upload both PDFs. When the form asks a question, copy your ready answer below.' : 'The posting link is missing. Email Sherif and he will send it.',
+      step(2, 'Open the posting and apply', link ? 'Upload both PDFs. When the form asks a question, copy your ready answer below.' : 'The posting link is missing. Email hello@steadypathcareers.com and we will send it.',
         (link ? '<a class="kbtn solid" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" data-track="posting" data-job="' + id + '" data-apstep="2">' + IC.ext + 'Open the posting</a>' : '') +
         (answers.length ? '<h3 class="ap-ah">Your ready answers</h3>' + kansHtml(answers) : '')) + '</ol>' +
       '<section class="ap-ask" aria-labelledby="ap-q"><h2 id="ap-q">Did you submit it?</h2><p>Tell us once you have sent it, so it shows on your Applied tab.</p><div class="row"><button class="kdone" data-applied="' + id + '"' + (S.applyBusy === j.id ? ' disabled' : '') + '>' + IC.check + (S.applyBusy === j.id ? 'Saving…' : 'Yes, I submitted it') + '</button><button class="btn ghost" data-notyet>Not yet</button></div></section>';
@@ -1621,7 +1621,7 @@ function applyKit(j) {
   else if (js.applyReady && !app) h += '<button class="kbtn solid guide" data-applyflow="' + esc(j.id) + '">' + IC.check + 'Apply step by step</button>';
   if (resume || cover) {
     h += '<div class="pdfs">' + (resume && docPdf(resume, pdfLink(resume.link)) ? '<a class="kbtn solid" href="' + esc(docPdf(resume, pdfLink(resume.link))) + '" target="_blank" rel="noopener noreferrer" data-track="resume_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Resume (PDF)</a>' : '') +
-      (cover && docPdf(cover, pdfLink(cover.link)) ? '<a class="kbtn solid" href="' + esc(docPdf(cover, pdfLink(cover.link))) + '" target="_blank" rel="noopener noreferrer" data-track="cover_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Cover letter (PDF)</a>' : '') + '</div>' + ([resume, cover].some(function (d) { return d && d.pdfState === 'held'; }) ? '<p class="wait">Your approved ' + ([resume, cover].filter(function (d) { return d && d.pdfState === 'held'; }).map(function (d) { return d === resume ? 'resume' : 'cover letter'; }).join(' and ')) + ' PDF is being updated. Sherif will let you know when it is ready.</p>' : '');
+      (cover && docPdf(cover, pdfLink(cover.link)) ? '<a class="kbtn solid" href="' + esc(docPdf(cover, pdfLink(cover.link))) + '" target="_blank" rel="noopener noreferrer" data-track="cover_pdf" data-job="' + esc(j.id) + '">' + IC.pdf + 'Cover letter (PDF)</a>' : '') + '</div>' + ([resume, cover].some(function (d) { return d && d.pdfState === 'held'; }) ? '<p class="wait">Your approved ' + ([resume, cover].filter(function (d) { return d && d.pdfState === 'held'; }).map(function (d) { return d === resume ? 'resume' : 'cover letter'; }).join(' and ')) + ' PDF is being updated. We will let you know when it is ready.</p>' : '');
     if (!resume || !cover) h += '<p class="wait">' + (resume ? 'Your cover letter' : 'Your resume') + (pending ? ' is ready to check in Documents.' : ' is still in progress.') + '</p>';
   } else if (pending) {
     h += '<p class="wait">Your tailored resume and cover letter are ready to check. Approve them to get the PDFs.</p>' + (js.review.length ? '' : '<button class="kbtn" data-go="docs">' + IC.docs + 'Open Documents</button>');
@@ -1695,7 +1695,7 @@ function jobNext(j) {
     if (live && prep) return '<div class="jnext">' + when + '<a class="kbtn solid" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + id + '">' + IC.docs + 'Interview prep</a></div>';
     return '<div class="jnext">' + when + '<button class="kbtn" data-go="apps">' + IC.apps + 'See it on your Applied tab</button></div>';
   }
-  if (s.changes.length) return '<div class="jnext"><p class="trknow">Next: Sherif is making your changes. ' + esc(whenReady()) + '</p></div>';
+  if (s.changes.length) return '<div class="jnext"><p class="trknow">Next: your changes are being made. ' + esc(whenReady()) + '</p></div>';
   return '<div class="jnext"><p class="trknow wait-w">Next: your tailored resume, cover letter and interview prep are being prepared' + esc(docsDue(j)) + '. They show up in Documents for your OK.</p></div>';
 }
 function jobCard(j, hint) {
@@ -1704,7 +1704,7 @@ function jobCard(j, hint) {
   var heads = /below/i.test(j.floor || '') ? 'Heads-up: this is below your pay floor. Aim for the top of the range.' : '';
   var link = safeUrl(j.link), cm = commuteUrl(j), st = ans === 'yes' ? stageFor(j) : 0;
   var pills = [fitPill(j), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '', floorPill(j.floor)].filter(String).join('');
-  var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes <span class="stg st-' + st + '">' + STAGES_SHORT[st] + '</span></div>' : ans === 'q' ? '<div class="jst">' + IC.qc + (replyOf(j) ? 'Sherif answered your question' : 'Sherif is finding out') + '</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
+  var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes <span class="stg st-' + st + '">' + STAGES_SHORT[st] + '</span></div>' : ans === 'q' ? '<div class="jst">' + IC.qc + (replyOf(j) ? 'Steady Path answered your question' : 'We\'re looking into it') + '</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
   var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (j.closed ? ' is-closed' : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' && ans !== 'yes' && !j.closed ? ' data-swipe="1"' : '') + ' aria-label="' + esc(j.title + ', ' + j.company) + '">' +
     (ans !== 'no' && ans !== 'yes' && !j.closed ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
     (hint ? '<p class="hint"><span>Tip: swipe right for Yes, left to pass</span><button type="button" data-hidehint aria-label="Hide tip">&times;</button></p>' : '') +
@@ -1720,11 +1720,11 @@ function jobCard(j, hint) {
     var na = qo ? 'q' : ans;
     var nv = S.notes[j.id] != null ? S.notes[j.id] : (qo ? '' : j.note || '');
     var conf = S.conf[j.id] || {}, sending = S.noteQ[j.id] != null || (S.pending[j.id] && S.q[j.id] && S.q[j.id].noteInFlight);
-    h += '<div class="note2"><label class="' + (qo ? '' : 'sr') + '" for="nt-' + id + '"' + (qo ? ' style="font-weight:800;color:var(--navy)"' : '') + '>' + (na === 'q' ? 'Your question for Sherif' : 'Why not') + '</label><textarea id="nt-' + id + '" placeholder="' + (na === 'q' ? 'Your question for Sherif' : 'Optional: why not? It helps your next matches.') + '" data-note="' + id + '" data-na="' + na + '">' + esc(nv) + '</textarea>' +
+    h += '<div class="note2"><label class="' + (qo ? '' : 'sr') + '" for="nt-' + id + '"' + (qo ? ' style="font-weight:800;color:var(--navy)"' : '') + '>' + (na === 'q' ? 'Your question' : 'Why not') + '</label><textarea id="nt-' + id + '" placeholder="' + (na === 'q' ? 'Your question' : 'Optional: why not? It helps your next matches.') + '" data-note="' + id + '" data-na="' + na + '">' + esc(nv) + '</textarea>' +
       '<div class="row"><button class="btn' + (na === 'q' ? ' gold' : '') + '" data-savenote="' + id + '" data-a="' + na + '"' + (na === 'q' && !String(nv).trim() && !sending ? ' aria-disabled="true" aria-describedby="qh-' + id + '"' : '') + '>' + (sending ? 'Sending…' : 'Send') + '</button>' +
       (na === 'q' ? '<span class="qhint" id="qh-' + id + '"' + (String(nv).trim() || sending ? ' hidden' : '') + '>Type your question first</span>' : '') +
       (qo ? '<button class="btn ghost" data-qcancel="' + id + '">Cancel</button>' : '') + (!qo && conf.note && nv === conf.note && !busy ? '<span class="saving" role="status">Sent</span>' : '') + '</div></div>';
-    if (ans === 'q' && replyOf(j)) h += '<p class="qreply" id="qr-' + id + '" tabindex="-1"><b>Sherif replied' + esc(replyWhen(j)) + ':</b> ' + esc(replyOf(j)) + '</p>';
+    if (ans === 'q' && replyOf(j)) h += '<p class="qreply" id="qr-' + id + '" tabindex="-1"><b>Steady Path answered' + esc(replyWhen(j)) + ':</b> ' + esc(replyOf(j)) + '</p>';
   }
   if (S.pending[j.id]) h += '<span class="saving" role="status">Saving…</span>';
   var je = S.jobErr[j.id]; if (je) h += '<p class="err" role="alert">' + esc(je.msg) + (je.re ? reauthBtn() : '') + '</p>';
@@ -1732,7 +1732,7 @@ function jobCard(j, hint) {
   if (open) {
     h += '<div class="det" id="det-' + id + '">' + (j.why ? '<p><span class="lab">Why it fits</span>' + esc(j.why) + '</p>' : '') +
       (j.notes ? '<p><span class="lab">Our notes</span>' + esc(j.notes) + '</p>' : '') +
-      (replyText(j) && !replyOf(j) ? '<p class="qlast"><span class="lab">Sherif\'s answer</span><b>Sherif replied' + esc(replyWhen(j)) + ':</b> ' + esc(replyText(j)) + '</p>' : '') + earlierHtml(j) + (heads ? '<p class="heads">' + heads + '</p>' : '') +
+      (replyText(j) && !replyOf(j) ? '<p class="qlast"><span class="lab">Steady Path\'s answer</span><b>Steady Path answered' + esc(replyWhen(j)) + ':</b> ' + esc(replyText(j)) + '</p>' : '') + earlierHtml(j) + (heads ? '<p class="heads">' + heads + '</p>' : '') +
       '<p class="dlinks">' + (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" data-track="posting" data-job="' + id + '">See the posting</a>' : '') +
       (cm ? '<a href="' + esc(cm) + '" target="_blank" rel="noopener noreferrer">Commute from home</a>' : '') +
       (ans && !busy && !j.closed ? '<button type="button" data-clear="' + id + '">Clear my answer</button>' : '') + '</p>' +
@@ -1779,7 +1779,7 @@ function vJobs() {
     nxCard(n) + dueCard(d) +
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
     jmap(sorted) +
-    (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Sherif' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
+    (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Steady Path' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
     (fbDue(cl) ? '<div class="fbask"><p>Two minutes? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
     installCard() +
     (jl ? '<div class="jl">' : '') + jfx.head + '<div class="jfres" data-jfres>' + (jl ? jlPanes(d, jfx, main, passed, hintId) : jfx.on ? jfx.body :
@@ -1833,7 +1833,7 @@ function lines(t) { return String(t || '').split(/\n|;|(?:\s\d+\.\s)/).map(funct
 var APP_STATUS = ['Applied', 'Heard back', 'Interview scheduled', 'Interviewed, waiting to hear', 'Next round', 'Offer', 'Hired', 'Employer declined', 'I turned it down', 'Withdrew']; /* round 18: Hired (API v1.29) */
 /* an interview in the last 3 weeks that the client has not told us about yet */
 function outcomeDue(x) { var dd = daysFrom(x.interview); return dd != null && dd < 0 && dd >= -21 && stageOf(x) === 2 && !/waiting to hear|next round/i.test(x.status || ''); }
-/* a status outside the list (old "Declined", or a note Sherif typed) is listed first and selected, so saving a date never changes it */
+/* a status outside the list (old "Declined", or a note the operator typed) is listed first and selected, so saving a date never changes it */
 function statusOpts(cur) { return cur && APP_STATUS.indexOf(cur) < 0 ? [cur].concat(APP_STATUS) : APP_STATUS; }
 function logForm() {
   if (!S.logOpen) return '<p style="margin:0"><button class="btn gold" data-logopen>+ Log an application</button></p>' + (S.logMsg ? '<p class="psub" role="status" style="margin:0">' + esc(S.logMsg) + '</p>' : '');
@@ -2021,13 +2021,13 @@ document.addEventListener('click', function (e) {
 var JL_MQ = null; try { JL_MQ = matchMedia('(min-width: 1100px)'); } catch (e) {}
 function jlWide() { return !!(JL_MQ && JL_MQ.matches); }
 function jlOn() { return jlWide() && S.status === 'ready' && S.view === 'jobs' && !S.flow && !S.deck && !!(S.data && S.data.jobs && S.data.jobs.length); }
-/* one status per job, in the color roles: amber when it needs the client, green when done, blue while Sherif finds out */
+/* one status per job, in the color roles: amber when it needs the client, green when done, blue while Steady Path finds out */
 function jlStatus(j) {
   var a = ansOf(j);
   if (S.pending[j.id]) return '<span class="pill">Saving…</span>';
   if (S.jobErr[j.id]) return '<span class="pill attn">Didn\'t save</span>';
   if (a === 'no' || S.leaving[j.id]) return '<span class="pill">Passed</span>';
-  if (a === 'q') return replyOf(j) ? '<span class="pill ' + (replyNew(j) ? 'attn">New answer from Sherif' : 'info">Sherif answered') + '</span>' : '<span class="pill info">Sherif is finding out</span>';
+  if (a === 'q') return replyOf(j) ? '<span class="pill ' + (replyNew(j) ? 'attn">New answer from Steady Path' : 'info">Steady Path answered') + '</span>' : '<span class="pill info">We\'re looking into it</span>';
   if (a !== 'yes') return '<span class="pill attn">Needs your answer</span>';
   var s = jobState(j), st = stageFor(j);
   if (s.review.length) return '<span class="pill attn">Documents to read</span>';
@@ -2143,7 +2143,7 @@ function vError() {
   var net = S.errKind !== 'render';
   return '<div class="login errscr"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a></div>' +
     '<div class="box" role="alert"><h2 id="errH" tabindex="-1">' + (net ? 'We couldn\'t reach your portal.' : 'Something went wrong opening your portal.') + '</h2>' +
-    '<p class="psub" style="margin:0">' + (net ? 'Please check your connection and try again.' : 'Please try again. If it keeps happening, sign in again or tell Sherif.') + '</p>' +
+    '<p class="psub" style="margin:0">' + (net ? 'Please check your connection and try again.' : 'Please try again. If it keeps happening, sign in again or email hello@steadypathcareers.com.') + '</p>' +
     '<div class="row"><button class="btn gold" data-retry>Try again</button><button class="btn ghost" data-reauth>Sign in again</button></div>' +
     '<p class="ehelp"><b>Need help?</b> ' + helpHtml() + '</p>' + legalLinks('fine legal') + '</div></div>';
 }
@@ -2309,7 +2309,7 @@ function dkCard(j, top) {
     (D.more ? '<div class="dk-moretext">' + (j.notes ? '<p>' + esc(j.notes) + '</p>' : '') + (link ? '<p><a href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" data-track="posting" data-job="' + id + '">See the posting</a></p>' : '') + '</div>' : '');
   h += '</div>';
   if (asking) {
-    h += '<div class="dk-q"><label for="dkq-' + id + '">Your question for Sherif</label><textarea id="dkq-' + id + '" data-note="' + id + '" placeholder="For example: is parking free?">' + esc(S.notes[j.id] || '') + '</textarea>' +
+    h += '<div class="dk-q"><label for="dkq-' + id + '">Your question</label><textarea id="dkq-' + id + '" data-note="' + id + '" placeholder="For example: is parking free?">' + esc(S.notes[j.id] || '') + '</textarea>' +
       '<div class="row"><button class="btn gold" data-dkq="send"' + (String(S.notes[j.id] || '').trim() ? '' : ' aria-disabled="true" aria-describedby="dkqh"') + '>Send question</button><button class="btn ghost" data-dkq="cancel">Cancel</button><button class="btn ghost" data-dkq="later">Decide later</button></div><span class="qhint" id="dkqh"' + (String(S.notes[j.id] || '').trim() ? ' hidden' : '') + '>Type your question first</span></div>';
   }
   return h + '</div>';
@@ -2585,12 +2585,12 @@ document.addEventListener('click', function (e) {
 <script>
 /* ===================== Round 4: search settings, data export and delete request, calendar files, document versions,
    urgent help, feature ratings, prep timing. Settings changes, pause/resume, delete and urgent help are all REQUESTS
-   (action 'prefs', a row in Sherif's Requests tab); nothing here changes a setting directly. ===================== */
+   (action 'prefs', a row in the operator's Requests tab); nothing here changes a setting directly. ===================== */
 var PF_COMMUTE = ['Up to 15 minutes', 'Up to 30 minutes', 'Up to 45 minutes', 'Up to 1 hour', 'More than 1 hour', 'Remote only, no commute'];
 var PF_SETTING = ['On site', 'Hybrid', 'Remote', 'On site or hybrid', 'Hybrid or remote', 'Any of these'];
 var PF_CONTACT = ['Email', 'Text', 'Phone call'];
 var PF_SCREENS = ['Jobs', 'Documents', 'Reading or approving documents', 'Applying', 'Applied', 'Signing in', 'Search settings', 'Something else'];
-var PF_WAIT = 'Sherif reviews requests, usually within one business day. Your matches use your current settings until then.';
+var PF_WAIT = 'Requests are reviewed, usually within one business day. Your matches use your current settings until then.';
 S.pf = { draft: {} };
 function pfReset() { S.pf = { draft: {} }; }
 function prefsOf() { var p = (S.data && S.data.prefs) || {}; return { roles: Array.isArray(p.roles) ? p.roles.map(String) : String(p.roles || '').split(/\r?\n/).filter(String), payFloor: String(p.payFloor == null ? '' : p.payFloor), commute: String(p.commute || ''), setting: String(p.setting || ''), contact: String(p.contact || ''), status: String(p.status || ''), searchTerms: Array.isArray(p.searchTerms) ? p.searchTerms.map(String) : [] }; }
@@ -2602,9 +2602,9 @@ function payWords(v) {
 function statusWords(st) { return st === 'active' ? 'Active' : st === 'paused' ? 'Paused' : st === 'not started' ? 'Not started yet' : ''; }
 function pfReqList() {
   var r = (S.data && S.data.requests) || []; if (!r.length) return '';
-  return '<section class="card pf-req" aria-labelledby="pfReqH"><h2 id="pfReqH" class="pf-h">Waiting for Sherif</h2><ul>' + r.slice(0, 6).map(function (x) {
+  return '<section class="card pf-req" aria-labelledby="pfReqH"><h2 id="pfReqH" class="pf-h">Waiting for review</h2><ul>' + r.slice(0, 6).map(function (x) {
     return '<li><b>' + esc(x.type) + '</b><span>Sent ' + esc(fmtDate(x.date)) + (x.status && !/^new$/i.test(x.status) ? ' · ' + esc(x.status) : '') + '</span></li>';
-  }).join('') + '</ul>' + (r.some(function (x) { return /settings|pause|resume/i.test(x.type || ''); }) ? '<p class="psub">Your matches use your current settings until Sherif makes a change.</p>' : '') + '</section>';
+  }).join('') + '</ul>' + (r.some(function (x) { return /settings|pause|resume/i.test(x.type || ''); }) ? '<p class="psub">Your matches use your current settings until the change is made.</p>' : '') + '</section>';
 }
 function pfSelect(id, label, list, cur) {
   return '<label for="' + id + '">' + label + '</label><select id="' + id + '"><option value="">Keep as is' + (cur ? ' (' + esc(cur) + ')' : '') + '</option>' +
@@ -2616,28 +2616,28 @@ function pfForm(P) {
     '<label for="pfRoles">Target roles (one per line, up to 10)</label><textarea id="pfRoles" maxlength="1200" rows="4">' + v('pfRoles', P.roles.join('\n')) + '</textarea>' +
     '<label for="pfPay">Minimum pay</label><input id="pfPay" maxlength="40" autocomplete="off" placeholder="For example: $60,000 a year" value="' + v('pfPay', payWords(P.payFloor)) + '">' +
     '<div class="two"><div>' + pfSelect('pfCommute', 'Commute limit', PF_COMMUTE, P.commute) + '</div><div>' + pfSelect('pfSetting', 'Remote or hybrid', PF_SETTING, P.setting) + '</div></div>' +
-    pfSelect('pfContact', 'How Sherif contacts you', PF_CONTACT, P.contact) +
-    '<label for="pfNote">Anything else Sherif should know? (optional)</label><textarea id="pfNote" maxlength="1000" rows="3">' + v('pfNote', '') + '</textarea>' +
+    pfSelect('pfContact', 'How we contact you', PF_CONTACT, P.contact) +
+    '<label for="pfNote">Anything else we should know? (optional)</label><textarea id="pfNote" maxlength="1000" rows="3">' + v('pfNote', '') + '</textarea>' +
     (S.pf.err ? '<p class="err" role="alert" id="pfErr">' + esc(S.pf.err) + (S.pf.re ? reauthBtn() : '') + '</p>' : '') +
-    '<div class="pf-row"><button class="btn gold" data-pfsend' + (S.pf.busy ? ' disabled' : '') + '>' + (S.pf.busy ? 'Sending…' : 'Send to Sherif') + '</button><button class="btn ghost" data-pfedit="">Cancel</button></div></div>';
+    '<div class="pf-row"><button class="btn gold" data-pfsend' + (S.pf.busy ? ' disabled' : '') + '>' + (S.pf.busy ? 'Sending…' : 'Send request') + '</button><button class="btn ghost" data-pfedit="">Cancel</button></div></div>';
 }
 function vPrefs() {
   var P = prefsOf(), has = !!(S.data && S.data.prefs), F = S.pf, dash = '<span class="pf-none">Not set yet</span>';
   var row = function (k, val) { return '<div class="pf-r"><dt>' + k + '</dt><dd>' + (val ? esc(val) : dash) + '</dd></div>'; };
   var st = statusWords(P.status), pauseType = P.status === 'paused' ? 'Resume search' : 'Pause search';
   var msg = F.msg ? '<div class="pf-msg" role="status" tabindex="-1" id="pfMsg">' + IC.checkc + '<span>' + esc(F.msg) + '</span></div>' : '';
-  var pausePanel = F.pause ? '<div class="logbox pf-panel"><label for="pfPauseNote">' + (P.status === 'paused' ? 'Anything Sherif should know before your search starts again? (optional)' : 'Why are you pausing, and until when? (optional)') + '</label><textarea id="pfPauseNote" maxlength="1000" rows="3">' + esc(F.draft.pfPauseNote || '') + '</textarea>' +
+  var pausePanel = F.pause ? '<div class="logbox pf-panel"><label for="pfPauseNote">' + (P.status === 'paused' ? 'Anything we should know before your search starts again? (optional)' : 'Why are you pausing, and until when? (optional)') + '</label><textarea id="pfPauseNote" maxlength="1000" rows="3">' + esc(F.draft.pfPauseNote || '') + '</textarea>' +
     (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
     '<div class="pf-row"><button class="btn gold" data-pfpausesend="' + esc(pauseType) + '"' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Send request') + '</button><button class="btn ghost" data-pfpause="">Cancel</button></div></div>' : '';
-  var del = F.del ? '<div class="pf-confirm" role="group" aria-labelledby="pfDelH"><h3 id="pfDelH" tabindex="-1">Ask Sherif to delete your data?</h3>' +
-    '<p>This sends Sherif a request to delete your jobs, documents, applications and notes. Nothing is deleted right away: Sherif reviews it, usually within one business day, and emails you. Once your data is deleted, your search and this portal stop.</p>' +
+  var del = F.del ? '<div class="pf-confirm" role="group" aria-labelledby="pfDelH"><h3 id="pfDelH" tabindex="-1">Ask us to delete your data?</h3>' +
+    '<p>This sends a request to delete your jobs, documents, applications and notes. Nothing is deleted right away: the request is reviewed, usually within one business day, and you get an email. Once your data is deleted, your search and this portal stop.</p>' +
     '<p>Want a copy first? Download your data above before you send this.</p>' +
     (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
     '<div class="pf-row"><button class="btn danger" data-pfdelyes' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Yes, send the delete request') + '</button><button class="btn ghost" data-pfdel="">Cancel</button></div></div>' : '';
-  return shell('prefs', 'Your search settings', 'What Sherif uses to find your job matches.') + '<div class="pband" aria-hidden="true"></div><main class="pmain pf">' +
+  return shell('prefs', 'Your search settings', 'What we use to find your job matches.') + '<div class="pband" aria-hidden="true"></div><main class="pmain pf">' +
     '<div class="pf-note" role="note"><b>Changes here are requests.</b> ' + esc(PF_WAIT) + '</div>' + msg + pfReqList() +
     '<section class="card" aria-labelledby="pfCurH"><h2 id="pfCurH" class="pf-h">Your current settings</h2>' + (has ? '' : '<p class="psub">Your saved settings will show here soon. You can still ask for a change.</p>') +
-    '<dl class="pf-dl">' + row('Target roles', P.roles.join(', ')) + (!P.roles.length && P.searchTerms.length ? row('What your search looks for now', P.searchTerms.join(', ')) : '') + row('Minimum pay', payWords(P.payFloor)) + row('Commute limit', P.commute) + row('Remote or hybrid', P.setting) + row('How Sherif contacts you', P.contact) +
+    '<dl class="pf-dl">' + row('Target roles', P.roles.join(', ')) + (!P.roles.length && P.searchTerms.length ? row('What your search looks for now', P.searchTerms.join(', ')) : '') + row('Minimum pay', payWords(P.payFloor)) + row('Commute limit', P.commute) + row('Remote or hybrid', P.setting) + row('How we contact you', P.contact) +
     '<div class="pf-r"><dt>Search status</dt><dd>' + (st ? '<span class="pill ' + (P.status === 'active' ? 'ok' : P.status === 'paused' ? 'attn' : 'info') + '">' + st + '</span>' : dash) + '</dd></div></dl>' +
     (F.edit ? pfForm(P) : '<div class="pf-row"><button class="btn gold" data-pfedit="open">Request a change</button>' + (/^(active|paused)$/.test(P.status) && !F.pause ? '<button class="btn ghost" data-pfpause="open">' + (P.status === 'paused' ? 'Ask to resume my search' : 'Ask to pause my search') + '</button>' : '') + '</div>') +
     pausePanel + '</section>' +
@@ -2648,7 +2648,7 @@ function vPrefs() {
 }
 function pfVal(id) { var el = document.getElementById(id); return el ? el.value : (S.pf.draft[id] || ''); }
 function pfSaveDraft() { ['pfRoles', 'pfPay', 'pfCommute', 'pfSetting', 'pfContact', 'pfNote', 'pfPauseNote', 'urgWhat', 'urgScreen'].forEach(function (id) { var el = document.getElementById(id); if (el) S.pf.draft[id] = el.value; }); }
-/* One request to Sherif. done(ok) runs after the reply. */
+/* One request to Steady Path. done(ok) runs after the reply. */
 function sendRequest(body, done) {
   if (S.pf.busy) return; S.pf.busy = true; S.pf.err = ''; S.pf.re = false; render();
   post(Object.assign({ action: 'prefs', t: S.token }, body)).then(function (r) {
@@ -2670,10 +2670,10 @@ function sendPrefsChange() {
   var pay = clean(D.pfPay == null ? payWords(P.payFloor) : D.pfPay).slice(0, 40); if (pay !== payWords(P.payFloor)) ch.payFloor = pay || '(remove my minimum)';
   [['pfCommute', 'commute', PF_COMMUTE], ['pfSetting', 'setting', PF_SETTING], ['pfContact', 'contact', PF_CONTACT]].forEach(function (f) { var x = D[f[0]] || ''; if (f[2].indexOf(x) >= 0) ch[f[1]] = x; });
   var note = clean(D.pfNote).slice(0, 1000);
-  if (!Object.keys(ch).length && !note) { S.pf.err = 'Change at least one setting, or add a note for Sherif.'; S.focusTo = '#pfRoles'; render(); return; }
+  if (!Object.keys(ch).length && !note) { S.pf.err = 'Change at least one setting, or add a note.'; S.focusTo = '#pfRoles'; render(); return; }
   if (ch.roles === '') ch.roles = '(remove all roles)';
   sendRequest({ type: 'Change settings', changes: ch, note: note }, function (ok) {
-    if (ok) { S.pf.edit = false; S.pf.draft = {}; S.pf.msg = 'Sent to Sherif. ' + PF_WAIT; S.focusTo = '#pfMsg'; } else S.focusTo = '#pfErr';
+    if (ok) { S.pf.edit = false; S.pf.draft = {}; S.pf.msg = 'Sent. ' + PF_WAIT; S.focusTo = '#pfMsg'; } else S.focusTo = '#pfErr';
   });
 }
 /* ---- client-side files: data export, applications CSV, calendar ---- */
@@ -2774,14 +2774,14 @@ function featureRatings() {
 function fbFeatures() { var f = S.fb || {}, o = {}; if (f.jobs != null) o.jobs = f.jobs; FB_FEATURES.forEach(function (x) { var v = f['ft_' + x[0]]; if (v != null) o[x[0]] = v; }); return o; }
 function urgentBox() {
   var U = S.urg || {};
-  if (U.done) return '<div class="card urg ok" role="status" tabindex="-1"><b>Sent to Sherif as urgent.</b> He will get back to you as soon as he can. You can still fill in the survey below, or skip it.</div>';
-  if (!U.open) return '<div class="urg-link"><button class="linkbtn" data-urg="open">Something\'s broken or urgent?</button> <span>Skip the survey and tell Sherif now.</span></div>';
+  if (U.done) return '<div class="card urg ok" role="status" tabindex="-1"><b>Sent as urgent.</b> A person will get back to you as soon as possible. You can still fill in the survey below, or skip it.</div>';
+  if (!U.open) return '<div class="urg-link"><button class="linkbtn" data-urg="open">Something\'s broken or urgent?</button> <span>Skip the survey and tell us now.</span></div>';
   var D = S.pf.draft;
-  return '<div class="card urg logbox"><h2 class="pf-h">Something\'s broken or urgent</h2><p class="psub" style="margin:0">This goes straight to Sherif, outside the survey.</p>' +
+  return '<div class="card urg logbox"><h2 class="pf-h">Something\'s broken or urgent</h2><p class="psub" style="margin:0">This goes straight to a person, outside the survey.</p>' +
     '<label for="urgWhat">What\'s wrong?</label><textarea id="urgWhat" maxlength="1000" rows="3"' + (U.err ? ' aria-invalid="true" aria-describedby="urgErr"' : '') + '>' + esc(D.urgWhat || '') + '</textarea>' +
     '<label for="urgScreen">Which screen?</label><select id="urgScreen"><option value="">Not sure</option>' + PF_SCREENS.map(function (o) { return '<option' + (D.urgScreen === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' +
     (U.err ? '<p class="err" role="alert" id="urgErr">' + esc(U.err) + (S.pf.re ? reauthBtn() : '') + '</p>' : '') +
-    '<div class="pf-row"><button class="btn gold" data-urgsend' + (S.pf.busy ? ' disabled' : '') + '>' + (S.pf.busy ? 'Sending…' : 'Send to Sherif now') + '</button><button class="btn ghost" data-urg="">Cancel</button></div></div>';
+    '<div class="pf-row"><button class="btn gold" data-urgsend' + (S.pf.busy ? ' disabled' : '') + '>' + (S.pf.busy ? 'Sending…' : 'Send now') + '</button><button class="btn ghost" data-urg="">Cancel</button></div></div>';
 }
 function sendUrgent() {
   pfSaveDraft(); var what = String(S.pf.draft.urgWhat || '').trim().slice(0, 1000), screen = PF_SCREENS.indexOf(S.pf.draft.urgScreen) >= 0 ? S.pf.draft.urgScreen : '';
@@ -2805,9 +2805,9 @@ document.addEventListener('click', function (e) {
   if (d.pfsend != null) { sendPrefsChange(); return; }
   if (d.pfpause != null) { S.pf.pause = !!d.pfpause; S.pf.edit = false; S.pf.del = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.pause ? '#pfPauseNote' : '[data-pfpause]'; render(); return; }
   if (d.pfpausesend) { var ty = d.pfpausesend === 'Resume search' ? 'Resume search' : 'Pause search';
-    sendRequest({ type: ty, note: String(S.pf.draft.pfPauseNote || '').trim().slice(0, 1000) }, function (ok) { if (ok) { S.pf.pause = false; delete S.pf.draft.pfPauseNote; S.pf.msg = 'Sent. Sherif will ' + (ty === 'Pause search' ? 'pause' : 'restart') + ' your search after he reviews it, usually within one business day. Until then nothing changes.'; S.focusTo = '#pfMsg'; } }); return; }
+    sendRequest({ type: ty, note: String(S.pf.draft.pfPauseNote || '').trim().slice(0, 1000) }, function (ok) { if (ok) { S.pf.pause = false; delete S.pf.draft.pfPauseNote; S.pf.msg = 'Sent. We will ' + (ty === 'Pause search' ? 'pause' : 'restart') + ' your search after reviewing the request, usually within one business day. Until then nothing changes.'; S.focusTo = '#pfMsg'; } }); return; }
   if (d.pfdel != null) { S.pf.del = !!d.pfdel; S.pf.edit = false; S.pf.pause = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.del ? '#pfDelH' : '[data-pfdel]'; render(); return; }
-  if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. Sherif reviews it, usually within one business day, and will email you. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
+  if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. It is reviewed, usually within one business day, and you will get an email. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
   if (d.export) { var day = todayISO(); if (d.export === 'csv') saveFile('steady-path-applications-' + day + '.csv', 'text/csv;charset=utf-8', appsCsv()); else saveFile('steady-path-my-data-' + day + '.json', 'application/json', JSON.stringify(exportData(), null, 2)); toast('Downloaded.'); return; }
   if (d.ics) { var ap = ((S.data && S.data.apps) || []).filter(function (x) { return String(x.id) === d.ics; })[0], txt = ap && icsFor(ap); if (!txt) return; if (isIOS()) { try { location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(txt); return; } catch (e) {} } saveFile('interview-' + slug(ap.company) + '-' + ap.interview + '.ics', 'text/calendar;charset=utf-8', txt); toast('Calendar file downloaded. Open it to add the interview to Outlook or Apple Calendar.'); return; }
   if (d.urg != null) { S.urg = { open: !!d.urg }; S.pf.err = ''; S.focusTo = d.urg ? '#urgWhat' : '[data-urg]'; render(); return; }
@@ -2911,7 +2911,7 @@ function vPrep() {
   /* 5. questions to ask */
   var asks = pvAsks(x);
   if (asks.length) out += sec('ask', 'Questions to ask them', '<ul class="pv-list">' + asks.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>');
-  if (!has && !(dd != null && dd < 0)) out += '<div class="card pv-wait"><p class="psub" style="margin:0">' + esc(prepWait(x)) + ' Sherif will add it here.</p></div>';
+  if (!has && !(dd != null && dd < 0)) out += '<div class="card pv-wait"><p class="psub" style="margin:0">' + esc(prepWait(x)) + ' It will appear here.</p></div>';
   /* 6. after the interview */
   if (dd != null && dd < 0) {
     var opts = [['Interviewed, waiting to hear', 'Waiting to hear'], ['Next round', 'Another round'], ['Employer declined', 'Employer declined'], ['Offer', 'Offer']];
@@ -2922,7 +2922,7 @@ function vPrep() {
       '<p class="pv-msg" id="pvMsg" role="status">' + esc(P.msg || '') + (P.re ? reauthBtn() : '') + '</p>' +
       '<p><b>Send a thank-you note</b> to ' + (pvTxt(x.contact) ? esc(pvTxt(x.contact)) : 'the people you met') + ' within a day. Thank them and mention one thing you talked about.</p>' +
       (ty ? '<p><a class="kbtn" href="' + esc(safeUrl(ty.link)) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Your thank-you note</a></p>' : '') +
-      '<label for="pvNext">Notes for next time</label><textarea id="pvNext" maxlength="2000" aria-describedby="pvNextHint">' + esc(nv) + '</textarea><p class="meta" id="pvNextHint">Saved with this application as your notes, so Sherif sees them too.</p>' +
+      '<label for="pvNext">Notes for next time</label><textarea id="pvNext" maxlength="2000" aria-describedby="pvNextHint">' + esc(nv) + '</textarea><p class="meta" id="pvNextHint">Saved with this application as your notes, so Steady Path sees them too.</p>' +
       '<div class="pv-row"><button type="button" class="btn" data-pvsave' + (P.busy === 'notes' ? ' disabled' : '') + '>' + (P.busy === 'notes' ? 'Saving…' : 'Save notes') + '</button></div>', 'pv-after');
   }
   var back = from === 'apps' ? 'Back to Applied' : from === 'docs' ? 'Back to Documents' : 'Back to your jobs';
@@ -2968,7 +2968,7 @@ function docHistHtml(x) {
 document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.dataset && t.dataset.dhist != null) { S.dhOpen = S.dhOpen || {}; S.dhOpen[t.dataset.dhist] = t.open; } }, true);
 /* =================== END ROUND 6a =================== */
 </script>
-<script src="../assets/portal-r18.js?v=20261031c"></script>
+<script src="../assets/portal-r18.js?v=20261106a"></script>
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/portal.js?v=20261024e"></script>
 </body>

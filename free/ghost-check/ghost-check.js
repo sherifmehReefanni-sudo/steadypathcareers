@@ -45,7 +45,7 @@
     if ((r = s.match(/^https?:\/\/apply\.workable\.com\/j\/([A-Za-z0-9]{6,16})(?:[\/?#]|$)/i))) return { kind: 'workableAts', url: s };
     return { kind: 'other', site: site, notPosting: true };
   };
-  /* Job systems I check, but only on the exact hosts in GC.HOSTS (an EU or company host of the same system is not one of them). */
+  /* Job systems we check, but only on the exact hosts in GC.HOSTS (an EU or company host of the same system is not one of them). */
   GC.SUPPORTED_SITES = ['Greenhouse', 'Lever', 'Workable', 'Ashby'];
   GC.site = function (host) {
     host = String(host || '').toLowerCase();
@@ -200,7 +200,7 @@
   function fact(dl, k, v) { var w = el('div'); w.appendChild(el('dt', '', k)); var dd = el('dd'); if (typeof v === 'string') dd.textContent = v; else dd.appendChild(v); w.appendChild(dd); dl.appendChild(w); return dd; }
   function manual(card, site, lead, guide) {
     var box = el('div', 'gc-manual');
-    box.appendChild(el('h3', '', lead || 'I can\'t check this kind of link yet. Here is how to check it yourself'));
+    box.appendChild(el('h3', '', lead || 'We can\'t check this kind of link yet. Here is how to check it yourself'));
     var ol = el('ol');
     ol.appendChild(el('li', '', 'Find the same job on the company\'s own careers page. Search the company name plus "careers". If the job is not there, be careful.'));
     var li2 = el('li', '', 'Check the posting date. ');
@@ -229,16 +229,16 @@
         fact(dl, 'How long it has been up', (POSTED[res.ats] || 'Posted') + ' on ' + GC.fmtDay(res.postedOn) + (n >= 0 ? ', ' + (n === 0 ? 'today' : n === 1 ? '1 day ago' : n + ' days ago') : '') + '.' + (n > 60 ? ' That is a long time for one opening. It can still be real, so ask the recruiter if it is still being filled.' : ''));
         if (n >= 0) summary += '. Up for ' + n + (n === 1 ? ' day' : ' days');
       } else fact(dl, 'How long it has been up', name + ' does not share the posting date for this link.');
-      var rep = GC.BROWSER[src.kind] ? fact(dl, 'Looks reposted?', 'Looking at their other listings...') : fact(dl, 'Looks reposted?', 'I can\'t tell for ' + name + ' links yet.');
+      var rep = GC.BROWSER[src.kind] ? fact(dl, 'Looks reposted?', 'Looking at their other listings...') : fact(dl, 'Looks reposted?', 'We can\'t tell for ' + name + ' links yet.');
       card.appendChild(dl);
       if (GC.BROWSER[src.kind]) GC.repeatLook(src, res, root.fetch.bind(root)).then(function (c) {
-        rep.textContent = c === -2 ? 'I can\'t tell. This posting doesn\'t name a city and state, so I have nothing fair to compare it with.' : c < 0 ? 'I couldn\'t compare it with their other listings this time.' : c === 0 ? 'No. I found no second listing with the same title in the same place on their board.' : 'Maybe. They list the same title in the same place ' + (c === 1 ? 'once more' : c + ' more times') + '. That can mean more than one opening, or the same job posted again.';
+        rep.textContent = c === -2 ? 'We can\'t tell. This posting doesn\'t name a city and state, so there is nothing fair to compare it with.' : c < 0 ? 'We couldn\'t compare it with their other listings this time.' : c === 0 ? 'No. We found no second listing with the same title in the same place on their board.' : 'Maybe. They list the same title in the same place ' + (c === 1 ? 'once more' : c + ' more times') + '. That can mean more than one opening, or the same job posted again.';
       });
       card.appendChild(el('p', 'gc-note', 'Open on their system is a good sign, not a promise. A job can stay listed after the employer has stopped looking.'));
     } else if (st === 'closed') {
       var dl2 = el('dl', 'gc-facts');
       fact(dl2, 'Still open?', 'No. ' + name + ' no longer lists this job.');
-      fact(dl2, 'Looks reposted?', 'I can\'t tell once a posting is gone. Search the title on their careers page to see if it came back under a new link.');
+      fact(dl2, 'Looks reposted?', 'We can\'t tell once a posting is gone. Search the title on their careers page to see if it came back under a new link.');
       card.appendChild(dl2);
       if (res.board) { var pb = el('p', 'gc-note'); pb.appendChild(d.createTextNode('See what they have open now: ')); pb.appendChild(link(res.board, res.board.replace(/^https:\/\//, ''))); card.appendChild(pb); }
     } else {
@@ -248,14 +248,14 @@
         soon: 'This check is coming soon for ' + name + ' links.',
         rate: 'A lot of links are being checked right now. Please try again in a few minutes.',
         busy: 'A lot of people are checking links right now. Please try again in a minute.',
-        down: 'I couldn\'t reach my checker just now. Try again in a minute.',
+        down: 'We couldn\'t reach our checker just now. Try again in a minute.',
         paused: 'Checks for ' + name + ' links are paused right now. Please try again later.',
-        unreachable: 'I couldn\'t reach ' + (name || 'the job system') + ' just now. Try again in a minute.',
-        limit: 'I ran out of time on my side before I got a clear answer. Try again later, or open the posting and look for an Apply button.',
-        unclear: 'I couldn\'t get a clear answer this time. Try again later, or open the posting and look for an Apply button.'
+        unreachable: 'We couldn\'t reach ' + (name || 'the job system') + ' just now. Try again in a minute.',
+        limit: 'We ran out of time on our side before getting a clear answer. Try again later, or open the posting and look for an Apply button.',
+        unclear: 'We couldn\'t get a clear answer this time. Try again later, or open the posting and look for an Apply button.'
       }[res.reason];
       if (res.reason === 'unsupported') {
-        if (res.site && !res.src.notPosting && GC.SUPPORTED_SITES.indexOf(res.site) >= 0) card.appendChild(el('p', 'gc-why', 'This kind of ' + res.site + ' link isn\'t one I can check yet.'));
+        if (res.site && !res.src.notPosting && GC.SUPPORTED_SITES.indexOf(res.site) >= 0) card.appendChild(el('p', 'gc-why', 'This kind of ' + res.site + ' link isn\'t one we can check yet.'));
         else if (res.site && !res.src.notPosting) card.appendChild(el('p', 'gc-why', res.site + ' links are not on my list yet.'));
         else if (res.src && res.src.notPosting) card.appendChild(el('p', 'gc-why', 'This looks like a ' + (res.site || 'job system') + ' page, but not a single job posting. Open the job itself and copy that link.'));
         manual(card, res.site, '', true);

@@ -17,7 +17,7 @@ def nav(cur):
     return f'<nav class="topbar" aria-label="Main"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><div class="links">{links}</div><div class="right"><a href="/portal/">Client sign in</a><a class="btn gold" href="/start/">Start free</a></div></nav>'
 
 FOOT = ('<footer class="foot"><div class="wrap"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><nav aria-label="Footer"><a href="/services/">What you get</a><a href="/sample/">Sample report</a><a href="/pay/">Pay lookup</a><a href="/guides/">Guides</a><a href="/free/">Free tools</a><a href="/about/">About</a><a href="' + CAL + '" target="_blank" rel="noopener">Book a call</a><a href="/portal/">Client sign in</a></nav><p class="where"><span class="wg wt">&copy; 2026 Steady Path Careers</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg wt">Monmouth County, NJ</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="/terms/">Terms</a> &middot; <a href="/privacy/">Privacy</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="tel:+17327590008">(732) 759-0008</a></span></p></div></footer>\n'
-        '<script src="/assets/site.js?v=20261027a"></script>\n<script src="/assets/path.js?v=20261026a"></script>\n<script defer src="/assets/r17.js?v=20261031d"></script>\n'
+        '<script src="/assets/site.js?v=20261027a"></script>\n<script src="/assets/path.js?v=20261026a"></script>\n<script defer src="/assets/r17.js?v=20261106a"></script>\n'
         """<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6f62d1e0e28847dcab6b431376defda9"}'></script><!-- End Cloudflare Web Analytics -->\n""")
 
 R17 = '20261031v'
@@ -73,8 +73,8 @@ def phero(cur, kicker, h1, sub, cta, art):
 def finale(h2, p):
     return f'<section class="finale" data-mile style="--a:#0B4A52"><div class="wrap"><h2>{h2}</h2><p>{p}</p><a class="btn gold" href="/start/">Start free</a></div>{FIN_SVG}</section>\n'
 
-OFFER_H = 'Want me to run your search for you? Free for 30 days.'
-OFFER_P = 'When you&#x27;re ready, I&#x27;ll find and check openings that fit, show the pay on every one, and tailor your resume for each job you pick. You send every application. Free for 30 days while Steady Path is in its pilot.'
+OFFER_H = 'Want Steady Path Careers to run your search? Free for 30 days.'
+OFFER_P = 'When you&#x27;re ready, Steady Path Careers finds and checks openings that fit, shows pay whenever the employer posts it, and tailors your resume for each job you pick. You send every application. Free for 30 days while Steady Path Careers is in its pilot.'
 
 # ---------------------------------------------------------------- shared small CSS for /free/ pages
 BASE_CSS = r'''
@@ -227,7 +227,7 @@ def when(label):
 
 KIT_BODY = r'''
 <section class="sec" id="start" data-mile style="--a:#FBE3CF;--b:#FAEEE0"><div class="wrap k-wide"><div class="prose">
-<p class="fx-meta">By Sherif Mehanni. <b>Last checked: October 31, 2026</b>, against New Jersey, New York and federal government sources, numbered at the bottom.</p>
+<p class="fx-meta">By Steady Path Careers. <b>Last checked: October 31, 2026</b>, against New Jersey, New York and federal government sources, numbered at the bottom.</p>
 <p class="fx-note disc">General information, not legal or financial advice.</p>
 <h2 style="margin-top:22px">Four clocks start now</h2>
 <p>You don't have to fix everything today. You just need to know which deadlines are running.</p>
@@ -240,7 +240,7 @@ KIT_BODY = r'''
 <ul class="kit-jump fx-noprint" aria-label="Jump to a part of the kit">
 <li><a href="#hour-0">Hour 0</a></li><li><a href="#day-1">Hours 1 to 24</a></li><li><a href="#day-2">Hours 24 to 48</a></li><li><a href="#day-3">Hours 48 to 72</a></li><li><a href="#not-yet">Don&#x27;t do this yet</a></li><li><a href="#hr">Questions for HR</a></li><li><a href="#sources">Sources</a></li>
 </ul>
-<p>Want the longer explanation of each topic? Read my guide <a href="/guides/laid-off/">Laid off? Here&#x27;s what to do this week</a>. This page is the short, printable version.</p>
+<p>Want the longer explanation of each topic? Read the guide <a href="/guides/laid-off/">Laid off? Here&#x27;s what to do this week</a>. This page is the short, printable version.</p>
 </div></div></section>
 
 <section class="sec" id="hour-0" data-mile style="--a:#FAEEE0;--b:#F7E2C4"><div class="wrap k-wide"><div class="prose" data-reveal>
@@ -394,7 +394,7 @@ def build_kit():
     title = 'Laid Off in NJ or NY: Your First 72 Hours · Steady Path'
     desc = 'A free, printable checklist for your first 72 hours after a layoff in New Jersey or New York: unemployment, severance, COBRA or the marketplace, final pay and a job search starter.'
     ld = ('{"@context": "https://schema.org", "@type": "Article", "headline": "Laid Off in NJ or NY: Your First 72 Hours", "description": ' + '"' + desc + '"' +
-          ', "author": {"@type": "Person", "name": "Sherif Mehanni"}, "publisher": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "dateModified": "2026-10-31", "mainEntityOfPage": "https://steadypathcareers.com/free/laid-off-72-hours/", "image": "https://steadypathcareers.com/img/og/free.png", "isAccessibleForFree": true}')
+          ', "author": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "publisher": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "dateModified": "2026-10-31", "mainEntityOfPage": "https://steadypathcareers.com/free/laid-off-72-hours/", "image": "https://steadypathcareers.com/img/og/free.png", "isAccessibleForFree": true}')
     out = head('/free/laid-off-72-hours/', title, desc, 'free.png', 'Free tools from Steady Path Careers', KIT_CSS, ld)
     out += phero('/free/', 'Free kit: Just laid off', 'Laid off in NJ or NY: your first 72 hours',
                  'A printable checklist, hour by hour. Start at the top, do what&#x27;s in front of you, and leave the rest for tomorrow.',
@@ -521,7 +521,7 @@ def build_scripts():
         subj, body = txt.split('\n\n', 1)
         assert subj.startswith('Subject: '); subj = subj[len('Subject: '):]
         more = ''
-        if k == 'posted-pay': more = '<p class="more">Not sure what NJ and NY say about pay ranges in postings? <a href="/guides/pay-transparency/">Read my guide.</a></p>'
+        if k == 'posted-pay': more = '<p class="more">Not sure what NJ and NY say about pay ranges in postings? <a href="/guides/pay-transparency/">Read the guide.</a></p>'
         if k == 'counter': more = '<p class="more">Need a number to ask for? Start with the <a href="/pay/">pay lookup</a>.</p>'
         cards += (f'<li class="script" id="{k}"><h2 id="{k}-h">{t}</h2>'
                   f'<p class="lbl">When to send</p><p class="wh">{wh}</p>'
@@ -532,7 +532,7 @@ def build_scripts():
                   f'<p class="why"><b>Why it works:</b> {why}</p>{more}</li>')
     title = 'Emails for Every Step of the Search: 8 Free Job Search Scripts · Steady Path'
     desc = 'Eight free, copy-ready emails for your job search: follow-ups, thank-you notes, offer questions, a counter-offer, a polite decline and a referral ask.'
-    ld = '{"@context": "https://schema.org", "@type": "Article", "headline": "Emails for Every Step of the Search", "description": "' + desc + '", "author": {"@type": "Person", "name": "Sherif Mehanni"}, "publisher": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "dateModified": "2026-10-31", "mainEntityOfPage": "https://steadypathcareers.com/free/follow-up-scripts/", "image": "https://steadypathcareers.com/img/og/free.png", "isAccessibleForFree": true}'
+    ld = '{"@context": "https://schema.org", "@type": "Article", "headline": "Emails for Every Step of the Search", "description": "' + desc + '", "author": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "publisher": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "dateModified": "2026-10-31", "mainEntityOfPage": "https://steadypathcareers.com/free/follow-up-scripts/", "image": "https://steadypathcareers.com/img/og/free.png", "isAccessibleForFree": true}'
     out = head('/free/follow-up-scripts/', title, desc, 'free.png', 'Free tools from Steady Path Careers', SCR_CSS, ld)
     out += phero('/free/', 'Free scripts', 'Emails for every step of the search',
                  'Eight short, copy-ready notes for the moments that matter in a job search. Fill in the brackets, read it once out loud, and send.',
@@ -614,7 +614,7 @@ def build_hub():
     out += (f'<section class="sec" id="tools" data-mile style="--a:#FBE3CF;--b:#F4D0A2"><div class="wrap"><h2>Pick a tool</h2><p class="lead">All five are ready now.</p><ul class="tools">{cards}</ul></div></section>\n')
     out += ('<section class="sec" data-mile style="--a:#F4D0A2;--b:#E9A45C"><div class="wrap"><div class="fx-promise prose" data-reveal><h2>Free means free</h2><ul>'
             '<li>No account, no email address and nothing to fill in to use them.</li>'
-            '<li>Each one is written by me, Sherif, for job seekers in NJ and NY.</li>'
+            '<li>Each one is written by Steady Path Careers for job seekers in NJ and NY.</li>'
             '<li>Where a tool states a rule or a deadline, it links to the official source.</li>'
             '<li>Want more reading? The <a href="/guides/">guides</a> cover pay laws, fake postings and your resume.</li>'
             '<li>General information, not legal or financial advice.</li>'
