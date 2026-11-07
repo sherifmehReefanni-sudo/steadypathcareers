@@ -3062,7 +3062,7 @@ function billStatus() {
   var b = S.data.billing || {}, s = billSub();
   if (billHired()) return { cls: 'ok', t: 'Billing stopped: you told us you were hired. Congratulations.' };
   if (s === 'canceling') return { cls: '', t: (b.paidThrough ? 'Your plan ends on ' + fmtDate(b.paidThrough) + '.' : 'Your plan is ending.') + ' You won\'t be charged again.' };
-  if (/^cancel+ed/.test(s) && b.paidThrough) return { cls: '', t: 'Your plan ends on ' + fmtDate(b.paidThrough) + '.' };
+  if (/^cancel+ed/.test(s) && b.paidThrough) { var pd = daysFrom(b.paidThrough); return { cls: '', t: pd != null && pd <= 0 ? 'Your plan ended on ' + fmtDate(b.paidThrough) + '.' : 'Your plan ends on ' + fmtDate(b.paidThrough) + '. You won\'t be charged again.' }; }
   if (/^(active|trialing)$/.test(s)) return { cls: 'ok', t: 'Your plan is active.' };
   if (/^(past_due|unpaid)$/.test(s)) return { cls: 'attn', t: 'Your last payment did not go through. Please update your card in Manage billing.' };
   var tt = trialText(S.data.client || {}); return { cls: '', t: tt ? tt + '.' : 'You are on the free pilot.' };
@@ -3070,7 +3070,7 @@ function billStatus() {
 /* round 2: during the free pilot, say plainly that starting the plan ends the free days and charges today */
 function billPilotNote() {
   var dl = daysFrom((S.data.client || {}).trialEnds); if (dl == null || dl < 0) return '';
-  return '<p class="bl-hint bl-now">' + (dl >= 1 ? 'You have ' + dl + (dl === 1 ? ' free day' : ' free days') + ' left. Starting your plan now ends them, and your first $99 charge is today.' : 'Starting your plan now ends your free days. Your first $99 charge is today.') + '</p>';
+  return '<p class="bl-hint bl-now">' + (dl >= 1 ? 'You have ' + dl + (dl === 1 ? ' free day' : ' free days') + ' left. Starting your plan now ends them, and your first charge is today.' : 'Starting your plan now ends your free days. Your first charge is today.') + '</p>';
 }
 function billHasPlan() { return /^(active|trialing|past_due|unpaid|canceling)$/.test(billSub()); }
 function billManage() { return '<a class="bl-link" href="' + esc(billPortalUrl()) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Manage billing<span class="sr"> (receipts, card, cancel; opens in a new tab)</span></a>'; }
