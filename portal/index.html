@@ -3245,7 +3245,7 @@ function vBilling() {
   var notice = esc(CANCEL_NOTICE).replace('hello@steadypathcareers.com', '<a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a>');
   var inc = ['Job matches in your portal', 'A tailored resume and cover letter for every job you say yes to', 'Answers to your questions'];
   var gate = nj ? '' : '<p class="bl-ny" role="note">' + BILL_ILL.pin + '<span>' + (b.region === 'NY' ? 'Paid plans aren\'t available in New York yet.' : 'Paid plans aren\'t available in your area yet.') + ' Your free access continues.</span></p>';
-  var hero = '<section class="bl-hero" aria-labelledby="blHeroH"><h2 id="blHeroH">Your job search, with a team behind you.</h2><p class="bl-sub">One simple plan. When you\'re hired, tell us and we stop your billing.</p>' + BILL_ILL.path +
+  var hero = '<section class="bl-hero" aria-labelledby="blHeroH"><h2 id="blHeroH">Your job search, with Steady Path behind you.</h2><p class="bl-sub">One simple plan. Cancel anytime, including the day you\'re hired.</p>' + BILL_ILL.path +
     '<p class="bl-status ' + x.cls + '" role="status">' + esc(x.page) + '</p></section>';
   var how = '<section class="bl-sec" aria-labelledby="blHowH"><h2 class="sec-h" id="blHowH">How it works</h2><div class="bl-howwrap bl-io"><span class="bl-track" aria-hidden="true"></span><span class="bl-run" aria-hidden="true"><i></i></span><ol class="bl-how">' +
     '<li class="bl-step bl-io" style="--i:1"><b><i>1</i>Free days</b><span>Try everything, no card needed.</span></li>' +
