@@ -3065,12 +3065,14 @@ function billStatus() {
   if (/^cancel+ed/.test(s) && b.paidThrough) { var pd = daysFrom(b.paidThrough); return { cls: '', t: pd != null && pd <= 0 ? 'Your plan ended on ' + fmtDate(b.paidThrough) + '.' : 'Your plan ends on ' + fmtDate(b.paidThrough) + '. You won\'t be charged again.' }; }
   if (/^(active|trialing)$/.test(s)) return { cls: 'ok', t: 'Your plan is active.' };
   if (/^(past_due|unpaid)$/.test(s)) return { cls: 'attn', t: 'Your last payment did not go through. Please update your card in Manage billing.' };
+  if (String(b.status || '').trim()) return { cls: '', t: /^cancel+ed/.test(s) ? 'Your plan has ended.' : 'Your plan details are in Manage billing.' }; /* round 4: any Billing status, no free days */
   var tt = trialText(S.data.client || {}); return { cls: '', t: tt ? tt + '.' : 'You are on the free pilot.' };
 }
 /* round 2: during the free pilot, say plainly that starting the plan ends the free days and charges today */
 function billPilotNote() {
+  if (String((S.data.billing || {}).status || '').trim()) return ''; /* round 4: any Billing status means this is not a plain free pilot */
   var dl = daysFrom((S.data.client || {}).trialEnds); if (dl == null || dl < 0) return '';
-  return '<p class="bl-hint bl-now">' + (dl >= 1 ? 'You have ' + dl + (dl === 1 ? ' free day' : ' free days') + ' left. Starting your plan now ends them, and your first charge is today.' : 'Starting your plan now ends your free days. Your first charge is today.') + '</p>';
+  return '<p class="bl-hint bl-now">' + (dl === 1 ? 'You have 1 free day left. Starting your plan now ends it, and your first charge is today.' : dl > 1 ? 'You have ' + dl + ' free days left. Starting your plan now ends them, and your first charge is today.' : 'Starting your plan now ends your free days. Your first charge is today.') + '</p>';
 }
 function billHasPlan() { return /^(active|trialing|past_due|unpaid|canceling)$/.test(billSub()); }
 function billManage() { return '<a class="bl-link" href="' + esc(billPortalUrl()) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Manage billing<span class="sr"> (receipts, card, cancel; opens in a new tab)</span></a>'; }
