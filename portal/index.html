@@ -723,6 +723,8 @@ window.SP_DEMO = function () {
     prefs: { roles: ['Associate Dentist', 'General Dentist'], payFloor: '190000', commute: 'Up to 45 minutes', setting: 'On site', contact: 'Email', status: 'active' }, requests: [], /* round 4 */
     client: { id: 'C-DEMO', name: 'Jordan T.', firstName: 'Jordan', stage: 'Trial', startDate: iso(-8), trialEnds: iso(9), payFloor: '$190,000', lastTouch: iso(-1), lastFeedback: '', home: 'Hicksville, NY', std: 'Authorized to work in the US: Yes\nNeed visa sponsorship: No\nNY dental license: Yes, active',
       weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. Your question about loan repayment at Sample Community Dental has an answer on that job. Two new Nassau County openings came in on Monday.' },
+    /* round 25: Plan & billing preview. The demo client lives in NY; ?region=nj previews the New Jersey screen with its buy buttons. */
+    billing: { status: '', region: /[?&]region=nj(&|$)/i.test(location.search) ? 'NJ' : 'NY', consented: false, paidThrough: '', hiredDate: '', email: 'jordan@example.com' },
     jobs: [
       { id: 'J-101', fit: 'Strong fit', concern: 'Four days a week, so ask how new patients are split between dentists.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Smiles Dental', title: 'Associate Dentist', location: 'Garden City, NY', setting: 'On-site', pay: '$195,000 - $235,000 a year', payLow: 195000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Family practice with 4 chairs and a full hygiene team. Mostly restorative and some cosmetic work, which matches your last 5 years.', link: 'https://example.com/jobs/bright-smiles-associate', notes: 'Four days a week, no Sundays.', answer: '', note: '', answeredOn: '', kit: { pay: '', start: '', why: '' } },
       { id: 'J-102', fit: 'Possible fit', concern: 'Hourly pay, and the posting lists no benefits.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Dental Partners', title: 'General Dentist', location: 'Huntington, NY', setting: 'On-site', pay: '$90 - $115 an hour', payLow: 90, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Busy group practice with in-house lab. Open to dentists who want to build implant skills.', link: 'https://example.com/jobs/lidp-general', notes: '', answer: '', note: '', answeredOn: '' },
@@ -1130,7 +1132,7 @@ function shell(active, title, sub) {
   return '<header class="sky"><div class="wrap"><div class="ptop"><a class="brand" href="/"><span>' + SP.LOGO + '</span><span class="bname">Steady Path</span></a>' + (S.demo ? '<span class="demo-badge">Demo</span>' : '') +
     '<nav class="ptabs" aria-label="Portal">' + tabs + '</nav>' +
     '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
-    (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="prefs">Your search settings</button><button role="menuitem" data-go="feedback">Give feedback</button><button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + helpHtml() + '</p><div class="mlegal" role="none"><a role="menuitem" href="/privacy/">Privacy policy</a><a role="menuitem" href="/terms/">Terms</a></div></div>' : '') + '</div></div>' +
+    (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="prefs">Your search settings</button><button role="menuitem" data-go="feedback">Give feedback</button>' + (billOn() ? '<button role="menuitem" data-go="billing">Plan &amp; billing</button>' : '') + '<button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + helpHtml() + '</p><div class="mlegal" role="none"><a role="menuitem" href="/privacy/">Privacy policy</a><a role="menuitem" href="/terms/">Terms</a></div></div>' : '') + '</div></div>' +
     '<div class="ptitle"><h1 tabindex="-1">' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div></div>' + SP.scene(64, active) + '</header>';
 }
 function tabbar(active) {
@@ -1541,7 +1543,7 @@ window.addEventListener('popstate', function (e) {
   S.hist = st.depth || 0;
   if (S.popQuiet) { S.popQuiet = false; return; }
   if (st.view === 'prep' && prepPop(st)) return; /* round 6a: interview prep screen */
-  var j = st.flow ? jobById(st.flow.job) : null, was = !!S.flow, view = /^(jobs|docs|apps|feedback)$/.test(st.view || '') ? st.view : 'jobs';
+  var j = st.flow ? jobById(st.flow.job) : null, was = !!S.flow, view = /^(jobs|docs|apps|feedback|billing)$/.test(st.view || '') ? st.view : 'jobs';
   if (j) { S.flow = { kind: st.flow.kind === 'apply' ? 'apply' : 'review', job: j.id, from: st.flow.from === 'docs' ? 'docs' : 'jobs' }; S.view = S.flow.from; }
   else { if (!was && S.view === view) return; /* already there (closeFlow got there first) */ S.flow = null; S.view = view; }
   S.changesFor = null; S.changesErr = ''; S.menu = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0);
@@ -1775,7 +1777,7 @@ function vJobs() {
   var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : n.k === 'done' ? 'All caught up.' : 'Your matches are reviewed. Here\'s what\'s next.';
   return shell('jobs', esc(title), 'Pay is shown as the employer posted it. When it isn\'t posted, the card says so.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain' + (jl ? ' xl' : '') + '">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
-    '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b><span>' + esc(trialText(cl)) + '</span></div>' +
+    '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b>' + (billOn() ? '<span class="hl-r"><span>' + esc(trialText(cl)) + '</span><button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></span>' : '<span>' + esc(trialText(cl)) + '</span>') + '</div>' +
     nxCard(n) + dueCard(d) +
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
     jmap(sorted) +
@@ -2118,7 +2120,8 @@ function render() {
   var fk = focusKey(document.activeElement); saveDrafts();
   var y = window.scrollY, jls = jlBefore();
   if (S.flow && S.view !== flowFrom()) S.flow = null; /* a review or apply screen lives on the tab it was opened from */
-  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs, prep: vPrep }[S.view] || vJobs)();
+  if (S.view === 'billing' && !billOn()) S.view = 'jobs'; /* round 25: no billing object from the API, no billing screen */
+  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs, prep: vPrep, billing: vBilling }[S.view] || vJobs)();
   var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
   if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;
   if (!S.deck) window.scrollTo(0, y);
@@ -2967,6 +2970,185 @@ function docHistHtml(x) {
 }
 document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.dataset && t.dataset.dhist != null) { S.dhOpen = S.dhOpen || {}; S.dhOpen[t.dataset.dhist] = t.open; } }, true);
 /* =================== END ROUND 6a =================== */
+</script>
+<style>
+/* ===================== Round 25: Plan & billing (S.view 'billing') ===================== */
+.bl .bl-status { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--gold); border-radius: 14px; padding: 12px 14px; font-weight: 800; color: var(--navy); }
+.bl .bl-status.ok { border-left-color: var(--ok); }
+.bl .bl-status.attn { border-left-color: var(--bad); }
+.bl .bl-h { margin: 0; font: 800 20px var(--display); color: var(--navy); }
+.bl .bl-price { margin: 2px 0 0; font: 800 26px var(--display); color: var(--ink); }
+.bl .bl-price small { font-size: 15px; font-weight: 700; color: var(--muted); }
+.bl .bl-plan { display: grid; gap: 10px; }
+.bl .bl-plan p, .bl .bl-plan ul { margin: 0; }
+.bl .bl-inc { padding-left: 20px; display: grid; gap: 4px; }
+.bl .bl-guar { color: var(--ink); }
+.bl .bl-code { color: var(--muted); font-size: 14.5px; }
+.bl .bl-notice { background: var(--sunk, #F4EFE4); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.bl .bl-notice h3 { margin: 0 0 4px; font: 800 15px var(--display); color: var(--navy); }
+.bl .bl-notice p { margin: 0; }
+.bl .bl-agree { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; color: var(--ink); cursor: pointer; padding: 6px 0; }
+.bl .bl-agree input { margin-top: 2px; width: 22px; height: 22px; }
+.bl .bl-agree input:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; }
+.bl .bl-agree a { color: var(--navy); }
+.bl .bl-hint { margin: 0; color: var(--muted); font-size: 14px; font-weight: 700; }
+.bl .bl-buy { display: grid; gap: 6px; justify-items: start; }
+.bl .bl-buy .btn { min-height: 48px; font-size: 16px; }
+.bl .btn:focus-visible, .bl .bl-link:focus-visible, .bl .linkbtn:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; }
+.bl .btn[disabled] { cursor: not-allowed; }
+.bl .bl-adds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.bl .bl-add { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 8px; align-content: space-between; }
+.bl .bl-add h3 { margin: 0; font: 800 16px var(--display); color: var(--navy); }
+.bl .bl-add p { margin: 0; font-weight: 800; color: var(--ink); }
+.bl .bl-add p small { font-weight: 700; color: var(--muted); }
+.bl .bl-ny { margin: 0; background: var(--info-soft); color: var(--info); border-radius: 12px; padding: 12px 14px; font-weight: 800; }
+.bl .bl-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--navy); font-weight: 800; }
+.bl .bl-link svg { width: 18px; height: 18px; }
+.bl .bl-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bl .bl-confirm { border: 2px solid var(--navy); border-radius: 14px; padding: 14px; display: grid; gap: 10px; background: #fff; }
+.bl .bl-confirm p { margin: 0; font-weight: 800; color: var(--ink); }
+.bl .bl-confirm p:focus { outline: none; }
+.bl .bl-confirm p:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; }
+.bl .bl-err { margin: 0; }
+.bl .bl-sec { display: grid; gap: 10px; }
+.hello .hl-r { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.hello .hl-r .linkbtn { min-height: 32px; min-width: 0; font-size: 14px; }
+@media (max-width: 720px) { .bl .bl-adds { grid-template-columns: minmax(0, 1fr); } .bl .bl-add { grid-template-columns: minmax(0, 1fr) auto; align-items: center; } .bl .bl-buy .btn { width: 100%; } .bl .bl-buy { justify-items: stretch; } }
+@media print { .bl .btn, .bl .bl-agree { display: none; } }
+</style>
+<script>
+/* ===================== Round 25: Plan & billing (S.view 'billing', S.bill). Shown only when the API's me answer has a billing object
+   (the backend sends it only when billing is switched on for this client). Only NJ clients get the consent box and buy buttons; NY or
+   unknown get one plain line instead. Every buy first records consent (POST billingConsent); Stripe opens only after that succeeds.
+   Demo mode never opens Stripe. ===================== */
+/* Stripe TEST mode links. Switching to live links later is an edit here only. */
+var BILLING_LINKS = {
+  plan: 'https://buy.stripe.com/test_7sYdR26oY5Ce4pla7Y6Vq00',
+  linkedin: 'https://buy.stripe.com/test_28E7sE6oY7Km4pl0xo6Vq01',
+  salary: 'https://buy.stripe.com/test_3cI7sEfZyd4G4pl4NE6Vq02',
+  call: 'https://buy.stripe.com/test_fZu3codRq5Cef3Zfsi6Vq03',
+  portal: 'https://billing.stripe.com/p/login/test_7sYdR26oY5Ce4pla7Y6Vq00'
+};
+/* ATTORNEY REVIEW (NJ career consulting rules: exact wording, business vs calendar days). */
+var CANCEL_NOTICE = 'You may cancel within 3 business days of signing up and get a full refund. To cancel, use Manage billing below or email hello@steadypathcareers.com.';
+var BILL_ADDONS = [['linkedin', 'LinkedIn Profile Makeover', '$129'], ['salary', 'Salary Negotiation Session', '$99'], ['call', 'One-on-One Call', '$59']];
+var BILL_NAMES = { plan: 'Steady Path Plan', linkedin: 'LinkedIn Profile Makeover', salary: 'Salary Negotiation Session', call: 'One-on-One Call' };
+S.bill = { agree: false, busy: '', err: '', re: false, hire: '' };
+/* After payment Stripe sends the client to /portal/?v=billing&paid=plan|linkedin|salary|call: remember it, then clean the URL */
+(function () {
+  try {
+    var q = new URLSearchParams(location.search), p = q.get('paid');
+    if (p == null) return;
+    if (BILL_NAMES.hasOwnProperty(p)) S.billPaid = p;
+    q.delete('paid'); if (!S.demo) q.delete('v');
+    var rest = q.toString(); history.replaceState(history.state, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+  } catch (e) {}
+})();
+function billOn() { return !!(S.data && S.data.billing && typeof S.data.billing === 'object'); }
+function billNJ() { return billOn() && S.data.billing.region === 'NJ'; }
+function billEmail() { var e = String((S.data && S.data.billing && S.data.billing.email) || '').trim(); return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) ? e : ''; }
+function billRef() { return String((S.data && S.data.client && S.data.client.id) || '').replace(/[^A-Za-z0-9_-]/g, ''); }
+function billBuyUrl(item) {
+  var u = BILLING_LINKS[item]; if (!u || item === 'portal') return '';
+  var e = billEmail();
+  return u + '?client_reference_id=' + encodeURIComponent(billRef()) + (e ? '&prefilled_email=' + encodeURIComponent(e) : '');
+}
+function billPortalUrl() { var e = billEmail(); return BILLING_LINKS.portal + (e ? '?prefilled_email=' + encodeURIComponent(e) : ''); }
+function billHired() { var b = S.data.billing || {}; return !!b.hiredDate || /^hired\b/i.test(String(b.status || '')); }
+function billSub() { return String((S.data.billing || {}).status || '').toLowerCase().replace(/^hired,\s*/, ''); }
+/* the status line: hired, active, ending, a failed payment, or the free pilot */
+function billStatus() {
+  var b = S.data.billing || {}, s = billSub();
+  if (billHired()) return { cls: 'ok', t: 'Billing stopped: you told us you were hired. Congratulations.' };
+  if (/^cancel+ed/.test(s) && b.paidThrough) return { cls: '', t: 'Your plan ends on ' + fmtDate(b.paidThrough) + '.' };
+  if (/^(active|trialing)$/.test(s)) return { cls: 'ok', t: 'Your plan is active.' };
+  if (/^(past_due|unpaid)$/.test(s)) return { cls: 'attn', t: 'Your last payment did not go through. Please update your card in Manage billing.' };
+  var tt = trialText(S.data.client || {}); return { cls: '', t: tt ? tt + '.' : 'You are on the free pilot.' };
+}
+function billHasPlan() { return /^(active|trialing|past_due|unpaid)$/.test(billSub()); }
+function billManage() { return '<a class="bl-link" href="' + esc(billPortalUrl()) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Manage billing<span class="sr"> (receipts, card, cancel; opens in a new tab)</span></a>'; }
+function billBtn(item, label, aria, cls) {
+  var dis = !S.bill.agree || !!S.bill.busy;
+  return '<button type="button" class="btn ' + (cls || '') + '" data-billbuy="' + item + '"' + (dis ? ' disabled' : '') + (aria ? ' aria-label="' + esc(aria) + '"' : '') + ' aria-describedby="blHint">' + (S.bill.busy === item ? 'Opening…' : label) + '</button>';
+}
+function vBilling() {
+  var b = S.data.billing, nj = billNJ(), st = billStatus(), hired = billHired(), B = S.bill;
+  var notice = esc(CANCEL_NOTICE).replace('hello@steadypathcareers.com', '<a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a>');
+  var buy = '';
+  if (nj) {
+    buy = '<section class="card bl-sec" aria-labelledby="blNoticeH"><div class="bl-notice" role="note"><h3 id="blNoticeH">Your right to cancel</h3><p>' + notice + '</p></div>' +
+      '<label class="bl-agree" for="billAgree"><input type="checkbox" id="billAgree" data-billagree' + (B.agree ? ' checked' : '') + ' aria-describedby="blHint"><span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and the cancellation notice above.</span></label>' +
+      '<p class="bl-hint" id="blHint">' + (B.agree ? 'Thank you. You can continue below.' : 'Tick the box above to continue.') + '</p>' +
+      (B.err ? '<p class="warn bl-err" role="alert" id="blErr">' + esc(B.err) + (B.re ? reauthBtn() : '') + '</p>' : '') +
+      (hired || billHasPlan() ? '' : '<div class="bl-buy">' + billBtn('plan', 'Continue for $99 a month', '', 'gold') + '<p class="bl-hint">Apple Pay and Google Pay are shown on the next page.</p></div>') +
+      '</section>' +
+      '<section class="bl-sec" aria-labelledby="blAddH"><h2 class="sec-h" id="blAddH">Add-ons</h2><div class="bl-adds">' + BILL_ADDONS.map(function (a) {
+        return '<div class="bl-add"><div><h3>' + esc(a[1]) + '</h3><p>' + esc(a[2]) + ' <small>one time</small></p></div>' + billBtn(a[0], 'Buy', 'Buy ' + a[1] + ', ' + a[2] + ', one time', 'ghost') + '</div>';
+      }).join('') + '</div></section>';
+  } else buy = '<p class="bl-ny" role="note">Paid plans aren\'t available in New York yet. Your free access continues.</p>';
+  var hire = '';
+  if (B.hire === 'done' || (hired && !/cancel+ed/i.test(String(b.status || '')))) {
+    hire = '<div class="sent" role="status" tabindex="-1" id="blHired">Billing is stopping. Last step: confirm the cancel in Manage billing so no more charges are made.</div><div>' + billManage() + '</div>';
+  } else if (!hired) {
+    hire = B.hire === 'ask' || B.hire === 'busy' ? '<div class="bl-confirm" role="group" aria-labelledby="blHireQ"><p id="blHireQ" tabindex="-1">Congratulations. We\'ll stop your billing. Confirm?</p>' +
+        (B.hireErr ? '<p class="warn bl-err" role="alert">' + esc(B.hireErr) + (B.hireRe ? reauthBtn() : '') + '</p>' : '') +
+        '<div class="bl-row"><button type="button" class="btn gold" data-billhired="yes"' + (B.hire === 'busy' ? ' disabled' : '') + '>' + (B.hire === 'busy' ? 'Saving…' : 'Confirm') + '</button><button type="button" class="btn ghost" data-billhired="no">Cancel</button></div></div>'
+      : '<div><button type="button" class="btn ghost" data-billhired="ask">I got hired</button></div>';
+  }
+  return shell('billing', 'Plan &amp; billing', 'Your free pilot stays free. You choose if and when to pay.') + '<div class="pband" aria-hidden="true"></div>' +
+    '<main class="pmain bl">' + (S.billPaid ? '<div class="sent" role="status">Payment received. It can take up to 30 minutes to show here.</div>' : '') +
+    '<p class="bl-status ' + st.cls + '" role="status">' + esc(st.t) + '</p>' +
+    '<section class="card bl-plan" aria-labelledby="blPlanH"><div><h2 class="bl-h" id="blPlanH">Steady Path Plan</h2><p class="bl-price">$99 <small>a month</small></p></div>' +
+      '<div><b>What\'s included</b><ul class="bl-inc"><li>Job matches in your portal</li><li>A tailored resume and cover letter for every job you say yes to</li><li>Answers to your questions</li></ul></div>' +
+      '<p>Billing stops the day you\'re hired.</p><p class="bl-guar"><b>No job, interview or pay is guaranteed.</b></p>' +
+      (nj ? '<p class="bl-code">Have a founding member code? Enter it on the next page.</p>' : '') + '</section>' +
+    buy +
+    '<section class="card bl-sec" aria-labelledby="blManH"><h2 class="bl-h" id="blManH" style="font-size:17px">Receipts, card and cancel</h2><div>' + billManage() + '</div>' + hire + '</section>' +
+    '<footer class="help"><p><b>Questions about billing?</b> ' + helpHtml() + '</p></footer>' +
+    '</main>' + tabbar('');
+}
+function billBuy(item) {
+  if (!billNJ() || !S.bill.agree || S.bill.busy || !BILL_NAMES.hasOwnProperty(item)) return;
+  var url = billBuyUrl(item); if (!url) return;
+  S.bill.busy = item; S.bill.err = ''; S.bill.re = false; render();
+  post({ action: 'billingConsent', t: S.token, item: item }).then(function (d) {
+    if (d && d.ok) {
+      S.data.billing.consented = true;
+      if (S.demo) { S.bill.busy = ''; render(); toast('Demo: this is where the Stripe page for ' + BILL_NAMES[item] + ' would open.'); return; }
+      location.assign(url);
+      setTimeout(function () { S.bill.busy = ''; if (S.view === 'billing') render(); }, 4000); /* if the page is kept (Back), the button works again */
+      return;
+    }
+    S.bill.busy = ''; S.bill.re = !!(d && d.error === 'expired');
+    S.bill.err = S.bill.re ? 'Your sign-in has expired. Sign in again, then try this.' : 'We couldn\'t record your agreement, so the payment page did not open. Please try again in a minute.';
+    S.focusTo = '#blErr'; render();
+  }).catch(function () { S.bill.busy = ''; S.bill.err = 'That didn\'t go through. Please check your connection and try again. The payment page did not open.'; S.focusTo = '#blErr'; render(); });
+}
+function billHire() {
+  if (S.bill.hire === 'busy') return;
+  S.bill.hire = 'busy'; S.bill.hireErr = ''; S.bill.hireRe = false; render();
+  post({ action: 'hired', t: S.token }).then(function (d) {
+    if (d && d.ok) { S.bill.hire = 'done'; var b = S.data.billing; if (!b.hiredDate) b.hiredDate = todayISO(); if (!/cancel+ed/i.test(String(b.status || '')) && !/^hired\b/i.test(String(b.status || ''))) b.status = 'hired, cancel pending'; S.focusTo = '#blHired'; render(); return; }
+    S.bill.hire = 'ask'; S.bill.hireRe = !!(d && d.error === 'expired'); S.bill.hireErr = S.bill.hireRe ? 'Your sign-in has expired. Sign in again, then try this.' : 'That didn\'t save. Please try again in a minute.'; render();
+  }).catch(function () { S.bill.hire = 'ask'; S.bill.hireErr = 'That didn\'t save. Please check your connection and try again.'; render(); });
+}
+document.addEventListener('change', function (e) {
+  var t = e.target; if (!t || t.id !== 'billAgree' || S.view !== 'billing') return;
+  S.bill.agree = !!t.checked; S.bill.err = ''; render();
+});
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('button'); if (!b || !S.data || S.view !== 'billing') return; var d = b.dataset;
+  if (d.billbuy) { billBuy(d.billbuy); return; }
+  if (d.billhired === 'ask') { S.bill.hire = 'ask'; S.bill.hireErr = ''; S.focusTo = '#blHireQ'; render(); return; }
+  if (d.billhired === 'no') { S.bill.hire = ''; S.bill.hireErr = ''; S.focusTo = '[data-billhired="ask"]'; render(); return; }
+  if (d.billhired === 'yes') { billHire(); return; }
+});
+/* opening the screen starts fresh: the box unticked, no old error (runs before the main handler) */
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-go="billing"]'); if (!b || S.view === 'billing') return;
+  S.bill = { agree: false, busy: '', err: '', re: false, hire: '' };
+}, true);
+/* =================== END ROUND 25 =================== */
 </script>
 <script src="../assets/portal-r18.js?v=20261106b"></script>
 <script src="../assets/fx.js?v=20261024d"></script>
