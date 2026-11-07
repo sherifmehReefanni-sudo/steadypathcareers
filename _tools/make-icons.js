@@ -4,11 +4,15 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '..');
-const LOGO = fs.readFileSync(path.join(root, 'assets', 'favicon.svg'), 'utf8').replace(/<\?xml[^>]*>/, '');
-/* scale: how much of the square the round logo fills. Maskable icons keep the art inside the 80% safe zone. */
+/* The logo file is a rounded square (its art clipped by clip-path="url(#spr)"). Icons use the square, full-bleed art:
+   the clip is removed here, so iOS, Android and the browser apply their own corner shape. */
+const LOGO = fs.readFileSync(path.join(root, 'assets', 'favicon.svg'), 'utf8').replace(/<\?xml[^>]*>/, '').replace(/ clip-path="url\(#spr\)"/, '');
+if (/clip-path=/.test(LOGO)) throw new Error('favicon.svg still has a clip after removing #spr; check the logo file');
+/* scale: how much of the square the art fills. 1 is full bleed, no margin. The maskable icon scales the art to 88%,
+   centered on #1F3A5F, so the ray tips survive Android's mask. */
 const OUT = [
   ['apple-touch-icon.png', 180, 1], ['img/icon-192.png', 192, 1], ['img/icon-512.png', 512, 1],
-  ['img/icon-maskable-512.png', 512, 0.8], ['favicon-32.png', 32, 1], ['img/favicon-48.png', 48, 1],
+  ['img/icon-maskable-512.png', 512, 0.88], ['favicon-32.png', 32, 1], ['img/favicon-48.png', 48, 1],
 ];
 (async () => {
   const b = await chromium.launch();
