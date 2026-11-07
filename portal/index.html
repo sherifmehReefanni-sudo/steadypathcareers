@@ -2992,6 +2992,7 @@ document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.
 .bl .bl-agree input:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; }
 .bl .bl-agree a { color: var(--navy); }
 .bl .bl-hint { margin: 0; color: var(--muted); font-size: 14px; font-weight: 700; }
+.bl .bl-now { color: var(--ink); font-size: 15px; }
 .bl .bl-buy { display: grid; gap: 6px; justify-items: start; }
 .bl .bl-buy .btn { min-height: 48px; font-size: 16px; }
 .bl .btn:focus-visible, .bl .bl-link:focus-visible, .bl .linkbtn:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; }
@@ -3060,12 +3061,18 @@ function billSub() { return String((S.data.billing || {}).status || '').toLowerC
 function billStatus() {
   var b = S.data.billing || {}, s = billSub();
   if (billHired()) return { cls: 'ok', t: 'Billing stopped: you told us you were hired. Congratulations.' };
+  if (s === 'canceling') return { cls: '', t: (b.paidThrough ? 'Your plan ends on ' + fmtDate(b.paidThrough) + '.' : 'Your plan is ending.') + ' You won\'t be charged again.' };
   if (/^cancel+ed/.test(s) && b.paidThrough) return { cls: '', t: 'Your plan ends on ' + fmtDate(b.paidThrough) + '.' };
   if (/^(active|trialing)$/.test(s)) return { cls: 'ok', t: 'Your plan is active.' };
   if (/^(past_due|unpaid)$/.test(s)) return { cls: 'attn', t: 'Your last payment did not go through. Please update your card in Manage billing.' };
   var tt = trialText(S.data.client || {}); return { cls: '', t: tt ? tt + '.' : 'You are on the free pilot.' };
 }
-function billHasPlan() { return /^(active|trialing|past_due|unpaid)$/.test(billSub()); }
+/* round 2: during the free pilot, say plainly that starting the plan ends the free days and charges today */
+function billPilotNote() {
+  var dl = daysFrom((S.data.client || {}).trialEnds); if (dl == null || dl < 0) return '';
+  return '<p class="bl-hint bl-now">' + (dl >= 1 ? 'You have ' + dl + (dl === 1 ? ' free day' : ' free days') + ' left. Starting your plan now ends them, and your first $99 charge is today.' : 'Starting your plan now ends your free days. Your first $99 charge is today.') + '</p>';
+}
+function billHasPlan() { return /^(active|trialing|past_due|unpaid|canceling)$/.test(billSub()); }
 function billManage() { return '<a class="bl-link" href="' + esc(billPortalUrl()) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Manage billing<span class="sr"> (receipts, card, cancel; opens in a new tab)</span></a>'; }
 function billBtn(item, label, aria, cls) {
   var dis = !S.bill.agree || !!S.bill.busy;
@@ -3080,15 +3087,16 @@ function vBilling() {
       '<label class="bl-agree" for="billAgree"><input type="checkbox" id="billAgree" data-billagree' + (B.agree ? ' checked' : '') + ' aria-describedby="blHint"><span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and the cancellation notice above.</span></label>' +
       '<p class="bl-hint" id="blHint">' + (B.agree ? 'Thank you. You can continue below.' : 'Tick the box above to continue.') + '</p>' +
       (B.err ? '<p class="warn bl-err" role="alert" id="blErr">' + esc(B.err) + (B.re ? reauthBtn() : '') + '</p>' : '') +
-      (hired || billHasPlan() ? '' : '<div class="bl-buy">' + billBtn('plan', 'Continue for $99 a month', '', 'gold') + '<p class="bl-hint">Apple Pay and Google Pay are shown on the next page.</p></div>') +
+      (hired || billHasPlan() ? '' : '<div class="bl-buy">' + billBtn('plan', 'Continue for $99 a month', '', 'gold') + billPilotNote() + '<p class="bl-hint">Apple Pay and Google Pay are shown on the next page.</p></div>') +
       '</section>' +
       '<section class="bl-sec" aria-labelledby="blAddH"><h2 class="sec-h" id="blAddH">Add-ons</h2><div class="bl-adds">' + BILL_ADDONS.map(function (a) {
         return '<div class="bl-add"><div><h3>' + esc(a[1]) + '</h3><p>' + esc(a[2]) + ' <small>one time</small></p></div>' + billBtn(a[0], 'Buy', 'Buy ' + a[1] + ', ' + a[2] + ', one time', 'ghost') + '</div>';
       }).join('') + '</div></section>';
-  } else buy = '<p class="bl-ny" role="note">Paid plans aren\'t available in New York yet. Your free access continues.</p>';
+  } else buy = '<p class="bl-ny" role="note">' + (b.region === 'NY' ? 'Paid plans aren\'t available in New York yet.' : 'Paid plans aren\'t available in your area yet.') + ' Your free access continues.</p>';
   var hire = '';
-  if (B.hire === 'done' || (hired && !/cancel+ed/i.test(String(b.status || '')))) {
-    hire = '<div class="sent" role="status" tabindex="-1" id="blHired">Billing is stopping. Last step: confirm the cancel in Manage billing so no more charges are made.</div><div>' + billManage() + '</div>';
+  if (B.hire === 'done' || hired) {
+    var sub = billSub();
+    hire = '<div class="sent" role="status" tabindex="-1" id="blHired">' + (sub === 'canceling' ? (b.paidThrough ? 'Your cancel is confirmed. Billing ends on ' + esc(fmtDate(b.paidThrough)) + '.' : 'Your cancel is confirmed.') : /^cancel+ed/.test(sub) ? 'Billing has stopped.' : 'Billing is stopping. Last step: confirm the cancel in Manage billing so no more charges are made.') + '</div>';
   } else if (!hired) {
     hire = B.hire === 'ask' || B.hire === 'busy' ? '<div class="bl-confirm" role="group" aria-labelledby="blHireQ"><p id="blHireQ" tabindex="-1">Congratulations. We\'ll stop your billing. Confirm?</p>' +
         (B.hireErr ? '<p class="warn bl-err" role="alert">' + esc(B.hireErr) + (B.hireRe ? reauthBtn() : '') + '</p>' : '') +
