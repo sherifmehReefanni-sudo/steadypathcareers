@@ -3058,33 +3058,32 @@ function billPortalUrl() { var e = billEmail(); return BILLING_LINKS.portal + (e
 function billHired() { var b = S.data.billing || {}; return !!b.hiredDate || /^hired\b/i.test(String(b.status || '')); }
 function billSub() { return String((S.data.billing || {}).status || '').toLowerCase().replace(/^hired,\s*/, ''); }
 /* the status line: hired, active, ending, a failed payment, or the free pilot */
-function billStatus() {
-  var b = S.data.billing || {}, s = billSub();
-  if (billHired()) return { cls: 'ok', t: 'Billing stopped: you told us you were hired. Congratulations.' };
-  if (s === 'canceling') return { cls: '', t: (b.paidThrough ? 'Your plan ends on ' + fmtDate(b.paidThrough) + '.' : 'Your plan is ending.') + ' You won\'t be charged again.' };
-  if (/^cancel+ed/.test(s) && b.paidThrough) { var pd = daysFrom(b.paidThrough); return { cls: '', t: pd != null && pd <= 0 ? 'Your plan ended on ' + fmtDate(b.paidThrough) + '.' : 'Your plan ends on ' + fmtDate(b.paidThrough) + '. You won\'t be charged again.' }; }
-  if (/^(active|trialing)$/.test(s)) return { cls: 'ok', t: 'Your plan is active.' };
-  if (/^(past_due|unpaid)$/.test(s)) return { cls: 'attn', t: 'Your last payment did not go through. Please update your card in Manage billing.' };
-  if (String(b.status || '').trim()) return { cls: '', t: /^cancel+ed/.test(s) ? 'Your plan has ended.' : 'Your plan details are in Manage billing.' }; /* round 4: any Billing status, no free days */
-  var tt = trialText(S.data.client || {}); return { cls: '', t: tt ? tt + '.' : 'You are on the free pilot.' };
+/* round 5: the one place that decides what a client's billing state is. The billing page status line (page), the Jobs hello
+   line (hello, a short form of the same result) and the hired block (hire) all read it, so they can never disagree. */
+function billState() {
+  var b = S.data.billing || {}, s = billSub(), raw = String(b.status || '').trim(), d = b.paidThrough ? fmtDate(b.paidThrough) : '';
+  var pd = b.paidThrough ? daysFrom(b.paidThrough) : null, future = pd != null && pd > 0;
+  if (!raw && !b.hiredDate) { var tt = trialText(S.data.client || {}); return { key: 'pilot', cls: '', page: tt ? tt + '.' : 'You are on the free pilot.', hello: tt }; }
+  if (billHired()) {
+    if (s === 'canceling') return { key: 'hired-canceling', cls: 'ok', page: (d ? 'Billing ends on ' + d + '.' : 'Your cancel is confirmed.') + ' You told us you were hired. Congratulations.', hello: (d ? 'Billing ends on ' + d + '.' : 'Billing is ending.') + ' Congratulations on the new job.', hire: d ? 'Your cancel is confirmed. Billing ends on ' + d + '.' : 'Your cancel is confirmed.' };
+    if (/^cancel+ed/.test(s)) return { key: 'hired-canceled', cls: 'ok', page: 'Billing stopped: you told us you were hired. Congratulations.', hello: 'Billing has stopped. Congratulations on the new job.', hire: 'Billing has stopped.' };
+    return { key: 'hired-pending', cls: '', page: 'You told us you were hired. Congratulations. Billing stops when you confirm the cancel in Manage billing.', hello: 'Billing stops when you confirm the cancel in Plan & billing', hire: 'Billing is stopping. Last step: confirm the cancel in Manage billing so no more charges are made.' };
+  }
+  if (s === 'canceling' || (/^cancel+ed/.test(s) && future)) return { key: 'ending', cls: '', page: (d ? 'Your plan ends on ' + d + '.' : 'Your plan is ending.') + ' You won\'t be charged again.', hello: d ? 'Your plan ends on ' + d : 'Your plan is ending' };
+  if (/^cancel+ed/.test(s)) return { key: 'ended', cls: '', page: d ? 'Your plan ended on ' + d + '.' : 'Your plan has ended.', hello: 'Your plan has ended' };
+  if (/^(active|trialing)$/.test(s)) return { key: 'active', cls: 'ok', page: 'Your plan is active.', hello: 'Your plan is active' };
+  if (/^(past_due|unpaid)$/.test(s)) return { key: 'pastdue', cls: 'attn', page: 'Your last payment did not go through. Please update your card in Manage billing.', hello: 'Your last payment did not go through' };
+  return { key: 'other', cls: '', page: 'Your plan details are in Manage billing.', hello: 'See Plan & billing for your plan details' };
 }
+function billStatus() { var x = billState(); return { cls: x.cls, t: x.page }; }
 /* round 2: during the free pilot, say plainly that starting the plan ends the free days and charges today */
 function billPilotNote() {
   if (String((S.data.billing || {}).status || '').trim()) return ''; /* round 4: any Billing status means this is not a plain free pilot */
   var dl = daysFrom((S.data.client || {}).trialEnds); if (dl == null || dl < 0) return '';
   return '<p class="bl-hint bl-now">' + (dl === 1 ? 'You have 1 free day left. Starting your plan now ends it, and your first charge is today.' : dl > 1 ? 'You have ' + dl + ' free days left. Starting your plan now ends them, and your first charge is today.' : 'Starting your plan now ends your free days. Your first charge is today.') + '</p>';
 }
-/* round 4b: the Jobs hello line for a client who can see billing: plan status once there is any Billing status, else the pilot countdown */
-function billHello(cl) {
-  var b = S.data.billing || {}, raw = String(b.status || '').trim(), s = billSub();
-  if (!raw && !b.hiredDate) return trialText(cl);
-  if (billHired()) return 'Billing stopped. Congratulations on the new job.';
-  if (/^(active|trialing)$/.test(s)) return 'Your plan is active';
-  if (s === 'canceling') return b.paidThrough ? 'Your plan ends on ' + fmtDate(b.paidThrough) : 'Your plan is ending';
-  if (/^cancel+ed/.test(s)) return 'Your plan has ended';
-  if (/^(past_due|unpaid)$/.test(s)) return 'Your last payment did not go through';
-  return '';
-}
+/* round 4b, round 5: the Jobs hello line is the short form of billState */
+function billHello() { return billState().hello; }
 function billHasPlan() { return /^(active|trialing|past_due|unpaid|canceling)$/.test(billSub()); }
 function billManage() { return '<a class="bl-link" href="' + esc(billPortalUrl()) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Manage billing<span class="sr"> (receipts, card, cancel; opens in a new tab)</span></a>'; }
 function billBtn(item, label, aria, cls) {
@@ -3108,8 +3107,7 @@ function vBilling() {
   } else buy = '<p class="bl-ny" role="note">' + (b.region === 'NY' ? 'Paid plans aren\'t available in New York yet.' : 'Paid plans aren\'t available in your area yet.') + ' Your free access continues.</p>';
   var hire = '';
   if (B.hire === 'done' || hired) {
-    var sub = billSub();
-    hire = '<div class="sent" role="status" tabindex="-1" id="blHired">' + (sub === 'canceling' ? (b.paidThrough ? 'Your cancel is confirmed. Billing ends on ' + esc(fmtDate(b.paidThrough)) + '.' : 'Your cancel is confirmed.') : /^cancel+ed/.test(sub) ? 'Billing has stopped.' : 'Billing is stopping. Last step: confirm the cancel in Manage billing so no more charges are made.') + '</div>';
+    hire = '<div class="sent" role="status" tabindex="-1" id="blHired">' + esc(billState().hire || '') + '</div>';
   } else if (!hired) {
     hire = B.hire === 'ask' || B.hire === 'busy' ? '<div class="bl-confirm" role="group" aria-labelledby="blHireQ"><p id="blHireQ" tabindex="-1">Congratulations. We\'ll stop your billing. Confirm?</p>' +
         (B.hireErr ? '<p class="warn bl-err" role="alert">' + esc(B.hireErr) + (B.hireRe ? reauthBtn() : '') + '</p>' : '') +
