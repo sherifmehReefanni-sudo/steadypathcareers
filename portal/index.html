@@ -1777,7 +1777,7 @@ function vJobs() {
   var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : n.k === 'done' ? 'All caught up.' : 'Your matches are reviewed. Here\'s what\'s next.';
   return shell('jobs', esc(title), 'Pay is shown as the employer posted it. When it isn\'t posted, the card says so.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain' + (jl ? ' xl' : '') + '">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
-    '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b>' + (billOn() ? '<span class="hl-r"><span>' + esc(trialText(cl)) + '</span><button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></span>' : '<span>' + esc(trialText(cl)) + '</span>') + '</div>' +
+    '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b>' + (billOn() ? '<span class="hl-r"><span>' + esc(billHello(cl)) + '</span><button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></span>' : '<span>' + esc(trialText(cl)) + '</span>') + '</div>' +
     nxCard(n) + dueCard(d) +
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
     jmap(sorted) +
@@ -3073,6 +3073,17 @@ function billPilotNote() {
   if (String((S.data.billing || {}).status || '').trim()) return ''; /* round 4: any Billing status means this is not a plain free pilot */
   var dl = daysFrom((S.data.client || {}).trialEnds); if (dl == null || dl < 0) return '';
   return '<p class="bl-hint bl-now">' + (dl === 1 ? 'You have 1 free day left. Starting your plan now ends it, and your first charge is today.' : dl > 1 ? 'You have ' + dl + ' free days left. Starting your plan now ends them, and your first charge is today.' : 'Starting your plan now ends your free days. Your first charge is today.') + '</p>';
+}
+/* round 4b: the Jobs hello line for a client who can see billing: plan status once there is any Billing status, else the pilot countdown */
+function billHello(cl) {
+  var b = S.data.billing || {}, raw = String(b.status || '').trim(), s = billSub();
+  if (!raw && !b.hiredDate) return trialText(cl);
+  if (billHired()) return 'Billing stopped. Congratulations on the new job.';
+  if (/^(active|trialing)$/.test(s)) return 'Your plan is active';
+  if (s === 'canceling') return b.paidThrough ? 'Your plan ends on ' + fmtDate(b.paidThrough) : 'Your plan is ending';
+  if (/^cancel+ed/.test(s)) return 'Your plan has ended';
+  if (/^(past_due|unpaid)$/.test(s)) return 'Your last payment did not go through';
+  return '';
 }
 function billHasPlan() { return /^(active|trialing|past_due|unpaid|canceling)$/.test(billSub()); }
 function billManage() { return '<a class="bl-link" href="' + esc(billPortalUrl()) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Manage billing<span class="sr"> (receipts, card, cancel; opens in a new tab)</span></a>'; }
