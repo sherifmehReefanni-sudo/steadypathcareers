@@ -725,6 +725,8 @@ window.SP_DEMO = function () {
     fit: typeof fitDemoData === 'function' ? fitDemoData(!!S.fxDemoDone) : undefined, /* r27: Find Your Fit preview; ?fxdone=1 starts with results */
     client: { id: 'C-DEMO', name: 'Jordan T.', firstName: 'Jordan', stage: 'Trial', startDate: iso(-8), trialEnds: iso(9), payFloor: '$190,000', lastTouch: iso(-1), lastFeedback: '', home: 'Hicksville, NY', std: 'Authorized to work in the US: Yes\nNeed visa sponsorship: No\nNY dental license: Yes, active',
       weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. Your question about loan repayment at Sample Community Dental has an answer on that job. Two new Nassau County openings came in on Monday.' },
+    /* round 25: Plan & billing preview. The demo client lives in NY; ?region=nj previews the New Jersey screen with its buy buttons. */
+    billing: { status: '', region: /[?&]region=nj(&|$)/i.test(location.search) ? 'NJ' : 'NY', consented: false, paidThrough: '', hiredDate: '', email: 'jordan@example.com' },
     jobs: [
       { id: 'J-101', interestFit: 89, fitAreas: 'IRS', fit: 'Strong fit', concern: 'Four days a week, so ask how new patients are split between dentists.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Sample Smiles Dental', title: 'Associate Dentist', location: 'Garden City, NY', setting: 'On-site', pay: '$195,000 - $235,000 a year', payLow: 195000, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Family practice with 4 chairs and a full hygiene team. Mostly restorative and some cosmetic work, which matches your last 5 years.', link: 'https://example.com/jobs/bright-smiles-associate', notes: 'Four days a week, no Sundays.', answer: '', note: '', answeredOn: '', kit: { pay: '', start: '', why: '' } },
       { id: 'J-102', interestFit: 84, fitAreas: 'IRS', fit: 'Possible fit', concern: 'Hourly pay, and the posting lists no benefits.', added: iso(-1), postStatus: 'Open', postChecked: iso(-1), company: 'Demo Dental Partners', title: 'General Dentist', location: 'Huntington, NY', setting: 'On-site', pay: '$90 - $115 an hour', payLow: 90, paySource: 'Posted by employer', floor: 'At or above your floor', why: 'Busy group practice with in-house lab. Open to dentists who want to build implant skills.', link: 'https://example.com/jobs/lidp-general', notes: '', answer: '', note: '', answeredOn: '' },
@@ -1133,7 +1135,7 @@ function shell(active, title, sub) {
   return '<header class="sky"><div class="wrap"><div class="ptop"><a class="brand" href="/"><span>' + SP.LOGO + '</span><span class="bname">Steady Path</span></a>' + (S.demo ? '<span class="demo-badge">Demo</span>' : '') +
     '<nav class="ptabs" aria-label="Portal">' + tabs + '</nav>' +
     '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
-    (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="prefs">Your search settings</button><button role="menuitem" data-go="feedback">Give feedback</button>' + (typeof fitOn === 'function' && fitOn() ? '<button role="menuitem" data-go="fit">' + esc(FIT_NAME) + '</button>' : '') + '<button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + helpHtml() + '</p><div class="mlegal" role="none"><a role="menuitem" href="/privacy/">Privacy policy</a><a role="menuitem" href="/terms/">Terms</a></div></div>' : '') + '</div></div>' +
+    (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="prefs">Your search settings</button><button role="menuitem" data-go="feedback">Give feedback</button>' + (typeof fitOn === 'function' && fitOn() ? '<button role="menuitem" data-go="fit">' + esc(FIT_NAME) + '</button>' : '') + (billOn() ? '<button role="menuitem" data-go="billing">Plan &amp; billing</button>' : '') + '<button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + helpHtml() + '</p><div class="mlegal" role="none"><a role="menuitem" href="/privacy/">Privacy policy</a><a role="menuitem" href="/terms/">Terms</a></div></div>' : '') + '</div></div>' +
     '<div class="ptitle"><h1 tabindex="-1">' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div></div>' + SP.scene(64, active) + '</header>';
 }
 function tabbar(active) {
@@ -1544,7 +1546,7 @@ window.addEventListener('popstate', function (e) {
   S.hist = st.depth || 0;
   if (S.popQuiet) { S.popQuiet = false; return; }
   if (st.view === 'prep' && prepPop(st)) return; /* round 6a: interview prep screen */
-  var j = st.flow ? jobById(st.flow.job) : null, was = !!S.flow, view = /^(jobs|docs|apps|feedback|fit)$/.test(st.view || '') ? st.view : 'jobs';
+  var j = st.flow ? jobById(st.flow.job) : null, was = !!S.flow, view = /^(jobs|docs|apps|feedback|fit|billing)$/.test(st.view || '') ? st.view : 'jobs';
   if (j) { S.flow = { kind: st.flow.kind === 'apply' ? 'apply' : 'review', job: j.id, from: st.flow.from === 'docs' ? 'docs' : 'jobs' }; S.view = S.flow.from; }
   else { if (!was && S.view === view) return; /* already there (closeFlow got there first) */ S.flow = null; S.view = view; }
   S.changesFor = null; S.changesErr = ''; S.menu = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0);
@@ -1778,7 +1780,7 @@ function vJobs() {
   var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : n.k === 'done' ? 'All caught up.' : 'Your matches are reviewed. Here\'s what\'s next.';
   return shell('jobs', esc(title), 'Pay is shown as the employer posted it. When it isn\'t posted, the card says so.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain' + (jl ? ' xl' : '') + '">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
-    '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b><span>' + esc(trialText(cl)) + '</span>' + (typeof fitHello === 'function' ? fitHello() : '') + '</div>' +
+    '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b>' + (billOn() ? '<span class="hl-r"><span>' + esc(billHello(cl)) + '</span><button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></span>' : '<span>' + esc(trialText(cl)) + '</span>') + (typeof fitHello === 'function' ? fitHello() : '') + '</div>' +
     nxCard(n) + dueCard(d) + (typeof fitJobsCard === 'function' ? fitJobsCard() : '') + /* r27 */
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
     jmap(sorted) +
@@ -2123,7 +2125,8 @@ function render() {
   var y = window.scrollY, jls = jlBefore();
   if (S.flow && S.view !== flowFrom()) S.flow = null; /* a review or apply screen lives on the tab it was opened from */
   if (S.view === 'fit' && !(typeof fitOn === 'function' && fitOn())) S.view = 'jobs'; /* r27: no fit object from the API, no fit screen */
-  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs, prep: vPrep, fit: vFit }[S.view] || vJobs)();
+  if (S.view === 'billing' && !billOn()) S.view = 'jobs'; /* round 25: no billing object from the API, no billing screen */
+  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs, prep: vPrep, fit: vFit, billing: vBilling }[S.view] || vJobs)();
   var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
   if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;
   if (!S.deck) window.scrollTo(0, y);
@@ -2972,6 +2975,401 @@ function docHistHtml(x) {
 }
 document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.dataset && t.dataset.dhist != null) { S.dhOpen = S.dhOpen || {}; S.dhOpen[t.dataset.dhist] = t.open; } }, true);
 /* =================== END ROUND 6a =================== */
+</script>
+<style>
+/* ===================== Round 25: Plan & billing (S.view 'billing'). Round 6 look: "The path to hired".
+   Light only, brand palette. Motion is transform, opacity and stroke-dashoffset only; it plays once per visit (S.bill.seen),
+   later re-renders show the final state (.bl-static), and prefers-reduced-motion shows the final state with no motion at all.
+   The only loop is the slow shimmer on the plan card border, which reduced motion also stops. ===================== */
+.bl { --bl-cream: #FBF6EE; --bl-gold: #C9A227; --bl-gold2: #F2D98A; --bl-navy: #1F3A5F; --bl-mid: #10213A; --bl-green: #1f7a46; }
+.bl .bl-sec { display: grid; gap: 12px; }
+.bl .bl-h { margin: 0; font: 800 20px var(--display); color: var(--navy); }
+.bl .btn:focus-visible, .bl .bl-link:focus-visible, .bl .linkbtn:focus-visible, .bl a:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 3px; }
+.bl .bl-err { margin: 0; }
+.bl .bl-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bl .bl-hint { margin: 0; color: var(--muted); font-size: 14px; font-weight: 700; }
+.bl .bl-now { color: var(--ink); font-size: 15px; }
+
+/* 1. hero */
+.bl .bl-hero { position: relative; overflow: hidden; border-radius: 22px; padding: 22px 20px 18px; background: linear-gradient(160deg, #FFF9EF 0%, #FBEBC4 55%, #F4D98C 100%); border: 1px solid #EBD9A8; display: grid; gap: 10px; }
+.bl .bl-hero h2 { margin: 0; font: 800 clamp(24px, 6.4vw, 34px)/1.1 var(--display); letter-spacing: -0.02em; color: var(--bl-mid); max-width: 18ch; }
+.bl .bl-hero .bl-sub { margin: 0; font-size: 16.5px; color: #3c4658; max-width: 36ch; }
+.bl .bl-path { width: 100%; height: auto; max-height: 140px; display: block; margin: 2px auto 0; } /* meet keeps the drawing centered when the height is capped */
+.bl .bl-path .p-line { fill: none; stroke: var(--bl-navy); stroke-width: 3.2; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.bl .bl-path .p-glow { transform-box: fill-box; transform-origin: center; }
+.bl .bl-path text { font: 800 15px var(--display); fill: var(--bl-mid); }
+.bl .bl-path .p-here { font-size: 12.5px; fill: #5b6578; font-weight: 700; }
+.bl .bl-status { justify-self: start; margin: 0; display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid #E7D3A0; border-radius: 99px; padding: 8px 14px; font-weight: 800; font-size: 15px; color: var(--navy); box-shadow: 0 4px 14px rgba(201,162,39,.18); }
+.bl .bl-status::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--bl-gold); flex: none; }
+.bl .bl-status.ok::before { background: var(--bl-green); }
+.bl .bl-status.attn { border-color: var(--bad); } .bl .bl-status.attn::before { background: var(--bad); }
+
+/* 2. how it works */
+.bl .bl-how { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.bl .bl-step { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px 12px; display: grid; gap: 4px; align-content: start; }
+.bl .bl-step b { display: flex; align-items: center; gap: 8px; font: 800 15.5px var(--display); color: var(--navy); }
+.bl .bl-step b i { font-style: normal; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--bl-gold2); color: var(--bl-mid); font-size: 13px; flex: none; }
+.bl .bl-step:last-child b i { background: #DFF3E6; color: var(--bl-green); }
+.bl .bl-step span { color: #3c4658; font-size: 14.5px; }
+.bl .bl-track { position: absolute; left: 14px; right: 14px; top: 2px; height: 4px; border-radius: 4px; background: repeating-linear-gradient(90deg, var(--bl-gold) 0 8px, transparent 8px 14px); opacity: .55; }
+.bl .bl-run { position: absolute; left: 14px; top: -2px; width: calc(100% - 40px); height: 12px; }
+.bl .bl-run i { position: absolute; left: 0; top: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--bl-gold); box-shadow: 0 0 0 4px rgba(201,162,39,.25); }
+.bl .bl-howwrap { position: relative; padding-top: 18px; overflow: hidden; } /* the travelling dot's box moves by its own width; clip it */
+
+/* 3. the plan pass */
+.bl .bl-pass { position: relative; border-radius: 22px; padding: 2px; background: linear-gradient(135deg, #E9C766, #F7E7B4 40%, #C9A227 70%, #F2D98A); overflow: hidden; isolation: isolate; }
+.bl .bl-pass::after { content: ""; position: absolute; inset: -40% auto -40% -60%; width: 40%; z-index: -1; background: linear-gradient(90deg, transparent, rgba(255,255,255,.75), transparent); transform: translateX(0) rotate(20deg); opacity: .8; }
+.bl .bl-passin { position: relative; background: #fff; border-radius: 20px; padding: 20px; display: grid; gap: 12px; }
+.bl .bl-ribbon { justify-self: start; display: inline-flex; align-items: center; gap: 6px; background: var(--bl-mid); color: var(--bl-gold2); border-radius: 99px; padding: 4px 12px; font: 800 12px var(--display); letter-spacing: .06em; text-transform: uppercase; }
+.bl .bl-price { margin: 0; font: 800 44px/1 var(--display); color: var(--bl-mid); font-variant-numeric: tabular-nums; }
+.bl .bl-price .n { display: inline-grid; } .bl .bl-price .n > span { grid-area: 1 / 1; justify-self: end; } .bl .bl-price .nw { visibility: hidden; } /* the hidden 99 holds the width, so the count-up never moves the text */
+.bl .bl-price small { font-size: 16px; font-weight: 700; color: var(--muted); margin-left: 6px; }
+.bl .bl-inc { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.bl .bl-inc li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; }
+.bl .bl-inc svg { width: 24px; height: 24px; }
+.bl .bl-inc svg circle { fill: #DFF3E6; }
+.bl .bl-inc svg path { fill: none; stroke: var(--bl-green); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.bl .bl-passin p { margin: 0; }
+.bl .bl-guar { color: var(--ink); font-size: 16px; }
+.bl .bl-found { background: #FFF7E0; border: 1px dashed var(--bl-gold); border-radius: 12px; padding: 10px 12px; color: #4a3b06; font-weight: 700; font-size: 14.5px; }
+.bl .bl-found b { color: var(--bl-mid); }
+
+/* gated line, friendly */
+.bl .bl-ny { margin: 0; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 10px; align-items: center; background: #EAF2FF; color: #23467F; border: 1px solid #C9DAF6; border-radius: 14px; padding: 12px 14px; font-weight: 800; }
+.bl .bl-ny svg { width: 34px; height: 34px; }
+
+/* 4. agree step: the cancel notice stays big and plain */
+.bl .bl-agreec { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: grid; gap: 14px; }
+.bl .bl-notice { background: #FFF4DC; border: 2px solid #D9B54A; border-radius: 14px; padding: 14px 16px; }
+.bl .bl-notice h3 { margin: 0 0 6px; font: 800 17px var(--display); color: var(--bl-mid); }
+.bl .bl-notice p { margin: 0; font-size: 16px; color: var(--ink); }
+.bl .bl-notice a { color: var(--navy); font-weight: 700; }
+.bl .bl-agree { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; font-weight: 700; color: var(--ink); cursor: pointer; padding: 4px 0; font-size: 16px; }
+.bl .bl-agree a { color: var(--navy); }
+.bl .bl-agree input { appearance: none; -webkit-appearance: none; width: 32px; height: 32px; margin: 0; border: 2.5px solid var(--bl-navy); border-radius: 9px; background: #fff; cursor: pointer; display: grid; place-items: center; }
+.bl .bl-agree input::after { content: ""; width: 18px; height: 18px; background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4.5 12.5l5 5L19.5 7' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); transform: scale(0); }
+.bl .bl-agree input:checked { background: var(--bl-green); border-color: var(--bl-green); }
+.bl .bl-agree input:checked::after { transform: scale(1); }
+.bl .bl-agree input:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 3px; }
+
+/* 5. main button and trust row */
+.bl .bl-buy { display: grid; gap: 10px; justify-items: start; }
+.bl .bl-go { position: relative; overflow: hidden; isolation: isolate; display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 14px 26px; border-radius: 14px; font: 800 17px var(--display); border: 2px solid #CBD3E0; background: #EEF1F6; color: #5b6578; }
+.bl .bl-go svg { width: 20px; height: 20px; }
+.bl .bl-go::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, var(--bl-gold), #E7C255); transform: scaleX(0); transform-origin: left center; }
+.bl .bl-go:not([disabled]) { color: var(--bl-mid); border-color: var(--bl-gold); background: #F6E3A6; box-shadow: 0 8px 22px rgba(201,162,39,.35); cursor: pointer; }
+.bl .bl-go:not([disabled])::before { transform: scaleX(1); }
+.bl .bl-go[disabled] { opacity: 1; cursor: not-allowed; }
+.bl .bl-trust { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; padding: 0; list-style: none; }
+.bl .bl-trust li { font: 800 12.5px var(--display); color: #3c4658; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; }
+.bl .bl-trust li.lock { border: 0; background: none; padding-left: 2px; color: var(--muted); display: inline-flex; gap: 5px; align-items: center; }
+.bl .bl-trust li.lock svg { width: 14px; height: 14px; }
+
+/* 6. add-ons */
+.bl .bl-adds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.bl .bl-add { border-radius: 18px; padding: 16px; display: grid; gap: 10px; align-content: space-between; border: 1px solid rgba(16,33,58,.08); }
+.bl .bl-add.a1 { background: linear-gradient(160deg, #EAF2FF, #DCE8FB); }
+.bl .bl-add.a2 { background: linear-gradient(160deg, #E8F6EC, #D3EEDC); }
+.bl .bl-add.a3 { background: linear-gradient(160deg, #FFF0E3, #FBE1CB); }
+.bl .bl-add .ill { width: 56px; height: 56px; }
+.bl .bl-add h3 { margin: 0; font: 800 16.5px var(--display); color: var(--bl-mid); }
+.bl .bl-add .ben { margin: 2px 0 0; color: #3c4658; font-size: 14.5px; }
+.bl .bl-add .pr { margin: 0; font-weight: 800; color: var(--ink); }
+.bl .bl-add .pr small { font-weight: 700; color: var(--muted); }
+.bl .bl-add .btn { justify-self: start; min-width: 88px; background: #fff; }
+.bl .bl-add .btn[disabled] { opacity: .6; }
+
+/* 7. hired card */
+.bl .bl-manage { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 18px; display: grid; gap: 12px; }
+.bl .bl-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--navy); font-weight: 800; }
+.bl .bl-link svg { width: 18px; height: 18px; }
+.bl .bl-celebrate { position: relative; overflow: hidden; border-radius: 16px; padding: 16px; background: linear-gradient(150deg, #EAF7EE, #FFF6DD); border: 1px solid #CFE7D7; display: grid; gap: 10px; }
+.bl .bl-celebrate h3 { margin: 0; font: 800 18px var(--display); color: var(--bl-mid); display: flex; align-items: center; gap: 8px; }
+.bl .bl-celebrate h3 svg { width: 26px; height: 26px; }
+.bl .bl-confirm { border: 2px solid var(--navy); border-radius: 14px; padding: 14px; display: grid; gap: 10px; background: #fff; }
+.bl .bl-confirm p { margin: 0; font-weight: 800; color: var(--ink); }
+.bl .bl-confirm p:focus { outline: none; }
+.bl .bl-confirm p:focus-visible { outline: 3px solid var(--midnight, #10213A); outline-offset: 2px; }
+.bl .bl-cheer { margin: 0; font: italic 600 18px/1.35 var(--serif); color: var(--bl-mid); }
+.bl .bl-cheer:empty { display: none; }
+.bl-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; contain: strict; }
+.bl-confetti i { position: absolute; width: 10px; height: 14px; border-radius: 2px; will-change: transform, opacity; }
+.hello .hl-r { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.hello .hl-r .linkbtn { min-height: 32px; min-width: 0; font-size: 14px; }
+
+/* motion: first visit only (main.bl-play) */
+@keyframes blDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes blUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes blGlow { 0% { opacity: 0; transform: scale(.4); } 70% { opacity: 1; transform: scale(1.15); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes blRun { from { transform: translateX(0); } to { transform: translateX(100%); } }
+@keyframes blRunY { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes blShine { from { transform: translateX(0) rotate(20deg); } to { transform: translateX(420%) rotate(20deg); } }
+@keyframes blPop { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes blTick { from { transform: scale(0); } 60% { transform: scale(1.25); } to { transform: scale(1); } }
+@keyframes blSweep { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes blPulse { 0% { transform: scale(1); } 45% { transform: scale(1.035); } 100% { transform: scale(1); } }
+@keyframes blNudge { 0%, 100% { transform: none; } 50% { transform: translateX(5px); } }
+.bl.bl-play .bl-path .p-line { animation: blDraw 1.6s .2s cubic-bezier(.45,.1,.25,1) both; }
+.bl.bl-play .bl-path .p-glow { animation: blGlow .7s 1.6s ease-out both; }
+.bl.bl-play .bl-hero h2, .bl.bl-play .bl-hero .bl-sub, .bl.bl-play .bl-hero .bl-status { animation: blUp .55s ease-out both; }
+.bl.bl-play .bl-hero .bl-sub { animation-delay: .1s; } .bl.bl-play .bl-hero .bl-status { animation-delay: .2s; }
+.bl.bl-play .bl-io { opacity: 0; transform: translateY(16px); }
+.bl.bl-play .bl-io.in { animation: blUp .55s ease-out both; animation-delay: calc(var(--i, 0) * 120ms); }
+.bl.bl-play .bl-howwrap.in .bl-run { animation: blRun 1.8s .5s cubic-bezier(.5,0,.3,1) both; }
+.bl.bl-play .bl-pass.in .bl-inc svg path { animation: blDraw .45s both; animation-delay: calc(.35s + var(--i, 0) * 220ms); }
+.bl.bl-play .bl-pass.in .bl-inc li { animation: blUp .45s both; animation-delay: calc(.25s + var(--i, 0) * 220ms); }
+.bl .bl-pass::after { animation: blShine 9s 2s linear infinite; }
+.bl .bl-agree input.pop { animation: blPop .35s ease-out; }
+.bl .bl-agree input.pop::after { animation: blTick .35s ease-out; }
+.bl .bl-go.wake::before { animation: blSweep .5s ease-out both; }
+.bl .bl-go.wake { animation: blPulse .6s .45s ease-out; }
+.bl .bl-go.wake svg { animation: blNudge .6s .5s ease-in-out; }
+.bl .bl-go:not([disabled]):hover svg { transform: translateX(3px); }
+.bl .bl-add { transition: transform .18s ease, box-shadow .18s ease; }
+.bl .bl-add:hover, .bl .bl-add:focus-within { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(16,33,58,.12); }
+.bl .bl-add:active { transform: translateY(-1px); }
+
+@media (max-width: 479.98px) { .bl .bl-step { grid-template-columns: minmax(0, 1fr) !important; } }
+@media (max-width: 720px) {
+  .bl .bl-how { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .bl .bl-step { grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; }
+  .bl .bl-step b { grid-row: span 1; }
+  .bl .bl-track { left: 4px; right: auto; top: 14px; bottom: 14px; width: 4px; height: auto; background: repeating-linear-gradient(180deg, var(--bl-gold) 0 8px, transparent 8px 14px); }
+  .bl .bl-run { left: 0; top: 10px; width: 12px; height: calc(100% - 32px); }
+  .bl.bl-play .bl-howwrap.in .bl-run { animation-name: blRunY; }
+  .bl .bl-howwrap { padding: 0 0 0 20px; }
+  .bl .bl-adds { grid-template-columns: minmax(0, 1fr); }
+  .bl .bl-add { grid-template-columns: 56px minmax(0, 1fr); align-items: center; }
+  .bl .bl-add .btn { grid-column: 2; }
+  .bl .bl-buy { justify-items: stretch; }
+  .bl .bl-go { justify-content: center; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bl *, .bl *::before, .bl *::after { animation: none !important; transition: none !important; }
+  .bl .bl-io { opacity: 1 !important; transform: none !important; }
+  .bl .bl-add:hover, .bl .bl-add:focus-within { transform: none; }
+  .bl .bl-pass::after { display: none; }
+  .bl-confetti { display: none; }
+}
+@media print { .bl .btn, .bl .bl-agree, .bl .bl-path, .bl .bl-pass::after { display: none; } }
+</style>
+<script>
+/* ===================== Round 25: Plan & billing (S.view 'billing', S.bill). Shown only when the API's me answer has a billing object
+   (the backend sends it only when billing is switched on for this client). Only NJ clients get the consent box and buy buttons; NY or
+   unknown get one plain line instead. Every buy first records consent (POST billingConsent); Stripe opens only after that succeeds.
+   Demo mode never opens Stripe. ===================== */
+/* Stripe TEST mode links. Switching to live links later is an edit here only. */
+var BILLING_LINKS = {
+  plan: 'https://buy.stripe.com/test_7sYdR26oY5Ce4pla7Y6Vq00',
+  linkedin: 'https://buy.stripe.com/test_28E7sE6oY7Km4pl0xo6Vq01',
+  salary: 'https://buy.stripe.com/test_3cI7sEfZyd4G4pl4NE6Vq02',
+  call: 'https://buy.stripe.com/test_fZu3codRq5Cef3Zfsi6Vq03',
+  portal: 'https://billing.stripe.com/p/login/test_7sYdR26oY5Ce4pla7Y6Vq00',
+  /* Founding offer line and ribbon. Reef sets this to false once all 10 FOUNDING codes are used. */
+  FOUNDING_OPEN: true
+};
+/* ATTORNEY REVIEW (NJ career consulting rules: exact wording, business vs calendar days). */
+var CANCEL_NOTICE = 'You may cancel within 3 business days of signing up and get a full refund. To cancel, use Manage billing below or email hello@steadypathcareers.com.';
+var BILL_ADDONS = [['linkedin', 'LinkedIn Profile Makeover', '$129'], ['salary', 'Salary Negotiation Session', '$99'], ['call', 'One-on-One Call', '$59']];
+var BILL_NAMES = { plan: 'Steady Path Plan', linkedin: 'LinkedIn Profile Makeover', salary: 'Salary Negotiation Session', call: 'One-on-One Call' };
+S.bill = { agree: false, busy: '', err: '', re: false, hire: '' };
+/* After payment Stripe sends the client to /portal/?v=billing&paid=plan|linkedin|salary|call: remember it, then clean the URL */
+(function () {
+  try {
+    var q = new URLSearchParams(location.search), p = q.get('paid');
+    if (p == null) return;
+    if (BILL_NAMES.hasOwnProperty(p)) S.billPaid = p;
+    q.delete('paid'); if (!S.demo) q.delete('v');
+    var rest = q.toString(); history.replaceState(history.state, '', location.pathname + (rest ? '?' + rest : '') + location.hash);
+  } catch (e) {}
+})();
+function billOn() { return !!(S.data && S.data.billing && typeof S.data.billing === 'object'); }
+function billNJ() { return billOn() && S.data.billing.region === 'NJ'; }
+function billEmail() { var e = String((S.data && S.data.billing && S.data.billing.email) || '').trim(); return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) ? e : ''; }
+function billRef() { return String((S.data && S.data.client && S.data.client.id) || '').replace(/[^A-Za-z0-9_-]/g, ''); }
+function billBuyUrl(item) {
+  var u = BILLING_LINKS[item]; if (!u || item === 'portal') return '';
+  var e = billEmail();
+  return u + '?client_reference_id=' + encodeURIComponent(billRef()) + (e ? '&prefilled_email=' + encodeURIComponent(e) : '');
+}
+function billPortalUrl() { var e = billEmail(); return BILLING_LINKS.portal + (e ? '?prefilled_email=' + encodeURIComponent(e) : ''); }
+function billHired() { var b = S.data.billing || {}; return !!b.hiredDate || /^hired\b/i.test(String(b.status || '')); }
+function billSub() { return String((S.data.billing || {}).status || '').toLowerCase().replace(/^hired,\s*/, ''); }
+/* the status line: hired, active, ending, a failed payment, or the free pilot */
+/* round 5: the one place that decides what a client's billing state is. The billing page status line (page), the Jobs hello
+   line (hello, a short form of the same result) and the hired block (hire) all read it, so they can never disagree. */
+function billState() {
+  var b = S.data.billing || {}, s = billSub(), raw = String(b.status || '').trim(), d = b.paidThrough ? fmtDate(b.paidThrough) : '';
+  var pd = b.paidThrough ? daysFrom(b.paidThrough) : null, future = pd != null && pd > 0;
+  if (!raw && !b.hiredDate) { var tt = trialText(S.data.client || {}); return { key: 'pilot', cls: '', page: tt ? tt + '.' : 'You are on the free pilot.', hello: tt }; }
+  if (billHired()) {
+    if (s === 'canceling') return { key: 'hired-canceling', cls: 'ok', page: (d ? 'Billing ends on ' + d + '.' : 'Your cancel is confirmed.') + ' You told us you were hired. Congratulations.', hello: (d ? 'Billing ends on ' + d + '.' : 'Billing is ending.') + ' Congratulations on the new job.', hire: d ? 'Your cancel is confirmed. Billing ends on ' + d + '.' : 'Your cancel is confirmed.' };
+    if (/^cancel+ed/.test(s)) return { key: 'hired-canceled', cls: 'ok', page: 'Billing stopped: you told us you were hired. Congratulations.', hello: 'Billing has stopped. Congratulations on the new job.', hire: 'Billing has stopped.' };
+    return { key: 'hired-pending', cls: '', page: 'You told us you were hired. Congratulations. Billing stops when you confirm the cancel in Manage billing.', hello: 'Billing stops when you confirm the cancel in Plan & billing', hire: 'Billing is stopping. Last step: confirm the cancel in Manage billing so no more charges are made.' };
+  }
+  if (s === 'canceling' || (/^cancel+ed/.test(s) && future)) return { key: 'ending', cls: '', page: (d ? 'Your plan ends on ' + d + '.' : 'Your plan is ending.') + ' You won\'t be charged again.', hello: d ? 'Your plan ends on ' + d : 'Your plan is ending' };
+  if (/^cancel+ed/.test(s)) return { key: 'ended', cls: '', page: d ? 'Your plan ended on ' + d + '.' : 'Your plan has ended.', hello: 'Your plan has ended' };
+  if (/^(active|trialing)$/.test(s)) return { key: 'active', cls: 'ok', page: 'Your plan is active.', hello: 'Your plan is active' };
+  if (/^(past_due|unpaid)$/.test(s)) return { key: 'pastdue', cls: 'attn', page: 'Your last payment did not go through. Please update your card in Manage billing.', hello: 'Your last payment did not go through' };
+  return { key: 'other', cls: '', page: 'Your plan details are in Manage billing.', hello: 'See Plan & billing for your plan details' };
+}
+function billStatus() { var x = billState(); return { cls: x.cls, t: x.page }; }
+/* round 2: during the free pilot, say plainly that starting the plan ends the free days and charges today */
+function billPilotNote() {
+  if (String((S.data.billing || {}).status || '').trim()) return ''; /* round 4: any Billing status means this is not a plain free pilot */
+  var dl = daysFrom((S.data.client || {}).trialEnds); if (dl == null || dl < 0) return '';
+  return '<p class="bl-hint bl-now">' + (dl === 1 ? 'You have 1 free day left. Starting your plan now ends it, and your first charge is today.' : dl > 1 ? 'You have ' + dl + ' free days left. Starting your plan now ends them, and your first charge is today.' : 'Starting your plan now ends your free days. Your first charge is today.') + '</p>';
+}
+/* round 4b, round 5: the Jobs hello line is the short form of billState */
+function billHello() { return billState().hello; }
+function billHasPlan() { return /^(active|trialing|past_due|unpaid|canceling)$/.test(billSub()); }
+function billManage() { return '<a class="bl-link" href="' + esc(billPortalUrl()) + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Manage billing<span class="sr"> (receipts, card, cancel; opens in a new tab)</span></a>'; }
+function billBtn(item, label, aria, cls) {
+  var dis = !S.bill.agree || !!S.bill.busy, go = item === 'plan';
+  return '<button type="button" class="btn ' + (cls || '') + (go && S.bill.wake && !dis ? ' wake' : '') + '" data-billbuy="' + item + '"' + (dis ? ' disabled' : '') + (aria ? ' aria-label="' + esc(aria) + '"' : '') + ' aria-describedby="blHint">' +
+    (S.bill.busy === item ? 'Opening…' : label) + (go ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>' : '') + '</button>';
+}
+/* round 6: small decorative drawings (aria-hidden) */
+var BILL_ILL = {
+  path: '<svg class="bl-path" viewBox="0 0 360 120" aria-hidden="true" focusable="false"><defs><radialGradient id="blGlowG"><stop offset="0" stop-color="#FFF3C4"/><stop offset=".6" stop-color="#F2D98A" stop-opacity=".7"/><stop offset="1" stop-color="#F2D98A" stop-opacity="0"/></radialGradient></defs>' +
+    '<path class="p-line" pathLength="1" d="M26 84 C 80 30, 130 112, 186 70 S 278 22, 318 52"/>' +
+    '<circle cx="26" cy="84" r="8" fill="#C9A227"/><circle cx="26" cy="84" r="3.2" fill="#fff"/><text class="p-here" x="8" y="110">You are here</text>' +
+    '<g class="p-glow"><circle cx="318" cy="44" r="34" fill="url(#blGlowG)"/><path d="M304 64 V36 a14 14 0 0 1 28 0 V64 Z" fill="#1F3A5F"/><path d="M310 64 V40 a8 8 0 0 1 16 0 V64 Z" fill="#F2D98A"/><circle cx="322" cy="54" r="1.8" fill="#1F3A5F"/></g>' +
+    '<text x="318" y="86" text-anchor="middle">Your goal</text></svg>',
+  li: '<svg class="ill" viewBox="0 0 56 56" aria-hidden="true" focusable="false"><rect x="6" y="10" width="44" height="36" rx="7" fill="#fff" stroke="#2E4C78" stroke-width="2"/><circle cx="19" cy="25" r="6" fill="#2E4C78"/><path d="M11 39c2-5 14-5 16 0" fill="#2E4C78"/><rect x="31" y="20" width="13" height="3.5" rx="1.75" fill="#2E4C78"/><rect x="31" y="27" width="10" height="3" rx="1.5" fill="#9AACCD"/><rect x="31" y="33" width="12" height="3" rx="1.5" fill="#9AACCD"/><circle cx="46" cy="12" r="6" fill="#C9A227"/><path d="M43.5 12l1.8 1.8 3.4-3.6" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  sal: '<svg class="ill" viewBox="0 0 56 56" aria-hidden="true" focusable="false"><rect x="8" y="34" width="8" height="14" rx="2" fill="#7FC29A"/><rect x="21" y="26" width="8" height="22" rx="2" fill="#3E9E66"/><rect x="34" y="18" width="8" height="30" rx="2" fill="#1f7a46"/><path d="M8 24 L22 14 L30 19 L46 7" fill="none" stroke="#C9A227" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M39 6h8v8" fill="none" stroke="#C9A227" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  call: '<svg class="ill" viewBox="0 0 56 56" aria-hidden="true" focusable="false"><path d="M6 12a6 6 0 0 1 6-6h20a6 6 0 0 1 6 6v10a6 6 0 0 1-6 6H18l-7 6v-6.5A6 6 0 0 1 6 22Z" fill="#D9783F"/><circle cx="15" cy="17" r="2" fill="#fff"/><circle cx="22" cy="17" r="2" fill="#fff"/><circle cx="29" cy="17" r="2" fill="#fff"/><path d="M50 30a6 6 0 0 0-6-6H30a6 6 0 0 0-6 6v8a6 6 0 0 0 6 6h10l6 5v-5.5a6 6 0 0 0 4-5.5Z" fill="#fff" stroke="#1F3A5F" stroke-width="2"/><path d="M31 33h12M31 38h8" stroke="#1F3A5F" stroke-width="2" stroke-linecap="round"/></svg>',
+  pin: '<svg viewBox="0 0 34 34" aria-hidden="true" focusable="false"><circle cx="17" cy="17" r="16" fill="#fff"/><path d="M17 7c-4.4 0-8 3.4-8 7.7 0 5.6 8 12.3 8 12.3s8-6.7 8-12.3C25 10.4 21.4 7 17 7Z" fill="#2E4C78"/><circle cx="17" cy="15" r="3" fill="#F2D98A"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.6 6.1 6.6.6-5 4.4 1.5 6.5L12 16.7 6.3 20.1l1.5-6.5-5-4.4 6.6-.6Z" fill="#C9A227"/></svg>'
+};
+var BILL_ADD_ART = { linkedin: ['a1', 'li', 'Get found by recruiters.'], salary: ['a2', 'sal', 'Walk in with a number and a plan.'], call: ['a3', 'call', 'Talk it through with us.'] };
+function billCheck(i) { return '<svg viewBox="0 0 24 24" aria-hidden="true" style="--i:' + i + '"><circle cx="12" cy="12" r="11"/><path pathLength="1" d="M7 12.5l3.2 3.2L17.2 8.6" style="--i:' + i + '"/></svg>'; }
+function vBilling() {
+  var b = S.data.billing, nj = billNJ(), x = billState(), hired = billHired(), B = S.bill;
+  var notice = esc(CANCEL_NOTICE).replace('hello@steadypathcareers.com', '<a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a>');
+  var inc = ['Job matches in your portal', 'A tailored resume and cover letter for every job you say yes to', 'Answers to your questions'];
+  var gate = nj ? '' : '<p class="bl-ny" role="note">' + BILL_ILL.pin + '<span>' + (b.region === 'NY' ? 'Paid plans aren\'t available in New York yet.' : 'Paid plans aren\'t available in your area yet.') + ' Your free access continues.</span></p>';
+  var hero = '<section class="bl-hero" aria-labelledby="blHeroH"><h2 id="blHeroH">Your job search, with Steady Path behind you.</h2><p class="bl-sub">One simple plan. Cancel anytime, including the day you\'re hired.</p>' + BILL_ILL.path +
+    '<p class="bl-status ' + x.cls + '" role="status">' + esc(x.page) + '</p></section>';
+  var how = '<section class="bl-sec" aria-labelledby="blHowH"><h2 class="sec-h" id="blHowH">How it works</h2><div class="bl-howwrap bl-io"><span class="bl-track" aria-hidden="true"></span><span class="bl-run" aria-hidden="true"><i></i></span><ol class="bl-how">' +
+    '<li class="bl-step bl-io" style="--i:1"><b><i>1</i>Free days</b><span>Try everything, no card needed.</span></li>' +
+    '<li class="bl-step bl-io" style="--i:2"><b><i>2</i>Your plan</b><span>$99 a month while you search.</span></li>' +
+    '<li class="bl-step bl-io" style="--i:3"><b><i>3</i>Hired</b><span>Tap I got hired, confirm the cancel, and no more charges.</span></li></ol></div></section>';
+  var pass = '<section class="bl-pass bl-io" aria-labelledby="blPlanH"><div class="bl-passin">' + (nj && BILLING_LINKS.FOUNDING_OPEN ? '<span class="bl-ribbon">' + BILL_ILL.star.replace('<svg', '<svg width="14" height="14"') + 'Founding member offer</span>' : '') +
+    '<div><h2 class="bl-h" id="blPlanH">Steady Path Plan</h2><p class="bl-price"><span aria-hidden="true">$<span class="n"><span class="nv">99</span><span class="nw">99</span></span><small>a month</small></span><span class="sr">$99 a month</span></p></div>' +
+    '<div><b>What\'s included</b><ul class="bl-inc" style="margin-top:8px">' + inc.map(function (t, i) { return '<li style="--i:' + i + '">' + billCheck(i) + '<span>' + esc(t) + '</span></li>'; }).join('') + '</ul></div>' +
+    '<p>When you\'re hired, billing stops as soon as you confirm the cancel.</p><p class="bl-guar"><b>No job, interview or pay is guaranteed.</b></p>' +
+    (nj ? (BILLING_LINKS.FOUNDING_OPEN ? '<p class="bl-found"><b>First 10 members pay $79 a month with code FOUNDING.</b> Have a founding member code? Enter it on the next page.</p>' : '') : gate) + '</div></section>';
+  var buy = '';
+  if (nj) {
+    buy = '<section class="bl-agreec bl-io" aria-labelledby="blNoticeH"><div class="bl-notice" role="note"><h3 id="blNoticeH">Your right to cancel</h3><p>' + notice + '</p></div>' +
+      '<label class="bl-agree" for="billAgree"><input type="checkbox" id="billAgree" data-billagree' + (B.agree ? ' checked' : '') + (B.pop ? ' class="pop"' : '') + ' aria-describedby="blHint"><span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and the cancellation notice above.</span></label>' +
+      '<p class="bl-hint" id="blHint">' + (B.agree ? 'Thank you. You can continue below.' : 'Tick the box to continue.') + '</p>' +
+      (B.err ? '<p class="warn bl-err" role="alert" id="blErr">' + esc(B.err) + (B.re ? reauthBtn() : '') + '</p>' : '') +
+      (hired || billHasPlan() ? '' : '<div class="bl-buy">' + billBtn('plan', 'Continue for $99 a month', '', 'bl-go') + billPilotNote() +
+        '<ul class="bl-trust" aria-label="Ways to pay"><li>Apple Pay</li><li>Google Pay</li><li>Card</li><li class="lock">' + BILL_ILL.lock + 'Secure checkout by Stripe</li></ul>' +
+        '<p class="bl-hint">Apple Pay and Google Pay show on the next page when your device supports them.</p></div>') +
+      '</section>' +
+      '<section class="bl-sec bl-io" aria-labelledby="blAddH"><h2 class="sec-h" id="blAddH">Add-ons</h2><div class="bl-adds">' + BILL_ADDONS.map(function (a) {
+        var art = BILL_ADD_ART[a[0]];
+        return '<div class="bl-add ' + art[0] + '">' + BILL_ILL[art[1]] + '<div><h3>' + esc(a[1]) + '</h3><p class="ben">' + esc(art[2]) + '</p><p class="pr">' + esc(a[2]) + ' <small>one time</small></p></div>' + billBtn(a[0], 'Buy', 'Buy ' + a[1] + ', ' + a[2] + ', one time', 'ghost') + '</div>';
+      }).join('') + '</div></section>';
+  }
+  var hire = '';
+  if (B.hire === 'done' || hired) {
+    hire = '<div class="bl-celebrate" id="blCel"><p class="bl-cheer" aria-live="polite">' + (B.hire === 'done' ? 'Congratulations on the new job. We are so glad for you.' : '') + '</p><div class="sent" role="status" tabindex="-1" id="blHired">' + esc(x.hire || '') + '</div></div>';
+  } else if (B.hire === 'ask' || B.hire === 'busy') {
+    hire = '<div class="bl-celebrate" id="blCel"><div class="bl-confirm" role="group" aria-labelledby="blHireQ"><p id="blHireQ" tabindex="-1">Congratulations. We\'ll stop your billing. Confirm?</p>' +
+      (B.hireErr ? '<p class="warn bl-err" role="alert">' + esc(B.hireErr) + (B.hireRe ? reauthBtn() : '') + '</p>' : '') +
+      '<div class="bl-row"><button type="button" class="btn gold" data-billhired="yes"' + (B.hire === 'busy' ? ' disabled' : '') + '>' + (B.hire === 'busy' ? 'Saving…' : 'Confirm') + '</button><button type="button" class="btn ghost" data-billhired="no">Cancel</button></div></div></div>';
+  } else {
+    hire = '<div class="bl-celebrate" id="blCel"><h3>' + BILL_ILL.star.replace('<svg', '<svg width="26" height="26"') + 'Landed the job? Tell us.</h3><div><button type="button" class="btn gold" data-billhired="ask">I got hired</button></div></div>';
+  }
+  return shell('billing', 'Plan &amp; billing', '') + '<div class="pband" aria-hidden="true"></div>' +
+    '<main class="pmain bl">' + (S.billPaid ? '<div class="sent" role="status">Payment received. It can take up to 30 minutes to show here.</div>' : '') +
+    hero + how + pass + buy +
+    '<section class="bl-manage bl-io" aria-labelledby="blManH"><h2 class="bl-h" id="blManH" style="font-size:17px">Receipts, card and cancel</h2><div>' + billManage() + '</div>' + hire + '</section>' +
+    '<footer class="help"><p><b>Questions about billing?</b> ' + helpHtml() + '</p></footer>' +
+    '</main>' + tabbar('');
+}
+/* round 6: after each render of this screen. The first render of a visit plays the motion (bl-play) as parts scroll into view;
+   later renders show the final state. One-shot flags (pop, wake, cheer) are cleared here so they play once. */
+function billAfter() {
+  var m = document.querySelector('#app main.bl'); if (!m) return;
+  var B = S.bill, play = !B.seen && !REDUCED;
+  B.seen = true; B.pop = false; B.wake = false;
+  if (play) {
+    m.classList.add('bl-play');
+    var n = m.querySelector('.bl-price .nv'); if (n) n.textContent = '0';
+    var done = {};
+    var show = function (el) {
+      el.classList.add('in');
+      if (el.classList.contains('bl-pass') && n && !done.n) { done.n = true; var t0 = null; var step = function (t) { if (t0 == null) t0 = t; var k = Math.min(1, (t - t0) / 900); n.textContent = String(Math.round(99 * (1 - Math.pow(1 - k, 3)))); if (k < 1 && n.isConnected) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+    };
+    var els = [].slice.call(m.querySelectorAll('.bl-io'));
+    if (!('IntersectionObserver' in window)) els.forEach(show);
+    else { var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { show(e.target); io.unobserve(e.target); } }); }, { threshold: 0.15 }); els.forEach(function (el) { io.observe(el); }); }
+  }
+  if (B.cheer) { B.cheer = false; if (!REDUCED) billConfetti(document.getElementById('blCel')); }
+}
+/* round 6: about 1.2 s of confetti from the celebration card. Nothing with reduced motion. */
+function billConfetti(el) {
+  if (!el || !document.body.animate) return;
+  var r = el.getBoundingClientRect(), x0 = r.left + r.width / 2, y0 = Math.max(40, r.top + 30), box = document.createElement('div');
+  box.className = 'bl-confetti'; box.setAttribute('aria-hidden', 'true'); document.body.appendChild(box);
+  var cols = ['#C9A227', '#F2D98A', '#1f7a46', '#E9A23B', '#2E4C78', '#D9783F'];
+  for (var i = 0; i < 42; i++) {
+    var p = document.createElement('i'); p.style.left = x0 + 'px'; p.style.top = y0 + 'px'; p.style.background = cols[i % cols.length]; box.appendChild(p);
+    var a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, d = 120 + Math.random() * 170, dx = Math.cos(a) * d, dy = Math.sin(a) * d, rot = Math.round(Math.random() * 720 - 360);
+    p.animate([{ transform: 'translate(-50%,-50%) scale(.6)', opacity: 1 }, { transform: 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) rotate(' + rot + 'deg)', opacity: 1, offset: 0.55 },
+      { transform: 'translate(' + (dx * 1.1).toFixed(1) + 'px,' + (dy + 160).toFixed(1) + 'px) rotate(' + (rot * 1.4) + 'deg)', opacity: 0 }], { duration: 1050 + Math.random() * 250, easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards' });
+  }
+  setTimeout(function () { box.remove(); }, 1500);
+}
+(function () { var r0 = render; render = function () { var out = r0.apply(this, arguments); if (S.status === 'ready' && S.view === 'billing') billAfter(); return out; }; })();
+function billBuy(item) {
+  if (!billNJ() || !S.bill.agree || S.bill.busy || !BILL_NAMES.hasOwnProperty(item)) return;
+  var url = billBuyUrl(item); if (!url) return;
+  S.bill.busy = item; S.bill.err = ''; S.bill.re = false; render();
+  post({ action: 'billingConsent', t: S.token, item: item }).then(function (d) {
+    if (d && d.ok) {
+      S.data.billing.consented = true;
+      if (S.demo) { S.bill.busy = ''; render(); toast('Demo: this is where the Stripe page for ' + BILL_NAMES[item] + ' would open.'); return; }
+      location.assign(url);
+      setTimeout(function () { S.bill.busy = ''; if (S.view === 'billing') render(); }, 4000); /* if the page is kept (Back), the button works again */
+      return;
+    }
+    S.bill.busy = ''; S.bill.re = !!(d && d.error === 'expired');
+    S.bill.err = S.bill.re ? 'Your sign-in has expired. Sign in again, then try this.' : 'We couldn\'t record your agreement, so the payment page did not open. Please try again in a minute.';
+    S.focusTo = '#blErr'; render();
+  }).catch(function () { S.bill.busy = ''; S.bill.err = 'That didn\'t go through. Please check your connection and try again. The payment page did not open.'; S.focusTo = '#blErr'; render(); });
+}
+function billHire() {
+  if (S.bill.hire === 'busy') return;
+  S.bill.hire = 'busy'; S.bill.hireErr = ''; S.bill.hireRe = false; render();
+  post({ action: 'hired', t: S.token }).then(function (d) {
+    if (d && d.ok) { S.bill.hire = 'done'; S.bill.cheer = true; var b = S.data.billing; if (!b.hiredDate) b.hiredDate = todayISO(); if (!/cancel+ed/i.test(String(b.status || '')) && !/^hired\b/i.test(String(b.status || ''))) b.status = 'hired, cancel pending'; S.focusTo = '#blHired'; render(); return; }
+    S.bill.hire = 'ask'; S.bill.hireRe = !!(d && d.error === 'expired'); S.bill.hireErr = S.bill.hireRe ? 'Your sign-in has expired. Sign in again, then try this.' : 'That didn\'t save. Please try again in a minute.'; render();
+  }).catch(function () { S.bill.hire = 'ask'; S.bill.hireErr = 'That didn\'t save. Please check your connection and try again.'; render(); });
+}
+document.addEventListener('change', function (e) {
+  var t = e.target; if (!t || t.id !== 'billAgree' || S.view !== 'billing') return;
+  S.bill.agree = !!t.checked; S.bill.pop = true; S.bill.wake = !!t.checked; S.bill.err = ''; render();
+});
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('button'); if (!b || !S.data || S.view !== 'billing') return; var d = b.dataset;
+  if (d.billbuy) { billBuy(d.billbuy); return; }
+  if (d.billhired === 'ask') { S.bill.hire = 'ask'; S.bill.hireErr = ''; S.focusTo = '#blHireQ'; render(); return; }
+  if (d.billhired === 'no') { S.bill.hire = ''; S.bill.hireErr = ''; S.focusTo = '[data-billhired="ask"]'; render(); return; }
+  if (d.billhired === 'yes') { billHire(); return; }
+});
+/* opening the screen starts fresh: the box unticked, no old error (runs before the main handler) */
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-go="billing"]'); if (!b || S.view === 'billing') return;
+  S.bill = { agree: false, busy: '', err: '', re: false, hire: '' };
+}, true);
+/* =================== END ROUND 25 =================== */
 </script>
 <script src="../assets/portal-r18.js?v=20261106b"></script>
 <script src="../assets/fx.js?v=20261024d"></script>
