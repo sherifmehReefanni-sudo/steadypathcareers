@@ -1789,6 +1789,7 @@ function vJobs() {
     (main.length ? (jfx.show ? '' : '<h2 class="sec-h">Your matches</h2>') + '<div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">' + ((d.closed || []).length ? 'No open matches right now. New ones show up here.' : 'Nothing here yet. You will get an email when your first jobs arrive.') + '</p></div>') +
     closedList(d) +
     (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '')) + '</div>' + (jl ? '</div>' : '') +
+    (typeof fitJobsCredit === 'function' ? fitJobsCredit(d) : '') + /* r27: O*NET Database credit for the interest lines */
     '<footer class="help"><p><b>Need help?</b> ' + helpHtml() + '</p><button class="linkbtn" data-signout>Sign out on this device</button></footer>' +
     '</main>' + tabbar('jobs');
 }

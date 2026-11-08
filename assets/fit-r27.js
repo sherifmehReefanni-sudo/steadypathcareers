@@ -17,12 +17,12 @@ var FIT_IC = {
 };
 /* plain words, our own; the O*NET area name is shown beside each one */
 var FIT_AREA = {
-  R: { name: 'Builder', onet: 'Realistic', line: 'Hands-on work with tools, machines, or the outdoors.', c: '#B5541B', t: '#FDEBDF' },
-  I: { name: 'Thinker', onet: 'Investigative', line: 'Figuring things out: research, data, and solving puzzles.', c: '#1D6FA3', t: '#E2EFF8' },
+  R: { name: 'Builder', onet: 'Realistic', line: 'Hands-on work with tools, machines, or the outdoors.', c: '#9C4413', t: '#FDEBDF' },
+  I: { name: 'Thinker', onet: 'Investigative', line: 'Figuring things out: research, data, and solving puzzles.', c: '#1A6496', t: '#E2EFF8' },
   A: { name: 'Creator', onet: 'Artistic', line: 'Making things: writing, design, music, or new ideas.', c: '#8E3B8F', t: '#F3E4F3' },
-  S: { name: 'Helper', onet: 'Social', line: 'Helping, teaching, and caring for people.', c: '#B8325A', t: '#FBE3EA' },
-  E: { name: 'Leader', onet: 'Enterprising', line: 'Leading, selling, and persuading people.', c: '#8A5E00', t: '#FFF1C9' },
-  C: { name: 'Organizer', onet: 'Conventional', line: 'Keeping things in order: records, numbers, and systems.', c: '#1E7A5A', t: '#E1F2EA' }
+  S: { name: 'Helper', onet: 'Social', line: 'Helping, teaching, and caring for people.', c: '#A82B50', t: '#FBE3EA' },
+  E: { name: 'Leader', onet: 'Enterprising', line: 'Leading, selling, and persuading people.', c: '#7A5300', t: '#FFF1C9' },
+  C: { name: 'Organizer', onet: 'Conventional', line: 'Keeping things in order: records, numbers, and systems.', c: '#196A4E', t: '#E1F2EA' }
 };
 var FIT_CREDIT_IP = 'This page includes information from the O*NET Career Exploration Tools by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). Used under the <a href="https://creativecommons.org/licenses/by-nd/4.0/" target="_blank" rel="noopener noreferrer">CC BY-ND 4.0</a> license. O*NET&reg; is a trademark of USDOL/ETA.';
 function fitCreditDb(rel) { return 'Title suggestions and job interest matches: this page includes information from the O*NET ' + SP.esc(rel || '31.0') + ' Database by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). Used under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a> license. O*NET&reg; is a trademark of USDOL/ETA. Steady Path Careers has modified all or some of this information. USDOL/ETA has not approved, endorsed, or tested these modifications.'; }
@@ -58,7 +58,7 @@ function fitChips() { return '<ul class="fx-chips" aria-label="The six interest 
 function fitIntro() {
   var x = S.fx;
   return '<section class="fx fx-intro" aria-labelledby="fxH">' +
-    '<div class="fx-hero">' + fitRoad(0, 30, true) + '<div class="fx-herot"><h2 class="fx-big" id="fxH" tabindex="-1">' + esc(FIT_NAME) + '</h2>' +
+    '<div class="fx-hero"><span class="fx-logo">' + SP.mark('fxi') + '</span><div class="fx-herot"><h2 class="fx-big" id="fxH" tabindex="-1">' + esc(FIT_NAME) + '</h2>' +
     '<p class="fx-lead">30 quick taps. About 10 minutes. No wrong answers.</p>' +
     '<p class="fx-sub">Each screen shows one activity. Tap how much you would like doing it. Don\'t worry about training or pay; just go with your gut.</p>' +
     '<button type="button" class="fx-start" data-fxstart>' + (x.ans.length ? 'Pick up where you left off' : 'Start') + '</button></div></div>' +
@@ -126,24 +126,29 @@ function fitResults() {
 }
 
 /* ---- share card: opt in, top three areas only, nothing posted; saved as a PNG on the device ---- */
+var FIT_SHARE_CREDIT = 'This page includes information from the O*NET Career Exploration Tools by the U.S. Department of Labor, Employment and Training Administration (USDOL/ETA). Used under the CC BY-ND 4.0 license. O*NET® is a trademark of USDOL/ETA.';
+var FIT_SHARE_LICENSE = 'https://creativecommons.org/licenses/by-nd/4.0/';
+function fitWrap(t, n) { var out = [], line = ''; t.split(' ').forEach(function (w) { if ((line + ' ' + w).trim().length > n) { out.push(line); line = w; } else line = (line + ' ' + w).trim(); }); if (line) out.push(line); return out; }
 function fitShareSvg(top) {
-  var names = top.map(function (k) { return FIT_AREA[k].name; }).join(' + ');
-  var logo = SP.mark('fxsh').replace('<svg aria-hidden="true" viewBox="0 0 100 100">', '<svg x="80" y="80" width="120" height="120" viewBox="0 0 100 100">');
-  var icons = top.map(function (k, n) { var A = FIT_AREA[k], xx = 120 + n * 300;
-    return '<g transform="translate(' + xx + ' 640)"><rect width="240" height="250" rx="36" fill="' + A.t + '"/><circle cx="120" cy="92" r="58" fill="' + A.c + '"/><g transform="translate(84 56) scale(3)" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + FIT_IC[k].replace(/<svg[^>]*>|<\/svg>/g, '') + '</g>' +
-      '<text x="120" y="208" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="800" fill="' + A.c + '">' + A.name + '</text></g>'; }).join('');
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F3A5F"/><stop offset=".55" stop-color="#5A5F8E"/><stop offset=".8" stop-color="#B9786A"/><stop offset="1" stop-color="#F2C27B"/></linearGradient></defs>' +
-    '<rect width="1080" height="1080" fill="url(#bg)"/><circle cx="1080" cy="1080" r="300" fill="#FFD166" opacity=".35"/>' + logo +
-    '<text x="225" y="158" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="800" fill="#FFFFFF">Steady Path Careers</text>' +
-    '<text x="120" y="360" font-family="Arial, Helvetica, sans-serif" font-size="64" font-weight="700" fill="#FFD166">My fit:</text>' +
-    '<text x="120" y="460" font-family="Arial, Helvetica, sans-serif" font-size="' + Math.min(80, Math.floor(860 / (names.length * 0.56))) + '" font-weight="800" fill="#FFFFFF">' + SP.esc(names) + '</text>' +
-    '<text x="120" y="540" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#F6EDD9">My top three interest areas</text>' + icons +
-    '<text x="120" y="975" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#10213A">Interest areas from the O*NET&#174; Interest Profiler by USDOL/ETA, used under CC BY-ND 4.0.</text>' +
-    '<text x="120" y="1005" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#10213A">O*NET&#174; is a trademark of USDOL/ETA.</text></svg>';
+  var names = top.map(function (k) { return FIT_AREA[k].name; }).join(' + '), onet = top.map(function (k) { return FIT_AREA[k].onet; }).join(' + ');
+  var logo = SP.mark('fxsh').replace('<svg aria-hidden="true" viewBox="0 0 100 100">', '<svg x="80" y="70" width="110" height="110" viewBox="0 0 100 100">');
+  var F = 'font-family="Arial, Helvetica, sans-serif"';
+  var icons = top.map(function (k, n) { var A = FIT_AREA[k], xx = 90 + n * 310;
+    return '<g transform="translate(' + xx + ' 560)"><rect width="280" height="270" rx="36" fill="' + A.t + '"/><circle cx="140" cy="86" r="56" fill="' + A.c + '"/><g transform="translate(104 50) scale(3)" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + FIT_IC[k].replace(/<svg[^>]*>|<\/svg>/g, '') + '</g>' +
+      '<text x="140" y="196" text-anchor="middle" ' + F + ' font-size="40" font-weight="800" fill="' + A.c + '">' + A.name + '</text>' +
+      '<text x="140" y="238" text-anchor="middle" ' + F + ' font-size="28" font-weight="700" fill="' + A.c + '">(' + A.onet + ')</text></g>'; }).join('');
+  var credit = fitWrap(FIT_SHARE_CREDIT, 92).concat([FIT_SHARE_LICENSE]).map(function (l, i) { return '<text x="90" y="' + (906 + i * 30) + '" ' + F + ' font-size="21" fill="#10213A">' + SP.esc(l) + '</text>'; }).join('');
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F3A5F"/><stop offset=".5" stop-color="#5A5F8E"/><stop offset=".72" stop-color="#B9786A"/><stop offset=".8" stop-color="#F2C27B"/><stop offset="1" stop-color="#FBF6EE"/></linearGradient></defs>' +
+    '<rect width="1080" height="1080" fill="url(#bg)"/>' + logo +
+    '<text x="215" y="140" ' + F + ' font-size="40" font-weight="800" fill="#FFFFFF">Steady Path Careers</text>' +
+    '<text x="90" y="300" ' + F + ' font-size="60" font-weight="700" fill="#FFD166">My fit:</text>' +
+    '<text x="90" y="392" ' + F + ' font-size="' + Math.min(80, Math.floor(900 / (names.length * 0.56))) + '" font-weight="800" fill="#FFFFFF">' + SP.esc(names) + '</text>' +
+    '<text x="90" y="460" ' + F + ' font-size="32" fill="#F6EDD9">O*NET® interest areas: ' + SP.esc(onet) + '</text>' + icons +
+    '<rect x="70" y="872" width="940" height="' + (30 * (fitWrap(FIT_SHARE_CREDIT, 92).length + 1) + 24) + '" rx="18" fill="#FBF6EE" opacity=".92"/>' + credit + '</svg>';
 }
 function fitShareMake() {
   var top = (S.data.fit.top3 || []).slice(0, 3), svg = fitShareSvg(top);
-  S.fx.share = { svg: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), png: '', names: top.map(function (k) { return FIT_AREA[k].name; }).join(' + ') };
+  S.fx.share = { svg: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), png: '', names: top.map(function (k) { return FIT_AREA[k].name + ' (' + FIT_AREA[k].onet + ')'; }).join(' + ') };
   S.focusTo = '#fxShareH'; render();
   var img = new Image();
   img.onload = function () {
@@ -153,10 +158,11 @@ function fitShareMake() {
   img.src = S.fx.share.svg;
 }
 function fitShareDlg() {
+  setTimeout(function () { var m = document.querySelector('main.fx-main'), h = document.querySelector('header.sky'), tb = document.querySelector('.tabbar'); [m, h, tb].forEach(function (el) { if (el) { if (S.fx.share) el.setAttribute('inert', ''); else el.removeAttribute('inert'); } }); }, 0);
   var sh = S.fx.share;
   return '<div class="fx-dlgbg" data-fxshareclose></div><div class="fx-dlg" role="dialog" aria-modal="true" aria-labelledby="fxShareH"><h2 id="fxShareH" tabindex="-1">Your share card</h2>' +
     '<p class="fx-plain">Only your top three areas are on it. Nothing is posted; save it and share it wherever you like, or not at all.</p>' +
-    '<img class="fx-shimg" src="' + sh.svg + '" alt="Share card: My fit: ' + esc(sh.names) + '. Steady Path Careers logo.">' +
+    '<img class="fx-shimg" src="' + sh.svg + '" alt="Share card: My fit: ' + esc(sh.names) + '. Steady Path Careers logo. ' + esc(FIT_SHARE_CREDIT) + ' ' + FIT_SHARE_LICENSE + '">' +
     '<div class="fx-actions"><a class="btn gold" data-fxsave download="my-fit.png" href="' + (sh.png || '#') + '"' + (sh.png ? '' : ' aria-disabled="true"') + '>Save image</a><button type="button" class="btn ghost" data-fxshareclose>Close</button></div></div>';
 }
 
@@ -198,16 +204,21 @@ function fitTitleAnswer(code, a) {
     x.tBusy[code] = false; if (!d || !d.ok) { t.answer = prev; x.tErr = d && d.error === 'expired' ? 'Your sign-in has expired. Sign in again, then try that.' : 'That didn\'t save. Please try again.'; } render();
   }).catch(function () { x.tBusy[code] = false; t.answer = prev; x.tErr = 'That didn\'t save. Please check your connection and try again.'; render(); });
 }
-/* Job cards: "Why it fits you", only from the client's own scores and intake priorities and the job's O*NET interest mix */
+/* Job cards: interests only (the client's top three and the job's O*NET interest mix), neutral wording, and a link to the
+   O*NET Database credit that vJobs adds under the list (fitJobsCredit). Never anything that discourages a job. */
 function fitWhy(j) {
   if (!fitDone() || j.interestFit == null || j.interestFit === '') return '';
   var f = S.data.fit, top = f.top3 || [], ja = String(j.fitAreas || '').split('').filter(function (k) { return FIT_AREA[k]; });
   var both = ja.filter(function (k) { return top.indexOf(k) >= 0; }), n = Number(j.interestFit);
   var s = both.length ? 'This kind of work leans ' + fitNames(both) + ', ' + (both.length === 1 ? 'one of your top interests.' : both.length === 2 ? 'two of your top interests.' : 'all three of your top interests.') :
-    ja.length ? 'This kind of work leans ' + fitNames(ja) + ', a different mix from your top three (' + fitNames(top) + ').' : '';
+    ja.length ? 'This kind of work leans ' + fitNames(ja) + '.' : '';
   s += (s ? ' ' : '') + 'Interest match ' + n + ' of 100.';
-  var pr = (f.priorities || [])[0]; if (pr) s += ' You ranked ' + pr + ' first, so check the posting for it.';
-  return '<p class="jfitw"><b>' + (both.length ? 'Why it fits you:' : 'Your interests:') + '</b> ' + esc(s) + '</p>';
+  return '<p class="jfitw"><b>' + (both.length ? 'Why it fits you:' : 'Your interests:') + '</b> ' + esc(s) + ' <a class="fx-src" href="#fitCredit" data-fxsrc>Source</a></p>';
+}
+/* the O*NET Database credit under the Jobs list, whenever any job card can show an interest line */
+function fitJobsCredit(d) {
+  if (!fitDone() || !(d.jobs || []).concat(d.closed || []).some(function (j) { return j.interestFit != null && j.interestFit !== ''; })) return '';
+  return '<p class="fx-credit fx-jcredit" id="fitCredit" tabindex="-1">' + fitCreditDb(S.data.fit.release) + '</p>';
 }
 function fitHello() {
   if (!fitOn()) return '';
@@ -215,7 +226,8 @@ function fitHello() {
 }
 function fitJobsCard() {
   if (!fitOn() || fitDone()) return '';
-  return '<div class="fx-jcard"><div class="fx-jcic">' + fitRoad(S.fx.ans.filter(function (v) { return v; }).length, 30, false) + '</div><div><b>' + esc(FIT_NAME) + '</b><p>30 quick taps, about 10 minutes. See your top interests and five titles that line up with them. Optional; your matches keep coming either way.</p><button type="button" class="btn gold" data-go="fit">Take it</button></div></div>';
+  var nAns = S.fx.ans.filter(function (v) { return v; }).length;
+  return '<div class="fx-jcard"><div class="fx-jcic">' + (nAns ? fitRoad(nAns, 30, false) : '<span class="fx-logo">' + SP.mark('fxj') + '</span>') + '</div><div><b>' + esc(FIT_NAME) + '</b><p>30 quick taps, about 10 minutes. See your top interests and five titles that line up with them. Optional; your matches keep coming either way.</p><button type="button" class="btn gold" data-go="fit">Take it</button></div></div>';
 }
 
 document.addEventListener('click', function (e) {
@@ -231,9 +243,26 @@ document.addEventListener('click', function (e) {
   if (e.target.closest('[data-fxshareclose]')) { x.share = null; S.focusTo = '[data-fxshare]'; render(); return; }
   if ((el = e.target.closest('[data-fxsave]')) && el.getAttribute('aria-disabled') === 'true') { e.preventDefault(); }
 });
+/* the Source link on a job card's interest line goes to the credit under the list without touching the URL or history */
+document.addEventListener('click', function (e) {
+  var a = e.target.closest && e.target.closest('[data-fxsrc]'); if (!a) return;
+  e.preventDefault(); e.stopPropagation(); var c = document.getElementById('fitCredit'); if (!c) return;
+  try { c.scrollIntoView({ block: 'center', behavior: REDUCED ? 'auto' : 'smooth' }); } catch (x) { c.scrollIntoView(); }
+  try { c.focus({ preventScroll: true }); } catch (x) { c.focus(); }
+}, true);
 document.addEventListener('keydown', function (e) {
   if (S.view !== 'fit' || !fitOn()) return;
-  if (S.fx.share && e.key === 'Escape') { S.fx.share = null; S.focusTo = '[data-fxshare]'; render(); return; }
+  if (S.fx.share && e.key === 'Escape') { e.preventDefault(); S.fx.share = null; S.focusTo = '[data-fxshare]'; render(); return; }
+  if (S.fx.share && e.key === 'Tab') { /* keep focus inside the share dialog */
+    var dlg = document.querySelector('.fx-dlg'); if (!dlg) return;
+    var fs = [].filter.call(dlg.querySelectorAll('a[href], button, [tabindex]:not([tabindex="-1"])'), function (x) { return !x.disabled && x.offsetParent !== null; });
+    if (!fs.length) return;
+    var first = fs[0], last = fs[fs.length - 1], a = document.activeElement;
+    if (!dlg.contains(a)) { e.preventDefault(); first.focus(); return; }
+    if (e.shiftKey && (a === first || a === dlg.querySelector('h2'))) { e.preventDefault(); last.focus(); return; }
+    if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); return; }
+    return;
+  }
   if (S.fx.step !== 'q' || e.ctrlKey || e.metaKey || e.altKey || (e.target && e.target.closest && e.target.closest('input,textarea,select,[contenteditable]'))) return;
   if (/^[1-5]$/.test(e.key)) { e.preventDefault(); fitAnswer(+e.key); }
 });

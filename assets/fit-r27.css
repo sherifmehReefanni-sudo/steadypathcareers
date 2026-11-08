@@ -1,5 +1,5 @@
 /* r27: Find Your Fit. Warm Radiant palette: navy #1F3A5F, midnight #10213A, dawn rose #B9786A, gold #FFD166 and #C9A227.
-   Area colors pass 4.5:1 with white text and on the cream page. Motion is transform and opacity only, and
+   Area colors pass 4.5:1 on their own tint, on the cream page and with white text (checked by _tools/fit/check.js). Motion is transform and opacity only, and
    prefers-reduced-motion turns all of it off (the content is the same either way). */
 .fx-main { display: grid; gap: 16px; }
 .fx { display: grid; gap: 16px; }
@@ -14,7 +14,7 @@
 
 /* hero: navy to dawn, the road mark beside the words */
 .fx-hero { position: relative; overflow: hidden; border-radius: 24px; padding: 22px 20px; display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 18px; align-items: center;
-  background: radial-gradient(120% 90% at 100% 110%, rgba(255,209,102,.55), rgba(255,209,102,0) 55%), linear-gradient(165deg, #10213A 0%, #1F3A5F 45%, #5A5F8E 75%, #B9786A 100%); box-shadow: 0 14px 30px rgba(16,33,58,.25); }
+  background: radial-gradient(38% 46% at 100% 118%, rgba(255,209,102,.5), rgba(255,209,102,0) 70%), linear-gradient(165deg, #10213A 0%, #1F3A5F 50%, #3A4677 100%); border-bottom: 5px solid #E9A23B; /* text stays on #3A4677 or darker */ box-shadow: 0 14px 30px rgba(16,33,58,.25); }
 .fx-herot { display: grid; gap: 10px; justify-items: start; }
 .fx-start { border: 0; cursor: pointer; margin-top: 6px; min-height: 56px; padding: 0 34px; border-radius: 99px; background: #FFD166; color: #10213A; font: 800 20px var(--display); box-shadow: 0 6px 0 #C9A227, 0 12px 24px rgba(0,0,0,.25); transition: transform .12s ease, box-shadow .12s ease; }
 .fx-start:hover { transform: translateY(-1px); }
@@ -74,7 +74,7 @@
 }
 
 /* results */
-.fx-reshead { border-radius: 24px; padding: 22px 20px; display: grid; gap: 6px; background: linear-gradient(165deg, #10213A 0%, #1F3A5F 50%, #5A5F8E 85%, #B9786A 100%); }
+.fx-reshead { border-radius: 24px; padding: 22px 20px; display: grid; gap: 6px; background: linear-gradient(165deg, #10213A 0%, #1F3A5F 50%, #3A4677 100%); border-bottom: 5px solid #E9A23B; }
 .fx-date { margin: 0; color: #F6EDD9; font-size: 14px; font-weight: 700; }
 .fx-resgrid { display: grid; gap: 14px; }
 .fx-radarw { padding: 10px; display: grid; place-items: center; }
@@ -110,7 +110,6 @@
 .fx-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 @media (min-width: 900px) {
   .fx-resgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .fx-main { max-width: 980px; }
 }
 
 /* reveal */
@@ -141,3 +140,10 @@
   .fx *, .fx-conf, .fx-start, .fx-pill, .fx-fillr, .fx-ray, .fx-bar i { animation: none !important; transition: none !important; }
   .fx-conf { display: none; }
 }
+
+/* round 2 */
+.fx-logo { display: block; width: 100%; }
+.fx-logo svg { width: 100%; height: auto; display: block; border-radius: 22px; }
+.fx-src { font-weight: 800; color: #1F3A5F; white-space: nowrap; }
+.fx-jcredit { margin: 4px 0 0; }
+.fx-jcredit:focus { outline: 3px solid #10213A; outline-offset: 3px; }
