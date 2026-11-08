@@ -36,15 +36,23 @@
 .mk .fyf-sug p { margin: 0; font-size: 14px; }
 .mk .fyf-sug .h { font: 800 15px var(--display); color: var(--navy); }
 .fyf-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.fyf-row b { color: var(--navy); font-size: 16px; }
+.fyf-tt { min-width: 0; }
+.fyf-tt b { display: block; color: var(--navy); font-size: 16px; }
+.fyf-tt small { display: block; color: #4a5468; font-weight: 700; font-size: 13px; line-height: 1.4; }
 .fyf-yn { display: flex; gap: 6px; }
 .fyf-yn span { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 99px; border: 2px solid var(--line); font-weight: 800; font-size: 14px; color: var(--navy); background: #fff; }
 .fyf-yn span.on { background: #1C5B3A; border-color: #1C5B3A; color: #fff; }
-.mk .fyf-why { margin: 0; font-size: 14px; line-height: 1.45; background: var(--gold-soft); border-radius: 10px; padding: 8px 10px; color: var(--ink); }
-.fyf-why b { color: var(--midnight); }
+/* a small sample job card; the line matches the portal's .jfitw */
+.fyf-job { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; padding: 12px 14px; border-top: 5px solid var(--navy); }
+.mk .fyf-job p { margin: 0; }
+.mk .fyf-job .fyf-jt { font: 800 16px/1.2 var(--display); color: var(--navy); }
+.mk .fyf-job .fyf-jc { font-size: 14px; color: #4a5468; margin-top: 2px; }
+.mk .fyf-job .fyf-why { margin: 8px 0 0; padding: 8px 12px; border-radius: 12px; background: #F3EEFA; color: #2a2f45; font-size: 14px; line-height: 1.45; border-left: 4px solid #8E3B8F; }
+.fyf-why b { color: #10213A; }
 .mk .fyf-demo figcaption { margin-top: 12px; text-align: center; font-size: 14px; color: var(--ink2); }
 
 .mk p.fyf-credit { margin: 30px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink2); max-width: 900px; }
+.mk p.fyf-credit2 { margin-top: 8px; }
 .fyf-credit a { color: var(--navy); }
 
 /* "New in your portal": Find Your Fit takes the whole first row */
