@@ -146,9 +146,10 @@ SOURCES = {
 KIT_CSS = BASE_CSS + r'''
 .fn, .fn-c { line-height: 0; font-size: .74em; vertical-align: super; }
 .fn a { position: relative; font-weight: 800; text-decoration: none; color: var(--navy); padding: 0 1px; }
-.fn a::after { content: ""; position: absolute; inset: -6px -9px; } /* r33: at least a 24px tap area around each source number */
-.fn-next { margin-left: 13px; } /* r33: room between two source numbers in a row, so their tap areas do not overlap */
+.fn a::after { content: ""; position: absolute; inset: -4px -9px; } /* r33: at least a 24px tap area around each source number */
+.fn-next { margin-left: 15px; } /* r33: room between two source numbers in a row, so their tap areas do not overlap */
 .fn-c { pointer-events: none; }
+.fn { white-space: nowrap; } /* r33: a source number never splits across lines */
 .prose .kit-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
 .kit-jump a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border-radius: 999px; background: #fff; border: 1px solid rgba(31,58,95,.18); font-weight: 800; font-size: 15px; text-decoration: none; color: var(--midnight); }
 .kit-jump a:hover { border-color: var(--gold); }

@@ -205,7 +205,7 @@ function r18InstallCard() {
 window.addEventListener('appinstalled', function () { r18A2hsDone(); if (S.status === 'ready') render(); });
 
 /* ---- sign-out clean-up: everything the portal kept on this device ---- */
-var R18_KEYS = /^(spdemo_)?sp_(token|replyseen|kit_|pvnotes_|jsort|swipehint|a2hs$)/;
+var R18_KEYS = /^(spdemo_)?sp_(token|replyseen|kit_|pvnotes_|jsort|swipehint|a2hs(_once)?$)/;
 function r18ClearDevice() {
   try { for (var k = localStorage.length - 1; k >= 0; k--) { var lk = localStorage.key(k); if (R18_KEYS.test(lk || '')) localStorage.removeItem(lk); } } catch (e) {}
   try { sessionStorage.removeItem('sp_linkkey'); } catch (e) {}
