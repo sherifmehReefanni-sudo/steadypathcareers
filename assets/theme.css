@@ -1,0 +1,487 @@
+/* Steady Path Careers, r30: light and dark themes. Loaded last on every page.
+   Light palette on :root. Dark palette when the visitor's system asks for dark (and they have not picked light),
+   or when they pick dark with the header button (html[data-theme="dark"]). The choice is kept in localStorage "sp-theme".
+   The --bgx-, --txx- and --bdx- tokens replace colors that used to be written straight into components;
+   their light values are the original colors, so light mode looks exactly as before. */
+:root {
+  color-scheme: light;
+  --page: #FBF6EE; --surface: #FFFFFF;
+  --cream-fill: #FBF6EE; --navy-fill: #1F3A5F; --midnight-fill: #10213A;
+  --ok-fill: #1f7a46; --bad-fill: #b23a2f; --info-fill: #2b5aa8;
+  --wash-rgb: 255,255,255; --tint-rgb: 31,58,95;
+  --on-gold: #10213A;
+  --yes-ink: #1f7a46; --struct-fill: #1F3A5F; --q-fill: #2b5aa8; --cream-rgb: 251,246,238;
+  --bdx-b9c3d6: #B9C3D6;
+  --bdx-b9d9c4: #B9D9C4;
+  --bdx-c9daf6: #C9DAF6;
+  --bdx-cbd3e0: #CBD3E0;
+  --bdx-cfd6e3: #CFD6E3;
+  --bdx-cfe7d7: #CFE7D7;
+  --bdx-d0cbbd: #D0CBBD;
+  --bdx-d3dae6: #D3DAE6;
+  --bdx-d8c9a6: #D8C9A6;
+  --bdx-dccda6: #DCCDA6;
+  --bdx-e3d3a8: #E3D3A8;
+  --bdx-e7d3a0: #E7D3A0;
+  --bdx-eadfc8: #EADFC8;
+  --bdx-eae3d5: #EAE3D5;
+  --bdx-ebd9a8: #EBD9A8;
+  --bdx-ece4d2: #ECE4D2;
+  --bdx-f0eadb: #F0EADB;
+  --bdx-f2d98a: #F2D98A;
+  --bdx-ffffff: #FFFFFF;
+  --bgx-bfdccb: #BFDCCB;
+  --bgx-c4c4bd: #C4C4BD;
+  --bgx-cfd6e3: #CFD6E3;
+  --bgx-cfe5d7: #CFE5D7;
+  --bgx-d3eedc: #D3EEDC;
+  --bgx-d9d2c2: #D9D2C2;
+  --bgx-dce8fb: #DCE8FB;
+  --bgx-dff3e6: #DFF3E6;
+  --bgx-e1eafb: #E1EAFB;
+  --bgx-e2f3f2: #E2F3F2;
+  --bgx-e4e8ef: #E4E8EF;
+  --bgx-e7c255: #E7C255;
+  --bgx-e7e1d3: #E7E1D3;
+  --bgx-e8eef7: #E8EEF7;
+  --bgx-e8effb: #E8EFFB;
+  --bgx-e8f6ec: #E8F6EC;
+  --bgx-e9c766: #E9C766;
+  --bgx-e9e2d3: #E9E2D3;
+  --bgx-e9eef6: #E9EEF6;
+  --bgx-eadfc8: #EADFC8;
+  --bgx-eaf2ff: #EAF2FF;
+  --bgx-eaf7ee: #EAF7EE;
+  --bgx-edf8f1: #EDF8F1;
+  --bgx-eef1f6: #EEF1F6;
+  --bgx-eef2f8: #EEF2F8;
+  --bgx-eef2f9: #EEF2F9;
+  --bgx-efebe3: #EFEBE3;
+  --bgx-f1faf4: #F1FAF4;
+  --bgx-f2d98a: #F2D98A;
+  --bgx-f3e4c6: #F3E4C6;
+  --bgx-f3e8cf: #F3E8CF;
+  --bgx-f3eefa: #F3EEFA;
+  --bgx-f3fbf6: #F3FBF6;
+  --bgx-f4d98c: #F4D98C;
+  --bgx-f5efe3: #F5EFE3;
+  --bgx-f6e3a6: #F6E3A6;
+  --bgx-f6edd9: #F6EDD9;
+  --bgx-f6f4ef: #F6F4EF;
+  --bgx-f7e7b4: #F7E7B4;
+  --bgx-f9e9f2: #F9E9F2;
+  --bgx-fbe1cb: #FBE1CB;
+  --bgx-fbe3cf: #FBE3CF;
+  --bgx-fbebc4: #FBEBC4;
+  --bgx-fbf3da: #FBF3DA;
+  --bgx-fbf6ee: #FBF6EE;
+  --bgx-fbf8f1: #FBF8F1;
+  --bgx-fcfaf5: #FCFAF5;
+  --bgx-fdf3d8: #FDF3D8;
+  --bgx-ffd166: #FFD166;
+  --bgx-fff0e3: #FFF0E3;
+  --bgx-fff3cf: #FFF3CF;
+  --bgx-fff4dc: #FFF4DC;
+  --bgx-fff4e2: #FFF4E2;
+  --bgx-fff6dd: #FFF6DD;
+  --bgx-fff6df: #FFF6DF;
+  --bgx-fff7e0: #FFF7E0;
+  --bgx-fff7ea: #FFF7EA;
+  --bgx-fff8e6: #FFF8E6;
+  --bgx-fff8e9: #FFF8E9;
+  --bgx-fff9ef: #FFF9EF;
+  --txx-000000: #000000;
+  --txx-0f5f66: #0F5F66;
+  --txx-10213a: #10213A;
+  --txx-165a34: #165A34;
+  --txx-17233a: #17233A;
+  --txx-1c2433: #1C2433;
+  --txx-1d3f78: #1D3F78;
+  --txx-1e4a8f: #1E4A8F;
+  --txx-1f3a5f: #1F3A5F;
+  --txx-1f7a46: #1F7A46;
+  --txx-23406b: #23406B;
+  --txx-23467f: #23467F;
+  --txx-2a2f45: #2A2F45;
+  --txx-2b2a28: #2B2A28;
+  --txx-333e52: #333E52;
+  --txx-34425a: #34425A;
+  --txx-3c4658: #3C4658;
+  --txx-3d4657: #3D4657;
+  --txx-4a3800: #4A3800;
+  --txx-4a3b06: #4A3B06;
+  --txx-4a5468: #4A5468;
+  --txx-4a5872: #4A5872;
+  --txx-5a4300: #5A4300;
+  --txx-5b6578: #5B6578;
+  --txx-5e1a13: #5E1A13;
+  --txx-6b4e00: #6B4E00;
+  --txx-6b4f00: #6B4F00;
+  --txx-6f5300: #6F5300;
+  --txx-7a231a: #7A231A;
+  --txx-7a2e5c: #7A2E5C;
+  --txx-8a2a20: #8A2A20;
+  --txx-8a6d12: #8A6D12;
+  --txx-9a3412: #9A3412;
+}
+/* ---- dark palette: system setting ---- */
+@media (prefers-color-scheme: dark) {
+:root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0E1A2C; --surface: #16263F;
+    --cream-fill: #0E1A2C; --navy-fill: #2A4C7C; --midnight-fill: #0A1426;
+    --wash-rgb: 22,38,63; --tint-rgb: 200,216,240; --cream-rgb: 22,38,63;
+    --ink: #F3EDE0; --ink2: #D3DAE6; --muted: #A9B6CB; --navy: #A9C6F2; --midnight: #F3EDE0;
+    --line: #2C3E5C; --sunk: #13233A; --gold-soft: #3D341A;
+    --ok: #74D39C; --ok-soft: #143A28; --bad: #FF9F94; --bad-soft: #3F1F1D; --info: #A3C2F7; --info-soft: #1A2C4E;
+    --sky: #0B1626; --mist: #18223F; --peach: #2D2340; --sand: #1C2C45; --white: #16263F;
+    --yes-ink: #74D39C; --struct-fill: #2A4C7C;
+    --pv-sky: #1A2742; --pv-peach: #2D2340; --pv-sand: #1C2C45; --pv-ink2: #D3DAE6;
+    --yes-bg: #143A28; --yes-line: #2E6B47; --q-bg: #1A2C4E; --q-line: #3A5687; --q: #A3C2F7;
+    --no-bg: #1E2738; --no-line: #3A4458; --no-ink: #AEB6C4;
+    --act-ink: #10213A; --act-soft: #3D341A; --attn: #F5B36B; --attn-soft: #3F2A14; --attn-line: #8A5A24; --card-line: #2C3E5C;
+    --bdx-b9c3d6: #3C4B67;
+    --bdx-b9d9c4: #396A4A;
+    --bdx-c9daf6: #314A72;
+    --bdx-cbd3e0: #3D4D66;
+    --bdx-cfd6e3: #3C4B67;
+    --bdx-cfe7d7: #366D49;
+    --bdx-d0cbbd: #2C3E5C;
+    --bdx-d3dae6: #3B4C68;
+    --bdx-d8c9a6: #715E32;
+    --bdx-dccda6: #726031;
+    --bdx-e3d3a8: #726131;
+    --bdx-e7d3a0: #726031;
+    --bdx-eadfc8: #2C3E5C;
+    --bdx-eae3d5: #2C3E5C;
+    --bdx-ebd9a8: #726131;
+    --bdx-ece4d2: #2C3E5C;
+    --bdx-f0eadb: #2C3E5C;
+    --bdx-f2d98a: #726331;
+    --bdx-ffffff: #2C3E5C;
+    --bgx-bfdccb: #1F3829;
+    --bgx-c4c4bd: #213350;
+    --bgx-cfd6e3: #202837;
+    --bgx-cfe5d7: #1E3828;
+    --bgx-d3eedc: #1A3D26;
+    --bgx-d9d2c2: #20324D;
+    --bgx-dce8fb: #1A273D;
+    --bgx-dff3e6: #1A3D26;
+    --bgx-e1eafb: #1A263D;
+    --bgx-e2f3f2: #1A3D3B;
+    --bgx-e4e8ef: #1B2A41;
+    --bgx-e7c255: #3D341A;
+    --bgx-e7e1d3: #1D2E47;
+    --bgx-e8eef7: #1A283D;
+    --bgx-e8effb: #1A273D;
+    --bgx-e8f6ec: #1A3D24;
+    --bgx-e9c766: #3D341A;
+    --bgx-e9e2d3: #1D2D46;
+    --bgx-e9eef6: #1A283F;
+    --bgx-eadfc8: #1E2F48;
+    --bgx-eaf2ff: #1A273D;
+    --bgx-eaf7ee: #19283E;
+    --bgx-edf8f1: #19283D;
+    --bgx-eef1f6: #19283E;
+    --bgx-eef2f8: #19283D;
+    --bgx-eef2f9: #19273D;
+    --bgx-efebe3: #1B2A41;
+    --bgx-f1faf4: #19273C;
+    --bgx-f2d98a: #3D341A;
+    --bgx-f3e4c6: #3D311A;
+    --bgx-f3e8cf: #1C2C45;
+    --bgx-f3eefa: #19273D;
+    --bgx-f3fbf6: #18263C;
+    --bgx-f4d98c: #3D341A;
+    --bgx-f5efe3: #1A2940;
+    --bgx-f6e3a6: #3D341A;
+    --bgx-f6edd9: #1B2B42;
+    --bgx-f6f4ef: #19283D;
+    --bgx-f7e7b4: #3D341A;
+    --bgx-f9e9f2: #3D1A2E;
+    --bgx-fbe1cb: #3D2A1A;
+    --bgx-fbe3cf: #3D2A1A;
+    --bgx-fbebc4: #3D331A;
+    --bgx-fbf3da: #1A2A41;
+    --bgx-fbf6ee: #19273D;
+    --bgx-fbf8f1: #18273C;
+    --bgx-fcfaf5: #18263B;
+    --bgx-fdf3d8: #1A2A41;
+    --bgx-ffd166: #3D321A;
+    --bgx-fff0e3: #19283E;
+    --bgx-fff3cf: #3D341A;
+    --bgx-fff4dc: #1A2940;
+    --bgx-fff4e2: #19283E;
+    --bgx-fff6dd: #1A293F;
+    --bgx-fff6df: #1A293F;
+    --bgx-fff7e0: #1A283F;
+    --bgx-fff7ea: #19273D;
+    --bgx-fff8e6: #19283D;
+    --bgx-fff8e9: #19273D;
+    --bgx-fff9ef: #18263C;
+    --txx-000000: #F3EDE0;
+    --txx-0f5f66: #ABE8ED;
+    --txx-10213a: #F3EDE0;
+    --txx-165a34: #ADEBC8;
+    --txx-17233a: #F3EDE0;
+    --txx-1c2433: #BDC7DB;
+    --txx-1d3f78: #A9C6F2;
+    --txx-1e4a8f: #A9C6F2;
+    --txx-1f3a5f: #A9C6F2;
+    --txx-1f7a46: #AEEAC8;
+    --txx-23406b: #A9C6F2;
+    --txx-23467f: #AFC5E9;
+    --txx-2a2f45: #C0C4D8;
+    --txx-2b2a28: #F3EDE0;
+    --txx-333e52: #C0C9D8;
+    --txx-34425a: #D3DAE6;
+    --txx-3c4658: #D5DCE8;
+    --txx-3d4657: #D3DAE6;
+    --txx-4a3800: #EDDDAB;
+    --txx-4a3b06: #EDDFAB;
+    --txx-4a5468: #D5DCE8;
+    --txx-4a5872: #B4C0D4;
+    --txx-5a4300: #EDDCAB;
+    --txx-5b6578: #D5DCE8;
+    --txx-5e1a13: #EDB1AB;
+    --txx-6b4e00: #EDDBAB;
+    --txx-6b4f00: #EDDCAB;
+    --txx-6f5300: #EDDCAB;
+    --txx-7a231a: #EDB1AB;
+    --txx-7a2e5c: #E3B5D1;
+    --txx-8a2a20: #ECB2AC;
+    --txx-8a6d12: #EDDDAB;
+    --txx-9a3412: #EDBBAB;
+  }
+  :root:not([data-theme="light"]) body { background: var(--page); color: var(--ink); }
+  /* page sections: keep each section's light-to-rich progression as a faint warm tint on deep navy */
+  :root:not([data-theme="light"]) .sec:not(.dark), :root:not([data-theme="light"]) .mk .sec:not(.dark) { background: var(--page); background: linear-gradient(180deg, color-mix(in srgb, var(--a, #FBF6EE) 7%, #0E1A2C), color-mix(in srgb, var(--b, #FBF6EE) 7%, #0E1A2C)); }
+  :root:not([data-theme="light"]) .phero .horizon path { fill: color-mix(in srgb, #FBE3CF 7%, #0E1A2C); }
+  :root:not([data-theme="light"]) .phero .horizon path:first-child { fill: #2D2340; }
+  :root:not([data-theme="light"]) .road li.lit .n { box-shadow: 0 0 0 6px var(--page), 0 0 0 10px rgba(201, 162, 39, .28); }
+  /* the logo keeps a soft cream edge so its navy tile stays visible on navy */
+  :root:not([data-theme="light"]) [data-logo] svg, :root:not([data-theme="light"]) .brand > span:first-child svg { border-radius: 22%; box-shadow: 0 0 0 1px rgba(250,246,236,.28); }
+  /* form controls */
+  :root:not([data-theme="light"]) input, :root:not([data-theme="light"]) select, :root:not([data-theme="light"]) textarea { color: var(--ink); }
+  :root:not([data-theme="light"]) input::placeholder, :root:not([data-theme="light"]) textarea::placeholder { color: #8E9BB2; opacity: 1; }
+  :root:not([data-theme="light"]) .theme-btn { border-color: rgba(250,246,236,.3); }
+  :root:not([data-theme="light"]) .trail-tip { box-shadow: 0 0 0 3px var(--page); }
+  :root:not([data-theme="light"]) .trail .mark { fill: var(--surface); stroke: #4A5C7C; }
+  :root:not([data-theme="light"]) .trail .track { stroke: rgba(200,216,240,.2); }
+  /* portal: the cream wave under the header, the road in the header scene and the light scenery band */
+  :root:not([data-theme="light"]) .sky::before { background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1440 22%22 preserveAspectRatio=%22none%22%3E%3Cpath d=%22M0 12 C 240 0 420 8 640 11 C 900 15 1120 1 1440 8 V22 H0Z%22 fill=%22%232D2340%22 opacity=%22.55%22/%3E%3Cpath d=%22M0 17 C 260 9 520 18 760 16 C 1000 14 1200 9 1440 14 V22 H0Z%22 fill=%22%230E1A2C%22/%3E%3C/svg%3E") no-repeat bottom / 100% 100%; }
+  :root:not([data-theme="light"]) svg.scene linearGradient[id^="r"] stop:first-child { stop-color: #2A3753; }
+  :root:not([data-theme="light"]) svg.scene linearGradient[id^="r"] stop:last-child { stop-color: #0E1A2C; }
+  :root:not([data-theme="light"]) .pband::before { opacity: .08; }
+  /* the Ghost check finale starts from a light apricot; on dark pages it starts from the page color instead */
+  :root:not([data-theme="light"]) .finale[style*="F0BC7E"] { --a: #0E1A2C !important; }
+  :root:not([data-theme="light"]) .finale[style*="F0BC7E"] .hilltop path { fill: #0E1A2C; }
+  /* r31: Find Your Fit and Plan & billing (from r27 to r29) */
+  :root:not([data-theme="light"]) .bl { --bl-cream: #16263F; --bl-mid: #F3EDE0; --bl-navy: #A9C6F2; --bl-gold2: #F2D98A; }
+  :root:not([data-theme="light"]) [style*="--ac"] { --ac-ink: color-mix(in srgb, var(--ac) 30%, #F3EDE0); --at-bg: color-mix(in srgb, var(--at) 12%, #16263F); }
+  :root:not([data-theme="light"]) [style*="--pc"] { --pc-ink: color-mix(in srgb, var(--pc) 30%, #F3EDE0); --pb-bg: color-mix(in srgb, var(--pb) 10%, #16263F); }
+}
+/* ---- dark palette: picked with the header button ---- */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0E1A2C; --surface: #16263F;
+  --cream-fill: #0E1A2C; --navy-fill: #2A4C7C; --midnight-fill: #0A1426;
+  --wash-rgb: 22,38,63; --tint-rgb: 200,216,240; --cream-rgb: 22,38,63;
+  --ink: #F3EDE0; --ink2: #D3DAE6; --muted: #A9B6CB; --navy: #A9C6F2; --midnight: #F3EDE0;
+  --line: #2C3E5C; --sunk: #13233A; --gold-soft: #3D341A;
+  --ok: #74D39C; --ok-soft: #143A28; --bad: #FF9F94; --bad-soft: #3F1F1D; --info: #A3C2F7; --info-soft: #1A2C4E;
+  --sky: #0B1626; --mist: #18223F; --peach: #2D2340; --sand: #1C2C45; --white: #16263F;
+  --yes-ink: #74D39C; --struct-fill: #2A4C7C;
+  --pv-sky: #1A2742; --pv-peach: #2D2340; --pv-sand: #1C2C45; --pv-ink2: #D3DAE6;
+  --yes-bg: #143A28; --yes-line: #2E6B47; --q-bg: #1A2C4E; --q-line: #3A5687; --q: #A3C2F7;
+  --no-bg: #1E2738; --no-line: #3A4458; --no-ink: #AEB6C4;
+  --act-ink: #10213A; --act-soft: #3D341A; --attn: #F5B36B; --attn-soft: #3F2A14; --attn-line: #8A5A24; --card-line: #2C3E5C;
+  --bdx-b9c3d6: #3C4B67;
+  --bdx-b9d9c4: #396A4A;
+  --bdx-c9daf6: #314A72;
+  --bdx-cbd3e0: #3D4D66;
+  --bdx-cfd6e3: #3C4B67;
+  --bdx-cfe7d7: #366D49;
+  --bdx-d0cbbd: #2C3E5C;
+  --bdx-d3dae6: #3B4C68;
+  --bdx-d8c9a6: #715E32;
+  --bdx-dccda6: #726031;
+  --bdx-e3d3a8: #726131;
+  --bdx-e7d3a0: #726031;
+  --bdx-eadfc8: #2C3E5C;
+  --bdx-eae3d5: #2C3E5C;
+  --bdx-ebd9a8: #726131;
+  --bdx-ece4d2: #2C3E5C;
+  --bdx-f0eadb: #2C3E5C;
+  --bdx-f2d98a: #726331;
+  --bdx-ffffff: #2C3E5C;
+  --bgx-bfdccb: #1F3829;
+  --bgx-c4c4bd: #213350;
+  --bgx-cfd6e3: #202837;
+  --bgx-cfe5d7: #1E3828;
+  --bgx-d3eedc: #1A3D26;
+  --bgx-d9d2c2: #20324D;
+  --bgx-dce8fb: #1A273D;
+  --bgx-dff3e6: #1A3D26;
+  --bgx-e1eafb: #1A263D;
+  --bgx-e2f3f2: #1A3D3B;
+  --bgx-e4e8ef: #1B2A41;
+  --bgx-e7c255: #3D341A;
+  --bgx-e7e1d3: #1D2E47;
+  --bgx-e8eef7: #1A283D;
+  --bgx-e8effb: #1A273D;
+  --bgx-e8f6ec: #1A3D24;
+  --bgx-e9c766: #3D341A;
+  --bgx-e9e2d3: #1D2D46;
+  --bgx-e9eef6: #1A283F;
+  --bgx-eadfc8: #1E2F48;
+  --bgx-eaf2ff: #1A273D;
+  --bgx-eaf7ee: #19283E;
+  --bgx-edf8f1: #19283D;
+  --bgx-eef1f6: #19283E;
+  --bgx-eef2f8: #19283D;
+  --bgx-eef2f9: #19273D;
+  --bgx-efebe3: #1B2A41;
+  --bgx-f1faf4: #19273C;
+  --bgx-f2d98a: #3D341A;
+  --bgx-f3e4c6: #3D311A;
+  --bgx-f3e8cf: #1C2C45;
+  --bgx-f3eefa: #19273D;
+  --bgx-f3fbf6: #18263C;
+  --bgx-f4d98c: #3D341A;
+  --bgx-f5efe3: #1A2940;
+  --bgx-f6e3a6: #3D341A;
+  --bgx-f6edd9: #1B2B42;
+  --bgx-f6f4ef: #19283D;
+  --bgx-f7e7b4: #3D341A;
+  --bgx-f9e9f2: #3D1A2E;
+  --bgx-fbe1cb: #3D2A1A;
+  --bgx-fbe3cf: #3D2A1A;
+  --bgx-fbebc4: #3D331A;
+  --bgx-fbf3da: #1A2A41;
+  --bgx-fbf6ee: #19273D;
+  --bgx-fbf8f1: #18273C;
+  --bgx-fcfaf5: #18263B;
+  --bgx-fdf3d8: #1A2A41;
+  --bgx-ffd166: #3D321A;
+  --bgx-fff0e3: #19283E;
+  --bgx-fff3cf: #3D341A;
+  --bgx-fff4dc: #1A2940;
+  --bgx-fff4e2: #19283E;
+  --bgx-fff6dd: #1A293F;
+  --bgx-fff6df: #1A293F;
+  --bgx-fff7e0: #1A283F;
+  --bgx-fff7ea: #19273D;
+  --bgx-fff8e6: #19283D;
+  --bgx-fff8e9: #19273D;
+  --bgx-fff9ef: #18263C;
+  --txx-000000: #F3EDE0;
+  --txx-0f5f66: #ABE8ED;
+  --txx-10213a: #F3EDE0;
+  --txx-165a34: #ADEBC8;
+  --txx-17233a: #F3EDE0;
+  --txx-1c2433: #BDC7DB;
+  --txx-1d3f78: #A9C6F2;
+  --txx-1e4a8f: #A9C6F2;
+  --txx-1f3a5f: #A9C6F2;
+  --txx-1f7a46: #AEEAC8;
+  --txx-23406b: #A9C6F2;
+  --txx-23467f: #AFC5E9;
+  --txx-2a2f45: #C0C4D8;
+  --txx-2b2a28: #F3EDE0;
+  --txx-333e52: #C0C9D8;
+  --txx-34425a: #D3DAE6;
+  --txx-3c4658: #D5DCE8;
+  --txx-3d4657: #D3DAE6;
+  --txx-4a3800: #EDDDAB;
+  --txx-4a3b06: #EDDFAB;
+  --txx-4a5468: #D5DCE8;
+  --txx-4a5872: #B4C0D4;
+  --txx-5a4300: #EDDCAB;
+  --txx-5b6578: #D5DCE8;
+  --txx-5e1a13: #EDB1AB;
+  --txx-6b4e00: #EDDBAB;
+  --txx-6b4f00: #EDDCAB;
+  --txx-6f5300: #EDDCAB;
+  --txx-7a231a: #EDB1AB;
+  --txx-7a2e5c: #E3B5D1;
+  --txx-8a2a20: #ECB2AC;
+  --txx-8a6d12: #EDDDAB;
+  --txx-9a3412: #EDBBAB;
+}
+:root[data-theme="dark"] body { background: var(--page); color: var(--ink); }
+/* page sections: keep each section's light-to-rich progression as a faint warm tint on deep navy */
+:root[data-theme="dark"] .sec:not(.dark), :root[data-theme="dark"] .mk .sec:not(.dark) { background: var(--page); background: linear-gradient(180deg, color-mix(in srgb, var(--a, #FBF6EE) 7%, #0E1A2C), color-mix(in srgb, var(--b, #FBF6EE) 7%, #0E1A2C)); }
+:root[data-theme="dark"] .phero .horizon path { fill: color-mix(in srgb, #FBE3CF 7%, #0E1A2C); }
+:root[data-theme="dark"] .phero .horizon path:first-child { fill: #2D2340; }
+:root[data-theme="dark"] .road li.lit .n { box-shadow: 0 0 0 6px var(--page), 0 0 0 10px rgba(201, 162, 39, .28); }
+/* the logo keeps a soft cream edge so its navy tile stays visible on navy */
+:root[data-theme="dark"] [data-logo] svg, :root[data-theme="dark"] .brand > span:first-child svg { border-radius: 22%; box-shadow: 0 0 0 1px rgba(250,246,236,.28); }
+/* form controls */
+:root[data-theme="dark"] input, :root[data-theme="dark"] select, :root[data-theme="dark"] textarea { color: var(--ink); }
+:root[data-theme="dark"] input::placeholder, :root[data-theme="dark"] textarea::placeholder { color: #8E9BB2; opacity: 1; }
+:root[data-theme="dark"] .theme-btn { border-color: rgba(250,246,236,.3); }
+:root[data-theme="dark"] .trail-tip { box-shadow: 0 0 0 3px var(--page); }
+:root[data-theme="dark"] .trail .mark { fill: var(--surface); stroke: #4A5C7C; }
+:root[data-theme="dark"] .trail .track { stroke: rgba(200,216,240,.2); }
+/* portal: the cream wave under the header, the road in the header scene and the light scenery band */
+:root[data-theme="dark"] .sky::before { background: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1440 22%22 preserveAspectRatio=%22none%22%3E%3Cpath d=%22M0 12 C 240 0 420 8 640 11 C 900 15 1120 1 1440 8 V22 H0Z%22 fill=%22%232D2340%22 opacity=%22.55%22/%3E%3Cpath d=%22M0 17 C 260 9 520 18 760 16 C 1000 14 1200 9 1440 14 V22 H0Z%22 fill=%22%230E1A2C%22/%3E%3C/svg%3E") no-repeat bottom / 100% 100%; }
+:root[data-theme="dark"] svg.scene linearGradient[id^="r"] stop:first-child { stop-color: #2A3753; }
+:root[data-theme="dark"] svg.scene linearGradient[id^="r"] stop:last-child { stop-color: #0E1A2C; }
+:root[data-theme="dark"] .pband::before { opacity: .08; }
+/* the Ghost check finale starts from a light apricot; on dark pages it starts from the page color instead */
+:root[data-theme="dark"] .finale[style*="F0BC7E"] { --a: #0E1A2C !important; }
+:root[data-theme="dark"] .finale[style*="F0BC7E"] .hilltop path { fill: #0E1A2C; }
+/* r31: Find Your Fit and Plan & billing (from r27 to r29) */
+:root[data-theme="dark"] .bl { --bl-cream: #16263F; --bl-mid: #F3EDE0; --bl-navy: #A9C6F2; --bl-gold2: #F2D98A; }
+:root[data-theme="dark"] [style*="--ac"] { --ac-ink: color-mix(in srgb, var(--ac) 30%, #F3EDE0); --at-bg: color-mix(in srgb, var(--at) 12%, #16263F); }
+:root[data-theme="dark"] [style*="--pc"] { --pc-ink: color-mix(in srgb, var(--pc) 30%, #F3EDE0); --pb-bg: color-mix(in srgb, var(--pb) 10%, #16263F); }
+
+/* ---- theme toggle button (added to the header by site.js) ---- */
+.theme-btn { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; padding: 0; border-radius: 12px; border: 1.5px solid rgba(var(--tint-rgb), .28); background: transparent; color: inherit; cursor: pointer; transition: background-color .18s, border-color .18s; }
+.theme-btn:hover { background: rgba(var(--tint-rgb), .1); }
+.theme-btn svg { width: 20px; height: 20px; display: block; }
+.theme-btn .i-sun { display: none; }
+.theme-btn[data-mode="dark"] .i-sun { display: block; }
+.theme-btn[data-mode="dark"] .i-moon { display: none; }
+.topbar .theme-btn { margin-left: 8px; }
+.brand [data-logo], .brand > span:first-child { flex: none; }
+.phero .topbar .theme-btn { color: var(--navy); }
+.sky .theme-btn, .sky .ptop .theme-btn { color: var(--cream); border-color: rgba(251,246,238,.35); }
+.sky .theme-btn:hover { background: rgba(251,246,238,.12); }
+.ptop .theme-btn { margin-left: auto; }
+.ptop .theme-btn + .acct { margin-left: 8px; }
+.login .say { position: relative; }
+.login .say .theme-btn { position: absolute; top: 0; right: 0; color: var(--cream); border-color: rgba(251,246,238,.4); }
+@media (max-width: 760px) {
+  .topbar .theme-btn { margin-left: auto; }
+  .topbar .theme-btn + .mnav-btn { margin-left: 8px; }
+}
+@media (max-width: 1100px) {
+  .mk .topbar .theme-btn { margin-left: auto; }
+  .mk .topbar .theme-btn + .mnav-btn { margin-left: 8px; }
+}
+/* the header button takes about 52px, so above 1100px the top bar sits a little tighter on every public page */
+@media (min-width: 1101px) {
+  .mk .topbar { gap: 10px; }
+  .mk .topbar .links { margin-left: 0; }
+  .mk .topbar .links a { padding-left: 6px; padding-right: 6px; font-size: 14px; }
+  .mk .phero .topbar .right { gap: 6px; font-size: 14px; }
+  .mk .phero .topbar .right .btn { padding: 9px 14px; font-size: 14px; }
+  .mk .topbar .theme-btn { margin-left: 2px; width: 42px; height: 44px; }
+}
+.login .say .brand { padding-right: 56px; }
+.finale[style*="F0BC7E"] { padding-bottom: 96px; }
+/* the portal header is tight on narrow views: icons keep their size, and the button is a little smaller */
+.ptabs button svg, .ptop .brand svg { flex: none; }
+.ptop .theme-btn { width: 40px; height: 40px; }
+
+/* r31/r32: when the portal tabs share a narrow header (Plan & billing, Find Your Fit, Documents and other views,
+   or any window from 761px to about 1000px), the wordmark used to shrink to one letter. Now it is visually hidden
+   (still read out as the link name) and the logo stays. Browsers without container queries keep the old behavior. */
+.ptop { container-type: inline-size; container-name: ptop; }
+@media (min-width: 761px) {
+  @container ptop (max-width: 900px) {
+    .ptop .brand .bname { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  }
+}

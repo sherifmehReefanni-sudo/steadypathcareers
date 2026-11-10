@@ -96,7 +96,7 @@ function fitRadar(s) {
     var e = pt(k, 1), d = pt(k, Math.max(0.04, s[k] / 20)), l = pt(k, 1.2), A = FIT_AREA[k];
     axes += '<line x1="' + cx + '" y1="' + cy + '" x2="' + e[0].toFixed(1) + '" y2="' + e[1].toFixed(1) + '"/>';
     dots += '<circle cx="' + d[0].toFixed(1) + '" cy="' + d[1].toFixed(1) + '" r="6" fill="' + A.c + '"/>';
-    labs += '<text x="' + l[0].toFixed(1) + '" y="' + (l[1] + 5).toFixed(1) + '" text-anchor="middle" fill="' + A.c + '">' + A.name + '</text>';
+    labs += '<text x="' + l[0].toFixed(1) + '" y="' + (l[1] + 5).toFixed(1) + '" text-anchor="middle" fill="' + A.c + '" style="--ac:' + A.c + '">' + A.name + '</text>';
   });
   var label = 'Your six interest areas: ' + FIT_CYCLE.map(function (k) { return FIT_AREA[k].name + ' (' + FIT_AREA[k].onet + ') ' + s[k] + ' of 20'; }).join(', ') + '.';
   return '<svg class="fx-radar" viewBox="0 0 300 290" role="img" aria-label="' + esc(label) + '"><g class="fx-grid"><polygon points="' + ring(1) + '"/><polygon points="' + ring(2 / 3) + '"/><polygon points="' + ring(1 / 3) + '"/>' + axes + '</g>' +

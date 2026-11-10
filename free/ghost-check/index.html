@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="darkreader-lock">
-<meta name="color-scheme" content="only light">
+<meta name="color-scheme" content="light dark">
+<script>try{var t=localStorage.getItem('sp-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ghost Job Checker: is this job still open? · Steady Path Careers</title>
 <meta name="description" content="Paste a job link. We check the employer's own hiring system and tell you if the posting is still open and, when that system shares it, how long it has been up. Free, no sign-up.">
@@ -14,29 +15,29 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
-<link rel="stylesheet" href="/assets/site.css?v=20261023a">
-<link rel="stylesheet" href="/assets/path.css?v=20261027a">
-<link rel="stylesheet" href="/assets/r17.css?v=20261109b">
+<link rel="stylesheet" href="/assets/site.css?v=sp-20261110r30">
+<link rel="stylesheet" href="/assets/path.css?v=sp-20261110r30">
+<link rel="stylesheet" href="/assets/r17.css?v=sp-20261110r30">
 <meta property="og:title" content="Ghost Job Checker · Steady Path Careers">
 <meta property="og:description" content="Is this job still open? Paste the link and we check the employer's own hiring system. Free, no sign-up.">
 <meta property="og:image" content="https://steadypathcareers.com/img/og/free.png">
 <style>
 .gc-tool { max-width: 760px; }
 .gc-tool h2 { margin-bottom: 8px; }
-.gc-lead { margin: 0 0 18px; color: var(--ink2, #34425a); font-size: 17px; }
+.gc-lead { margin: 0 0 18px; color: var(--ink2, var(--txx-34425a)); font-size: 17px; }
 .gc-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: stretch; }
 .gc-form label { flex-basis: 100%; font-weight: 800; color: var(--ink); font-size: 18px; }
-.gc-form input { flex: 1 1 260px; min-width: 0; min-height: 52px; padding: 12px 16px; font: inherit; font-size: 17px; color: var(--ink); background: #fff; border: 2px solid #8794ab; border-radius: 12px; }
+.gc-form input { flex: 1 1 260px; min-width: 0; min-height: 52px; padding: 12px 16px; font: inherit; font-size: 17px; color: var(--ink); background: var(--surface); border: 2px solid #8794ab; border-radius: 12px; }
 .gc-form input:focus-visible { outline: 3px solid #10213A; outline-offset: 2px; }
 .gc-form .btn { flex: 0 0 auto; min-height: 52px; min-width: 44px; padding: 12px 22px; font-size: 17px; cursor: pointer; }
 .gc-form .btn[aria-disabled="true"] { opacity: .75; cursor: progress; }
 .gc-form .btn:focus-visible { outline: 3px solid #10213A; outline-offset: 3px; }
-.gc-saved { margin: 10px 0 0; font-size: 15px; color: var(--ink2, #34425a); }
+.gc-saved { margin: 10px 0 0; font-size: 15px; color: var(--ink2, var(--txx-34425a)); }
 .gc-saved b { color: var(--ink); }
 .gc-say { min-height: 1.5em; margin: 14px 0 0; font-weight: 700; color: var(--ink); font-size: 16px; }
 .gc-out { margin-top: 10px; }
 .gc-out[hidden] { display: none; }
-.gc-card { background: #fff; border: 1px solid var(--line); border-left: 8px solid #8794ab; border-radius: 16px; padding: 18px 20px 20px; box-shadow: 0 10px 30px -18px rgba(16,33,58,.35); }
+.gc-card { background: var(--surface); border: 1px solid var(--line); border-left: 8px solid #8794ab; border-radius: 16px; padding: 18px 20px 20px; box-shadow: 0 10px 30px -18px rgba(16,33,58,.35); }
 .gc-card[data-state="open"] { border-left-color: #1f7a46; }
 .gc-card[data-state="closed"] { border-left-color: #b23a2f; }
 .gc-card[data-state="unknown"] { border-left-color: #C9A227; }
@@ -45,30 +46,30 @@
 [data-state="open"] .gc-dot { background: #1f7a46; }
 [data-state="closed"] .gc-dot { background: #b23a2f; }
 .gc-title { margin: 6px 0 0; font-weight: 800; font-size: 18px; color: var(--navy); overflow-wrap: anywhere; }
-.gc-who { margin: 2px 0 0; color: var(--ink2, #34425a); font-size: 15px; overflow-wrap: anywhere; }
+.gc-who { margin: 2px 0 0; color: var(--ink2, var(--txx-34425a)); font-size: 15px; overflow-wrap: anywhere; }
 .gc-facts { margin: 14px 0 0; display: grid; gap: 10px; }
 .gc-facts div { display: grid; gap: 2px; }
 .gc-facts dt { font-weight: 800; color: var(--ink); font-size: 15px; }
 .gc-facts dd { margin: 0; color: var(--ink); font-size: 16px; }
 .gc-why { margin: 8px 0 0; font-size: 16px; color: var(--ink); }
-.gc-note { margin: 14px 0 0; font-size: 15px; color: var(--ink2, #34425a); overflow-wrap: anywhere; }
+.gc-note { margin: 14px 0 0; font-size: 15px; color: var(--ink2, var(--txx-34425a)); overflow-wrap: anywhere; }
 .gc-note a, .gc-more a, .gc-manual a { color: var(--navy); font-weight: 700; }
-.gc-manual { margin-top: 16px; padding: 14px 16px; background: var(--cream); border-radius: 12px; }
+.gc-manual { margin-top: 16px; padding: 14px 16px; background: var(--cream-fill); border-radius: 12px; }
 .gc-manual h3 { margin: 0 0 8px; font-size: 17px; color: var(--ink); }
 .gc-manual ol { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
 .gc-manual li { font-size: 16px; }
 .gc-more { margin: 10px 0 0; font-size: 15px; }
 .gc-list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; }
-.gc-list li { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.gc-list li { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
 .gc-list b { color: var(--navy); }
-.gc-list .where { display: block; font-size: 15px; color: var(--ink2, #34425a); overflow-wrap: anywhere; }
-.gc-list.not li { background: rgba(255,255,255,.6); }
+.gc-list .where { display: block; font-size: 15px; color: var(--ink2, var(--txx-34425a)); overflow-wrap: anywhere; }
+.gc-list.not li { background: rgba(var(--wash-rgb),.6); }
 .gc-two { display: grid; gap: 22px; }
 @media (min-width: 860px) { .gc-two { grid-template-columns: 1fr 1fr; } }
 .gc-two h3 { margin: 0 0 6px; color: var(--ink); }
 .gc-two ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
 .gc-busy-dot { display: none; }
-.is-busy .gc-busy-dot { display: inline-block; width: 10px; height: 10px; margin-left: 10px; border-radius: 50%; background: #F2D98A; vertical-align: middle; }
+.is-busy .gc-busy-dot { display: inline-block; width: 10px; height: 10px; margin-left: 10px; border-radius: 50%; background: var(--bgx-f2d98a); vertical-align: middle; }
 @media (prefers-reduced-motion: no-preference) {
   .is-busy .gc-busy-dot { animation: gcPulse 1s ease-in-out infinite; }
   @keyframes gcPulse { 50% { opacity: .25; } }
@@ -77,6 +78,7 @@
 }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
+<link rel="stylesheet" href="/assets/theme.css?v=sp-20261110r32">
 </head>
 <body class="mk">
 <a class="skip" href="#main">Skip to content</a>
@@ -136,10 +138,10 @@
 </ol>
 <p>For scam warning signs and where to report one, read the guide: <a href="/guides/fake-job-postings/">how to spot a fake job posting</a>.</p>
 </div></div></section>
-<section class="finale" data-mile style="--a:#F0BC7E"><div class="wrap"><h2>Want this done for you?</h2><p>Every match is checked against the employer's posting before it reaches you, and when no full posting can be read, the job is held back. Free for 30 days.</p><a class="btn gold" href="/start/">Start free</a><p class="alt">Want to talk first? <a href="https://calendar.app.google/8wyFoDK5k6k1iamT9" target="_blank" rel="noopener">Book a free 15-minute intro call</a></p></div></section>
+<section class="finale" data-mile style="--a:#F0BC7E"><div class="wrap"><h2>Want this done for you?</h2><p>Every match is checked against the employer's posting before it reaches you, and when no full posting can be read, the job is held back. Free for 14 days.</p><a class="btn gold" href="/start/">Start free</a><p class="alt">Want to talk first? <a href="https://calendar.app.google/8wyFoDK5k6k1iamT9" target="_blank" rel="noopener">Book a free 15-minute intro call</a></p></div></section>
 </main>
 <footer class="foot"><div class="wrap"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><nav aria-label="Footer"><a href="/services/">What you get</a><a href="/sample/">Sample report</a><a href="/pay/">Pay lookup</a><a href="/guides/">Guides</a><a href="/free/">Free tools</a><a href="/about/">About</a><a href="https://calendar.app.google/8wyFoDK5k6k1iamT9" target="_blank" rel="noopener">Book a call</a><a href="/app/">Get the app</a><a href="/portal/">Client sign in</a></nav><p class="where"><span class="wg wt">&copy; 2026 Steady Path Careers</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg wt">Monmouth County, NJ</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="/terms/">Terms</a> &middot; <a href="/privacy/">Privacy</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="tel:+17327590008">(732) 759-0008</a></span></p></div></footer>
-<script src="/assets/site.js?v=20261110r26"></script>
+<script src="/assets/site.js?v=sp-20261110r30"></script>
 <script src="/assets/path.js?v=20261026a"></script>
 <script defer src="/assets/r17.js?v=20261106a"></script>
 <script defer src="/free/ghost-check/ghost-check.js?v=20261106b"></script>
