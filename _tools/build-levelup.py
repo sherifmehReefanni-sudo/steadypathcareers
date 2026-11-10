@@ -60,8 +60,8 @@ S.append(sec(0, '''<p class="meta">By Steady Path Careers. Last checked November
 S.append(sec(1, '''<h2>What the postings we screen ask for</h2>
 <p>Every day our system reads employer job postings for the roles our clients want. On November 10, 2026, we counted which credentials those postings mention. Here is what we found in one client's search, which covers insurance account manager and account executive roles plus B2B account executive and customer success roles, in New Jersey, New York and remote:</p>
 ''' + table(['Credential', 'Postings that mention it', 'Said it was required'], [
-    ['Property &amp; Casualty (P&amp;C) license', '80 of 976 (8%)', '51'],
-    ["Bachelor's degree", '70 of 976 (7%)', '33'],
+    ['Property &amp; Casualty (P&amp;C) license', '80 of 976 (8%)', '53'],
+    ["Bachelor's degree", '70 of 976 (7%)', '27'],
     ['Life &amp; Health license', '11 of 976 (1%)', '5'],
     ['CIC (Certified Insurance Counselor)', '6 of 976', '0 (5 said preferred)'],
     ['CPCU', '2 of 976', '0 (2 said preferred)'],
