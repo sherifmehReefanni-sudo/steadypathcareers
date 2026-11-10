@@ -2,6 +2,8 @@
 """Builds /free/, /free/laid-off-72-hours/ and /free/follow-up-scripts/ for branch r19a.
 Run from the site root: python3 _tools/build-free.py .   (Folders starting with "_" are not published.) Reads shared art from guides/laid-off/index.html."""
 import re, sys, html, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import theme_tokens
 ROOT = sys.argv[1]
 G = open(os.path.join(ROOT, 'guides/laid-off/index.html'), encoding='utf-8').read()
 HORIZON = re.search(r'<svg class="horizon".*?</svg>', G).group(0)
@@ -628,5 +630,6 @@ if __name__ == '__main__':
     kit, order = build_kit()
     for rel, content in [('free/index.html', build_hub()), ('free/laid-off-72-hours/index.html', kit), ('free/follow-up-scripts/index.html', build_scripts())]:
         p = os.path.join(ROOT, rel); os.makedirs(os.path.dirname(p), exist_ok=True)
+        content = theme_tokens.apply_html(content)  # r30: light/dark theme tokens, as in the committed pages
         open(p, 'w', encoding='utf-8').write(content); print('wrote', rel, len(content))
     print('sources used:', len(order))
