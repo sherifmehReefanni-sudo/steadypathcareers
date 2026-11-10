@@ -57,3 +57,9 @@
   .lvl-tile .disc svg { width: 26px; height: 26px; }
   .lvl-tile em { display: none; }
 }
+/* contrast: the band is always dark, so pin the gold button's text to navy in every theme, and lift tile copy */
+.lvl .btn.gold, :root[data-theme="dark"] .lvl .btn.gold { color: #10213A !important; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .lvl .btn.gold { color: #10213A !important; } }
+.lvl-tile { background: rgba(8,20,38,.42); }
+.lvl-tile:hover, .lvl-tile:focus-visible { background: rgba(8,20,38,.6); }
+.lvl-tile span, .lvl .lead, .lvl-hero p, .lvl-foot p { color: #DCE4F0; }
