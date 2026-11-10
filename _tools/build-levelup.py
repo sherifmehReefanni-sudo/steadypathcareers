@@ -58,16 +58,16 @@ S.append(sec(0, '''<p class="meta">By Steady Path Careers. Last checked November
 <p>A license or certification can open doors, but only if employers near you ask for it. So this page starts with what real postings say, then shows what each credential takes and how to get help paying for it.</p>''', 'short'))
 
 S.append(sec(1, '''<h2>What the postings we screen ask for</h2>
-<p>Every day our system reads employer job postings for the roles our clients want. On November 10, 2026, we counted which credentials those postings mention. Here is what we found for insurance account manager and account executive roles in New Jersey, New York and remote:</p>
+<p>Every day our system reads employer job postings for the roles our clients want. On November 10, 2026, we counted which credentials those postings mention. Here is what we found in one client's search, which covers insurance account manager and account executive roles plus B2B account executive and customer success roles, in New Jersey, New York and remote:</p>
 ''' + table(['Credential', 'Postings that mention it', 'Said it was required'], [
-    ['Property &amp; Casualty (P&amp;C) license', '80 of 976 (8%)', '43'],
-    ["Bachelor's degree", '70 of 976 (7%)', '32'],
+    ['Property &amp; Casualty (P&amp;C) license', '80 of 976 (8%)', '51'],
+    ["Bachelor's degree", '70 of 976 (7%)', '33'],
     ['Life &amp; Health license', '11 of 976 (1%)', '5'],
     ['CIC (Certified Insurance Counselor)', '6 of 976', '0 (5 said preferred)'],
     ['CPCU', '2 of 976', '0 (2 said preferred)'],
     ['CISR', '2 of 976', '0 (1 said preferred)'],
 ], 'Table: credentials mentioned in insurance postings. Scroll sideways to see every column.') + '''
-<p><b>How to read this:</b> these are postings found in the last 60 days. We only store the first 2,000 characters of each posting, and requirements often come later, so the real numbers are higher. Treat them as a floor. The takeaway is still clear: for insurance sales and service jobs, the P&amp;C license matters most, and designations like CIC are a plus, rarely a must.</p>
+<p><b>How to read this:</b> these are postings found in the last 60 days. We only store the first 2,000 characters of each posting, and requirements often come later, so the real numbers are higher. Treat them as a floor. The takeaway is still clear: for the insurance jobs in this search, the P&amp;C license matters most, and designations like CIC are a plus, rarely a must.</p>
 <p>We run this count for each client's own job titles. When a job we send you requires a license or certification your resume doesn't show, the job card says so and points back here.</p>'''))
 
 S.append(sec(2, '''<h2>How to get training paid for</h2>
@@ -85,7 +85,7 @@ S.append(sec(3, '''<h2>Insurance licenses</h2>
     ['<b>Life &amp; Health class</b>', '40 hours (20 life, 20 health)', 'At least 40 hours'],
     ['<b>Exam</b>', 'PSI', 'PSI'],
     ['<b>License fee</b>', '$170 ($150 license plus $20 application)', '$80'],
-    ['<b>Fingerprints</b>', 'Required, $66.05 through IdentoGo', 'Ask NY DFS'],
+    ['<b>Fingerprints</b>', 'Required, $66.05 through IDEMIA (IdentoGo)', 'Ask NY DFS'],
 ], 'Table: NJ and NY insurance license requirements. Scroll sideways to see every column.') + '''
 <p>Pre-licensing courses online typically run from about $130 to $350, depending on the school and package. Check that the school is approved in your state before you pay. New Jersey publishes its list of approved education providers on the Department of Banking and Insurance site.</p>'''))
 
@@ -95,8 +95,8 @@ S.append(sec(4, '''<h2>Designations and certifications</h2>
     ['<b>CISR</b> (insurance service)', 'Pass 5 of 9 courses within 3 years. Open to anyone working in insurance.', 'PIA NJ lists $180 per course'],
     ['<b>CPCU</b> (insurance)', '8 courses plus ethics. Most people finish in 18 to 24 months.', 'About $5,600 to $6,000 in total'],
     ['<b>PMP</b> (project management)', '36 months leading projects with a 4-year degree, or 60 months without, plus 35 hours of training.', 'Exam $405 for PMI members, $555 for others'],
-    ['<b>Google Career Certificates</b> (IT support, data, project management and more)', 'Self-paced online. Most finish in 3 to 6 months at under 10 hours a week.', '$49 a month on Coursera; free routes through some nonprofits'],
-    ['<b>CompTIA A+, Network+, Security+</b> (IT)', 'No required prerequisites. Security+ suggests Network+ and about 2 years of experience first.', 'Check comptia.org; county colleges near you may offer funded prep courses'],
+    ['<b>Google Career Certificates</b> (IT support, data, project management and more)', 'Self-paced online. Most finish in 3 to 6 months at under 10 hours a week.', '$49 a month on Coursera'],
+    ['<b>CompTIA Network+, Security+</b> (IT)', 'No required prerequisites listed. Security+ suggests Network+ and about 2 years of experience first.', 'Check comptia.org; county colleges near you may offer funded prep courses'],
 ], 'Table: designations and certifications. Scroll sideways to see every column.') + '''
 <p>Several county colleges run courses that may qualify for career-center funding. For example, Brookdale Community College in Monmouth County lists a CompTIA Network+ course on New Jersey's training site, marked as possibly eligible for One-Stop funding.</p>'''))
 
@@ -104,7 +104,7 @@ S.append(sec(5, '''<h2>Before you spend money on a credential</h2>
 <ul>
 <li><b>Check the postings first.</b> If almost no jobs near you ask for it, it may not be worth the time yet.</li>
 <li><b>Look for "required" versus "preferred."</b> A required license gets you in the door. A preferred one helps you stand out.</li>
-<li><b>Watch for jobs that pay for it.</b> Some employers hire you first and pay for your license within your first months. Our job cards point these out.</li>
+<li><b>Watch for jobs that pay for it.</b> Some postings say the employer will help you get the license after you're hired. Read the posting closely, and ask in the interview.</li>
 <li><b>No credential guarantees a job.</b> It widens the jobs you qualify for. We'll tell you honestly what the postings show.</li>
 </ul>
 <p>We don't earn money from any school or course on this page.</p>'''))
@@ -126,6 +126,7 @@ srcs = [
     ('PMI, PMP certification', 'https://www.pmi.org/certifications/project-management-pmp'),
     ('Google Career Certificates', 'https://grow.google/certificates/'),
     ('CompTIA Security+', 'https://www.comptia.org/en-us/certifications/security/v7/'),
+    ('CompTIA Network+ FAQ', 'https://www.comptia.org/faq/network/how-much-does-the-comptia-network-certification-cost'),
     ('IRS, Section 127 educational assistance FAQs', 'https://www.irs.gov/newsroom/irs-updates-frequently-asked-questions-about-section-127-educational-assistance-programs'),
     ('My Career NJ, Brookdale CompTIA Network+ listing', 'https://mycareer.nj.gov/training/49478'),
     ('Course price examples: Kaplan NJ P&amp;C', 'https://www.kaplanfinancial.com/insurance/new-jersey/property-casualty'),
