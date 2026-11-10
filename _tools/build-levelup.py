@@ -59,15 +59,15 @@ S.append(sec(0, '''<p class="meta">By Steady Path Careers. Last checked November
 
 S.append(sec(1, '''<h2>What the postings we screen ask for</h2>
 <p>Every day our system reads employer job postings for the roles our clients want. On November 10, 2026, we counted which credentials those postings mention. Here is what we found in one client's search, which covers insurance account manager and account executive roles plus B2B account executive and customer success roles, in New Jersey, New York and remote:</p>
-''' + table(['Credential', 'Postings that mention it', 'Said it was required'], [
-    ['Property &amp; Casualty (P&amp;C) license', '80 of 976 (8%)', '53'],
-    ["Bachelor's degree", '70 of 976 (7%)', '27'],
-    ['Life &amp; Health license', '11 of 976 (1%)', '5'],
-    ['CIC (Certified Insurance Counselor)', '6 of 976', '0 (5 said preferred)'],
-    ['CPCU', '2 of 976', '0 (2 said preferred)'],
-    ['CISR', '2 of 976', '0 (1 said preferred)'],
+''' + table(['Credential', 'Postings that mention it'], [
+    ['Property &amp; Casualty (P&amp;C) license', '80 of 976 (8%)'],
+    ["Bachelor's degree", '70 of 976 (7%)'],
+    ['Life &amp; Health license', '11 of 976 (1%)'],
+    ['CIC (Certified Insurance Counselor)', '6 of 976'],
+    ['CPCU', '2 of 976'],
+    ['CISR', '2 of 976'],
 ], 'Table: credentials mentioned in insurance postings. Scroll sideways to see every column.') + '''
-<p><b>How to read this:</b> these are postings found in the last 60 days. We only store the first 2,000 characters of each posting, and requirements often come later, so the real numbers are higher. Treat them as a floor. The takeaway is still clear: for the insurance jobs in this search, the P&amp;C license matters most, and designations like CIC are a plus, rarely a must.</p>
+<p><b>How to read this:</b> these are postings found in the last 60 days. We only store the first 2,000 characters of each posting, and requirements often come later, so the real numbers are higher. Treat them as a floor. The takeaway is still clear: for the insurance jobs in this search, the P&amp;C license comes up more than 10 times as often as any insurance designation. Many of those postings list the license as a requirement, while CIC and CPCU mostly appear as a plus.</p>
 <p>We run this count for each client's own job titles. When a job we send you requires a license or certification your resume doesn't show, the job card says so and points back here.</p>'''))
 
 S.append(sec(2, '''<h2>How to get training paid for</h2>
