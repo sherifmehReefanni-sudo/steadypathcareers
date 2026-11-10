@@ -94,7 +94,7 @@ MAIN = f'''<main id="main" class="trail-main" data-trail>
 <section class="sec" id="signin" data-mile style="--a:#F5D9B3;--b:#F0BC7E"><div class="wrap"><h2 data-reveal>Signing in from the app</h2><div class="ap-code" data-reveal><p style="margin:0">There is no password. The first time you open the app:</p><ol><li>Enter your email and tap <b>Email me a sign-in link</b>.</li><li>The email has a link and a <b>6-digit code</b>. Type the code into the app.</li><li>That&#39;s it. The app stays signed in on that phone for 90 days.</li></ol><p style="margin:10px 0 0">Why the code? On an iPhone, the home screen app keeps its own sign-in, separate from Safari, so tapping the link in the email would sign you in to Safari instead. The code signs you in right inside the app. Each link and code works once.</p></div></div></section>
 '''
 fin = body[body.index('<section class="finale"'):]
-fin = re.sub(r'<div class="wrap"><h2>Ready when you are\.</h2><p>[^<]*</p>', '<div class="wrap"><h2>Not a client yet?</h2><p>The app comes with the service. Free for 30 days while Steady Path Careers is in its pilot. No card needed.</p>', fin, count=1)
+fin = re.sub(r'<div class="wrap"><h2>Ready when you are\.</h2><p>[^<]*</p>', '<div class="wrap"><h2>Not a client yet?</h2><p>The app comes with the service. Free for 14 days while Steady Path Careers is in its pilot. No card needed.</p>', fin, count=1)
 assert 'Not a client yet?' in fin
 SCRIPT = '''<script>
 /* Get the app: standalone mode hides the install steps; the native install button shows only when the browser offers it. */

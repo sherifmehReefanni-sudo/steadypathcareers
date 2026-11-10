@@ -43,5 +43,38 @@ window.SP = (function () {
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
   })();
-  return { LOGO: LOGO, mark: mark, scene: scene, esc: esc, fmtDate: fmtDate, daysFrom: daysFrom, toast: toast, greeting: greeting };
+  // r30: light and dark themes. The page follows the system setting until the visitor picks one with the
+  // header button; the pick is kept in localStorage ("sp-theme") and applied before first paint by a tiny script in <head>.
+  var THEME_KEY = 'sp-theme', de = document.documentElement, mq = null;
+  try { mq = window.matchMedia('(prefers-color-scheme: dark)'); } catch (e) {}
+  function themeNow() { var t = de.getAttribute('data-theme'); if (t === 'light' || t === 'dark') return t; return mq && mq.matches ? 'dark' : 'light'; }
+  function themeLabel(m) { return m === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'; }
+  function themeBtn() {
+    var m = themeNow();
+    return '<button type="button" class="theme-btn" data-theme-toggle data-mode="' + m + '" aria-label="' + themeLabel(m) + '" title="' + themeLabel(m) + '">' +
+      '<svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>' +
+      '<svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>';
+  }
+  function themeSync() {
+    var m = themeNow();
+    document.querySelectorAll('[data-theme-toggle]').forEach(function (b) { b.setAttribute('data-mode', m); b.setAttribute('aria-label', themeLabel(m)); b.setAttribute('title', themeLabel(m)); });
+    var tc = document.querySelector('meta[name="theme-color"]');
+    if (tc) { if (!tc.hasAttribute('data-light')) tc.setAttribute('data-light', tc.getAttribute('content') || ''); tc.setAttribute('content', m === 'dark' ? '#0E1A2C' : tc.getAttribute('data-light')); }
+  }
+  function themeSet(m) { de.setAttribute('data-theme', m); try { localStorage.setItem(THEME_KEY, m); } catch (e) {} themeSync(); }
+  document.addEventListener('click', function (e) {
+    var b = e.target && e.target.closest ? e.target.closest('[data-theme-toggle]') : null;
+    if (!b) return;
+    themeSet(themeNow() === 'dark' ? 'light' : 'dark');
+  });
+  if (mq) { var onMq = function () { themeSync(); }; if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq); }
+  (function () {
+    var bar = document.querySelector('.topbar');
+    if (!bar || bar.querySelector('[data-theme-toggle]')) return;
+    var holder = document.createElement('span'); holder.innerHTML = themeBtn();
+    var btn = holder.firstChild, menu = bar.querySelector('.mnav-btn');
+    if (menu) bar.insertBefore(btn, menu); else bar.appendChild(btn);
+  })();
+  themeSync();
+  return { LOGO: LOGO, mark: mark, scene: scene, themeBtn: themeBtn, themeSync: themeSync, esc: esc, fmtDate: fmtDate, daysFrom: daysFrom, toast: toast, greeting: greeting };
 })();

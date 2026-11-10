@@ -12,7 +12,7 @@ const path = require('path');
 
 const LOGO = fs.readFileSync(path.join(__dirname, '..', 'assets', 'favicon.svg'), 'utf8').replace(/<\?xml[^>]*>/, '');
 const PAGES = [
-  { file: 'home', kicker: 'Job search help in New Jersey and New York', title: 'Your next job, one honest step at a time.', foot: 'Checked openings. Clear pay. Free for 30 days.' },
+  { file: 'home', kicker: 'Job search help in New Jersey and New York', title: 'Your next job, one honest step at a time.', foot: 'Checked openings. Clear pay. Free for 14 days.' },
   { file: 'guides', kicker: 'Guides', title: 'Job search guides', foot: 'Plain-English help for job seekers in NJ and NY.' },
   { file: 'pay', kicker: 'Free pay lookup', title: 'What does this job pay in NJ and NY?', foot: 'Typical yearly pay from government wage data.' },
   { file: 'sample', kicker: 'Sample report', title: 'Sample weekly report', foot: 'What a client sees each week. Sample data.' },

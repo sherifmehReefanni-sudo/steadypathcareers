@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="darkreader-lock">
-<meta name="color-scheme" content="only light">
+<meta name="color-scheme" content="light dark">
+<script>try{var t=localStorage.getItem('sp-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>What does this job pay in NJ and NY? · Steady Path Careers</title>
 <meta name="description" content="Look up typical pay for common jobs in New Jersey and New York, from U.S. Bureau of Labor Statistics wage data. Free, no sign-up.">
@@ -13,9 +14,9 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
-<link rel="stylesheet" href="/assets/site.css?v=20261023a">
-<link rel="stylesheet" href="/assets/path.css?v=20261027a">
-<link rel="stylesheet" href="/assets/r17.css?v=20261109b">
+<link rel="stylesheet" href="/assets/site.css?v=sp-20261110r30">
+<link rel="stylesheet" href="/assets/path.css?v=sp-20261110r30">
+<link rel="stylesheet" href="/assets/r17.css?v=sp-20261110r30">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Steady Path Careers">
 <meta property="og:url" content="https://steadypathcareers.com/pay/">
@@ -34,19 +35,19 @@
 <style>
 .tool { max-width: 820px; }
 .search { display: flex; gap: 10px; flex-wrap: wrap; }
-.search input { flex: 1 1 260px; min-width: 0; padding: 14px 16px; font: inherit; font-size: 17px; border: 2px solid #cfd6e3; border-radius: 12px; }
-.seg { display: inline-flex; border: 2px solid #cfd6e3; border-radius: 12px; overflow: hidden; }
-.seg button { border: 0; background: #fff; padding: 12px 16px; font: inherit; font-weight: 700; cursor: pointer; color: var(--ink); }
-.seg button[aria-pressed="true"] { background: var(--navy); color: var(--cream); }
+.search input { flex: 1 1 260px; min-width: 0; padding: 14px 16px; font: inherit; font-size: 17px; border: 2px solid var(--bdx-cfd6e3); border-radius: 12px; }
+.seg { display: inline-flex; border: 2px solid var(--bdx-cfd6e3); border-radius: 12px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 12px 16px; font: inherit; font-weight: 700; cursor: pointer; color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--navy-fill); color: var(--cream); }
 .sugg { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.sugg button { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 11px 16px; min-height: 44px; font: inherit; font-size: 15px; cursor: pointer; }
+.sugg button { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 11px 16px; min-height: 44px; font: inherit; font-size: 15px; cursor: pointer; }
 .res { display: grid; gap: 14px; margin-top: 18px; }
-.rcard { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
+.rcard { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; }
 .rcard h3 { margin: 0 0 4px; color: var(--navy); }
 .rcard .mid { font: 800 34px/1.1 var(--display, inherit); color: var(--ink); margin: 6px 0 2px; }
-.bar { position: relative; height: 14px; border-radius: 99px; background: linear-gradient(90deg, #e9eef6, var(--gold-soft)); margin: 18px 0 8px; }
-.bar .span { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, var(--navy), var(--gold)); }
-.bar .dot { position: absolute; top: -5px; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 4px solid var(--gold); transform: translateX(-50%); }
+.bar { position: relative; height: 14px; border-radius: 99px; background: linear-gradient(90deg, var(--bgx-e9eef6), var(--gold-soft)); margin: 18px 0 8px; }
+.bar .span { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, var(--navy-fill), var(--gold)); }
+.bar .dot { position: absolute; top: -5px; width: 24px; height: 24px; border-radius: 50%; background: var(--surface); border: 4px solid var(--gold); transform: translateX(-50%); }
 .scale { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
 .legend { display: flex; flex-wrap: wrap; gap: 18px; font-size: 14px; color: var(--muted); margin-top: 6px; }
 .legend b { color: var(--ink); }
@@ -57,13 +58,13 @@
 .mk .tool h2 { margin-bottom: 16px; }
 .mk .seg button { min-height: 48px; font-size: 16px; }
 .mk .seg button:focus-visible { outline: 3px solid #10213A; outline-offset: -6px; box-shadow: none; }
-.mk .seg button[aria-pressed="true"]:focus-visible { outline-color: #F2D98A; }
+.mk .seg button[aria-pressed="true"]:focus-visible { outline-color: var(--bdx-f2d98a); }
 .mk .sugg button { font-size: 16px; }
 .mk .rcard .legend, .mk .rcard .scale, .mk .rcard .psub { font-size: 16px; }
-.mk .search input { background: #fff; }
+.mk .search input { background: var(--surface); }
 .mine { margin-top: 18px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; max-width: 420px; }
 .mine label { font-weight: 800; color: var(--ink); font-size: 17px; }
-.mine-row { display: flex; align-items: center; background: #fff; border: 2px solid #cfd6e3; border-radius: 12px; padding-left: 14px; }
+.mine-row { display: flex; align-items: center; background: var(--surface); border: 2px solid var(--bdx-cfd6e3); border-radius: 12px; padding-left: 14px; }
 .mine-row span { font-weight: 800; color: var(--ink2); }
 .mine-row input { flex: 1; min-width: 0; border: 0; background: transparent; padding: 12px 12px 12px 6px; font: inherit; font-size: 17px; color: var(--ink); border-radius: 12px; }
 .mine-row:focus-within { outline: 3px solid #10213A; outline-offset: 2px; }
@@ -79,7 +80,7 @@
 .share[hidden] { display: none; }
 .share .btn { gap: 8px; }
 .mk .share-msg { margin: 0; font-weight: 700; color: var(--ink); font-size: 16px; }
-.share-link { flex-basis: 100%; padding: 12px; font: inherit; font-size: 15px; border: 2px solid #cfd6e3; border-radius: 10px; background: #fff; }
+.share-link { flex-basis: 100%; padding: 12px; font: inherit; font-size: 15px; border: 2px solid var(--bdx-cfd6e3); border-radius: 10px; background: var(--surface); }
 @media (prefers-reduced-motion: no-preference) {
   .motion .res.anim .bar .span { animation: payDraw .8s cubic-bezier(.2,.8,.2,1) both; }
   .motion .res.anim .bar .dot { animation: paySlide .8s .15s cubic-bezier(.2,.8,.2,1) both; }
@@ -94,35 +95,35 @@
 .ofr-in .ofr-f:first-child, .ofr-match { grid-column: 1 / -1; }
 .ofr-f { display: grid; gap: 6px; }
 .ofr-f label, .ofr-lbl, .ofr-match legend { font-weight: 800; color: var(--ink); font-size: 17px; }
-.ofr-f input[type="search"] { padding: 14px 16px; font: inherit; font-size: 17px; border: 2px solid #cfd6e3; border-radius: 12px; background: #fff; min-width: 0; }
+.ofr-f input[type="search"] { padding: 14px 16px; font: inherit; font-size: 17px; border: 2px solid var(--bdx-cfd6e3); border-radius: 12px; background: var(--surface); min-width: 0; }
 .ofr-f .seg { justify-self: start; }
 .ofr-in .mine { margin-top: 0; max-width: none; }
 .mk .ofr-help { margin: 0; font-size: 15px; color: var(--ink2); }
 .ofr-match { border: 0; margin: 0; padding: 0; min-width: 0; }
 .ofr-match legend { padding: 0; margin-bottom: 8px; }
 .ofr-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-.ofr-pills label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; background: #fff; border: 2px solid #cfd6e3; border-radius: 12px; font-size: 16px; font-weight: 700; color: var(--ink); cursor: pointer; }
+.ofr-pills label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; background: var(--surface); border: 2px solid var(--bdx-cfd6e3); border-radius: 12px; font-size: 16px; font-weight: 700; color: var(--ink); cursor: pointer; }
 .ofr-pills input { width: 20px; height: 20px; margin: 0; accent-color: var(--navy); flex: none; }
-.ofr-pills label:has(input:checked) { border-color: var(--navy); background: #EEF2F9; }
+.ofr-pills label:has(input:checked) { border-color: var(--navy); background: var(--bgx-eef2f9); }
 .ofr-pills label:focus-within { outline: 3px solid #10213A; outline-offset: 2px; }
 .ofr-pills input:focus-visible { outline: none; }
 .ofr-out { margin-top: 18px; }
 .ofr-out:empty { display: none; }
 .ofr-tag { display: inline-block; font-weight: 800; font-size: 15px; border-radius: 99px; padding: 3px 12px; margin-right: 6px; vertical-align: 2px; }
-.ofr-tag.t0 { background: var(--bad-soft); color: #7A231A; }
-.ofr-tag.t1 { background: var(--gold-soft); color: #5a4300; }
-.ofr-tag.t2 { background: #E1EAFB; color: #1d3f78; }
-.ofr-tag.t3 { background: var(--ok-soft); color: #165a34; }
+.ofr-tag.t0 { background: var(--bad-soft); color: var(--txx-7a231a); }
+.ofr-tag.t1 { background: var(--gold-soft); color: var(--txx-5a4300); }
+.ofr-tag.t2 { background: var(--bgx-e1eafb); color: var(--txx-1d3f78); }
+.ofr-tag.t3 { background: var(--ok-soft); color: var(--txx-165a34); }
 .mk .ofr-verdict { font-size: 18px; font-weight: 700; color: var(--ink); margin: 6px 0 0; }
 .mk .ofr-conv { font-size: 16px; color: var(--ink2); margin: 4px 0 0; }
 .ofr-ask { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
 .mk .ofr-ask p { margin: 4px 0 0; font-size: 16px; color: var(--ink2); }
 .mk .ofr-ask .ofr-askv { font: 800 30px/1.15 var(--display); color: var(--midnight); margin: 2px 0 0; }
-.mk .ofr-warn { font-weight: 800; color: var(--midnight); background: #fff; border-left: 5px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin: 0 0 14px; font-size: 16px; }
-.ofr-mail { margin-top: 22px; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; display: grid; gap: 8px; }
+.mk .ofr-warn { font-weight: 800; color: var(--midnight); background: var(--surface); border-left: 5px solid var(--gold); border-radius: 8px; padding: 10px 14px; margin: 0 0 14px; font-size: 16px; }
+.ofr-mail { margin-top: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; display: grid; gap: 8px; }
 .ofr-mail h3 { margin: 0 0 4px; color: var(--navy); }
 .ofr-mail label { font-weight: 800; color: var(--ink); font-size: 16px; }
-.ofr-mail textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; line-height: 1.5; color: var(--ink); border: 2px solid #cfd6e3; border-radius: 12px; padding: 12px; resize: vertical; min-height: 280px; background: #fff; }
+.ofr-mail textarea { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; line-height: 1.5; color: var(--ink); border: 2px solid var(--bdx-cfd6e3); border-radius: 12px; padding: 12px; resize: vertical; min-height: 280px; background: var(--surface); }
 .ofr-copy { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .ofr [hidden] { display: none !important; }
 .ofr .bar .you span { white-space: nowrap; }
@@ -132,6 +133,7 @@
 .ofr-out.ofr-stale .ofr-ask, .ofr-out.ofr-stale .ofr-switch { visibility: hidden; }
 @media (max-width: 640px) { .ofr-in { grid-template-columns: minmax(0, 1fr); } .ofr-mail { padding: 14px; } }
 </style>
+<link rel="stylesheet" href="/assets/theme.css?v=sp-20261110r30">
 </head>
 <body class="mk">
 <a class="skip" href="#main">Skip to content</a>
@@ -153,10 +155,10 @@
 <p class="psub" id="oSrc" style="margin-top:18px;font-size:15px"></p>
 </div></div></section>
 <section class="sec" id="read" data-mile style="--a:#F7E2C4;--b:#F0BC7E"><div class="wrap"><div class="split" style="margin-bottom:28px"><div><h2 data-reveal>How to read the numbers</h2><p class="lead" data-reveal style="margin-bottom:0">Three numbers per job, for the whole state.</p></div><div data-reveal="pop" style="max-width:320px;width:100%;justify-self:end"><svg class="ill" viewBox="0 0 320 240" aria-hidden="true" focusable="false" data-live><g transform="translate(160 104)"><g class="sway"><path d="M-90 -50 H60 L100 0 L60 50 H-90 Q-102 50 -102 38 V-38 Q-102 -50 -90 -50Z" fill="#C9A227"/><circle cx="66" r="9" fill="#FBF6EE"/><text x="-20" y="16" text-anchor="middle" font-family="Manrope, sans-serif" font-weight="800" font-size="46" fill="#10213A">$</text></g></g><rect x="40" y="186" width="240" height="14" rx="7" fill="#DCE4F3"/><g transform="translate(96 186)"><rect class="rise d2" width="140" height="14" rx="7" fill="#1F3A5F"/></g><g transform="translate(166 193)"><g class="pop d4"><circle r="13" fill="#fff" stroke="#C9A227" stroke-width="5"/></g></g></svg></div></div><div class="kfacts stagger"><div><b>Middle of the pack</b><span>The median: half earn more, half earn less.</span></div><div><b>Lowest-paid 25%</b><span>A quarter of workers in the job earn under this.</span></div><div><b>Highest-paid 25%</b><span>A quarter of workers in the job earn over this.</span></div><div><b>Not an offer</b><span>Statewide wages for all workers in the job. Pay varies by employer, experience and region.</span></div></div></div></section>
-<section class="finale" data-mile style="--a:#0B4A52"><svg class="hilltop" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 34 C 200 6 380 10 560 30 C 760 52 980 8 1200 16 C 1310 20 1390 30 1440 36 V60 H0Z" fill="#0B4A52"/></svg><div class="wrap"><h2>Want jobs that actually pay this?</h2><p>Every job shows pay as the employer posted it. When pay isn&#39;t posted, the job card says so. Each one is checked live. Free for 30 days while Steady Path Careers is in its pilot.</p><a class="btn gold" href="/start/">Start free</a></div><svg class="ill" viewBox="0 0 760 320" aria-hidden="true" focusable="false" data-live><defs><radialGradient id="fin-g"><stop offset="0" stop-color="#FFE7A6" stop-opacity=".95"/><stop offset=".5" stop-color="#F2B65A" stop-opacity=".45"/><stop offset="1" stop-color="#E9A23B" stop-opacity="0"/></radialGradient><linearGradient id="fin-r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBF6EE"/><stop offset="1" stop-color="#F7E7CC"/></linearGradient></defs><circle class="breathe" cx="380" cy="300" r="250" fill="url(#fin-g)"/><g transform="translate(380 300)"><g class="spin"><path d="M0 -150 V-196" transform="rotate(0)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(15)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(30)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(45)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(60)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(75)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(90)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(105)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(120)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(135)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(150)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(165)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(180)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(195)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(210)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(225)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(240)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(255)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(270)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(285)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(300)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(315)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(330)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(345)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/></g></g><g transform="translate(380 300)"><g class="rise"><circle r="122" fill="#C9A227"/><circle r="122" fill="#F2D98A" opacity=".35"/></g></g><path d="M-1000 270 C -600 240 -200 262 0 262 C 120 236 230 250 330 262 C 430 274 540 238 760 252 C 1000 262 1400 236 1760 258 V330 H-1000Z" fill="#7A2E5C" opacity=".85"/><path d="M-1000 292 C -600 276 -200 296 0 290 C 150 272 260 286 380 288 C 500 290 620 270 760 282 C 1000 290 1400 272 1760 286 V330 H-1000Z" fill="#10213A"/><path d="M 372 292 C 368 300 330 312 300 320 L 460 320 C 430 312 392 300 388 292Z" fill="url(#fin-r)"/><g class="drift"><path d="M150 120 q9 -9 18 0 q9 -9 18 0" fill="none" stroke="#FBF6EE" stroke-width="3" stroke-linecap="round"/><path d="M196 96 q6 -6 12 0 q6 -6 12 0" fill="none" stroke="#FBF6EE" stroke-width="2.5" stroke-linecap="round"/><path d="M590 140 q8 -8 16 0 q8 -8 16 0" fill="none" stroke="#FBF6EE" stroke-width="3" stroke-linecap="round"/></g><g transform="translate(90 70) scale(1.2)"><g class="twinkle"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#F2D98A"/></g></g><g transform="translate(670 60) scale(1.1)"><g class="twinkle d2"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#F2D98A"/></g></g><g transform="translate(560 110) scale(0.8)"><g class="twinkle d3"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#FBF6EE"/></g></g><g transform="translate(230 40) scale(0.8)"><g class="twinkle d2"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#FBF6EE"/></g></g></svg></section>
+<section class="finale" data-mile style="--a:#0B4A52"><svg class="hilltop" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 34 C 200 6 380 10 560 30 C 760 52 980 8 1200 16 C 1310 20 1390 30 1440 36 V60 H0Z" fill="#0B4A52"/></svg><div class="wrap"><h2>Want jobs that actually pay this?</h2><p>Every job shows pay as the employer posted it. When pay isn&#39;t posted, the job card says so. Each one is checked live. Free for 14 days while Steady Path Careers is in its pilot.</p><a class="btn gold" href="/start/">Start free</a></div><svg class="ill" viewBox="0 0 760 320" aria-hidden="true" focusable="false" data-live><defs><radialGradient id="fin-g"><stop offset="0" stop-color="#FFE7A6" stop-opacity=".95"/><stop offset=".5" stop-color="#F2B65A" stop-opacity=".45"/><stop offset="1" stop-color="#E9A23B" stop-opacity="0"/></radialGradient><linearGradient id="fin-r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBF6EE"/><stop offset="1" stop-color="#F7E7CC"/></linearGradient></defs><circle class="breathe" cx="380" cy="300" r="250" fill="url(#fin-g)"/><g transform="translate(380 300)"><g class="spin"><path d="M0 -150 V-196" transform="rotate(0)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(15)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(30)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(45)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(60)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(75)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(90)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(105)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(120)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(135)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(150)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(165)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(180)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(195)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(210)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(225)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(240)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(255)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(270)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(285)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(300)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(315)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/><path d="M0 -150 V-196" transform="rotate(330)" stroke="#F2D98A" stroke-width="6" stroke-linecap="round" opacity="0.90"/><path d="M0 -150 V-196" transform="rotate(345)" stroke="#F2D98A" stroke-width="3" stroke-linecap="round" opacity="0.55"/></g></g><g transform="translate(380 300)"><g class="rise"><circle r="122" fill="#C9A227"/><circle r="122" fill="#F2D98A" opacity=".35"/></g></g><path d="M-1000 270 C -600 240 -200 262 0 262 C 120 236 230 250 330 262 C 430 274 540 238 760 252 C 1000 262 1400 236 1760 258 V330 H-1000Z" fill="#7A2E5C" opacity=".85"/><path d="M-1000 292 C -600 276 -200 296 0 290 C 150 272 260 286 380 288 C 500 290 620 270 760 282 C 1000 290 1400 272 1760 286 V330 H-1000Z" fill="#10213A"/><path d="M 372 292 C 368 300 330 312 300 320 L 460 320 C 430 312 392 300 388 292Z" fill="url(#fin-r)"/><g class="drift"><path d="M150 120 q9 -9 18 0 q9 -9 18 0" fill="none" stroke="#FBF6EE" stroke-width="3" stroke-linecap="round"/><path d="M196 96 q6 -6 12 0 q6 -6 12 0" fill="none" stroke="#FBF6EE" stroke-width="2.5" stroke-linecap="round"/><path d="M590 140 q8 -8 16 0 q8 -8 16 0" fill="none" stroke="#FBF6EE" stroke-width="3" stroke-linecap="round"/></g><g transform="translate(90 70) scale(1.2)"><g class="twinkle"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#F2D98A"/></g></g><g transform="translate(670 60) scale(1.1)"><g class="twinkle d2"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#F2D98A"/></g></g><g transform="translate(560 110) scale(0.8)"><g class="twinkle d3"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#FBF6EE"/></g></g><g transform="translate(230 40) scale(0.8)"><g class="twinkle d2"><path d="M0 -10 C1 -3 3 -1 10 0 C3 1 1 3 0 10 C-1 3 -3 1 -10 0 C-3 -1 -1 -3 0 -10Z" fill="#FBF6EE"/></g></g></svg></section>
 </main>
 <footer class="foot"><div class="wrap"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><nav aria-label="Footer"><a href="/services/">What you get</a><a href="/sample/">Sample report</a><a href="/pay/">Pay lookup</a><a href="/guides/">Guides</a><a href="/free/">Free tools</a><a href="/about/">About</a><a href="https://calendar.app.google/8wyFoDK5k6k1iamT9" target="_blank" rel="noopener">Book a call</a><a href="/app/">Get the app</a><a href="/portal/">Client sign in</a></nav><p class="where"><span class="wg wt">&copy; 2026 Steady Path Careers</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg wt">Monmouth County, NJ</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="/terms/">Terms</a> &middot; <a href="/privacy/">Privacy</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="tel:+17327590008">(732) 759-0008</a></span></p></div></footer>
-<script src="/assets/site.js?v=20261110r26"></script>
+<script src="/assets/site.js?v=sp-20261110r30"></script>
 <script src="/assets/path.js?v=20261026a"></script>
 <script defer src="/assets/r17.js?v=20261106a"></script>
 <script>

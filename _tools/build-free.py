@@ -17,10 +17,10 @@ def nav(cur):
     return f'<nav class="topbar" aria-label="Main"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><div class="links">{links}</div><div class="right"><a href="/portal/">Client sign in</a><a class="btn gold" href="/start/">Start free</a></div></nav>'
 
 FOOT = ('<footer class="foot"><div class="wrap"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><nav aria-label="Footer"><a href="/services/">What you get</a><a href="/sample/">Sample report</a><a href="/pay/">Pay lookup</a><a href="/guides/">Guides</a><a href="/free/">Free tools</a><a href="/about/">About</a><a href="' + CAL + '" target="_blank" rel="noopener">Book a call</a><a href="/app/">Get the app</a><a href="/portal/">Client sign in</a></nav><p class="where"><span class="wg wt">&copy; 2026 Steady Path Careers</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg wt">Monmouth County, NJ</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="/terms/">Terms</a> &middot; <a href="/privacy/">Privacy</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="tel:+17327590008">(732) 759-0008</a></span></p></div></footer>\n'
-        '<script src="/assets/site.js?v=20261110r26"></script>\n<script src="/assets/path.js?v=20261026a"></script>\n<script defer src="/assets/r17.js?v=20261106a"></script>\n'
+        '<script src="/assets/site.js?v=sp-20261110r30"></script>\n<script src="/assets/path.js?v=20261026a"></script>\n<script defer src="/assets/r17.js?v=20261106a"></script>\n'
         """<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6f62d1e0e28847dcab6b431376defda9"}'></script><!-- End Cloudflare Web Analytics -->\n""")
 
-R17 = '20261109b'
+R17 = 'sp-20261110r30'
 
 def head(path, title, desc, og_img, og_alt, css, ld):
     url = SITE + path
@@ -30,7 +30,8 @@ def head(path, title, desc, og_img, og_alt, css, ld):
 <head>
 <meta charset="utf-8">
 <meta name="darkreader-lock">
-<meta name="color-scheme" content="only light">
+<meta name="color-scheme" content="light dark">
+<script>try{{var t=localStorage.getItem('sp-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}}catch(e){{}}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{t}</title>
 <meta name="description" content="{d}">
@@ -40,8 +41,8 @@ def head(path, title, desc, og_img, og_alt, css, ld):
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
-<link rel="stylesheet" href="/assets/site.css?v=20261023a">
-<link rel="stylesheet" href="/assets/path.css?v=20261027a">
+<link rel="stylesheet" href="/assets/site.css?v=sp-20261110r30">
+<link rel="stylesheet" href="/assets/path.css?v=sp-20261110r30">
 <link rel="stylesheet" href="/assets/r17.css?v={R17}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Steady Path Careers">
@@ -62,6 +63,7 @@ def head(path, title, desc, og_img, og_alt, css, ld):
 <style>
 {css.strip()}
 </style>
+<link rel="stylesheet" href="/assets/theme.css?v=sp-20261110r30">
 </head>
 <body class="mk">
 <a class="skip" href="#main">Skip to content</a>
@@ -73,8 +75,8 @@ def phero(cur, kicker, h1, sub, cta, art):
 def finale(h2, p):
     return f'<section class="finale" data-mile style="--a:#0B4A52"><div class="wrap"><h2>{h2}</h2><p>{p}</p><a class="btn gold" href="/start/">Start free</a></div>{FIN_SVG}</section>\n'
 
-OFFER_H = 'Want Steady Path Careers to run your search? Free for 30 days.'
-OFFER_P = 'When you&#x27;re ready, Steady Path Careers finds and checks openings that fit, shows pay whenever the employer posts it, and tailors your resume for each job you pick. You send every application. Free for 30 days while Steady Path Careers is in its pilot.'
+OFFER_H = 'Want Steady Path Careers to run your search? Free for 14 days.'
+OFFER_P = 'When you&#x27;re ready, Steady Path Careers finds and checks openings that fit, shows pay whenever the employer posts it, and tailors your resume for each job you pick. You send every application. Free for 14 days while Steady Path Careers is in its pilot.'
 
 # ---------------------------------------------------------------- shared small CSS for /free/ pages
 BASE_CSS = r'''
