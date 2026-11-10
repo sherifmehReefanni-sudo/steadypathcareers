@@ -3,8 +3,9 @@
    cleared once the scores come back. Everything playful is design: the road from the logo fills as they answer, a sun ray lights
    about every four or five questions, each area has its own color and icon. prefers-reduced-motion (REDUCED, read live) turns off
    every animation, the auto-advance delay and the confetti, and still shows everything.
-   r35: (1) a deeper read: items 31 to 60 of the O*NET Interest Profiler Short Form (fit.deep from the API, O*NET's wording), same
-   quiz screens, numbered 31 to 60, sent with action fitDeep; results scale to fit.max (20 or 40). (2) "What matters to you at work":
+   r35: (1) the full version: the complete 60-question O*NET Interest Profiler Short Form in O*NET's published order (fit.deep
+   from the API, O*NET's wording, never split or reordered), same quiz screens, sent whole with action fitDeep; it replaces the
+   30-question results; results scale to fit.max (20 or 40). (2) "What matters to you at work":
    our own ten questions (not O*NET, no O*NET credit), action fitPrefs. (3) The weekly "How are your matches?" card on the Jobs
    view, action matchCheck. Each part only shows when the API sends what it needs (fit.deep, fit.prefs, lastMatchCheck). */
 var FIT_NAME = 'Find Your Fit';
@@ -34,9 +35,11 @@ function fitCreditDb(rel) { return 'Title suggestions and job interest matches: 
 S.fx = { step: 'intro', i: 0, ans: [], dans: [], deep: false, lock: false, err: '', share: null, tBusy: {}, fresh: false, pf: null };
 function fitOn() { return !!(S.data && S.data.fit && S.data.fit.items && S.data.fit.items.length === 30); }
 function fitDone() { return fitOn() && !!S.data.fit.done && !!S.data.fit.scores; }
-/* r35: the part being answered: the first 30 (items) or the deeper 30 (deep, numbered 31 to 60) */
-function fitPart() { var f = S.data.fit, x = S.fx; return x.deep ? { items: f.deep || [], ans: x.dans, off: 30, total: 60 } : { items: f.items, ans: x.ans, off: 0, total: 30 }; }
-function fitDeepOn() { var f = S.data.fit; return fitDone() && f.form !== 60 && Array.isArray(f.deep) && f.deep.length === 30; }
+/* r35: the form being answered: the 30-item Mini-IP (items) or the full 60-item Short Form (deep) */
+function fitPart() { var f = S.data.fit, x = S.fx; return x.deep ? { items: f.deep || [], ans: x.dans, off: 0, total: 60 } : { items: f.items, ans: x.ans, off: 0, total: 30 }; }
+function fitDeepOn() { var f = S.data.fit; return fitOn() && Array.isArray(f.deep) && f.deep.length === 60; }
+/* O*NET's Short Form order is six blocks of ten (R I A S E C); the Mini-IP cycles the six areas. Used only to tint the question. */
+function fitAreaAt(i) { return S.fx.deep ? FIT_CYCLE[Math.floor(i / 10)] : FIT_CYCLE[i % 6]; }
 function fitMax() { return S.data.fit.max === 40 ? 40 : 20; }
 /* r35: say a status line again so screen readers announce it after a re-render */
 function fxAnnounce(id) { setTimeout(function () { var el = document.getElementById(id); if (!el) return; var t = el.textContent; el.textContent = ''; setTimeout(function () { el.textContent = t; }, 60); }, 0); }
@@ -73,28 +76,28 @@ function fitIntro() {
     '<p class="fx-lead">30 quick taps. About 10 minutes. No wrong answers.</p>' +
     '<p class="fx-sub">Each screen shows one activity. Tap how much you would like doing it. Don\'t worry about training or pay; just go with your gut.</p>' +
     '<button type="button" class="fx-start" data-fxstart>' + (x.ans.length ? 'Pick up where you left off' : 'Start') + '</button></div></div>' +
-    fitChips() +
+    fitChips() + (fitDeepOn() ? '<p class="fx-plain fx-alt">Prefer the full version? <button type="button" class="linkbtn" data-fxdeep>Take the 60-question O*NET&reg; Interest Profiler Short Form instead (about 10 to 20 minutes)</button></p>' : '') +
     '<div class="fx-why card"><h3>What you get</h3><ul><li>Your top three interest areas, in plain words.</li><li>Five job titles that line up with them, to say Yes or No to.</li><li>A short "why it fits you" line on job matches where we can tell.</li></ul>' +
     '<p class="fx-plain">This is an interest guide, not a test, and it is optional. It never limits which jobs you see. We keep your six area scores, not your answers.</p></div>' +
     (S.demo ? '<p class="fx-demo"><button type="button" class="linkbtn" data-fxdemo>Demo: fill in sample answers</button></p>' : '') +
     '<p class="fx-credit">Uses the O*NET&reg; Interest Profiler (30-question version). ' + FIT_CREDIT_IP + '</p></section>';
 }
 function fitQ() {
-  var x = S.fx, P = fitPart(), i = x.i, it = P.items[i], k = FIT_CYCLE[i % 6], A = FIT_AREA[k], done = P.off + P.ans.filter(function (v) { return v; }).length;
-  var moment = i === 15 ? (x.deep ? 'Three quarters done.' : 'Halfway there.') : i === 25 ? 'Almost done.' : '';
+  var x = S.fx, P = fitPart(), i = x.i, it = P.items[i], k = fitAreaAt(i), A = FIT_AREA[k], done = P.off + P.ans.filter(function (v) { return v; }).length;
+  var half = x.deep ? 30 : 15, near = x.deep ? 50 : 25, moment = i === half ? 'Halfway there.' : i === near ? 'Almost done.' : '';
   var pills = FIT_SCALE.map(function (lab, n) { var v = n + 1; return '<button type="button" class="fx-pill p' + v + (x.pop === v ? ' pop' : '') + '" data-fxa="' + v + '" aria-pressed="' + (P.ans[i] === v) + '"><kbd aria-hidden="true">' + v + '</kbd><span>' + lab + '</span></button>'; }).join('');
   return '<section class="fx fx-q" style="--ac:' + A.c + ';--at:' + A.t + '" aria-labelledby="fxItem">' +
     '<div class="fx-qtop"><button type="button" class="fx-back" data-fxback>' + '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Back</button>' +
-    '<span class="fx-count" aria-live="polite" aria-atomic="true">Question ' + (P.off + i + 1) + ' of ' + P.total + (moment ? '. ' + moment : '') + '</span></div>' +
+    '<span class="fx-count" aria-live="polite" aria-atomic="true">' + (x.deep ? 'O*NET&reg; Interest Profiler Short Form, question ' : 'Question ') + (i + 1) + ' of ' + P.total + (moment ? '. ' + moment : '') + '</span></div>' +
     '<div class="fx-qwrap"><div class="fx-side">' + fitRoad(done, P.total, false) +
     '<div class="fx-bar" role="progressbar" aria-label="Answered" aria-valuemin="0" aria-valuemax="' + P.total + '" aria-valuenow="' + done + '"><i style="width:' + Math.round(done / P.total * 100) + '%"></i></div></div>' +
-    '<div class="fx-card">' + (moment ? '<p class="fx-moment' + (i === 15 ? ' half' : ' near') + '" aria-hidden="true">' + moment + '</p>' : '') +
+    '<div class="fx-card">' + (moment ? '<p class="fx-moment' + (i === half ? ' half' : ' near') + '" aria-hidden="true">' + moment + '</p>' : '') +
     '<span class="fx-qic">' + FIT_IC[k] + '</span><p class="fx-ask">How much would you like this?</p>' +
     '<h2 class="fx-item" id="fxItem" tabindex="-1">' + esc(it.text) + '</h2>' +
     '<div class="fx-pills" role="group" aria-label="Your answer">' + pills + '</div>' +
     (x.err ? '<p class="warn" role="alert">' + esc(x.err) + '</p>' : '') +
     '<p class="fx-keys">Keys 1 to 5 answer too. You can go back any time.</p></div></div>' +
-    '<p class="fx-credit">' + (x.deep ? 'Questions 31 to 60 of the O*NET&reg; Interest Profiler (60-question Short Form). ' : 'The O*NET&reg; Interest Profiler (30-question version). ') + FIT_CREDIT_IP + '</p></section>';
+    '<p class="fx-credit">' + (x.deep ? 'The O*NET&reg; Interest Profiler Short Form (60 questions). ' : 'The O*NET&reg; Interest Profiler (30-question version). ') + FIT_CREDIT_IP + '</p></section>';
 }
 function fitReveal() {
   return '<section class="fx fx-reveal" aria-live="polite"><div class="fx-hero">' + fitRoad(30, 30, true) + '<div class="fx-herot"><h2 class="fx-big" id="fxH" tabindex="-1">Reading your answers...</h2><p class="fx-lead">Lining up your top interests.</p></div></div>' + fitChips() + '</section>';
@@ -114,6 +117,12 @@ function fitRadar(s) {
   return '<svg class="fx-radar" viewBox="0 0 300 290" role="img" aria-label="' + esc(label) + '"><g class="fx-grid"><polygon points="' + ring(1) + '"/><polygon points="' + ring(2 / 3) + '"/><polygon points="' + ring(1 / 3) + '"/>' + axes + '</g>' +
     '<g class="fx-shape"><polygon class="fx-poly" points="' + poly + '"/>' + dots + '</g><g class="fx-labs">' + labs + '</g></svg>';
 }
+/* r35: the offer of the full Short Form (no claim about accuracy; it replaces the 30-question results) */
+function fitDeepCard() {
+  var n = S.fx.dans.filter(function (v) { return v; }).length;
+  return '<div class="card fx-deep"><span class="fx-deepic" aria-hidden="true">' + fitRoad(n, 60, false) + '</span><div><h3>Want the full version?</h3><p class="fx-plain">The complete O*NET&reg; Interest Profiler Short Form has 60 questions. It takes about 10 to 20 minutes and replaces your 30-question results.</p>' +
+    '<button type="button" class="btn gold" data-fxdeep>' + (n ? 'Pick up where you left off' : 'Take the full version') + '</button></div></div>';
+}
 function fitResults() {
   if (S.fxDemoShare) { S.fxDemoShare = false; setTimeout(fitShareMake, 0); }
   var f = S.data.fit, x = S.fx, s = f.scores, top = f.top3 || [], mx = fitMax(), all60 = f.form === 60;
@@ -126,15 +135,14 @@ function fitResults() {
       '<button type="button" class="no" data-fxt="no" data-code="' + esc(t.code) + '" aria-pressed="' + (t.answer === 'no') + '"' + (busy ? ' aria-disabled="true"' : '') + '>' + IC.x + 'No</button></div></li>';
   }).join('');
   return '<section class="fx fx-res' + (x.fresh && !REDUCED ? ' grow' : '') + '" aria-labelledby="fxH">' +
-    '<div class="fx-reshead"><h2 class="fx-big" id="fxH" tabindex="-1">Your top three</h2><p class="fx-lead" aria-live="polite">' + esc(fitNames(top)) + '</p>' + (f.date ? '<p class="fx-date">From ' + esc(fmtDate(f.date)) + (all60 ? '. Based on all 60 questions.' : '') + '</p>' : all60 ? '<p class="fx-date">Based on all 60 questions.</p>' : '') + '</div>' +
+    '<div class="fx-reshead"><h2 class="fx-big" id="fxH" tabindex="-1">Your top three</h2><p class="fx-lead" aria-live="polite">' + esc(fitNames(top)) + '</p>' + (f.date ? '<p class="fx-date">From ' + esc(fmtDate(f.date)) + (all60 ? '. Based on the 60-question O*NET&reg; Interest Profiler Short Form.' : '') + '</p>' : all60 ? '<p class="fx-date">Based on the 60-question O*NET&reg; Interest Profiler Short Form.</p>' : '') + '</div>' +
     '<div class="fx-resgrid"><div class="fx-radarw card">' + fitRadar(s) + '</div><ol class="fx-areas">' + cards + '</ol></div>' +
-    (fitDeepOn() ? '<div class="card fx-deep"><span class="fx-deepic" aria-hidden="true">' + fitRoad(30 + x.dans.filter(function (v) { return v; }).length, 60, false) + '</span><div><h3>Want a deeper read?</h3><p class="fx-plain">30 more quick taps, about 10 more minutes. Your results get more precise.</p>' +
-      '<button type="button" class="btn gold" data-fxdeep>' + (x.dans.length ? 'Pick up where you left off' : 'Keep going') + '</button></div></div>' : '') +
+    (fitDeepOn() && !all60 ? fitDeepCard() : '') +
     '<div class="card fx-titles"><h3>Job titles to look at</h3>' +
     (titles ? '<p class="fx-plain">Picked by how closely each kind of work lines up with your interests and your experience level. Tap Yes on any you would like us to consider for your search. We check with you before changing it, and your job matches keep coming either way.</p><ol class="fx-tlist">' + titles + '</ol>'
       : '<p class="fx-plain">No titles stood out this time' + (top.length && s[top[0]] === s[top[2]] ? ', because your answers were spread evenly' : '') + '. That is fine: your job matches stay exactly the same.</p>') +
     (x.tErr ? '<p class="warn" role="alert">' + esc(x.tErr) + '</p>' : '') + '</div>' +
-    '<div class="fx-actions"><button type="button" class="btn gold" data-fxshare>Make a share card</button><button type="button" class="btn ghost" data-go="jobs">Back to your jobs</button><button type="button" class="linkbtn" data-fxretake>Retake it</button></div>' +
+    '<div class="fx-actions"><button type="button" class="btn gold" data-fxshare>Make a share card</button><button type="button" class="btn ghost" data-go="jobs">Back to your jobs</button><button type="button" class="linkbtn" data-fxretake>Retake it' + (all60 ? ' (30 questions)' : '') + '</button>' + (all60 && fitDeepOn() ? '<button type="button" class="linkbtn" data-fxdeep>Retake the full version (60 questions)</button>' : '') + '</div>' +
     '<p class="fx-plain fx-note">This is an interest guide. Your interests are one of many things that matter in a career, and these results never limit which jobs you see.</p>' +
     '<p class="fx-credit">Your top three come from the O*NET&reg; Interest Profiler (' + (all60 ? '60-question Short Form' : '30-question version') + '). ' + FIT_CREDIT_IP + '</p><p class="fx-credit">' + fitCreditDb(f.release) + '</p></section>';
 }
@@ -195,21 +203,22 @@ function fitAnswer(v) {
   var A = fitPart().ans; A[x.i] = v; x.pop = REDUCED ? 0 : v; x.err = ''; x.lock = true; render();
   setTimeout(function () {
     x.lock = false; x.pop = 0;
-    if (x.i < 29) { x.i++; S.focusTo = '#fxItem'; render(); return; }
-    var first = -1; for (var n = 0; n < 30; n++) if (!A[n]) { first = n; break; }
+    var tot = fitPart().total;
+    if (x.i < tot - 1) { x.i++; S.focusTo = '#fxItem'; render(); return; }
+    var first = -1; for (var n = 0; n < tot; n++) if (!A[n]) { first = n; break; }
     if (first >= 0) { x.i = first; S.focusTo = '#fxItem'; render(); return; }
     fitSubmit();
   }, REDUCED ? 0 : 250);
 }
 function fitSubmit() {
-  var x = S.fx, t0 = Date.now(), deep = x.deep, answers = (deep ? x.dans : x.ans).slice(0, 30);
+  var x = S.fx, t0 = Date.now(), deep = x.deep, last = deep ? 59 : 29, answers = (deep ? x.dans : x.ans).slice(0, last + 1);
   x.step = 'reveal'; S.focusTo = '#fxH'; render(); window.scrollTo(0, 0);
   post({ action: deep ? 'fitDeep' : 'fitSubmit', t: S.token, answers: answers }).then(function (d) {
     setTimeout(function () {
       if (d && d.ok && d.fit) { S.data.fit = d.fit; if (deep) x.dans = []; else x.ans = []; x.deep = false; x.i = 0; x.retake = false; x.step = 'results'; x.fresh = true; S.focusTo = '#fxH'; render(); window.scrollTo(0, 0); fitConfetti(); setTimeout(function () { x.fresh = false; }, 1500); }
-      else { x.step = 'q'; x.i = 29; x.err = d && d.error === 'expired' ? 'Your sign-in has expired. Sign in again; your answers are still here until you close this page.' : d && d.error === 'limit' ? 'That is a lot of tries in one hour. Please try again a little later.' : d && d.error === 'already done' ? 'Your deeper read is already saved. Refresh this page to see it.' : d && d.error === 'not ready' ? 'Please take the first 30 questions first.' : 'That didn\'t save. Please try again in a minute.'; render(); }
+      else { x.step = 'q'; x.deep = deep; x.i = last; x.err = d && d.error === 'expired' ? 'Your sign-in has expired. Sign in again; your answers are still here until you close this page.' : d && d.error === 'limit' ? 'That is a lot of tries in one hour. Please try again a little later.' : 'That didn\'t save. Please try again in a minute.'; render(); }
     }, Math.max(0, 1500 - (Date.now() - t0)));
-  }).catch(function () { x.step = 'q'; x.i = 29; x.err = 'That didn\'t save. Please check your connection and try again.'; render(); });
+  }).catch(function () { x.step = 'q'; x.deep = deep; x.i = last; x.err = 'That didn\'t save. Please check your connection and try again.'; render(); });
 }
 function fitTitleAnswer(code, a) {
   var x = S.fx, t = (S.data.fit.titles || []).filter(function (y) { return y.code === code; })[0]; if (!t || x.tBusy[code]) return;
@@ -248,9 +257,9 @@ document.addEventListener('click', function (e) {
   if (S.view !== 'fit' || !fitOn()) return;
   var x = S.fx, el;
   if (e.target.closest('[data-fxstart]')) { x.step = 'q'; x.deep = false; x.retake = true; if (x.i > 29) x.i = 0; S.focusTo = '#fxItem'; render(); window.scrollTo(0, 0); return; }
-  if (e.target.closest('[data-fxdeep]')) { if (!fitDeepOn()) return; x.step = 'q'; x.deep = true; x.err = ''; var nd = 0; while (nd < 29 && x.dans[nd]) nd++; x.i = nd; S.focusTo = '#fxItem'; render(); window.scrollTo(0, 0); return; }
+  if (e.target.closest('[data-fxdeep]')) { if (!fitDeepOn()) return; x.step = 'q'; x.deep = true; x.err = ''; var nd = 0; while (nd < 59 && x.dans[nd]) nd++; x.i = nd; S.focusTo = '#fxItem'; render(); window.scrollTo(0, 0); return; }
   if ((el = e.target.closest('[data-fxa]'))) { fitAnswer(+el.getAttribute('data-fxa')); return; }
-  if (e.target.closest('[data-fxback]')) { if (x.lock) return; if (x.i > 0) { x.i--; S.focusTo = '#fxItem'; } else if (x.deep) { x.deep = false; x.step = 'results'; S.focusTo = '[data-fxdeep]'; } else { x.step = 'intro'; S.focusTo = '#fxH'; } x.err = ''; render(); return; }
+  if (e.target.closest('[data-fxback]')) { if (x.lock) return; if (x.i > 0) { x.i--; S.focusTo = '#fxItem'; } else if (x.deep) { x.deep = false; x.step = S.data.fit.done ? 'results' : 'intro'; S.focusTo = '[data-fxdeep]'; } else { x.step = 'intro'; S.focusTo = '#fxH'; } x.err = ''; render(); return; }
   if (e.target.closest('[data-fxdemo]')) { x.ans = FIT_DEMO_ANS.slice(); x.i = 29; x.step = 'q'; x.deep = false; x.retake = true; S.focusTo = '#fxItem'; render(); return; }
   if (e.target.closest('[data-fxretake]')) { x.ans = []; x.dans = []; x.deep = false; x.i = 0; x.step = 'intro'; x.retake = true; S.focusTo = '#fxH'; render(); window.scrollTo(0, 0); return; }
   if ((el = e.target.closest('[data-fxt]'))) { if (el.getAttribute('aria-disabled') === 'true') return; fitTitleAnswer(el.getAttribute('data-code'), el.getAttribute('data-fxt')); return; }
@@ -284,21 +293,21 @@ document.addEventListener('keydown', function (e) {
 
 /* ---- demo: sample answers (a dentist: Thinker, Helper, some Builder) and a local score that mirrors the server's ---- */
 var FIT_DEMO_ITEMS = ['Build kitchen cabinets', 'Develop a new medicine', 'Write books or plays', 'Help people with personal or emotional problems', 'Manage a department within a large company', 'Install software across computers on a large network', 'Repair household appliances', 'Study ways to reduce water pollution', 'Compose or arrange music', 'Give career guidance to people', 'Start your own business', 'Operate a calculator', 'Assemble electronic parts', 'Conduct chemical experiments', 'Create special effects for movies', 'Perform rehabilitation therapy', 'Negotiate business contracts', 'Keep shipping and receiving records', 'Drive a truck to deliver packages to offices and homes', 'Examine blood samples using a microscope', 'Paint sets for plays', 'Do volunteer work at a non-profit organization', 'Market a new line of clothing', 'Inventory supplies using a hand-held computer', 'Test the quality of parts before shipment', 'Develop a way to better predict the weather', 'Write scripts for movies or television shows', 'Teach a high-school class', 'Sell merchandise at a department store', 'Stamp, sort, and distribute mail for an organization'];
-var FIT_DEMO_DEEP = ['Lay brick or tile', 'Investigate the cause of a fire', 'Play a musical instrument', 'Teach an individual an exercise routine', 'Buy and sell stocks and bonds', 'Develop a spreadsheet using computer software', 'Repair and install locks', 'Work in a biology lab', 'Perform jazz or tap dance', 'Teach children how to play sports', 'Manage a retail store', 'Calculate the wages of employees', 'Raise fish in a fish hatchery', 'Study the movement of planets', 'Draw pictures', 'Teach sign language to people who are deaf or hard of hearing', 'Represent a client in a lawsuit', 'Proofread records or forms', 'Set up and operate machines to make products', 'Invent a replacement for sugar', 'Sing in a band', 'Help conduct a group therapy session', 'Operate a beauty salon or barber shop', 'Record rent payments', 'Put out forest fires', 'Do laboratory tests to identify diseases', 'Edit movies', 'Take care of children at a day-care center', 'Manage a clothing store', 'Keep inventory records']; /* r35: items 31 to 60, for the demo only (the real ones come from the API) */
-var FIT_DEMO_ANS2 = [4, 4, 2, 5, 2, 3, 3, 5, 1, 4, 2, 4, 2, 4, 3, 4, 2, 3, 4, 5, 1, 5, 2, 3, 2, 5, 2, 5, 2, 4];
+var FIT_DEMO_DEEP = ['Build kitchen cabinets', 'Lay brick or tile', 'Repair household appliances', 'Raise fish in a fish hatchery', 'Assemble electronic parts', 'Drive a truck to deliver packages to offices and homes', 'Test the quality of parts before shipment', 'Repair and install locks', 'Set up and operate machines to make products', 'Put out forest fires', 'Develop a new medicine', 'Study ways to reduce water pollution', 'Conduct chemical experiments', 'Study the movement of planets', 'Examine blood samples using a microscope', 'Investigate the cause of a fire', 'Develop a way to better predict the weather', 'Work in a biology lab', 'Invent a replacement for sugar', 'Do laboratory tests to identify diseases', 'Write books or plays', 'Play a musical instrument', 'Compose or arrange music', 'Draw pictures', 'Create special effects for movies', 'Paint sets for plays', 'Write scripts for movies or television shows', 'Perform jazz or tap dance', 'Sing in a band', 'Edit movies', 'Teach an individual an exercise routine', 'Help people with personal or emotional problems', 'Give career guidance to people', 'Perform rehabilitation therapy', 'Do volunteer work at a non-profit organization', 'Teach children how to play sports', 'Teach sign language to people who are deaf or hard of hearing', 'Help conduct a group therapy session', 'Take care of children at a day-care center', 'Teach a high-school class', 'Buy and sell stocks and bonds', 'Manage a retail store', 'Operate a beauty salon or barber shop', 'Manage a department within a large company', 'Start your own business', 'Negotiate business contracts', 'Represent a client in a lawsuit', 'Market a new line of clothing', 'Sell merchandise at a department store', 'Manage a clothing store', 'Develop a spreadsheet using computer software', 'Proofread records or forms', 'Install software across computers on a large network', 'Operate a calculator', 'Keep shipping and receiving records', 'Calculate the wages of employees', 'Inventory supplies using a hand-held computer', 'Record rent payments', 'Keep inventory records', 'Stamp, sort, and distribute mail for an organization']; /* r35: the 60 Short Form items in O*NET's order, for the demo only (the real ones come from the API) */
+var FIT_DEMO_ANS2 = [4, 3, 4, 2, 3, 3, 4, 3, 4, 3, 5, 5, 4, 4, 5, 5, 4, 5, 4, 5, 2, 2, 3, 1, 1, 2, 2, 2, 1, 2, 5, 5, 4, 4, 5, 4, 3, 4, 5, 5, 3, 2, 2, 3, 3, 2, 2, 3, 1, 2, 3, 3, 4, 2, 4, 3, 2, 3, 3, 3];
 var FIT_DEMO_ANS = [4, 5, 2, 5, 3, 3, 4, 5, 3, 4, 2, 4, 3, 4, 1, 5, 3, 3, 3, 5, 2, 4, 2, 3, 4, 4, 2, 5, 1, 2];
 function fitDemoScore(ans) { var s = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 }; ans.forEach(function (v, i) { s[FIT_CYCLE[i % 6]] += v - 1; }); return s; }
 function fitDemoTop(s) { return FIT_CYCLE.slice().sort(function (a, b) { return s[b] - s[a] || FIT_CYCLE.indexOf(a) - FIT_CYCLE.indexOf(b); }).slice(0, 3); }
 function fitDemoData(done, ans, dans) {
   var s = fitDemoScore(ans || FIT_DEMO_ANS);
-  if (dans) { var s2 = fitDemoScore(dans); FIT_CYCLE.forEach(function (k) { s[k] += s2[k]; }); }
+  if (dans) { s = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 }; dans.forEach(function (v, i) { s[FIT_CYCLE[Math.floor(i / 10)]] += v - 1; }); } /* r35: the full version replaces the 30 */
   var out = { items: FIT_DEMO_ITEMS.map(function (t, i) { return { id: i + 1, text: t }; }), scale: FIT_SCALE.slice(), done: !!done, scores: done ? s : null, top3: done ? fitDemoTop(s) : [], date: done ? todayISO() : '', release: '31.0',
     priorities: done ? ['Guaranteed base pay (not commission or production only)'] : [],
     titles: done ? [{ code: '29-1021.00', title: 'Dentists, General', zone: 5, fit: 91, areas: 'IRS', answer: '' }, { code: '29-1292.00', title: 'Dental Hygienists', zone: 3, fit: 88, areas: 'SRC', answer: '' },
       { code: '29-1023.00', title: 'Orthodontists', zone: 5, fit: 86, areas: 'IRS', answer: '' }, { code: '29-1024.00', title: 'Prosthodontists', zone: 5, fit: 84, areas: 'IRS', answer: '' },
       { code: '29-1071.00', title: 'Physician Assistants', zone: 5, fit: 82, areas: 'ISR', answer: '' }] : [] };
   out.form = done && dans ? 60 : 30; out.max = out.form === 60 ? 40 : 20; /* r35 */
-  if (done && !dans) out.deep = FIT_DEMO_DEEP.map(function (t, i) { return { id: i + 31, text: t }; });
+  out.deep = FIT_DEMO_DEEP.map(function (t, i) { return { id: i + 1, text: t }; });
   out.prefs = S.fxDemoPrefs ? { date: todayISO(), answers: { priorities: ['stability', 'helping'], workwith: 'people', team: 'mix', structure: 'some', pace: 'steady', paytype: 'salary', schedule: 'weekdays', travel: 'none', size: 'any', hardno: 'Weekend shifts' } } : null;
   return out;
 }
@@ -306,7 +315,7 @@ function fitDemoData(done, ans, dans) {
 function fitDemoApi(b) {
   if (b.action === 'fitSubmit') { var ok = Array.isArray(b.answers) && b.answers.length === 30 && b.answers.every(function (v) { return v >= 1 && v <= 5 && v === Math.floor(v); }); return ok ? { ok: true, fit: fitDemoData(true, b.answers) } : { ok: false, error: 'bad answers' }; }
   if (b.action === 'fitTitle') return { ok: true };
-  var okA = function (a) { return Array.isArray(a) && a.length === 30 && a.every(function (v) { return v >= 1 && v <= 5 && v === Math.floor(v); }); };
+  var okA = function (a) { return Array.isArray(a) && a.length === 60 && a.every(function (v) { return v >= 1 && v <= 5 && v === Math.floor(v); }); };
   if (b.action === 'fitDeep') return okA(b.answers) ? { ok: true, fit: fitDemoData(true, FIT_DEMO_ANS, b.answers) } : { ok: false, error: 'bad answers' }; /* r35 */
   if (b.action === 'fitPrefs') return { ok: true, prefs: { date: todayISO(), answers: b.answers } };
   if (b.action === 'matchCheck') return { ok: true, id: 'R-DEMO', date: todayISO() };
@@ -317,9 +326,9 @@ function fitDemoApi(b) {
   var q = new URLSearchParams(location.search); if (!S.demo) return;
   if (q.get('fxdone')) S.fxDemoDone = true;
   var n = +q.get('fxq'); if (n >= 1 && n <= 30) { S.fx.step = 'q'; S.fx.i = n - 1; S.fx.ans = FIT_DEMO_ANS.slice(0, n - 1); S.fx.retake = true; }
-  /* r35: &fxdq=31..60 opens a deeper question (implies results); &fxdeep=1 shows results from all 60; &fxprefs=1 opens the work
+  /* r35: &fxdq=1..60 opens that question of the full version (implies 30-question results); &fxdeep=1 shows results from all 60; &fxprefs=1 opens the work
      preferences (&fxpsaved=1 with sample saved answers); &mcdate=YYYY-MM-DD sets the last match check-in */
-  var dq = +q.get('fxdq'); if (dq >= 31 && dq <= 60) { S.fxDemoDone = true; S.fx.step = 'q'; S.fx.deep = true; S.fx.i = dq - 31; S.fx.dans = FIT_DEMO_ANS2.slice(0, dq - 31); }
+  var dq = +q.get('fxdq'); if (dq >= 1 && dq <= 60) { S.fxDemoDone = true; S.fx.step = 'q'; S.fx.deep = true; S.fx.i = dq - 1; S.fx.dans = FIT_DEMO_ANS2.slice(0, dq - 1); }
   if (q.get('fxdeep')) { S.fxDemoDone = true; S.fxDemoDeep = true; }
   if (q.get('fxpsaved')) S.fxDemoPrefs = true;
   if (q.get('fxprefs')) { S.fxDemoDone = true; S.fx.step = 'prefs'; }
@@ -342,7 +351,7 @@ var FP_Q = [
 ];
 var FP_HARD = { id: 'hardno', q: 'Anything you won\'t do?', ph: 'For example: cold calling, weekend shifts, a certain employer', max: 200 };
 var FP_INTRO = 'Ten quick questions about how you like to work. We use your answers to pick and rank your job matches. Optional, and you can change them anytime.';
-var FP_HOW = 'How we use them: they guide which jobs we send you and how we rank them. Your pay, schedule and travel answers, and anything you list under "Anything you won\'t do", can rule a job out. Your Find Your Fit interest results never rule a job out.';
+var FP_HOW = 'How we use them: they guide which jobs we send you and how we rank them. Your pay type, schedule and travel limits, and anything you list under "Anything you won\'t do", can rule a job out. Your Find Your Fit interest results never rule a job out.';
 var FP_SAVED = 'Saved. We\'ll use these when we pick your next matches.';
 function fpLabel(q, v) { for (var i = 0; i < q.o.length; i++) if (q.o[i][0] === v) return q.o[i][1]; return ''; }
 function fpCopy(a) { a = a || {}; var o = {}; Object.keys(a).forEach(function (k) { o[k] = Array.isArray(a[k]) ? a[k].slice() : a[k]; }); return o; }
@@ -431,7 +440,7 @@ function mcDue(d) {
 }
 function mcCard(d) {
   var m = S.mc;
-  if (m.sent) return '<section class="card mc mc-done" aria-labelledby="mcH"><h2 class="mc-h" id="mcH" tabindex="-1">How are your matches this week?</h2><p class="mc-st" id="mcStatus" role="status" aria-live="polite">Thanks. We\'ll use this when we pick your next matches.</p></section>';
+  if (m.sent) return '<section class="card mc mc-done" aria-labelledby="mcH"><h2 class="mc-h" id="mcH" tabindex="-1">How are your matches this week?</h2><p class="mc-st" id="mcStatus" role="status" aria-live="polite">Thanks. We\'ll read this and follow up if anything needs to change.</p></section>';
   if (!mcDue(d)) return '';
   var btns = MC_R.map(function (r) { return '<button type="button" class="mc-b mc-' + r[0] + '" data-mcr="' + r[0] + '" aria-pressed="' + (m.r === r[0]) + '">' + esc(r[1]) + '</button>'; }).join('');
   return '<section class="card mc" aria-labelledby="mcH"><h2 class="mc-h" id="mcH" tabindex="-1">How are your matches this week?</h2>' +

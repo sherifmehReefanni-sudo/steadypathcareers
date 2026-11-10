@@ -202,3 +202,8 @@
 .mc-done .mc-st { color: var(--ink); }
 .fx :focus-visible, .mc :focus-visible { outline-color: var(--navy); }
 @media (max-width: 380px) { .mc-b { flex: 1 1 100%; } }
+.fx-alt { margin: 0; }
+.fx-back { flex: none; white-space: nowrap; }
+.fx-count { text-align: right; }
+.fx-alt .linkbtn { min-height: 44px; font-weight: 800; text-align: left; }
+.fx-alt { line-height: 1.6; }
