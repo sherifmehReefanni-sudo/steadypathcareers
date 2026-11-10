@@ -146,7 +146,9 @@ SOURCES = {
 KIT_CSS = BASE_CSS + r'''
 .fn, .fn-c { line-height: 0; font-size: .74em; vertical-align: super; }
 .fn a { position: relative; font-weight: 800; text-decoration: none; color: var(--navy); padding: 0 1px; }
-.fn a::after { content: ""; position: absolute; inset: -14px -6px; }
+.fn a::after { content: ""; position: absolute; inset: -6px -9px; } /* r33: at least a 24px tap area around each source number */
+.fn-next { margin-left: 13px; } /* r33: room between two source numbers in a row, so their tap areas do not overlap */
+.fn-c { pointer-events: none; }
 .prose .kit-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
 .kit-jump a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 14px; border-radius: 999px; background: #fff; border: 1px solid rgba(31,58,95,.18); font-weight: 800; font-size: 15px; text-decoration: none; color: var(--midnight); }
 .kit-jump a:hover { border-color: var(--gold); }
@@ -395,8 +397,8 @@ def build_kit():
     src = (f'<section class="sec dark" id="sources" data-mile style="--a:#0F5F66;--b:#0B4A52">{HILLTOP}<div class="wrap k-wide"><div class="prose">'
            f'<h2>Sources</h2><p>Every rule, deadline, amount and official web address above links to one of these. Last checked: October 31, 2026. Rules and amounts change, so check the source before you act on a deadline. General information, not legal or financial advice.</p>'
            f'<ol class="srcs">{items}</ol></div></div></section>\n')
-    title = 'Laid Off in NJ or NY: Your First 72 Hours · Steady Path'
-    desc = 'A free, printable checklist for your first 72 hours after a layoff in New Jersey or New York: unemployment, severance, COBRA or the marketplace, final pay and a job search starter.'
+    title = 'Laid Off in NJ or NY: Free First 72 Hours Checklist'
+    desc = 'A free printable checklist for the first 72 hours after a layoff in NJ or NY: unemployment, severance, COBRA or the marketplace, and final pay.'
     ld = ('{"@context": "https://schema.org", "@type": "Article", "headline": "Laid Off in NJ or NY: Your First 72 Hours", "description": ' + '"' + desc + '"' +
           ', "author": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "publisher": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "dateModified": "2026-10-31", "mainEntityOfPage": "https://steadypathcareers.com/free/laid-off-72-hours/", "image": "https://steadypathcareers.com/img/og/free.png", "isAccessibleForFree": true}')
     out = head('/free/laid-off-72-hours/', title, desc, 'free.png', 'Free tools from Steady Path Careers', KIT_CSS, ld)
@@ -534,8 +536,8 @@ def build_scripts():
                   f'<p class="lbl" id="{k}-l">The email</p><pre class="txt" id="{k}-t" aria-labelledby="{k}-h {k}-l">{body}</pre>'
                   f'<div class="row"><button type="button" class="copy" data-copy-for="{k}-t" data-label="Copy email" aria-describedby="{k}-h" hidden>{COPY_ICON}<span>Copy email</span></button></div>'
                   f'<p class="why"><b>Why it works:</b> {why}</p>{more}</li>')
-    title = 'Emails for Every Step of the Search: 8 Free Job Search Scripts · Steady Path'
-    desc = 'Eight free, copy-ready emails for your job search: follow-ups, thank-you notes, offer questions, a counter-offer, a polite decline and a referral ask.'
+    title = 'Job Search Follow-Up Email Templates: 8 Free Scripts'
+    desc = 'Eight free, copy-ready job search emails: follow-ups after applying or interviewing, thank-you notes, a counter-offer, a polite decline and a referral ask.'
     ld = '{"@context": "https://schema.org", "@type": "Article", "headline": "Emails for Every Step of the Search", "description": "' + desc + '", "author": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "publisher": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}, "dateModified": "2026-10-31", "mainEntityOfPage": "https://steadypathcareers.com/free/follow-up-scripts/", "image": "https://steadypathcareers.com/img/og/free.png", "isAccessibleForFree": true}'
     out = head('/free/follow-up-scripts/', title, desc, 'free.png', 'Free tools from Steady Path Careers', SCR_CSS, ld)
     out += phero('/free/', 'Free scripts', 'Emails for every step of the search',
@@ -608,8 +610,8 @@ def build_hub():
             cards += f'<li><div class="tool soon" data-soon="{href}"><span class="n">{n}</span>{ICONS[ic]}<h3>{t}</h3><p>{p}</p><span class="badge">Coming soon</span></div></li>'
         else:
             cards += f'<li><a class="tool" href="{href}"><span class="n">{n}</span>{ICONS[ic]}<h3>{t}</h3><p>{p}</p><em>Open it</em></a></li>'
-    title = 'Free Job Search Tools for NJ and NY · Steady Path Careers'
-    desc = 'Free job search tools for New Jersey and New York: a first-72-hours layoff kit, copy-ready follow-up emails and more. No sign-up, no email needed.'
+    title = 'Free Job Search Tools for NJ and NY | Steady Path Careers'
+    desc = 'Free job search tools for New Jersey and New York: a layoff checklist, follow-up email scripts, a job tracker, an offer check and a ghost job checker.'
     ld = '{"@context": "https://schema.org", "@type": "CollectionPage", "name": "Free job search tools", "description": "' + desc + '", "url": "https://steadypathcareers.com/free/", "publisher": {"@type": "Organization", "name": "Steady Path Careers", "url": "https://steadypathcareers.com/"}}'
     out = head('/free/', title, desc, 'free.png', 'Free tools from Steady Path Careers: free help for your job search', HUB_CSS, ld)
     out += phero('/free/', 'Free tools', 'Free help for your job search.', 'Checklists, scripts and tools for job seekers in New Jersey and New York. No sign-up and no email needed. Use them, print them, share them.',
@@ -630,6 +632,7 @@ if __name__ == '__main__':
     kit, order = build_kit()
     for rel, content in [('free/index.html', build_hub()), ('free/laid-off-72-hours/index.html', kit), ('free/follow-up-scripts/index.html', build_scripts())]:
         p = os.path.join(ROOT, rel); os.makedirs(os.path.dirname(p), exist_ok=True)
+        content = content.replace('</sup><sup class="fn">', '</sup><sup class="fn fn-next">')  # r33: a source number right after another one
         content = theme_tokens.apply_html(content)  # r30: light/dark theme tokens, as in the committed pages
         open(p, 'w', encoding='utf-8').write(content); print('wrote', rel, len(content))
     print('sources used:', len(order))

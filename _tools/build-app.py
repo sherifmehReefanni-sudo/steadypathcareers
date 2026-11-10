@@ -12,10 +12,12 @@ QR = mq.svg(PORTAL, 'QR code. Scan it with your phone camera to open steadypathc
 A = open(os.path.join(ROOT, 'about/index.html'), encoding='utf-8').read()
 head_end = A.index('</head>'); body_start = A.index('<body')
 head = A[:head_end]
-DESC = 'Put Steady Path Careers on your phone: your job matches, documents, questions and application tracker, one tap from your home screen. Free with the service, no app store needed.'
+DESC = 'Add Steady Path Careers to your phone home screen: job matches, documents, questions and your application tracker. No app store needed.'
+TITLE = 'Steady Path Careers App for iPhone and Android'
 OLD_DESC = re.search(r'<meta name="description" content="([^"]*)">', head).group(1)
-head = head.replace(OLD_DESC, DESC).replace('<title>About · Steady Path Careers</title>', '<title>Get the app · Steady Path Careers</title>')
-head = head.replace('https://steadypathcareers.com/about/', 'https://steadypathcareers.com/app/').replace('About · Steady Path Careers', 'Get the app · Steady Path Careers')
+OLD_TITLE = re.search(r'<title>([^<]*)</title>', head).group(1)  # r33: the About title, also used in og:title
+head = head.replace(OLD_DESC, DESC).replace(OLD_TITLE, TITLE)
+head = head.replace('https://steadypathcareers.com/about/', 'https://steadypathcareers.com/app/')
 head = head.replace('<link rel="apple-touch-icon" href="/apple-touch-icon.png">', '<link rel="apple-touch-icon" href="/apple-touch-icon.png">\n<link rel="manifest" href="/manifest.webmanifest">\n<meta name="theme-color" content="#10213A">')
 head = re.sub(r'<style>\n\.mk \.prose \.card.*?</style>\n', '', head, flags=re.S)
 CSS = '''<style id="app-page">

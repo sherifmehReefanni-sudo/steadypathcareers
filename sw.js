@@ -1,9 +1,9 @@
 /* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage, and a page opened with ?t= or ?k= is not stored at all. Assets: cache first. API calls (script.google.com) are never touched, so no client data is ever cached. */
-var V = 'sp-20261110r32';
-var ASSETS = ['/offline.html', '/assets/site.css?v=sp-20261110r30', '/assets/site.js?v=sp-20261110r30', '/assets/path.css?v=sp-20261110r30', '/assets/path.js?v=20261026a', '/assets/r17.css?v=sp-20261110r30', '/assets/r17.js?v=20261106a', '/assets/portal.css?v=sp-20261110r30', '/assets/portal.js?v=20261024e', '/assets/fx.js?v=20261024d', '/assets/intake.js?v=20261024d', '/assets/intake2.js?v=sp-20261110r30', '/assets/theme.css?v=sp-20261110r32', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
+var V = 'sp-20261110r33';
+var ASSETS = ['/offline.html', '/assets/site.css?v=sp-20261110r30', '/assets/site.js?v=sp-20261110r30', '/assets/path.css?v=sp-20261110r30', '/assets/path.js?v=20261026a', '/assets/r17.css?v=sp-20261110r30', '/assets/r17.js?v=20261106a', '/assets/portal.css?v=sp-20261110r30', '/assets/portal.js?v=20261024e', '/assets/fx.js?v=20261024d', '/assets/intake.js?v=20261024d', '/assets/intake2.js?v=sp-20261110r33', '/assets/theme.css?v=sp-20261110r32', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
 /* r26: new logo. Install fetches every file above past the browser's HTTP cache (cache: 'reload'), so the new mark and icons arrive fresh. */
 /* round 18: the portal's app shell (the page and its round 18 files). Never client data: the API is cross-origin and never touched. */
-ASSETS = ASSETS.concat(['/portal/', '/assets/portal-r18.css?v=sp-20261110r30', '/assets/portal-r18.js?v=20261106b']);
+ASSETS = ASSETS.concat(['/portal/', '/assets/portal-r18.css?v=sp-20261110r30', '/assets/portal-r18.js?v=sp-20261110r33']);
 /* r27: Find Your Fit files */
 ASSETS = ASSETS.concat(['/assets/fit-r27.css?v=sp-20261110r32', '/assets/fit-r27.js?v=sp-20261110r32']);
 self.addEventListener('install', function (e) {

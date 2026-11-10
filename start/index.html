@@ -6,15 +6,15 @@
 <meta name="color-scheme" content="light dark">
 <script>try{var t=localStorage.getItem('sp-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Start free · Steady Path Careers</title>
-<meta name="description" content="Tell us about you, mostly by tapping. About 10 minutes. Free for 14 days, no card needed.">
+<title>Start Your Free Job Search | Steady Path Careers</title>
+<meta name="description" content="Tell us about you, mostly by tapping. It takes about 10 minutes. Free for 14 days, no card needed, and you submit every application yourself.">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="canonical" href="https://steadypathcareers.com/start/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://steadypathcareers.com/start/">
-<meta property="og:title" content="Start free · Steady Path Careers">
-<meta property="og:description" content="Tell us about you, mostly by tapping. About 10 minutes. Free for 14 days, no card needed.">
+<meta property="og:title" content="Start Your Free Job Search | Steady Path Careers">
+<meta property="og:description" content="Tell us about you, mostly by tapping. It takes about 10 minutes. Free for 14 days, no card needed, and you submit every application yourself.">
 <meta property="og:image" content="https://steadypathcareers.com/img/og/home.png?v=20261110">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,6 +24,14 @@
 <style>
 .i2wrap { max-width: 720px; margin: 0 auto; }
 #i2 { scroll-margin-top: 12px; }
+/* r33: hold the space of the first intake card until intake2.js draws it, so nothing below jumps (layout shift) */
+@media (scripting: enabled) {
+  #i2:not(:has(> :not(noscript))) { min-height: 470px; }
+  @media (max-width: 599px) { #i2:not(:has(> :not(noscript))) { min-height: 510px; } }
+  @media (max-width: 400px) { #i2:not(:has(> :not(noscript))) { min-height: 535px; } }
+  @media (max-width: 370px) { #i2:not(:has(> :not(noscript))) { min-height: 585px; } }
+  @media (max-width: 340px) { #i2:not(:has(> :not(noscript))) { min-height: 635px; } }
+}
 .i2-path { background-color: #10213A; background-image: radial-gradient(80% 140% at 100% 100%, rgba(233,162,59,.4), rgba(233,162,59,0) 60%), linear-gradient(120deg, #10213A, #1F3A5F 60%, #2B3F72); border-radius: 18px 18px 0 0; padding: 10px 16px 8px; color: #FBF6EE; }
 .i2-path svg { display: block; width: 100%; height: auto; max-height: 64px; overflow: visible; }
 .i2-track { fill: none; stroke: rgba(251,246,238,.35); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 2 9; }
@@ -217,6 +225,6 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
 <script src="/assets/site.js?v=sp-20261110r30"></script>
 <script src="/assets/path.js?v=20261026a"></script>
 <script src="/assets/fx.js?v=20261024d"></script>
-<script src="/assets/intake2.js?v=sp-20261110r30"></script>
+<script src="/assets/intake2.js?v=sp-20261110r33"></script>
 </body>
 </html>

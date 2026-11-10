@@ -1150,13 +1150,13 @@ function reauthBtn() { return ' <button type="button" class="btn ghost sm" data-
 function vSignin() {
   return '<div class="login"><div class="say"><a class="brand" href="/"><span>' + SP.LOGO + '</span>Steady Path Careers</a>' + SP.themeBtn() + '<h1>Your next job, one honest step at a time.</h1><p>Real openings. Posted pay. Every one checked live.</p><ul><li>Posted pay on every match, or a clear note when it isn&#39;t posted</li><li>Each posting checked live before it reaches you</li><li>Your resume and cover letter tailored for every Yes</li></ul></div>' +
     '<div class="box"><div><h2>Welcome back</h2><p class="tag">Sign in with your email.</p></div>' +
-    (S.sent ? '<div class="sent">Your link is on its way to ' + esc(S.sent) + '. It works once, within 30 minutes. Open it on this device to stay signed in for 90 days.</div>' +
-      '<div class="codebox"><label for="code">Or type the 6-digit code from that email</label>' + (S.codeErr ? '<div class="warn">' + esc(S.codeErr) + '</div>' : '') +
+    (S.sent ? '<div class="sent" role="status">Your link is on its way to ' + esc(S.sent) + '. It works once, within 30 minutes. Open it on this device to stay signed in for 90 days.</div>' +
+      '<div class="codebox"><label for="code">Or type the 6-digit code from that email</label>' + (S.codeErr ? '<div class="warn" role="alert">' + esc(S.codeErr) + '</div>' : '') +
       '<form id="codeForm"><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" aria-label="6-digit code"><button class="btn" id="codeBtn" type="submit" style="width:100%;margin-top:8px">Sign in with the code</button></form>' +
       '<p class="fine" style="margin:0">Opened Steady Path from your home screen? The code signs you in right here.</p></div>' +
       '<p class="fine">Nothing after a few minutes? Check spam, or email <a href="mailto:' + esc(SP_EMAIL) + '">' + esc(SP_EMAIL) + '</a>.</p>' +
       '<p class="fine" style="margin:0"><button type="button" class="linkbtn" data-newlink>Send a new link</button></p>' :
-      '<p class="psub">We\'ll email you a sign-in link and a code. Each works once. No password to remember.</p>' + (S.err ? '<div class="warn">' + esc(S.err) + '</div>' : '') +
+      '<p class="psub">We\'ll email you a sign-in link and a code. Each works once. No password to remember.</p>' + (S.err ? '<div class="warn" role="alert">' + esc(S.err) + '</div>' : '') +
       '<form id="linkForm"><input type="email" id="email" required placeholder="you@example.com" aria-label="Email" autocomplete="email" value="' + esc(S.lastEmail || '') + '"><button class="btn gold" id="linkBtn" type="submit" style="width:100%;margin-top:10px">Email me a sign-in link</button></form>') +
     '<p class="fine">Not a client yet? <a href="/start/">Join the free pilot</a>.</p>' + (standalone() ? '' : '<p class="fine"><a href="/app/">Get the app</a> for your phone. No app store needed.</p>') + '<p class="fine">Your information is private. Only Steady Path and the tools listed in the privacy policy, including an AI service, handle it.</p>' + legalLinks('fine legal') + '</div></div>';
 }
@@ -2600,7 +2600,7 @@ var PF_COMMUTE = ['Up to 15 minutes', 'Up to 30 minutes', 'Up to 45 minutes', 'U
 var PF_SETTING = ['On site', 'Hybrid', 'Remote', 'On site or hybrid', 'Hybrid or remote', 'Any of these'];
 var PF_CONTACT = ['Email', 'Text', 'Phone call'];
 var PF_SCREENS = ['Jobs', 'Documents', 'Reading or approving documents', 'Applying', 'Applied', 'Signing in', 'Search settings', 'Something else'];
-var PF_WAIT = 'Requests are reviewed, usually within one business day. Your matches use your current settings until then.';
+var PF_WAIT = 'Requests are reviewed as soon as possible. Your matches use your current settings until then.';
 S.pf = { draft: {} };
 function pfReset() { S.pf = { draft: {} }; }
 function prefsOf() { var p = (S.data && S.data.prefs) || {}; return { roles: Array.isArray(p.roles) ? p.roles.map(String) : String(p.roles || '').split(/\r?\n/).filter(String), payFloor: String(p.payFloor == null ? '' : p.payFloor), commute: String(p.commute || ''), setting: String(p.setting || ''), contact: String(p.contact || ''), status: String(p.status || ''), searchTerms: Array.isArray(p.searchTerms) ? p.searchTerms.map(String) : [] }; }
@@ -2640,7 +2640,7 @@ function vPrefs() {
     (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
     '<div class="pf-row"><button class="btn gold" data-pfpausesend="' + esc(pauseType) + '"' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Send request') + '</button><button class="btn ghost" data-pfpause="">Cancel</button></div></div>' : '';
   var del = F.del ? '<div class="pf-confirm" role="group" aria-labelledby="pfDelH"><h3 id="pfDelH" tabindex="-1">Ask us to delete your data?</h3>' +
-    '<p>This sends a request to delete your jobs, documents, applications and notes. Nothing is deleted right away: the request is reviewed, usually within one business day, and you get an email. Once your data is deleted, your search and this portal stop.</p>' +
+    '<p>This sends a request to delete your jobs, documents, applications and notes. Nothing is deleted right away: the request is reviewed as soon as possible, and you get an email. Once your data is deleted, your search and this portal stop.</p>' +
     '<p>Want a copy first? Download your data above before you send this.</p>' +
     (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
     '<div class="pf-row"><button class="btn danger" data-pfdelyes' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Yes, send the delete request') + '</button><button class="btn ghost" data-pfdel="">Cancel</button></div></div>' : '';
@@ -2815,9 +2815,9 @@ document.addEventListener('click', function (e) {
   if (d.pfsend != null) { sendPrefsChange(); return; }
   if (d.pfpause != null) { S.pf.pause = !!d.pfpause; S.pf.edit = false; S.pf.del = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.pause ? '#pfPauseNote' : '[data-pfpause]'; render(); return; }
   if (d.pfpausesend) { var ty = d.pfpausesend === 'Resume search' ? 'Resume search' : 'Pause search';
-    sendRequest({ type: ty, note: String(S.pf.draft.pfPauseNote || '').trim().slice(0, 1000) }, function (ok) { if (ok) { S.pf.pause = false; delete S.pf.draft.pfPauseNote; S.pf.msg = 'Sent. We will ' + (ty === 'Pause search' ? 'pause' : 'restart') + ' your search after reviewing the request, usually within one business day. Until then nothing changes.'; S.focusTo = '#pfMsg'; } }); return; }
+    sendRequest({ type: ty, note: String(S.pf.draft.pfPauseNote || '').trim().slice(0, 1000) }, function (ok) { if (ok) { S.pf.pause = false; delete S.pf.draft.pfPauseNote; S.pf.msg = 'Sent. We will review the request as soon as possible, then ' + (ty === 'Pause search' ? 'pause' : 'restart') + ' your search. Until then nothing changes.'; S.focusTo = '#pfMsg'; } }); return; }
   if (d.pfdel != null) { S.pf.del = !!d.pfdel; S.pf.edit = false; S.pf.pause = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.del ? '#pfDelH' : '[data-pfdel]'; render(); return; }
-  if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. It is reviewed, usually within one business day, and you will get an email. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
+  if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. It is reviewed as soon as possible, and you will get an email. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
   if (d.export) { var day = todayISO(); if (d.export === 'csv') saveFile('steady-path-applications-' + day + '.csv', 'text/csv;charset=utf-8', appsCsv()); else saveFile('steady-path-my-data-' + day + '.json', 'application/json', JSON.stringify(exportData(), null, 2)); toast('Downloaded.'); return; }
   if (d.ics) { var ap = ((S.data && S.data.apps) || []).filter(function (x) { return String(x.id) === d.ics; })[0], txt = ap && icsFor(ap); if (!txt) return; if (isIOS()) { try { location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(txt); return; } catch (e) {} } saveFile('interview-' + slug(ap.company) + '-' + ap.interview + '.ics', 'text/calendar;charset=utf-8', txt); toast('Calendar file downloaded. Open it to add the interview to Outlook or Apple Calendar.'); return; }
   if (d.urg != null) { S.urg = { open: !!d.urg }; S.pf.err = ''; S.focusTo = d.urg ? '#urgWhat' : '[data-urg]'; render(); return; }
@@ -3373,7 +3373,7 @@ document.addEventListener('click', function (e) {
 }, true);
 /* =================== END ROUND 25 =================== */
 </script>
-<script src="../assets/portal-r18.js?v=20261106b"></script>
+<script src="../assets/portal-r18.js?v=sp-20261110r33"></script>
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/portal.js?v=20261024e"></script>
 <script src="../assets/fit-r27.js?v=sp-20261110r32"></script>
