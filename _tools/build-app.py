@@ -47,7 +47,9 @@ html.is-standalone .ap-howto, html.is-standalone .ap-qr, html.is-standalone [dat
 html.is-standalone .ap-have { display: block; }
 </style>
 '''
-head += CSS
+# r30: theme.css loads last, after this page's own styles
+THEME = re.search(r'<link rel="stylesheet" href="/assets/theme\.css[^"]*">\n', head).group(0)
+head = head.replace(THEME, '') + CSS + THEME
 
 body = A[body_start:]
 hdr = body[:body.index('<main')]
@@ -116,5 +118,7 @@ SCRIPT = '''<script>
 fin = fin.replace('<script src="/assets/site.js', SCRIPT + '<script src="/assets/site.js', 1)
 out = head + '</head>\n' + hdr + MAIN + fin
 os.makedirs(os.path.join(ROOT, 'app'), exist_ok=True)
+sys.path.insert(0, HERE); import theme_tokens
+out = theme_tokens.apply_html(out)  # r30: light/dark theme tokens, as in the committed page
 open(os.path.join(ROOT, 'app/index.html'), 'w', encoding='utf-8').write(out)
 print('wrote app/index.html', len(out))

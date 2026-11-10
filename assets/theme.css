@@ -208,6 +208,10 @@
   /* the Ghost check finale starts from a light apricot; on dark pages it starts from the page color instead */
   :root:not([data-theme="light"]) .finale[style*="F0BC7E"] { --a: #0E1A2C !important; }
   :root:not([data-theme="light"]) .finale[style*="F0BC7E"] .hilltop path { fill: #0E1A2C; }
+  /* Ghost check finale: in dark the light apricot start is replaced, and a little more room keeps the last line off the orange */
+  :root:not([data-theme="light"]) .finale[style*="F0BC7E"] { padding-bottom: 96px; }
+  /* intake step labels sit on a navy-to-rose gradient: a brighter label color in dark */
+  :root:not([data-theme="light"]) .i2-stops { color: #E3EAF4; }
 }
 /* ---- dark palette: picked with the header button ---- */
 :root[data-theme="dark"] {
@@ -326,6 +330,10 @@
 /* the Ghost check finale starts from a light apricot; on dark pages it starts from the page color instead */
 :root[data-theme="dark"] .finale[style*="F0BC7E"] { --a: #0E1A2C !important; }
 :root[data-theme="dark"] .finale[style*="F0BC7E"] .hilltop path { fill: #0E1A2C; }
+/* Ghost check finale: in dark the light apricot start is replaced, and a little more room keeps the last line off the orange */
+:root[data-theme="dark"] .finale[style*="F0BC7E"] { padding-bottom: 96px; }
+/* intake step labels sit on a navy-to-rose gradient: a brighter label color in dark */
+:root[data-theme="dark"] .i2-stops { color: #E3EAF4; }
 
 /* ---- theme toggle button (added to the header by site.js) ---- */
 .theme-btn { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; padding: 0; border-radius: 12px; border: 1.5px solid rgba(var(--tint-rgb), .28); background: transparent; color: inherit; cursor: pointer; transition: background-color .18s, border-color .18s; }
@@ -351,17 +359,42 @@
   .mk .topbar .theme-btn { margin-left: auto; }
   .mk .topbar .theme-btn + .mnav-btn { margin-left: 8px; }
 }
-/* the header button takes about 52px, so above 1100px the top bar sits a little tighter on every public page */
+/* above 1100px the header button (44px) has to fit beside the links. The brand never shrinks (its text used to run
+   into the first link). Pages without r17.css (the start pages) only lose some link padding; r17 pages set their own. */
 @media (min-width: 1101px) {
-  .mk .topbar { gap: 10px; }
-  .mk .topbar .links { margin-left: 0; }
-  .mk .topbar .links a { padding-left: 6px; padding-right: 6px; font-size: 14px; }
-  .mk .phero .topbar .right { gap: 6px; font-size: 14px; }
-  .mk .phero .topbar .right .btn { padding: 9px 14px; font-size: 14px; }
-  .mk .topbar .theme-btn { margin-left: 2px; width: 42px; height: 44px; }
+  .mk .topbar .brand { flex: none; }
+  .mk .topbar .links a { padding-left: 6px; padding-right: 6px; }
+  .mk .topbar .theme-btn { margin-left: 2px; width: 42px; }
+}
+/* small phones: the brand, the header button and the menu button share 280 to 340px */
+@media (max-width: 380px) {
+  .topbar .theme-btn { width: 40px; height: 40px; }
+  .topbar .theme-btn + .mnav-btn { margin-left: 6px; }
+  .topbar .brand { gap: 8px; }
+  .topbar .brand svg { width: 32px; height: 32px; }
+}
+@media (max-width: 340px) {
+  .topbar { gap: 8px; }
+  .mk .topbar .brand, .topbar .brand { font-size: 15px; line-height: 1.1; white-space: normal; min-width: 0; }
+  .topbar .brand svg { width: 30px; height: 30px; }
 }
 .login .say .brand { padding-right: 56px; }
-.finale[style*="F0BC7E"] { padding-bottom: 96px; }
 /* the portal header is tight on narrow views: icons keep their size, and the button is a little smaller */
 .ptabs button svg, .ptop .brand svg { flex: none; }
 .ptop .theme-btn { width: 40px; height: 40px; }
+@media (min-width: 761px) {
+  .login .say .theme-btn { position: fixed; top: max(20px, env(safe-area-inset-top, 0px)); right: max(24px, env(safe-area-inset-right, 0px)); z-index: 5; }
+  .login .say .brand { padding-right: 0; }
+}
+/* when the portal tabs share a narrow header (Plan & billing, Find Your Fit, Documents and other views, or windows from
+   761px to about 1000px), or on very small phones, the wordmark used to shrink to one letter. It is now visually hidden
+   (still read out as the link name) and the logo stays. Browsers without container queries keep the old behavior. */
+.ptop { container-type: inline-size; container-name: ptop; }
+@media (min-width: 761px) {
+  @container ptop (max-width: 900px) {
+    .ptop .brand .bname { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  }
+}
+@container ptop (max-width: 300px) {
+  .ptop .brand .bname { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+}
