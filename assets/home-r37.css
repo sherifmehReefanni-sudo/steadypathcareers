@@ -75,7 +75,7 @@ p{margin:0}
 .jcard:nth-last-child(n+3){transform:translateY(24px) scale(.92);opacity:.4}
 .jcard.out-yes{transform:translateX(130%) rotate(14deg);opacity:0}
 .jcard.out-no{transform:translateX(-130%) rotate(-14deg);opacity:0}
-.jcard h3{font-size:1.42rem}
+.jcard .jt{font-size:1.42rem;font-weight:800;letter-spacing:-.02em;line-height:1.25;text-wrap:balance}
 .jcard .pay{font-weight:800;font-size:1.22rem;margin-top:6px}
 .jcard .src{font-size:.86rem;color:#5B6880}
 .jcard .co{margin-top:10px;font-size:.96rem}
@@ -311,7 +311,7 @@ section[id],[id].foryou,#faq{scroll-margin-top:12px}
 /* hero */
 .btn{text-align:center}
 @media (max-width:420px){.cta .btn{padding:0 20px;flex:1 1 auto}.cta .btn.ghost{line-height:1.2;padding-block:8px}}
-.deck-btns button:disabled{opacity:.45;cursor:default}
+.deck-btns button:disabled{cursor:default}
 /* the card stack grows with its text, so a long card on a narrow phone never spills over the Pass and Yes buttons */
 .cards{display:grid;height:auto;min-height:300px}
 .jcard{position:relative;inset:auto;grid-area:1/1}
@@ -353,6 +353,26 @@ footer nav a,footer .where a{display:inline-flex;align-items:center;min-height:4
 footer .where{flex-basis:100%;display:flex;flex-wrap:wrap;gap:0 22px;align-items:center;border-top:1px solid rgba(255,255,255,.14);padding-top:10px;margin-top:6px}
 footer .where span{display:inline-flex;align-items:center;min-height:44px}
 footer .brand img{width:30px;height:30px;border-radius:8px}
+
+/* contrast (fix round 1): every piece of text at 4.5:1 or better on what is really behind it */
+.deck-note{color:#fff;background:rgba(8,19,38,.62);border-radius:14px;padding:9px 14px}
+.deck-done{background:rgba(8,19,38,.5)}
+.b-no{color:#8F2B21}
+.deck-btns button:disabled{opacity:1;background:#D5DCEA;color:#33415A}
+/* steps not reached yet are marked by a lighter weight, a hollow number and the words "Not checked", never by faded text */
+.steps li{opacity:1;transition:none}
+.steps li:not(.on) b{font-weight:500;color:var(--ink-2)}
+.steps li:not(.on) small{font-style:italic}
+.steps li:not(.on) i{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-2)}
+
+/* page-to-page fade, the same opt-in the other pages make in r17.css (off for reduced motion) */
+@media (prefers-reduced-motion:no-preference){
+  @view-transition{navigation:auto}
+  ::view-transition-old(root){animation:vtOut .18s cubic-bezier(.4,0,1,1) both}
+  ::view-transition-new(root){animation:vtIn .26s cubic-bezier(0,0,.2,1) both}
+}
+@keyframes vtOut{to{opacity:0;transform:translateY(-6px)}}
+@keyframes vtIn{from{opacity:0;transform:translateY(10px)}}
 
 /* reduced motion: nothing waits, nothing slides */
 @media (prefers-reduced-motion:reduce){

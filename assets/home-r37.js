@@ -7,6 +7,11 @@
      if you have one, WELCOME_POSTER to a still image, and they all appear. */
   var WELCOME_VIDEO = '';
   var WELCOME_POSTER = '';
+  /* The video's length as words (for example '53 seconds') and its chapters as [time, what it covers] pairs
+     (for example [['0:00', 'Real jobs, with the pay right there'], ['0:10', '...']]). Fill these from the final cut.
+     While they are empty, no length and no chapter list are shown anywhere. */
+  var WELCOME_LENGTH = '';
+  var WELCOME_CHAPTERS = [];
 
   var root = document.documentElement;
   function $(id) { return document.getElementById(id); }
@@ -36,6 +41,7 @@
     if (!m) return;
     m.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('a')) m.open = false; });
     document.addEventListener('click', function (e) { if (m.open && !m.contains(e.target)) m.open = false; });
+    m.addEventListener('focusout', function (e) { if (m.open && e.relatedTarget && !m.contains(e.relatedTarget)) m.open = false; });
     m.addEventListener('keydown', function (e) { if (e.key === 'Escape' && m.open) { m.open = false; m.querySelector('summary').focus(); } });
   })();
 
@@ -70,7 +76,7 @@
       cards.innerHTML = '';
       DECKS[lvl].slice().reverse().forEach(function (j) {
         var d = document.createElement('article'); d.className = 'jcard';
-        d.innerHTML = '<h3>' + esc(j[0]) + '</h3><p class="pay">' + esc(j[1]) + '</p><p class="src">Posted by the employer</p><p class="co">' + esc(j[2]) +
+        d.innerHTML = '<p class="jt">' + esc(j[0]) + '</p><p class="pay">' + esc(j[1]) + '</p><p class="src">Posted by the employer</p><p class="co">' + esc(j[2]) +
           '</p><div class="pills"><span class="pill ok" title="Your floor is the lowest pay you told us you\'d accept.">Meets your floor</span><span class="pill">' + esc(j[3]) +
           '</span><span class="pill fresh">Checked today</span></div><p class="why">' + esc(j[4]) + '</p>';
         cards.appendChild(d);
@@ -80,10 +86,10 @@
     }
     function answer(yes) {
       var c = top(); if (!c) return;
-      var name = c.querySelector('h3').textContent;
+      var name = c.querySelector('.jt').textContent;
       c.classList.add(yes ? 'out-yes' : 'out-no'); c.style.transform = '';
       note.textContent = yes ? 'Yes to ' + name + '. In your portal, a tailored resume and cover letter would be ready usually within about an hour, and within 1 business day at most.'
-        : 'Passed on ' + name + '. Your next matches lean away from jobs like it.';
+        : 'Passed on ' + name + '. In your portal you can tell us why.';
       var last = !top(), had = cards.parentNode.contains(document.activeElement);
       if (last) bYes.disabled = bNo.disabled = true;
       setTimeout(function () {
@@ -129,24 +135,24 @@
   (function () {
     var ol = $('tSteps'), v = $('tVerdict');
     if (!ol) return;
-    var CH = ['The employer\'s own posting', 'Pay, as the employer posted it', 'Still open today', 'In your area, or remote for your state', 'At or above your pay floor'];
+    var CH = ['The employer\'s own posting', 'Pay stated by the employer', 'Still open today', 'In your area, or remote for your state', 'Pay that can reach your floor'];
     var POSTS = [
-      { t: 'Customer Success Manager', m: 'Example Co., Morristown, NJ', r: [[1, 'Found on the company careers page.'], [1, '$85,000 to $98,000 per year.'], [1, 'Open and taking applications.'], [1, 'Hybrid, about 35 minutes from home.'], [1, 'Your floor is $80,000.']], v: 'Sent to your portal, with the pay and a note on why it fits.' },
-      { t: 'Sales Associate', m: 'Sample Retail Group, Stamford, CT', r: [[1, 'Found on the company careers page.'], [1, '$19 to $22 per hour.'], [1, 'Open and taking applications.'], [0, 'On site in Stamford, Connecticut. That is outside the area you picked.']], v: 'Not sent. It is outside your area, so it never reaches you.' },
+      { t: 'Customer Success Manager', m: 'Example Co., Morristown, NJ', r: [[1, 'Found on the company careers page.'], [1, '$85,000 to $98,000 per year.'], [1, 'Open and taking applications.'], [1, 'Hybrid, about 35 minutes from home.'], [1, '$85,000 to $98,000. Your floor is $80,000.']], v: 'Sent to your portal, with the pay and a note on why it fits.' },
+      { t: 'Sales Associate', m: 'Sample Retail Group, Paramus, NJ', r: [[1, 'Found on the company careers page.'], [0, 'The posting says "competitive pay" and gives no number.']], v: 'Not sent. No pay posted, so it never reaches you.' },
       { t: 'Operations Analyst', m: 'Demo Partners, Jersey City, NJ', r: [[1, 'Found on the company careers page.'], [1, '$72,000 to $84,000 per year.'], [0, 'The employer\'s page says the job is no longer accepting applications. The job board copy was still up.']], v: 'Not sent. The job board still listed it, but the employer had closed it.' }];
     var timers = [];
     function run(i, now) {
       timers.forEach(clearTimeout); timers = [];
       var p = POSTS[i];
       $('tTitle').textContent = p.t; $('tMeta').textContent = p.m; v.className = 'verdict'; v.textContent = '';
-      ol.innerHTML = CH.map(function (c, k) { return '<li><i>' + (k + 1) + '</i><div><b>' + esc(c) + '</b><small></small></div></li>'; }).join('');
+      ol.innerHTML = CH.map(function (c, k) { return '<li><i>' + (k + 1) + '</i><div><b>' + esc(c) + '</b><small>Not checked yet</small></div></li>'; }).join('');
       var li = ol.children, slow = (now || still) ? 0 : 520;
       function step(k) {
         var r = p.r[k];
         li[k].className = 'on ' + (r[0] ? 'pass' : 'fail');
         li[k].querySelector('i').textContent = r[0] ? '✓' : '✕';
         li[k].querySelector('small').textContent = r[1];
-        if (k === p.r.length - 1) { var ok = p.r.every(function (x) { return x[0]; }); v.className = 'verdict ' + (ok ? 'pass' : 'fail'); v.textContent = p.v; }
+        if (k === p.r.length - 1) { var ok = p.r.every(function (x) { return x[0]; }); for (var n = k + 1; n < li.length; n++) li[n].querySelector('small').textContent = 'Not checked. The posting was already out.'; v.className = 'verdict ' + (ok ? 'pass' : 'fail'); v.textContent = p.v; }
       }
       p.r.forEach(function (r, k) { if (slow) timers.push(setTimeout(function () { step(k); }, slow * (k + 1))); else step(k); });
     }
@@ -206,6 +212,15 @@
     if (!WELCOME_VIDEO || !d || !d.showModal) return;
     var opener = null, box = $('vidBox');
     all('[data-video-ui]').forEach(function (el) { el.hidden = false; });
+    if (WELCOME_LENGTH) {
+      [['wLen', WELCOME_LENGTH], ['sLen', 'Welcome video, ' + WELCOME_LENGTH]].forEach(function (x) { var el = $(x[0]); if (el) { el.textContent = x[1]; el.hidden = false; } });
+      var scr = document.querySelector('.screen'); if (scr) scr.setAttribute('aria-label', 'Play the welcome video, ' + WELCOME_LENGTH);
+    }
+    var ch = $('chapters');
+    if (ch && WELCOME_CHAPTERS.length) {
+      ch.innerHTML = WELCOME_CHAPTERS.map(function (c) { return '<li><b>' + esc(c[0]) + '</b><span>' + esc(c[1]) + '</span></li>'; }).join('');
+      ch.hidden = false;
+    }
     all('[data-video]').forEach(function (b) {
       b.addEventListener('click', function () {
         opener = b;
