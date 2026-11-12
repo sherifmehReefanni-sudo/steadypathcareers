@@ -253,7 +253,7 @@
     if (!plain(V.skills)) V.skills = {}; if (!plain(V.deal)) V.deal = {}; if (!plain(V.style)) V.style = {};
   }
   fixMod();
-  var cur = Math.max(0, Number(D._at) || 0), file = null, parsed = null, parsing = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
+  var cur = Math.max(0, Number(D._at) || 0), file = null, parsed = null, parsing = false, readOk = false, noFileOk = false, leaving = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
   var autoT = null, fromReview = false, laterOpen = false, laterBusy = false, laterMsg = '', laterKind = '', dealAnim = false, parseT = null;
   /* Saving (round 6). base is the saved-at stamp of the copy this tab last read or wrote. A save whose base is older than the
      stored copy (another tab or window wrote since) is refused: this tab reloads that newer copy instead, so a stale tab never
@@ -524,19 +524,23 @@
   } });
   add({ id: 'resume', stop: 1, html: function () {
     var st = parsing ? '<p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Reading your resume…</p>' :
-      parsed ? '<p class="i2-okline" role="status">' + icon('shield', 'ic sm') + 'Read it. Next, you will check what we found.</p>' : '';
-    return h('Upload your resume', 'PDF or Word, up to 10 MB. It is read right here on your device to fill in the next screen. Any version is fine.') +
+      file && parsed && readOk ? '<p class="i2-okline" role="status">' + icon('shield', 'ic sm') + 'Read it. Next, you will check what we found.</p>' :
+      file && parsed ? '<p class="i2-okline" role="status">' + icon('clip', 'ic sm') + 'Your file is attached. We could not read it on this device, so next you will fill in a few details yourself.</p>' : '';
+    return h('Upload your resume', 'PDF, Word (.docx or .doc), .rtf or .txt, up to 10 MB. It is read right here on your device to fill in the next screen. Any version is fine.') +
       '<label class="i2-drop" id="i2drop"><input type="file" id="i2file" accept=".pdf,.doc,.docx,.rtf,.txt"><span class="i2-dropin">' + icon('clip', 'ic') +
       '<b>' + (file ? esc(file.name) : D.resumeName ? 'Attach ' + esc(D.resumeName) + ' again' : 'Tap to choose a file') + '</b><span>' + (file ? 'Tap to change it' : 'or drag it here') + '</span></span></label>' + st +
       '<button type="button" class="i2-link" data-act="noresume">No resume? No problem. Answer a few questions instead.</button>';
   }, nextLabel: function () { return file ? 'Continue' : 'Skip for now'; } });
   /* shown after a file, after "No resume", and after a reload that lost the file but kept the answers (finding 8) */
-  add({ id: 'confirm', stop: 1, show: function () { return !!(file || V.noResume || D.resumeName); }, html: function () {
+  add({ id: 'confirm', stop: 1, show: function () { return !!(file || V.noResume || D.resumeName); }, need: function () {
+    /* r41 (m9): with no resume, we need at least a most recent job title or one line of work history to build from */
+    return V.noResume && !String(D.jobNowTitle || '').trim() && !String(D.history || '').trim() ? ['jobNowTitle'] : [];
+  }, html: function () {
     var p = parsed || {};
-    var lead = V.noResume ? h('A few quick questions instead', 'We will build your resume from these. You can add more later.') :
+    var lead = V.noResume ? h('A few quick questions instead', 'We will build your resume from these. Please give us at least your most recent job title or one line of work history. You can add more later.') :
       parsing ? h('Still reading your resume', 'This takes a few seconds. The boxes below fill in when it finishes. Anything you type stays as you typed it.') +
         '<p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Still reading your resume…</p>' :
-      lostResume() ? h('Check your work details', 'Your answers are saved, but your resume file did not carry over when the page reloaded. Tap Back to attach it again, or keep going and attach it before you send.') :
+      lostResume() ? h('Check your work details', 'Your answers are saved, but your resume file did not carry over when this page was reloaded or reopened. Tap Back to attach it again, or keep going. Before you send, we will ask you to attach it again or to send without it.') :
       h('Here is what we found', p.title || p.employer || D.jobNowTitle ? 'Check each one. Change anything we got wrong.' : 'We could not read much from that file. Please fill these in.');
     return lead + '<div class="i2-two">' + inp('jobNowTitle', 'Current or most recent job title', 'text', { ph: 'Business Operations Analyst' }) + inp('jobNowEmployer', 'Employer', 'text', { ph: 'AT&T' }) + '</div>' +
       chips('stillThere', 'Still in that job?', O.yesno, { one: 1 }) + (D.stillThere === 'No' ? inp('endedOn', 'Month and year it ended', 'text', { ph: 'September 2026' }) : '') +
@@ -583,7 +587,7 @@
   add({ id: 'titles', stop: 2, need: ['v2.titles'], html: function () {
     var sug = uniq([].concat.apply([], fieldsAll().map(function (k) { return F[k].titles; }))).slice(0, 14);
     var on = titleList();
-    return h('Job titles to search for', 'Pick at least two, up to five. Add your own if they are missing.') +
+    return h('Job titles to search for', 'Pick at least 2, up to 5. Add your own if they are missing.') +
       '<div class="chips" id="g_f_v2_titles" role="group" aria-label="Suggested titles">' + uniq(sug.concat(on)).map(function (t) { var c = on.indexOf(t) >= 0, full = !c && on.length >= 5; return '<label' + (full ? ' class="off"' : '') + '><input type="checkbox" data-title="' + esc(t) + '"' + (c ? ' checked' : '') + (full ? ' disabled' : '') + '>' + esc(t) + '</label>'; }).join('') + '</div>' +
       addOwn('title', 'Add a title', 'Payroll Analyst') + '<p class="i2-count" aria-live="polite">' + on.length + ' of 5 picked' + (on.length < 2 ? ', pick at least 2' : '') + '</p>';
   } });
@@ -676,7 +680,7 @@
   add({ id: 'docs', stop: 4, html: function () { return h('How should your documents sound?', '') + chips('v2.resumeStyle', 'Resume style', O.resumeStyle, { one: 1 }) + chips('v2.coverTone', 'Cover letter tone', O.coverTone, { one: 1 }); } });
   add({ id: 'review', stop: 4, html: function () { return h('Check your answers', 'Tap Edit on anything you want to change.') + review(); } });
   add({ id: 'confirmSend', stop: 4, need: ['agreeTrue', 'agreeTrial', 'signature'], html: function () {
-    return h('Confirm and send', 'Last step.') +
+    return h('Confirm and send', 'Last step.') + reattach() +
       '<label class="i2-agree" id="a_agreeTrue"><input type="checkbox" data-b="agreeTrue"' + (D.agreeTrue ? ' checked' : '') + '>Everything I entered is true. I understand nothing goes on a document unless I said it is true, and that I approve every document before it is used.</label>' +
       '<label class="i2-agree" id="a_agreeTrial"><input type="checkbox" data-b="agreeTrial"' + (D.agreeTrial ? ' checked' : '') + '><span>I understand the pilot is free, that I submit all applications myself, and that no job, interview or pay is promised. I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>' +
       '<label class="i2-agree"><input type="checkbox" data-b2="textOk"' + (V.textOk ? ' checked' : '') + '><span>Optional: you may text me about my search at the number I gave. Message and data rates may apply. Reply STOP anytime.</span></label>' +
@@ -722,7 +726,7 @@
   function strength() {
     var checks = [
       [!!file || !!String(D.history || '').trim(), 'Add your resume or work history'], [!!String(D.linkedin || '').trim(), 'Add your LinkedIn link'],
-      [titleList().length >= 3, 'Pick at least 3 job titles'], [skillsPicked().length > 0, 'Mark your skills'],
+      [titleList().length >= 2, 'Pick at least 2 job titles'], [skillsPicked().length > 0, 'Mark your skills'],
       [!!String(V.proudestWin || '').trim(), 'Add a proudest win'], [!!String(D.numbers || '').trim(), 'Add a few numbers from your work'],
       [arr(V.strengths).length >= 3, 'Pick 3 or more strengths'], [arr(V.rank).length > 0, 'Rank what matters most'],
       [!!String(D.licenses || '').trim() || D.education, 'Add your education or licenses'], [DEAL.every(function (c) { return V.deal[c.k]; }), 'Finish the deal-breaker cards']
@@ -730,13 +734,13 @@
     var score = Math.round(100 * checks.filter(function (c) { return c[0]; }).length / checks.length);
     return { score: score, tips: checks.filter(function (c) { return !c[0]; }).map(function (c) { return c[1]; }).slice(0, 3) };
   }
-  function meter() { var s = strength(); return '<div class="i2-meter"><div class="i2-mrow"><b>Your profile strength</b><span>' + s.score + '%</span></div><div class="i2-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + s.score + '" aria-label="Profile strength"><i style="width:' + s.score + '%"></i></div>' + (s.tips.length ? '<ul>' + s.tips.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '<p>Strong profile. Nice work.</p>') + '</div>'; }
+  function meter(bare) { var s = strength(); if (bare) s.tips = []; return '<div class="i2-meter"><div class="i2-mrow"><b>Your profile strength</b><span>' + s.score + '%</span></div><div class="i2-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + s.score + '" aria-label="Profile strength"><i style="width:' + s.score + '%"></i></div>' + (s.tips.length ? '<ul>' + s.tips.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : bare ? '' : '<p>Strong profile. Nice work.</p>') + '</div>'; }
 
   /* ---------------- review ---------------- */
   function review() {
     var f = field(), rows = [
       [1, 'You', [D.name, D.email, D.phone, D.city, 'Reach by ' + (D.contactBy || '?'), V.situation, 'Start: ' + (D.start || '?'), 'Work authorization: ' + (D.workAuth || '?') + '; sponsorship: ' + (D.sponsorship || '?')]],
-      [1, 'Your work so far', [(file ? 'Resume: ' + file.name : V.noResume ? 'No resume (we will build one)' : lostResume() ? 'Resume: ' + D.resumeName + ' needs to be attached again' : 'No resume attached'), [D.jobNowTitle, D.jobNowEmployer].filter(Boolean).join(', '), D.years ? D.years + ' years of experience' : '', D.education]],
+      [1, 'Your work so far', [(file ? 'Resume: ' + file.name : V.noResume ? 'No resume (we will build one)' : lostResume() ? (noFileOk ? 'No resume (you chose to send without one, so we will build one)' : 'Resume: ' + D.resumeName + ' is NOT attached') : 'No resume attached'), [D.jobNowTitle, D.jobNowEmployer].filter(Boolean).join(', '), D.years ? D.years + ' years of experience' : '', D.education]],
       [2, 'Your field', [f ? f.t : '?', arr(V.alsoOpen).length ? 'Also open to: ' + V.alsoOpen.map(function (k) { return F[k].t; }).join(', ') : '', 'Titles: ' + (titleList().join(', ') || '?'), V.seniority]],
       [3, 'Your ideal job', ['Pay floor: ' + (payFloorYear() ? money(payFloorYear()) + ' a year' : '?'), 'Settings: ' + (settingsOld().join(', ') || '?'), remoteOnly() ? '' : 'Commute: ' + (commuteSet() ? commuteOld(V.commuteMin) : 'not set (we use about 50 miles)'), 'Kinds of work: ' + (arr(V.empTypes).join(', ') || '?'), arr(V.rank).length ? 'Top priorities: ' + V.rank.join(', ') : '', dealList().length ? 'Deal-breakers: ' + dealList().join(', ') : '']],
       [4, 'Your story', [arr(V.strengths).length ? 'Strengths: ' + V.strengths.join(', ') : '', V.proudestWin ? 'Proudest win: ' + V.proudestWin : '', V.resumeStyle ? 'Resume style: ' + V.resumeStyle : '']]
@@ -746,7 +750,14 @@
   }
   /* finding 8: the file itself never survives a reload (only its name does), so say so where it matters */
   function lostResume() { return !file && !!D.resumeName && !V.noResume; }
-  function reattach() { return lostResume() ? '<div class="i2-info"><b>Please attach your resume again.</b> ' + esc(D.resumeName) + ' did not carry over when the page reloaded. Your other answers are all here. <button type="button" class="i2-link" data-jump="' + idx('resume') + '">Attach it again</button></div>' : ''; }
+  /* r41 (B1): a resume that was named but is no longer in this page is never sent and never reported as attached. The Review and
+     Confirm screens say so, and Send stays blocked until the client attaches it again or taps "Send without a resume". */
+  function reattach() {
+    if (!lostResume()) return '';
+    if (noFileOk) return '<div class="i2-info" id="i2nores"><b>You chose to send without a resume.</b> We will build one from your answers. <button type="button" class="i2-link" data-jump="' + idx('resume') + '">Attach a resume instead</button></div>';
+    return '<div class="i2-err" id="i2nores"><b>Your resume is not attached.</b> ' + esc(D.resumeName) + ' did not carry over when this page was reloaded or reopened, so it will not be sent. Your other answers are all here. Attach it again, or send without it and we will build a resume from your answers.' +
+      '<div class="i2-ctas" style="margin-top:10px"><button type="button" class="btn ghost" data-jump="' + idx('resume') + '">Attach it again</button><button type="button" class="btn ghost" data-act="sendnoresume">Send without a resume</button></div></div>';
+  }
   function idx(id) { for (var i = 0; i < S.length; i++) if (S[i].id === id) return i; return 0; }
 
   /* ---------------- flow ---------------- */
@@ -759,10 +770,14 @@
     if (k === 'phone') return String(v || '').replace(/\D/g, '').length < 10;
     if (k === 'v2.titles') return titleList().length < 2;
     if (k === 'payFloor') return !payFloorYear();
-    if (k === 'signature' || k === 'name' || k === 'city') return !String(v || '').trim();
+    /* r41 (m6): a full name is two words; a signature is at least 2 characters with a letter in it. Nothing stricter. */
+    if (k === 'name') return String(v || '').trim().split(/\s+/).filter(String).length < 2;
+    if (k === 'signature') { var sg = String(v || '').trim(); return sg.length < 2 || !LETTER.test(sg); }
+    if (k === 'city') return !String(v || '').trim();
     return Array.isArray(v) ? !v.length : !v;
   }
-  var LABEL = { name: 'your name', email: 'an email that works', phone: 'a phone number (10 digits)', contactBy: 'the best way to reach you', city: 'your city, state and ZIP', start: 'your earliest start date', workAuth: 'work authorization', sponsorship: 'visa sponsorship', 'v2.situation': 'what fits you best', 'v2.field': 'your main field', 'v2.titles': 'at least 2 job titles', 'v2.seniority': 'a level', payFloor: 'the lowest pay you would accept', 'v2.settingsPick': 'at least one work setting', 'v2.empTypes': 'at least one kind of work', agreeTrue: 'the first box', agreeTrial: 'the second box', signature: 'your signature', 'v2.mod.describe': 'a short description of your field' };
+  var LETTER = /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u0590-\u06FF\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]/;
+  var LABEL = { name: 'your first and last name', jobNowTitle: 'your most recent job title, or one line of work history', email: 'an email that works', phone: 'a phone number (10 digits)', contactBy: 'the best way to reach you', city: 'your city, state and ZIP', start: 'your earliest start date', workAuth: 'work authorization', sponsorship: 'visa sponsorship', 'v2.situation': 'what fits you best', 'v2.field': 'your main field', 'v2.titles': 'at least 2 job titles', 'v2.seniority': 'a level', payFloor: 'the lowest pay you would accept', 'v2.settingsPick': 'at least one work setting', 'v2.empTypes': 'at least one kind of work', agreeTrue: 'a tick in the box that starts "Everything I entered is true"', agreeTrial: 'a tick in the box that starts "I understand the pilot is free"', signature: 'your typed name as a signature (at least 2 characters, with a letter)', 'v2.mod.describe': 'a short description of your field' };
 
   function stopOf(i) { return S[Math.min(Math.max(i, 0), S.length - 1)].stop; }
   /* Focus (finding 4): after a full render, focus goes to the new question (or to an error); after an in-place render(false),
@@ -780,7 +795,39 @@
     }
     return el.id ? '#' + cssq(el.id) : null;
   }
+  /* r41 (M3): every screen gets its own browser-history entry, so the browser or phone Back button goes to the previous screen
+     and Forward comes back. Back on the first entry leaves the page as normal. A reload keeps the screen (saved as _at).
+     Someone who comes back to a later screen in a new visit gets one entry for the screen before it, so Back still steps back. */
+  var histAt = -1, popping = false;
+  function histSync() {
+    try {
+      if (!window.history || !history.pushState) return;
+      var hs = history.state, had = !!hs && typeof hs === 'object' && typeof hs.i2 === 'number';
+      if (histAt < 0) {
+        if (!had && cur > 0) { var pv = nextIdx(cur, -1); history.replaceState({ i2: pv < 0 ? 0 : pv }, ''); history.pushState({ i2: cur }, ''); }
+        else history.replaceState({ i2: cur }, '');
+      } else if (cur !== histAt) { if (popping) history.replaceState({ i2: cur }, ''); else history.pushState({ i2: cur }, ''); }
+      histAt = cur;
+    } catch (e) {}
+  }
+  window.addEventListener('popstate', function (e) {
+    var hs = e.state; if (!hs || typeof hs !== 'object' || typeof hs.i2 !== 'number' || histAt < 0) return;
+    if (busy || sent || ROOT.querySelector('[data-screen="draft"]')) return;
+    if (autoT) { clearTimeout(autoT); autoT = null; }
+    flushDeal();
+    var t = Math.max(0, Math.min(S.length - 1, Math.floor(hs.i2)));
+    /* Forward can never pass a screen with a missing required answer */
+    for (var i = 0; i < t; i++) if (visible(i) && needOf(S[i]).length) { t = i; break; }
+    while (t > 0 && !visible(t)) t--;
+    cur = t; msg = ''; bad = []; laterOpen = false; laterMsg = '';
+    if (S[cur].id === 'review' || S[cur].id === 'confirmSend') fromReview = false;
+    save(); popping = true; try { render(); } finally { popping = false; }
+  });
+  /* a warning before leaving the page, only when there are answers and the form has not been sent */
+  function hasAnswers() { return !!(String(D.name || '').trim() || String(D.email || '').trim() || String(D.phone || '').trim() || String(D.city || '').trim() || String(D.referred || '').trim() || V.field || V.situation || D.contactBy || file || D.resumeName); }
+  window.addEventListener('beforeunload', function (e) { if (sent || leaving || !hasAnswers()) return; e.preventDefault(); e.returnValue = ''; });
   function render(focus) {
+    histSync();
     var s = S[cur], st = s.stop, ae = document.activeElement, keep = focus === false ? focusSel(ae) : null, had = focus === false && ae && ROOT.contains(ae) && ae !== ROOT;
     var caret = null; try { if (keep && ae.selectionStart != null) caret = [ae.selectionStart, ae.selectionEnd]; } catch (e) {}
     var cls = msgKind === 'err' ? 'i2-err' : 'i2-info', role = msgKind === 'err' ? 'alert' : 'status';
@@ -807,7 +854,7 @@
     var fwd = s.auto && !needOf(s).length ? '<button type="button" class="btn gold" data-nav="next">Continue</button>' : '<button type="button" class="btn gold" data-nav="next"' + (busy ? ' disabled' : '') + '>' + esc(label) + '</button>';
     /* finding 15: after Edit on the review, one tap goes straight back */
     var toRev = fromReview && s.id !== 'review' && s.id !== 'confirmSend' ? '<p class="i2-torev"><button type="button" class="btn ghost" data-act="toreview">Back to review</button></p>' : '';
-    var later = cur > 0 ? '<div class="i2-later"><p>Your answers save on this device. <button type="button" class="i2-link" data-act="later" aria-expanded="' + laterOpen + '" aria-controls="i2laterbox">Email me a link to finish later</button></p>' + (laterOpen ? laterBox() : '') + '</div>' : '';
+    var later = cur > 0 ? '<div class="i2-later"><p>Your answers save on this device. <button type="button" class="i2-link" data-act="later" aria-expanded="' + laterOpen + '" aria-controls="i2laterbox">Email me a link to finish later</button></p><p id="i2latersay">This sends your answers so far to Steady Path so the link can bring them back.</p>' + (laterOpen ? laterBox() : '') + '</div>' : '';
     return '<div class="i2-nav">' + back + (s.skip ? '<button type="button" class="i2-link" data-nav="next">Skip</button>' : '') + fwd + '</div>' + toRev + later;
   }
   function laterBox() {
@@ -847,7 +894,13 @@
     if (autoT) { clearTimeout(autoT); autoT = null; }
     flushDeal();
     if (dir > 0) {
+      /* r41 (M4): text typed in an "add your own" box counts. Continue adds it first instead of throwing it away. */
+      var typed = ROOT.querySelectorAll('[data-own]');
+      for (var ti = 0; ti < typed.length; ti++) { var tv = typed[ti].value.replace(/\s+/g, ' ').trim().slice(0, 80); if (tv && ownAdd(typed[ti].getAttribute('data-own'), tv) === 'full' && typed[ti].getAttribute('data-own') === 'title') { msgKind = 'info'; msg = 'You already have 5 titles. Remove one to add another.'; render(); return; } }
+      if (typed.length) save();
       var s = S[cur], m = needOf(s);
+      /* r41 (B1): a named resume that is no longer here blocks Send until it is attached again or the client chooses to send without it */
+      if (s.id === 'confirmSend' && lostResume() && !noFileOk) { bad = []; msgKind = 'err'; msg = 'Your resume is not attached, so this has not been sent. Attach it again, or tap Send without a resume.'; render(); var ng = document.getElementById('i2nores'); if (ng && ng.scrollIntoView) try { ng.scrollIntoView({ block: 'nearest' }); } catch (e) {} return; }
       if (m.length) { bad = m; msgKind = 'err'; msg = 'Please add ' + m.map(function (k) { return LABEL[k] || k; }).join(', ') + '.'; render(); return; }
       if (s.id === 'pay') { var pq = payQuestion(), pk = (V.payUnit || 'Yearly') + '|' + V.payFloor + '|' + V.payTarget; if (pq && payOk !== pk) { payOk = pk; bad = []; msgKind = 'info'; msg = esc(pq); render(); return; } }
       if (s.id === 'confirm' && parsing) { msgKind = 'info'; msg = 'Still reading your resume. One moment, and the boxes fill in.'; render(); return; }
@@ -909,7 +962,7 @@
       travel: V.travel || '', commuteMinutes: remoteOnly() || !commuteSet() ? '' : String(V.commuteMin), employmentTypes: et, topPriorities: arr(V.rank), companyTypes: arr(V.companyTypes),
       dreamCompanies: arr(V.dream), dealBreakers: dealList(), workStyle: STYLE.map(function (p, i) { return V.style[i] || ''; }).filter(Boolean),
       strengths: arr(V.strengths), proudestWin: V.proudestWin || '', whyLooking: V.whyLooking || '', accommodations: V.accommodations || '',
-      resumeStyle: V.resumeStyle || '', coverTone: V.coverTone || '', textOk: !!V.textOk, linkedinMakeover: !!V.linkedinMakeover, needsResumeBuild: !file && (!!V.noResume || (!D.resumeName && !String(D.history || '').trim())), resumeAttached: !!file || !!D.resumeName,
+      resumeStyle: V.resumeStyle || '', coverTone: V.coverTone || '', textOk: !!V.textOk, linkedinMakeover: !!V.linkedinMakeover, needsResumeBuild: !file && (!!V.noResume || !!D.resumeName || !String(D.history || '').trim()), resumeAttached: !!file, /* r41 (B1): true only when a file is really in this page to send; a name alone is not a resume */
       profileStrength: strength().score, fieldAnswers: modAnswers()
     };
     return b;
@@ -924,6 +977,7 @@
     busy = true; msg = ''; render(false);
     (file ? toB64(file) : Promise.resolve(null)).then(function (data) {
       if (data) b.resume = { name: file.name, type: file.type, data: data };
+      else { b.v2.resumeAttached = false; b.v2.needsResumeBuild = true; } /* r41 (B1): never say attached without a resume object */
       return post(b, 120000);
     }).then(function (d) {
       busy = false;
@@ -939,7 +993,7 @@
     var token = !preview && sent && sent.token ? sent.token : '';
     ROOT.innerHTML = pathbar(4).replace('class="i2-path"', 'class="i2-path done"') + '<div class="i2-card-wrap"><section class="i2-sheet i2-done" aria-labelledby="i2title"><h2 class="i2-h" id="i2title" tabindex="-1">You\'re all set.</h2>' +
       '<ol class="i2-next"><li><b>We go through your answers and resume</b> within 1 business day.</li><li><b>We email you any questions</b> and the job titles we suggest. You tell us which ones to keep.</li><li><b>Your search starts once the titles are agreed.</b> Matches that pass our automated checks then show up in your portal, each with pay and a link to the posting.</li></ol>' +
-      '<div class="i2-ctas">' + (preview ? '' : '<a class="btn gold" href="/portal/' + (token ? '?t=' + encodeURIComponent(token) : '') + '">Open my portal</a>') + '<a class="btn ghost" href="' + BOOK + '" target="_blank" rel="noopener">Book an optional intro call</a></div>' + meter() +
+      '<div class="i2-ctas">' + (preview ? '' : '<a class="btn gold" href="/portal/' + (token ? '?t=' + encodeURIComponent(token) : '') + '">Open my portal</a>') + '<a class="btn ghost" href="' + BOOK + '" target="_blank" rel="noopener">Book an optional intro call</a></div>' + meter(true) + /* r41 (m7): the score only, no to-do list, once the form is sent */
       (preview ? '<details class="i2-sent" open><summary>Preview: what this would send</summary><p class="i2-note">Every field the current form sends is here with the same name. The new answers are under "v2". The resume file itself is attached only when it is really sent.</p><pre>' + esc(JSON.stringify(sent, null, 2)) + '</pre><button type="button" class="btn ghost" data-act="restart">Start the preview over</button></details>' : '') +
       '</section></div>';
     try { document.getElementById('i2title').focus({ preventScroll: true }); } catch (e) {}
@@ -950,12 +1004,14 @@
   /* ---------------- events ---------------- */
   function onFile(f) {
     if (!f) return;
+    /* r41 (m8): only resume file types are taken */
+    if (!/\.(pdf|docx|doc|txt|rtf)$/i.test(String(f.name || ''))) { msgKind = 'err'; msg = 'That kind of file will not work here. Please choose a PDF, a Word file (.docx or .doc), or a .rtf or .txt file. Or tap "No resume".'; render(); return; }
     if (f.size > 10 * 1024 * 1024) { msgKind = 'err'; msg = 'That file is over 10 MB. Please choose a smaller file, or tap "No resume".'; render(); return; }
-    file = f; D.resumeName = f.name; V.noResume = false; parsed = null; parsing = true; msg = ''; save(); render(false);
+    file = f; D.resumeName = f.name; V.noResume = false; noFileOk = false; parsed = null; readOk = false; parsing = true; msg = ''; save(); render(false);
     var mine = f, done = false;
-    var fin = function (p) {
+    var fin = function (p, read) {
       if (done || file !== mine) return; done = true; clearTimeout(parseT);
-      parsing = false; parsed = p || {};
+      parsing = false; parsed = p || {}; readOk = !!read; /* "Read it" is said only after the text really was read */
       /* fill only blanks: never overwrite something the client already typed */
       if (!D.jobNowTitle && p.title) D.jobNowTitle = p.title; if (!D.jobNowEmployer && p.employer) D.jobNowEmployer = p.employer;
       if (!D.stillThere && p.current) D.stillThere = p.current; if (!D.years && p.years) D.years = p.years;
@@ -969,7 +1025,7 @@
     };
     /* a file that takes too long counts as unreadable, so nobody waits forever */
     clearTimeout(parseT); parseT = setTimeout(function () { fin({}); }, 20000);
-    fileText(f).then(function (t) { fin(parseResume(t)); }).catch(function () { fin({}); });
+    fileText(f).then(function (t) { fin(parseResume(t), !!String(t || '').trim()); }).catch(function () { fin({}); });
   }
   ROOT.addEventListener('change', function (e) {
     var t = e.target;
@@ -1022,13 +1078,14 @@
     if (d.dealAns) { answerDeal(d.dealAns); return; }
     if (d.up != null || d.down != null) { var i = +(d.up != null ? d.up : d.down), j = d.up != null ? i - 1 : i + 1; var r = V.rank.slice(); var tmp = r[i]; r[i] = r[j]; r[j] = tmp; V.rank = r; save(); render(false); var fb = ROOT.querySelector('[data-' + (d.up != null ? 'up' : 'down') + '="' + j + '"]') || ROOT.querySelector('[data-r="' + j + '"] button:not([disabled])'); if (fb) fb.focus(); return; }
     if (d.swap) { syncRank(); var rr = V.rank.slice(); rr[rr.length - 1] = d.swap; V.rank = rr; save(); render(false); var sw = ROOT.querySelector('[data-swap]') || ROOT.querySelector('#i2rank button:not([disabled])'); if (sw) sw.focus(); return; }
-    if (d.jump != null) { flushDeal(); fromReview = S[cur].id === 'review'; cur = +d.jump; msg = ''; bad = []; laterOpen = false; save(); render(); return; }
+    if (d.jump != null) { flushDeal(); fromReview = S[cur].id === 'review' || S[cur].id === 'confirmSend'; cur = +d.jump; msg = ''; bad = []; laterOpen = false; save(); render(); return; }
     if (d.mic) { listen(d.mic, b); return; }
     if (d.act === 'toreview') { flushDeal(); toReview(); return; }
-    if (d.act === 'noresume') { V.noResume = true; file = null; D.resumeName = ''; parsed = null; parsing = false; save(); cur = idx('confirm'); render(); return; }
+    if (d.act === 'sendnoresume') { noFileOk = true; msg = ''; bad = []; render(false); var nr = document.getElementById('i2nores'); if (nr) { nr.setAttribute('tabindex', '-1'); try { nr.focus({ preventScroll: true }); } catch (er) {} } return; }
+    if (d.act === 'noresume') { V.noResume = true; file = null; noFileOk = false; readOk = false; D.resumeName = ''; parsed = null; parsing = false; save(); cur = idx('confirm'); render(); return; }
     if (d.act === 'dealreset') { V.deal = {}; save(); render(false); return; }
     if (d.act === 'dealundo') { flushDeal(); var ks = DEAL.map(function (c) { return c.k; }).filter(function (k2) { return V.deal[k2]; }); if (ks.length) delete V.deal[ks[ks.length - 1]]; save(); render(false); return; }
-    if (d.act === 'restart') { try { localStorage.removeItem(KEY); } catch (er) {} location.reload(); return; }
+    if (d.act === 'restart') { leaving = true; try { localStorage.removeItem(KEY); } catch (er) {} location.reload(); return; }
     if (d.act === 'later') { laterOpen = !laterOpen; laterMsg = ''; render(false); var le = document.getElementById('i2lateremail'); if (le) le.focus(); return; }
     if (d.act === 'latersend') { sendLater(); return; }
   });
@@ -1060,10 +1117,17 @@
   function cssq(s) { return String(s).replace(/["\\]/g, '\\$&'); }
   function addOwnVal(kind) {
     var el = ROOT.querySelector('[data-own="' + kind + '"]'); if (!el) return; var v = el.value.replace(/\s+/g, ' ').trim().slice(0, 80); if (!v) { el.focus(); return; }
-    if (kind === 'title') { var tl = titleList(); if (tl.length >= 5) { msgKind = 'info'; msg = 'You already have 5 titles. Remove one to add another.'; render(); return; } if (tl.indexOf(v) < 0) tl.push(v); V.titles = tl; clearBad('v2.titles'); }
-    else if (kind === 'strength') { if (arr(V.strengthsOwn).indexOf(v) < 0 && arr(V.strengthsOwn).length >= OWN_MAX) { render(false); return; } V.strengthsOwn = uniq(arr(V.strengthsOwn).concat([v])); var sl = arr(V.strengths); if (sl.length < 5 && sl.indexOf(v) < 0) sl.push(v); V.strengths = sl; }
-    else { V[kind] = uniq(arr(V[kind]).concat([v])).slice(0, 15); }
+    var r = ownAdd(kind, v);
+    if (r === 'full' && kind === 'title') { msgKind = 'info'; msg = 'You already have 5 titles. Remove one to add another.'; render(); return; }
+    if (r === 'full') { render(false); return; }
     save(); render(false); var n = ROOT.querySelector('[data-own="' + kind + '"]'); if (n) n.focus();
+  }
+  /* adds one typed value to its list; returns 'full' when the list has no room (used by the Add button and by Continue) */
+  function ownAdd(kind, v) {
+    if (kind === 'title') { var tl = titleList(); if (tl.indexOf(v) >= 0) return 'ok'; if (tl.length >= 5) return 'full'; tl.push(v); V.titles = tl; clearBad('v2.titles'); }
+    else if (kind === 'strength') { if (arr(V.strengthsOwn).indexOf(v) < 0 && arr(V.strengthsOwn).length >= OWN_MAX) return 'full'; V.strengthsOwn = uniq(arr(V.strengthsOwn).concat([v])); var sl = arr(V.strengths); if (sl.length < 5 && sl.indexOf(v) < 0) sl.push(v); V.strengths = sl; }
+    else { V[kind] = uniq(arr(V[kind]).concat([v])).slice(0, 15); }
+    return 'ok';
   }
   function clearBad(k) { bad = bad.filter(function (x) { return x !== k; }); var id = idOf(k), el = document.getElementById(id) || document.getElementById('g_' + id) || document.getElementById('a_' + k); if (el) { el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); el.classList.remove('bad'); } }
 
@@ -1124,12 +1188,12 @@
     for (var i = 0; i < cur; i++) if (visible(i) && needOf(S[i]).length) { cur = i; break; }
     while (cur > 0 && !visible(cur)) cur--;
   }
-  function useState(st) { D = st; V = D.v2; fixMod(); file = null; parsed = null; parsing = false; cur = Number(D._at) || 0; startAt(); }
+  function useState(st) { D = st; V = D.v2; fixMod(); file = null; parsed = null; parsing = false; readOk = false; noFileOk = false; cur = Number(D._at) || 0; startAt(); }
   function hasLocal() { return !!(D._saved && (String(D.name || '').trim() || String(D.email || '').trim() || V.field)); }
   /* "finish later" link: /start/v2/?d=<key> (backend v1.27 intakeDraftLoad). Never in PREVIEW. The emailed answers replace the
      ones on this device as a whole; when this device already has answers, the person picks one set. The two are never mixed. */
   var dkey = null; try { dkey = new URLSearchParams(location.search).get('d'); } catch (e) {}
-  function dropKey() { try { var u = new URL(location.href); u.searchParams.delete('d'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) {} }
+  function dropKey() { try { var u = new URL(location.href); u.searchParams.delete('d'); history.replaceState(history.state, '', u.pathname + u.search + u.hash); } catch (e) {} }
   var pendingDraft = null;
   function shell(inner) { ROOT.innerHTML = pathbar(0) + '<div class="i2-card-wrap"><section class="i2-sheet" data-screen="draft" aria-labelledby="i2title i2q"><p class="i2-step" id="i2title">Welcome back</p>' + inner + '</section></div>'; var q = document.getElementById('i2q'); if (q) try { q.focus({ preventScroll: true }); } catch (e) {} }
   /* round 3: the backend hands a draft out without using it up; this tells it the answers were applied or set aside */
