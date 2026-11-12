@@ -78,7 +78,7 @@ def finale(h2, p):
     return f'<section class="finale" data-mile style="--a:#0B4A52"><div class="wrap"><h2>{h2}</h2><p>{p}</p><a class="btn gold" href="/start/">Start free</a></div>{FIN_SVG}</section>\n'
 
 OFFER_H = 'Want Steady Path Careers to run your search? Free for 14 days.'
-OFFER_P = 'When you&#x27;re ready, Steady Path Careers finds and checks openings that fit, shows pay whenever the employer posts it, and tailors your resume for each job you pick. You send every application. Free for 14 days while Steady Path Careers is in its pilot.'
+OFFER_P = 'When you&#x27;re ready, Steady Path Careers finds and checks openings that fit, sends only jobs with pay posted by the employer, and tailors your resume for each job you pick. You send every application. Free for 14 days while Steady Path Careers is in its pilot.'
 
 # ---------------------------------------------------------------- shared small CSS for /free/ pages
 BASE_CSS = r'''
