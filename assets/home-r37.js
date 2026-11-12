@@ -28,7 +28,10 @@
     var b = $('themeb'), mq = mm('(prefers-color-scheme: dark)');
     if (!b) return;
     function now() { var t = root.getAttribute('data-theme'); if (t === 'light' || t === 'dark') return t; return mq && mq.matches ? 'dark' : 'light'; }
-    function sync() { var l = now() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'; b.setAttribute('aria-label', l); b.title = l; }
+    function sync() {
+      var l = now() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'; b.setAttribute('aria-label', l); b.title = l;
+      try { document.dispatchEvent(new Event('sp-theme')); } catch (e) {}
+    }
     b.hidden = false;
     b.addEventListener('click', function () { var n = now() === 'dark' ? 'light' : 'dark'; root.setAttribute('data-theme', n); try { localStorage.setItem('sp-theme', n); } catch (e) {} sync(); });
     if (mq && mq.addEventListener) mq.addEventListener('change', sync);
@@ -43,6 +46,8 @@
     document.addEventListener('click', function (e) { if (m.open && !m.contains(e.target)) m.open = false; });
     m.addEventListener('focusout', function (e) { if (m.open && e.relatedTarget && !m.contains(e.relatedTarget)) m.open = false; });
     m.addEventListener('keydown', function (e) { if (e.key === 'Escape' && m.open) { m.open = false; m.querySelector('summary').focus(); } });
+    /* r41: an in-page link always closes the menu, however it was followed */
+    window.addEventListener('hashchange', function () { m.open = false; });
   })();
 
   /* hero: role level and the sample job deck */
@@ -166,44 +171,65 @@
     }
   })();
 
-  /* night sky: stars drawn on a canvas. It stops drawing when the hero is off screen or the tab is hidden,
-     and draws one still frame when the visitor asks for reduced motion. */
+  /* sky: stars drawn on a canvas (night sky in dark mode; a few faint ones high up in the light-mode dawn).
+     r41: drawn at about 30 frames a second, at a pixel ratio capped at 1.5. It stops drawing while the page is being
+     scrolled (and starts again 150ms after the last scroll), when the hero is off screen and when the tab is hidden.
+     It draws one still frame when the visitor asks for reduced motion. */
   (function () {
     var c = $('sky'); if (!c || !c.getContext) return;
-    var x = c.getContext('2d'), st = [], W = 0, H = 0, on = true, shoot = null, raf = 0;
+    var x = c.getContext('2d'), st = [], W = 0, H = 0, on = true, shoot = null, raf = 0, last = 0, scrolling = false, st0 = 0;
+    var FRAME = 33, hero = c.parentNode, mq = mm('(prefers-color-scheme: dark)');
+    function light() { var t = root.getAttribute('data-theme'); if (t === 'light') return true; if (t === 'dark') return false; return !(mq && mq.matches); }
     function size() {
-      var r = c.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2);
-      W = r.width; H = r.height; c.width = W * d; c.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); st = [];
-      var n = Math.round(W * H / 5200);
-      for (var i = 0; i < n; i++) { var y = Math.pow(Math.random(), 1.7) * H * .7; st.push([Math.random() * W, y, Math.random() * 1.3 + .3, Math.random() * 6.28, Math.random() * .9 + .3]); }
+      var r = c.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 1.5), lt = light();
+      W = r.width; H = r.height; c.width = Math.round(W * d); c.height = Math.round(H * d); x.setTransform(d, 0, 0, d, 0, 0); st = [];
+      var n = Math.round(W * H / 5200); if (lt) n = Math.round(n * .1);
+      for (var i = 0; i < n; i++) { var y = Math.pow(Math.random(), 1.7) * H * (lt ? .28 : .7); st.push([Math.random() * W, y, Math.random() * 1.3 + .3, Math.random() * 6.28, Math.random() * .9 + .3]); }
+      if (lt) shoot = null;
     }
-    function draw(t) {
-      raf = 0;
+    function paint(t) {
+      var lt = light(), k = lt ? .45 : 1, fade = H * (lt ? .3 : .75);
       x.clearRect(0, 0, W, H);
+      x.fillStyle = '#fff';
       for (var i = 0; i < st.length; i++) {
         var s = st[i], a = still ? .7 : .45 + .55 * Math.sin(t / 900 * s[4] + s[3]);
-        x.globalAlpha = a * (1 - s[1] / (H * .75)); x.fillStyle = '#fff'; x.beginPath(); x.arc(s[0], s[1], s[2], 0, 6.28); x.fill();
+        x.globalAlpha = Math.max(0, a * k * (1 - s[1] / fade)); x.beginPath(); x.arc(s[0], s[1], s[2], 0, 6.28); x.fill();
       }
       if (shoot) {
-        shoot.p += .02;
+        shoot.p += .04;
         var px = shoot.x + shoot.p * 260, py = shoot.y + shoot.p * 90, g = x.createLinearGradient(px - 90, py - 31, px, py);
         g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,240,200,' + Math.max(0, 1 - shoot.p) + ')');
         x.globalAlpha = 1; x.strokeStyle = g; x.lineWidth = 1.6; x.beginPath(); x.moveTo(px - 90, py - 31); x.lineTo(px, py); x.stroke();
         if (shoot.p >= 1) shoot = null;
       }
       x.globalAlpha = 1;
+    }
+    function tick(t) {
+      raf = 0;
+      if (t - last >= FRAME - 4) { last = t; paint(t); }
       loop();
     }
-    function loop() { if (on && !still && !document.hidden && !raf) raf = requestAnimationFrame(draw); }
+    function live() { return on && !still && !document.hidden && !scrolling; }
+    function loop() { if (live() && !raf) raf = requestAnimationFrame(tick); }
+    function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
     var rt = 0;
-    size(); draw(0);
-    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { var w = W; size(); if (still || !on || w !== W) { if (raf) { cancelAnimationFrame(raf); raf = 0; } draw(0); } }, 150); });
+    size(); paint(0);
+    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { var w = W; size(); if (still || !on || w !== W) { stop(); paint(0); loop(); } }, 150); });
+    document.addEventListener('sp-theme', function () { stop(); size(); paint(0); loop(); });
     if (still) return;
-    setInterval(function () { if (on && !document.hidden && !shoot) shoot = { x: Math.random() * W * .6, y: Math.random() * H * .25 + 20, p: 0 }; }, 7000);
-    if (hasIO) new IntersectionObserver(function (e) { on = e[0].isIntersecting; loop(); }).observe(c);
-    document.addEventListener('visibilitychange', loop);
-    var sun = document.querySelector('.hero .sun');
-    if (sun) window.addEventListener('scroll', function () { if (on) sun.style.translate = '0 ' + (-Math.min(window.scrollY, 700) / 14) + 'px'; }, { passive: true });
+    setInterval(function () { if (live() && !shoot && !light()) shoot = { x: Math.random() * W * .6, y: Math.random() * H * .25 + 20, p: 0 }; }, 7000);
+    if (hasIO) new IntersectionObserver(function (e) { on = e[0].isIntersecting; hero.classList.toggle('off', !on); if (on) loop(); else stop(); }).observe(hero);
+    document.addEventListener('visibilitychange', function () { if (document.hidden) stop(); else loop(); });
+    /* scroll: one passive listener. It stops the stars, and moves the sun at most once a frame, with a transform only. */
+    var sun = document.querySelector('.hero .sunp'), sraf = 0;
+    function park() { sraf = 0; if (sun && on) sun.style.transform = 'translate3d(0,' + (-Math.min(window.scrollY, 700) / 14).toFixed(1) + 'px,0)'; }
+    window.addEventListener('scroll', function () {
+      if (!scrolling) { scrolling = true; stop(); }
+      clearTimeout(st0); st0 = setTimeout(function () { scrolling = false; loop(); }, 150);
+      if (sun && on && !sraf) sraf = requestAnimationFrame(park);
+    }, { passive: true });
+    loop();
+    window.__spSky = { state: function () { return { running: !!raf, scrolling: scrolling, on: on, dpr: W ? c.width / W : 0, stars: st.length, frame: FRAME }; } };
   })();
 
   /* welcome video: nothing shows until WELCOME_VIDEO is set */
@@ -268,6 +294,11 @@
       el.innerHTML = still ? h : h + h;
     }
     fill('tk1', A); fill('tk2', B);
+    /* r41: the tickers only move while they are on screen */
+    if (hasIO && !still) all('.ticker').forEach(function (t) {
+      t.classList.add('off');
+      new IntersectionObserver(function (e) { t.classList.toggle('off', !e[0].isIntersecting); }).observe(t);
+    });
   })();
 
   /* draw-in moments (skipped for reduced motion, so nothing is ever left waiting) */
