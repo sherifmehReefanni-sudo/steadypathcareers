@@ -1294,7 +1294,7 @@ function flowStep(d) {
   if (soon && daysFrom(soon.interview) <= 1) return ivStep(soon);
   var rp = jobs.filter(replyNew)[0];
   if (rp) return { k: 'reply', t: 'Steady Path answered your question about ' + coName(rp), s: 'Read the answer, then decide on this job.', act: '<button class="btn gold" data-seereply="' + esc(rp.id) + '">Read the answer</button>' };
-  if (c.wait) return { k: 'answer', t: c.wait === 1 ? '1 new job to answer' : c.wait + ' new jobs to answer', s: 'Say Yes to the ones you want. For each Yes, a resume and cover letter for that job are drafted automatically, usually within about an hour and always within 1 day, and checked against your own resume.',
+  if (c.wait) return { k: 'answer', t: c.wait === 1 ? '1 new job to answer' : c.wait + ' new jobs to answer', s: 'Say Yes to the ones you want. For each Yes, a resume and cover letter for that job are drafted automatically, usually within about an hour, and within 1 business day at most, and checked against your own resume.',
     act: deckButton(c) || '<button class="btn gold" data-first>Answer ' + (c.wait === 1 ? 'it' : 'them') + ' now</button>' };
   var r = yes.filter(function (j) { return st[j.id].review.length; })[0];
   if (r) { var w = docWords(st[r.id].review); return { k: 'review', t: 'Read your ' + w + ' for ' + coName(r), s: (st[r.id].review.length > 1 ? 'They are' : 'It is') + ' ready. Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ', then approve ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' or ask for a change.', act: '<button class="btn gold" data-review="' + esc(r.id) + '">Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' now</button>' }; }
