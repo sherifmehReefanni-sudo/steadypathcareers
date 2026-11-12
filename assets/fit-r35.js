@@ -123,6 +123,9 @@ function fitDeepCard() {
   return '<div class="card fx-deep"><span class="fx-deepic" aria-hidden="true">' + fitRoad(n, 60, false) + '</span><div><h3>Want the full version?</h3><p class="fx-plain">The complete O*NET&reg; Interest Profiler Short Form has 60 questions. It takes about 10 to 20 minutes and replaces your 30-question results.</p>' +
     '<button type="button" class="btn gold" data-fxdeep>' + (n ? 'Pick up where you left off' : 'Take the full version') + '</button></div></div>';
 }
+/* r36: what an Interest match number means, wherever one is shown: once above the title list on the results screen, and one small
+   line under the first job card that shows a score (fit-r35.css hides it on the cards after it). */
+var FIT_SCORE_NOTE = 'This score shows how well the work matches your interests. It doesn\'t measure your qualifications or your chances of being hired.';
 function fitResults() {
   if (S.fxDemoShare) { S.fxDemoShare = false; setTimeout(fitShareMake, 0); }
   var f = S.data.fit, x = S.fx, s = f.scores, top = f.top3 || [], mx = fitMax(), all60 = f.form === 60;
@@ -139,7 +142,7 @@ function fitResults() {
     '<div class="fx-resgrid"><div class="fx-radarw card">' + fitRadar(s) + '</div><ol class="fx-areas">' + cards + '</ol></div>' +
     (fitDeepOn() && !all60 ? fitDeepCard() : '') +
     '<div class="card fx-titles"><h3>Job titles to look at</h3>' +
-    (titles ? '<p class="fx-plain">Picked by how closely each kind of work lines up with your interests and your experience level. Tap Yes on any you would like us to consider for your search. We check with you before changing it, and your job matches keep coming either way.</p><ol class="fx-tlist">' + titles + '</ol>'
+    (titles ? '<p class="fx-plain">Picked by how closely each kind of work lines up with your interests and your experience level. Tap Yes on any you would like us to consider for your search. We check with you before changing it, and your job matches keep coming either way.</p>' + ((f.titles || []).some(function (t) { return t.fit !== '' && t.fit != null; }) ? '<p class="fx-smean">' + esc(FIT_SCORE_NOTE) + '</p>' : '') + '<ol class="fx-tlist">' + titles + '</ol>'
       : '<p class="fx-plain">No titles stood out this time' + (top.length && s[top[0]] === s[top[2]] ? ', because your answers were spread evenly' : '') + '. That is fine: your job matches stay exactly the same.</p>') +
     (x.tErr ? '<p class="warn" role="alert">' + esc(x.tErr) + '</p>' : '') + '</div>' +
     '<div class="fx-actions"><button type="button" class="btn gold" data-fxshare>Make a share card</button><button type="button" class="btn ghost" data-go="jobs">Back to your jobs</button><button type="button" class="linkbtn" data-fxretake>Retake it' + (all60 ? ' (30 questions)' : '') + '</button>' + (all60 && fitDeepOn() ? '<button type="button" class="linkbtn" data-fxdeep>Retake the full version (60 questions)</button>' : '') + '</div>' +
@@ -236,7 +239,7 @@ function fitWhy(j) {
   var s = both.length ? 'This kind of work leans ' + fitNames(both) + ', ' + (both.length === 1 ? 'one of your top interests.' : both.length === 2 ? 'two of your top interests.' : 'all three of your top interests.') :
     ja.length ? 'This kind of work leans ' + fitNames(ja) + '.' : '';
   s += (s ? ' ' : '') + 'Interest match ' + n + ' of 100.';
-  return '<p class="jfitw"><b>' + (both.length ? 'Why it fits you:' : 'Your interests:') + '</b> ' + esc(s) + ' <a class="fx-src" href="#fitCredit" data-fxsrc>Source</a></p>';
+  return '<p class="jfitw"><b>' + (both.length ? 'Why it fits you:' : 'Your interests:') + '</b> ' + esc(s) + ' <a class="fx-src" href="#fitCredit" data-fxsrc>Source</a><span class="fx-smean">' + esc(FIT_SCORE_NOTE) + '</span></p>';
 }
 /* the O*NET Database credit under the Jobs list, whenever any job card can show an interest line */
 function fitJobsCredit(d) {

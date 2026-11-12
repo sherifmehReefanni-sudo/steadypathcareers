@@ -483,10 +483,15 @@ body.deck-lock { overflow: hidden; }
 .rv-panel { display: grid; gap: 10px; margin-top: 10px; }
 .rv-panel[hidden] { display: none; }
 .rv-frame { background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; height: min(68vh, 860px); }
-/* phones: a shorter preview, so the page (not the document) scrolls under your thumb and Looks good is close */
+/* phones: a shorter preview, so the page (not the document) scrolls under your thumb and the approve button is close */
 @media (max-width: 760px) { .rv-frame { height: min(45vh, 380px); } }
 .rv-frame iframe { width: 100%; height: 100%; border: 0; display: block; background: var(--surface); }
 .rv-frame.open { height: auto; }
+/* r36: Open in Google Docs and the loading message sit above the preview */
+.rv-pre { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.rv-pre .kbtn { padding: 0 16px; }
+.rv-load { margin: 0; color: var(--muted); font-weight: 700; font-size: 15px; flex: 1 1 200px; min-width: 0; }
+.rv-load[hidden] { display: none; }
 .rv-open { padding: 18px; display: grid; gap: 12px; }
 .rv-open p { margin: 0; }
 .rv-open .kbtn { width: 100%; }
@@ -577,7 +582,7 @@ body.deck-lock { overflow: hidden; }
 </style>
 <link rel="stylesheet" href="../assets/portal.css?v=sp-20261110r30">
 <link rel="stylesheet" href="../assets/portal-r18.css?v=sp-20261110r30">
-<link rel="stylesheet" href="../assets/fit-r35.css?v=sp-20261110r35">
+<link rel="stylesheet" href="../assets/fit-r35.css?v=sp-20261112r36">
 <style>
 /* ---- round 4: search settings, data, calendar, versions, urgent help ---- */
 /* the account menu can hang below a short header; keep the header content (and its menu) above main, which is z-index 1 */
@@ -624,6 +629,14 @@ body.deck-lock { overflow: hidden; }
 .linkbtn.ics:hover { background: var(--navy-fill); color: #fff; }
 .dc .meta.dchg, .rv-pacts .meta.dchg { color: var(--ink); }
 .scale button.unused { min-width: 0; font-weight: 600; font-size: 14px; }
+/* r36: feedback "Add more detail" disclosure, the Help button in the top bar, the help card */
+.fbmore { margin-top: 22px; border-top: 1px solid var(--line); }
+.fbmore summary { padding: 12px 0; min-height: 44px; box-sizing: border-box; font-weight: 800; color: var(--navy); cursor: pointer; }
+.fbmore[open] summary { margin-bottom: 8px; }
+.ptop .phelp { margin-left: auto; flex: none; min-height: 44px; padding: 6px 12px; border: 1.5px solid rgba(251,246,238,.35); border-radius: 99px; background: transparent; color: var(--cream); font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; }
+.ptop .phelp:hover, .ptop .phelp[aria-current="page"] { background: rgba(251,246,238,.14); }
+.ptop .phelp + .theme-btn, .ptop .phelp + .acct { margin-left: 8px; }
+.hcard { display: grid; gap: 10px; } .hcard p { margin: 0; overflow-wrap: anywhere; }
 .fbft { display: grid; gap: 6px; margin-top: 8px; }
 .fbft-n { font-weight: 700; color: var(--ink); }
 .urg-link { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; color: var(--muted); font-size: 14px; }
@@ -856,6 +869,7 @@ function linkKeyDrop() { try { sessionStorage.removeItem('sp_linkkey'); } catch 
   if (q.get('demo') === '1') {
     S.demo = true; S.token = 'demo'; if (q.get('v')) S.view = q.get('v');
     if (q.get('review')) S.wantReview = q.get('review');
+    if (q.get('rvload')) S.rvDemoLoad = true; /* r36: &rvload=1 shows the reader's loading message in the demo (screenshots) */
     if (q.get('t') || q.get('review')) { q.delete('t'); q.delete('review'); history.replaceState({}, '', location.pathname + '?' + q.toString()); }
     return;
   }
@@ -1137,7 +1151,7 @@ function shell(active, title, sub) {
   var tabs = TABS.map(function (t) { var n = tabCount(t[0]); return '<button data-go="' + t[0] + '" aria-current="' + (active === t[0]) + '">' + IC[t[0]] + t[1] + (n ? '<span class="cnt" aria-label="' + n + ' waiting">' + n + '</span>' : '') + '</button>'; }).join('');
   return '<header class="sky"><div class="wrap"><div class="ptop"><a class="brand" href="/"><span>' + SP.LOGO + '</span><span class="bname">Steady Path</span></a>' + (S.demo ? '<span class="demo-badge">Demo</span>' : '') +
     '<nav class="ptabs" aria-label="Portal">' + tabs + '</nav>' +
-    SP.themeBtn() + '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
+    '<button type="button" class="phelp" data-help' + (S.view === 'feedback' && S.fbHelp ? ' aria-current="page"' : '') + '>Help</button>' + SP.themeBtn() + '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
     (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="prefs">Your search settings</button><button role="menuitem" data-go="feedback">Give feedback</button>' + (typeof fitOn === 'function' && fitOn() ? '<button role="menuitem" data-go="fit">' + esc(FIT_NAME) + '</button>' : '') + (billOn() ? '<button role="menuitem" data-go="billing">Plan &amp; billing</button>' : '') + '<button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + helpHtml() + '</p><div class="mlegal" role="none"><a role="menuitem" href="/privacy/">Privacy policy</a><a role="menuitem" href="/terms/">Terms</a></div></div>' : '') + '</div></div>' +
     '<div class="ptitle"><h1 tabindex="-1">' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div></div>' + SP.scene(64, active) + '</header>';
 }
@@ -1163,6 +1177,8 @@ function vSignin() {
 }
 
 /* ---- feedback ---- */
+/* r36: remember whether "Add more detail" is open across re-renders (each rating tap re-renders the screen) */
+document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.classList && t.classList.contains('fbmore')) S.fbMore = t.open; }, true);
 function fbDue(cl) {
   if (cl.lastFeedback && daysFrom(cl.lastFeedback) != null && daysFrom(cl.lastFeedback) > -10) return false;
   var since = cl.startDate ? -daysFrom(cl.startDate) : null, left = daysFrom(cl.trialEnds);
@@ -1173,15 +1189,21 @@ function vFeedback() {
   var scale = function (key, from, to) { var out = ''; for (var i = from; i <= to; i++) out += '<button type="button" data-fb="' + key + '" data-v="' + i + '" aria-pressed="' + (f[key] === i) + '">' + i + '</button>'; return '<div class="scale">' + out + '</div>'; };
   var pick = function (key, opts) { return '<div class="scale">' + opts.map(function (o) { return '<button type="button" data-fb="' + key + '" data-v="' + o + '" aria-pressed="' + (f[key] === o) + '">' + o + '</button>'; }).join('') + '</div>'; };
   if (S.fbDone) return shell('feedback', 'Thank you.', 'Your answers help improve the service.') + '<div class="pband" aria-hidden="true"></div><main class="pmain"><div class="card"><p style="margin:0">Got it. If you asked something, we&#39;ll get back to you here.</p><p style="margin:12px 0 0"><button class="btn gold" data-go="jobs">Back to your jobs</button></p></div></main>' + tabbar('');
-  return shell('feedback', 'How is it going?', 'About two minutes. Be blunt; it helps.') + '<div class="pband" aria-hidden="true"></div>' +
+  /* r36: the Help button opens this view as a help screen: the urgent box (already open) and the same contact line as the menu */
+  if (S.fbHelp) return shell('feedback', 'Help', 'Tell us what is wrong, or ask us a question.') + '<div class="pband" aria-hidden="true"></div><main class="pmain">' + urgentBox() +
+    '<div class="card hcard"><p><b>Have a question instead?</b> ' + helpHtml() + ' A person replies within 1 business day.</p><p><button type="button" class="linkbtn" data-go="feedback">Give feedback instead</button></p></div></main>' + tabbar('');
+  /* r36: one rating and one optional comment by default; the longer questions sit in a <details> that stays in the page, so every
+     field is still read and sent exactly as before (blank when skipped). */
+  return shell('feedback', 'How is it going?', 'One tap and one optional comment. Be blunt; it helps.') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain">' + urgentBox() + '<div class="card">' +
     '<div class="fbq"><div class="lab">How likely are you to recommend Steady Path to a friend?</div>' + scale('rec', 0, 10) + '<div class="scale-ends"><span>Not at all</span><span>Definitely</span></div></div>' +
+    '<div class="fbq"><label for="fbChange">What is one thing you would change? (optional)</label><textarea id="fbChange" maxlength="1500">' + esc(S.fbText.change || '') + '</textarea></div>' +
+    '<details class="fbmore"' + (S.fbMore ? ' open' : '') + '><summary>Add more detail (optional)</summary>' +
     '<div class="fbq"><div class="lab">How useful have your job matches been?</div>' + rateScale('jobs', 'Job matches') + '<div class="scale-ends" style="max-width:250px"><span>Not useful</span><span>Very useful</span></div></div>' + featureRatings() +
     '<div class="fbq"><label for="fbHelp">What has helped you most?</label><textarea id="fbHelp" maxlength="1500">' + esc(S.fbText.help || '') + '</textarea></div>' +
-    '<div class="fbq"><label for="fbChange">What is one thing you would change?</label><textarea id="fbChange" maxlength="1500">' + esc(S.fbText.change || '') + '</textarea></div>' +
     '<div class="fbq"><div class="lab">Would you pay to keep going after your free pilot?</div>' + pick('pay', ['Yes', 'Maybe', 'No']) + '<label for="fbWhy" style="font-weight:600;color:var(--muted)">Why? (optional)</label><textarea id="fbWhy" maxlength="1500" style="min-height:60px">' + esc(S.fbText.why || '') + '</textarea></div>' +
     '<div class="fbq"><label for="fbQuote">Optional: a sentence or two we could share on our website</label><textarea id="fbQuote" maxlength="600" style="min-height:60px">' + esc(S.fbText.quote || '') + '</textarea>' +
-    '<div class="lab" style="margin-top:10px">May we share it?</div>' + pick('share', ['Yes, with my first name and last initial', 'Yes, but without my name', 'No, keep it private']) + '<div class="scale-ends" style="justify-content:flex-start"><span>We never share anything without a yes here.</span></div></div>' +
+    '<div class="lab" style="margin-top:10px">May we share it?</div>' + pick('share', ['Yes, with my first name and last initial', 'Yes, but without my name', 'No, keep it private']) + '<div class="scale-ends" style="justify-content:flex-start"><span>We never share anything without a yes here.</span></div></div></details>' +
     (S.fbErr ? '<div class="warn" style="margin-top:14px">' + esc(S.fbErr) + (S.fbRe ? reauthBtn() : '') + '</div>' : '') +
     '<p style="margin:18px 0 0"><button class="btn gold" data-fbsubmit ' + (S.fbBusy ? 'disabled' : '') + '>' + (S.fbBusy ? 'Sending…' : 'Send feedback') + '</button></p>' +
     '</div></main>' + tabbar('');
@@ -1275,7 +1297,7 @@ function flowStep(d) {
   if (c.wait) return { k: 'answer', t: c.wait === 1 ? '1 new job to answer' : c.wait + ' new jobs to answer', s: 'Say Yes to the ones you want. For each Yes, a resume and cover letter for that job are drafted automatically, usually within about an hour, and checked against your own resume.',
     act: deckButton(c) || '<button class="btn gold" data-first>Answer ' + (c.wait === 1 ? 'it' : 'them') + ' now</button>' };
   var r = yes.filter(function (j) { return st[j.id].review.length; })[0];
-  if (r) { var w = docWords(st[r.id].review); return { k: 'review', t: 'Read your ' + w + ' for ' + coName(r), s: (st[r.id].review.length > 1 ? 'They are' : 'It is') + ' ready. Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ', then tap Looks good or ask for a change.', act: '<button class="btn gold" data-review="' + esc(r.id) + '">Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' now</button>' }; }
+  if (r) { var w = docWords(st[r.id].review); return { k: 'review', t: 'Read your ' + w + ' for ' + coName(r), s: (st[r.id].review.length > 1 ? 'They are' : 'It is') + ' ready. Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ', then approve ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' or ask for a change.', act: '<button class="btn gold" data-review="' + esc(r.id) + '">Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' now</button>' }; }
   var a = yes.filter(function (j) { return st[j.id].applyReady && !st[j.id].app; })[0];
   if (a) return { k: 'apply', t: 'Apply to ' + coName(a), s: 'Your documents are approved. Three short steps and you are done.', act: '<button class="btn gold" data-applyflow="' + esc(a.id) + '">Start applying</button>' };
   if (soon) return ivStep(soon);
@@ -1367,7 +1389,7 @@ function jmap(jobs) {
   }).join('') + '</ol></section>';
 }
 
-/* ---- review screen: read the documents for one job, then one Looks good or one Ask for a change ---- */
+/* ---- review screen: read the documents for one job, then one approve button (r36: it names what it approves) or one Ask for a change ---- */
 var KIND_LABEL = { resume: 'Resume', cover: 'Cover letter', prep: 'Interview prep' };
 /* iPhone, iPad and Safari block the Google Docs preview for many documents (third-party sign-in), so there the review screen
    shows a clear "Open your resume" button instead of a frame that may come up blank. window.SP_NOFRAME forces it (tests, demo). */
@@ -1380,6 +1402,17 @@ function gdocId(link) { var m = String(link || '').match(/^https:\/\/docs\.googl
 function rvDocs(j) { var o = { resume: 0, cover: 1, prep: 2 }; return jobDocs(j).filter(function (x) { return safeUrl(x.link); }).sort(function (a, b) { var ka = o[docKind(a.name)], kb = o[docKind(b.name)]; return (ka == null ? 3 : ka) - (kb == null ? 3 : kb); }); }
 function docNoun(x) { return KIND_LABEL[docKind(x.name)] ? KIND_LABEL[docKind(x.name)].toLowerCase() : docShort(x.name); }
 function docLabel(x) { return KIND_LABEL[docKind(x.name)] || String(x.name); }
+/* r36: the main approve button says exactly what it approves. Built from the list approveJob sends (jobState(j).review):
+   one document "Approve resume", two "Approve resume and cover letter", otherwise "Approve all N documents".
+   Interview prep never needs an OK (needsOk), so it is never counted or named here. */
+function approveLabel(list) {
+  var ds = (list || []).filter(function (x) { return docKind(x.name) !== 'prep'; }), n = ds.length; if (!n) return '';
+  var rank = { resume: 0, cover: 1 }, rk = function (x) { var r = rank[docKind(x.name)]; return r == null ? 2 : r; };
+  var w = ds.map(function (x, i) { return [rk(x), i, docNoun(x)]; }).sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; }).map(function (a) { return a[2]; });
+  if (n === 1) return 'Approve ' + w[0];
+  if (n === 2 && w[0] !== w[1]) return 'Approve ' + w[0] + ' and ' + w[1];
+  return 'Approve all ' + n + ' documents';
+}
 function docWord(x) { var st = String(x.status || ''); return /approved/i.test(st) ? 'Approved' : needsOk(x) ? 'Needs your OK' : /changes/i.test(st) ? 'Changes asked' : docKind(x.name) === 'prep' ? 'To read' : st || 'In progress'; }
 function sampleDoc(x, j) {
   var k = docKind(x.name), L = function (w) { return '<i style="width:' + w + '%"></i>'; };
@@ -1404,13 +1437,13 @@ function vReview() {
   var docs = rvDocs(j), st = jobState(j), id = esc(j.id);
   if (!docs.some(function (x) { return x.id === S.flow.tab; })) S.flow.tab = ((st.review[0] || docs[0]) || {}).id;
   S.rvSig = docs.map(function (x) { return x.id + ' ' + x.link; }).join('|');
-  var busy = !!S.rvBusy, words = docWords(st.review), side;
+  var busy = !!S.rvBusy, words = docWords(st.review), okLabel = approveLabel(st.review), side;
   /* "Then you can apply" only when approving what is on screen leaves both the resume and the cover letter approved */
   var nRv = st.review.length, okOrOnScreen = function (k) { return st.docs.some(function (x) { return docKind(x.name) === k && (/approved/i.test(x.status || '') || needsOk(x)); }); };
   var willApply = !st.app && okOrOnScreen('resume') && okOrOnScreen('cover') && !st.changes.some(function (x) { return /^(resume|cover)$/.test(docKind(x.name)); });
   var ask = nRv === 1 ? 'Happy with it?' : nRv === 2 ? 'Happy with both?' : nRv === 3 ? 'Happy with all three?' : 'Happy with all of them?';
-  if (nRv) side = '<div class="rv-card"><h2>' + ask + '</h2><p>Tap Looks good to approve your ' + esc(words) + '.' + (willApply ? ' Then you can apply.' : '') + '</p>' +
-    '<button class="kdone" data-looksgood="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Looks good') + '</button>' + rvOneBtn(docs, nRv, busy) +
+  if (nRv) side = '<div class="rv-card"><h2>' + ask + '</h2><p>' + (nRv === 1 ? 'Tap ' + esc(okLabel) + ' when you are happy with it.' : nRv === 2 ? 'Tap ' + esc(okLabel) + ' to approve both at once.' : 'Tap ' + esc(okLabel) + ' to approve your ' + esc(words) + ' at once.') + (willApply ? ' Then you can apply.' : '') + '</p>' +
+    '<button class="kdone" data-looksgood="' + id + '" aria-label="' + esc(busy ? 'Saving' : okLabel + ' for ' + coName(j)) + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : esc(okLabel)) + '</button>' + rvOneBtn(docs, nRv, busy) +
     '<button class="kbtn" data-rvchange="' + (S.changesFor ? '' : 'open') + '" aria-expanded="' + !!S.changesFor + '"' + (busy ? ' disabled' : '') + '>Ask for a change</button>' + changeBox(st, j) + '</div>';
   else if (st.app) side = '<div class="rv-card ok"><h2>You applied</h2><p>Applied ' + esc(fmtDate(st.app.applied)) + '. It is on your Applied tab.</p><button class="btn gold" data-go="apps">Applied tab</button></div>';
   else if (st.applyReady) side = '<div class="rv-card ok"><h2>All approved</h2><p>Your next step is to apply. It takes three short steps.</p><button class="kdone" data-applyflow="' + id + '">' + IC.check + 'Start applying</button></div>';
@@ -1419,20 +1452,36 @@ function vReview() {
   if (!nRv && changeable(j).length) side = side.replace(/<\/div>$/, '<button class="kbtn" data-rvchange="' + (S.changesFor ? '' : 'open') + '" aria-expanded="' + !!S.changesFor + '"' + (busy ? ' disabled' : '') + '>Ask for a change</button>' + changeBox(st, j) + '</div>');
   return shell(flowFrom(), 'Read your documents', esc(j.title + ' at ' + j.company)) + '<div class="pband wide" aria-hidden="true"></div>' +
     '<main class="pmain wide flow rv" data-rv="' + id + '" data-sig="' + esc(S.rvSig) + '">' + flowTop() +
-    (docs.length ? '<p class="rv-intro">' + (st.review.length ? 'Tap each one to read it. When you are done, tap Looks good below.' : 'Tap each one to read it.') + '</p><div class="rv-grid"><div class="rv-left"><div class="rv-tabs" data-live="tabs" role="group" aria-label="Documents for this job">' + docs.map(function (x) {
+    (docs.length ? '<p class="rv-intro" data-live="intro">' + (st.review.length ? 'Tap each one to read it. When you are done, tap ' + esc(okLabel) + ' below.' : 'Tap each one to read it.') + '</p><div class="rv-grid"><div class="rv-left"><div class="rv-tabs" data-live="tabs" role="group" aria-label="Documents for this job">' + docs.map(function (x) {
       return '<button type="button" class="rv-tab k-' + (docKind(x.name) || 'other') + '" data-rvtab="' + esc(x.id) + '" aria-pressed="' + (x.id === S.flow.tab) + '" aria-controls="rvp-' + esc(x.id) + '"><span>' + esc(docLabel(x)) + '</span><small>' + esc(docWord(x)) + '</small></button>';
     }).join('') + '</div>' + docs.map(function (x, i) {
       var g = gdocId(x.link);
       var card = noFrame() || (!S.demo && !g), u = esc(safeUrl(x.link));
-      return '<section class="rv-panel" id="rvp-' + esc(x.id) + '" aria-label="' + esc(x.name) + '"' + (x.id === S.flow.tab ? '' : ' hidden') + '><div class="rv-frame' + (card ? ' open' : '') + '">' +
-        (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to tap Looks good or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
-          : S.demo ? sampleDoc(x, j) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
-        '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) + (card ? '' : '<a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>') +
+      var wait = !card && (!S.demo || S.rvDemoLoad); /* r36: a real preview is loading (the demo shows a drawn sample, unless &rvload=1) */
+      return '<section class="rv-panel" id="rvp-' + esc(x.id) + '" aria-label="' + esc(x.name) + '"' + (x.id === S.flow.tab ? '' : ' hidden') + '>' +
+        (card ? '' : '<div class="rv-pre"><a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>' + (wait ? '<p class="rv-load" role="status" aria-live="polite" data-rvload="">' + RV_LOADING + '</p>' : '') + '</div>') +
+        '<div class="rv-frame' + (card ? ' open' : '') + '">' +
+        (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to approve it or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
+          : S.demo ? (S.rvDemoLoad ? '<div class="rv-sample" aria-hidden="true"></div>' : sampleDoc(x, j)) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
+        '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) +
           (docPdf(x, truePdf(x.link)) && docKind(x.name) !== 'prep' && /approved/i.test(x.status || '') && !x.closedJob ? '<a class="kbtn" href="' + esc(docPdf(x, truePdf(x.link))) + '" target="_blank" rel="noopener noreferrer">' + IC.pdf + 'Download approved PDF</a>' : (x.pdfState === 'held' && docKind(x.name) !== 'prep' ? '<p class="meta">Your approved PDF is being updated. We will let you know when it is ready.</p>' : '')) +
-          (card || S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs.</p>') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
+          (card || S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs above the preview.</p>') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
     }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
     '</main>' + tabbar(flowFrom());
 }
+/* r36: the preview's loading message. It sits above the frame, outside the live parts, so a partial update never resets it.
+   Hidden when the frame's load event fires; after 12 seconds without one it points to the Google Docs link instead. */
+var RV_LOADING = 'Loading your document...', RV_SLOW = 'Still loading. You can open it in Google Docs instead.', RV_SLOW_MS = 12000;
+function rvLoadWatch() {
+  [].forEach.call(document.querySelectorAll('.rv-panel:not([hidden]) [data-rvload]'), function (m) {
+    if (m.getAttribute('data-rvload')) return; m.setAttribute('data-rvload', 'wait');
+    setTimeout(function () { if (m.getAttribute('data-rvload') === 'wait') { m.setAttribute('data-rvload', 'slow'); m.textContent = RV_SLOW; } }, RV_SLOW_MS);
+  });
+}
+document.addEventListener('load', function (e) {
+  var f = e.target; if (!f || f.tagName !== 'IFRAME' || !f.closest) return;
+  var p = f.closest('.rv-panel'), m = p && p.querySelector('[data-rvload]'); if (m) { m.setAttribute('data-rvload', 'done'); m.textContent = ''; m.hidden = true; }
+}, true);
 /* Partial update for the review screen: the previews (iframes) stay loaded; only the live parts are swapped. */
 function patchLive(app, html) {
   var t = document.createElement('template'); t.innerHTML = html;
@@ -1445,8 +1494,9 @@ function rvShowTab() {
   if (!S.flow) return;
   [].forEach.call(document.querySelectorAll('.rv-panel'), function (p) { p.hidden = p.id !== 'rvp-' + S.flow.tab; });
   [].forEach.call(document.querySelectorAll('[data-rvtab]'), function (b) { b.setAttribute('aria-pressed', String(b.dataset.rvtab === S.flow.tab)); });
+  rvLoadWatch();
 }
-/* Looks good: approve every document of this job that needs an OK, one request at a time, through docStatus. */
+/* The main approve button (data-looksgood; r36: labeled by approveLabel): approve every document of this job that needs an OK, one request at a time, through docStatus. */
 function approveJob(jobId) {
   var j = jobById(jobId); if (!j || S.rvBusy) return;
   var ids = jobState(j).review.map(function (x) { return x.id; }); if (!ids.length) return;
@@ -1463,7 +1513,7 @@ function approveJob(jobId) {
   step(0);
 }
 
-/* Round 3: approve only the document in view ("Approve resume", "Approve cover letter"), next to the one Looks good that approves
+/* Round 3: approve only the document in view ("Approve resume", "Approve cover letter"), next to the main approve button that approves
    everything still needing an OK. Shown when more than one document needs an OK; interview prep never gets one (needsOk). */
 function rvOneBtn(docs, nRv, busy) {
   var x = docs.filter(function (y) { return y.id === S.flow.tab; })[0];
@@ -1479,7 +1529,7 @@ function approveOne(jobId, docId) {
     if (!ok) { S.focusTo = '[data-rvok]'; render(); return; }
     if (!S.flow || S.flow.job !== j.id) { toast(docLabel(x) + ' approved.'); render(); return; } /* the client moved on: no hand-off */
     var st = jobState(j), nx = st.review[0], what = docLabel(x);
-    /* the last needed OK: the same hand-off to the apply screen as Looks good */
+    /* the last needed OK: the same hand-off to the apply screen as the main approve button */
     if (!nx && st.applyReady && !jobApp(j)) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
     if (nx && S.flow && S.flow.job === j.id) { S.flow.tab = nx.id; S.focusTo = '[data-rvtab="' + cssq(nx.id) + '"]'; toast(what + ' approved. Next: your ' + docNoun(nx) + '.'); }
     else toast(what + ' approved. Thank you.');
@@ -1665,8 +1715,11 @@ function verifyPill(j) {
   if (on) return '<span class="pill info">Last checked ' + esc(on) + '</span>';
   return added ? '<span class="pill info">Added ' + esc(added) + ', not checked yet</span>' : '';
 }
-function floorPill(f) { f = String(f || '').toLowerCase(); if (f.indexOf('at or above') === 0) return '<span class="pill ok">Meets your floor</span>'; if (f.indexOf('below') === 0) return '<span class="pill attn">Below your floor</span>'; return ''; }
-function isEst(j) { return /estimate/i.test(j.paySource || '') || /not posted|estimate/i.test(String(j.pay || '')); }
+/* r36: what "floor" means, on each floor pill (title) and once in the Jobs intro */
+var FLOOR_DEF = 'Your floor is the lowest yearly pay you told us you\'d accept.';
+function floorPill(f) { f = String(f || '').toLowerCase(); var t = ' title="' + esc(FLOOR_DEF) + '"'; if (f.indexOf('at or above') === 0) return '<span class="pill ok"' + t + '>Meets your floor</span>'; if (f.indexOf('below') === 0) return '<span class="pill attn"' + t + '>Below your floor</span>'; return ''; }
+/* r36: "OTE, base not posted" is pay the employer posted, not an estimate; only a missing pay figure or the word estimate counts */
+function isEst(j) { return /estimate/i.test(j.paySource || '') || /not posted|estimate/i.test(String(j.pay || '').replace(/\bbase\b[^$;]{0,24}\bnot\s+posted/ig, '')); }
 function payText(j) { var p = String(j.pay == null ? '' : j.pay).split(';')[0].trim(); return p || 'Pay not posted'; }
 function commuteUrl(j) { var h = S.data.client.home; if (!h || !j.location || /remote/i.test(j.location) || /^\s*remote/i.test(j.setting || '')) return ''; return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(h) + '&destination=' + encodeURIComponent(String(j.company).replace(/\s*\(.*?\)/g, '') + ', ' + j.location); }
 /* ---- round 3: fit label, one reason, the biggest concern, and the next action for a Yes job ---- */
@@ -1711,7 +1764,7 @@ function jobCard(j, hint) {
   var est = isEst(j);
   var heads = /below/i.test(j.floor || '') ? 'Heads-up: this is below your pay floor. Aim for the top of the range.' : '';
   var link = safeUrl(j.link), cm = commuteUrl(j), st = ans === 'yes' ? stageFor(j) : 0;
-  var pills = [fitPill(j), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '', floorPill(j.floor)].filter(String).join('');
+  var pills = [fitPill(j), j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '', floorPill(j.floor), basePill(j)].filter(String).join('');
   var status = ans === 'yes' ? '<div class="jst">' + IC.checkc + 'You said Yes <span class="stg st-' + st + '">' + STAGES_SHORT[st] + '</span></div>' : ans === 'q' ? '<div class="jst">' + IC.qc + (replyOf(j) ? 'Steady Path answered your question' : 'We\'re looking into it') + '</div>' : ans === 'no' ? '<div class="jst">Passed</div>' : '';
   var h = '<article class="jc' + (ans ? ' s-' + ans : '') + (j.closed ? ' is-closed' : '') + (S.leaving[j.id] ? ' leave' : '') + '" data-jc="' + id + '"' + (ans !== 'no' && ans !== 'yes' && !j.closed ? ' data-swipe="1"' : '') + ' aria-label="' + esc(j.title + ', ' + j.company) + '">' +
     (ans !== 'no' && ans !== 'yes' && !j.closed ? '<span class="sl y" aria-hidden="true">YES</span><span class="sl p" aria-hidden="true">PASS</span>' : '') + '<div class="in">' +
@@ -1781,7 +1834,7 @@ function vJobs() {
   var jfx = jfJobs(d, main, passed, hintId); main = jfx.main; passed = jfx.passed; /* round 3: search, sort, filters (the list only) */
   var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110, jl = jlOn(); /* round 6b: list + detail at 1100px and wider */
   var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : n.k === 'done' ? 'All caught up.' : 'Your matches are reviewed. Here\'s what\'s next.';
-  return shell('jobs', esc(title), 'Pay is shown as the employer posted it. When it isn\'t posted, the card says so.') + '<div class="pband" aria-hidden="true"></div>' +
+  return shell('jobs', esc(title), 'Pay is shown as the employer posted it. When it isn\'t posted, the card says so.' + (d.jobs.some(function (j) { return floorPill(j.floor); }) ? ' ' + esc(FLOOR_DEF) : '')) + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain' + (jl ? ' xl' : '') + '">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
     '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b>' + (billOn() ? '<span class="hl-r"><span>' + esc(billHello(cl)) + '</span><button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></span>' : '<span>' + esc(trialText(cl)) + '</span>') + (typeof fitHello === 'function' ? fitHello() : '') + '</div>' +
     nxCard(n) + dueCard(d) + (typeof fitJobsCard === 'function' ? fitJobsCard() : '') + /* r27 */
@@ -1789,7 +1842,7 @@ function vJobs() {
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
     jmap(sorted) +
     (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Steady Path' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
-    (fbDue(cl) ? '<div class="fbask"><p>Two minutes? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
+    (fbDue(cl) ? '<div class="fbask"><p>One minute? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
     installCard() +
     (jl ? '<div class="jl">' : '') + jfx.head + '<div class="jfres" data-jfres>' + (jl ? jlPanes(d, jfx, main, passed, hintId) : jfx.on ? jfx.body :
     (main.length ? (jfx.show ? '' : '<h2 class="sec-h">Your matches</h2>') + '<div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">' + ((d.closed || []).length ? 'No open matches right now. New ones show up here.' : 'Nothing here yet. You will get an email when your first jobs arrive.') + '</p></div>') +
@@ -1936,7 +1989,7 @@ function vApps() {
    S.af); only the Jobs sort is remembered on this device. Filters change which cards are listed, never the counts, the next step,
    the Due next list or the journey map (those read S.data). While a search is on, a card the client acts on stays listed until the
    search changes, so a card never vanishes under the finger. */
-var JF_SORTS = [['order', 'Needs answer first'], ['new', 'Newest'], ['pay', 'Highest pay'], ['fit', 'Best fit']];
+var JF_SORTS = [['order', 'Needs answer first'], ['new', 'Newest'], ['pay', 'Highest base pay'], ['fit', 'Best fit']];
 var JF_CHIPS = [['wait', 'Needs answer'], ['yes', 'Yes'], ['q', 'Question'], ['remote', 'Remote/Hybrid']];
 function jf() { if (!S.jf) { var s = lsGet('sp_jsort'); S.jf = { q: '', sort: JF_SORTS.some(function (x) { return x[0] === s; }) ? s : 'order', f: {} }; } return S.jf; }
 function jfShow(d) { return !!(d && d.jobs && d.jobs.length > 6); }
@@ -1958,10 +2011,28 @@ function payNum(j) {
   if (!(n > 0)) { var p = payText(j); if (/%|401\s*k|not posted/i.test(p)) return 0; var m = p.replace(/,/g, '').match(/\$\s*(\d+(?:\.\d+)?)\s*(k)?/i); n = m ? Number(m[1]) * (m[2] ? 1000 : 1) : 0; }
   return n > 0 && n < 1000 ? n * 2080 : n || 0;
 }
+/* r36: base pay for the "Highest base pay" sort. Pay shown (j.pay) may say OTE, on-target earnings: base plus commission.
+   "$120,000 OTE, base $60,000": the base is used. "$148,000 to $237,000 OTE, base not posted": Pay low is the bottom of the
+   OTE range, not a base, so the job is marked noBase and sorts after every job with base pay. n is yearly (see payNum). */
+function payBase(j) {
+  var p = String(j && j.pay != null ? j.pay : ''), ote = /\bOTE\b|on[- ]target earnings/i.test(p), n = payNum(j), noBase = false;
+  if (ote) {
+    var t = p.replace(/,/g, ''), num = '\\$\\s*(\\d+(?:\\.\\d+)?)\\s*(k\\b)?';
+    var m = /\bbase\b[^$;]{0,24}\bnot\s+posted/i.test(t) ? null : t.match(new RegExp(num + '\\s*(?:a year\\s+|per year\\s+|an hour\\s+|per hour\\s+)?base\\b', 'i')) || t.match(new RegExp('\\bbase\\b[^$\\d;,]{0,24}' + num, 'i'));
+    if (m) { var b = Number(m[1]) * (m[2] ? 1000 : 1); n = b > 0 && b < 1000 ? b * 2080 : b || 0; } else noBase = true;
+  }
+  return { n: n || 0, ote: ote, noBase: noBase };
+}
+/* highest base pay first; then OTE with no posted base (by Pay low among themselves); jobs with no pay last */
+function payCmp(a, b) {
+  var x = payBase(a), y = payBase(b), g = function (v) { return !(v.n > 0) ? 2 : v.noBase ? 1 : 0; };
+  return g(x) - g(y) || y.n - x.n;
+}
+function basePill(j) { return payBase(j).noBase ? '<span class="pill info" title="The employer posted on-target earnings (base pay plus commission) and no base pay.">Base not posted</span>' : ''; }
 function jfSorted(list) {
   var k = jf().sort, pos = {}; list.forEach(function (j, i) { pos[j.id] = i; });
   var by = k === 'new' ? function (a, b) { return String(b.added || '').localeCompare(String(a.added || '')); }
-    : k === 'pay' ? function (a, b) { return payNum(b) - payNum(a); }
+    : k === 'pay' ? payCmp
     : k === 'fit' ? function (a, b) { var fa = fitOf(a), fb = fitOf(b); return (fa ? fa.rank : 9) - (fb ? fb.rank : 9); } : null;
   return by ? list.slice().sort(function (a, b) { return by(a, b) || pos[a.id] - pos[b.id]; }) : list;
 }
@@ -2133,6 +2204,7 @@ function render() {
   var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs, prep: vPrep, fit: vFit, billing: vBilling }[S.view] || vJobs)();
   var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
   if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;
+  rvLoadWatch(); /* r36 */
   if (!S.deck) window.scrollTo(0, y);
   jlAfter(jls);
   var target = null;
@@ -2167,14 +2239,14 @@ function appScroll() {
   return true;
 }
 function openAppCol(x) { var k = boardCol(x); if (S.colOpen) S.colOpen[k] = true; else S.openCol = k; S.scrollApp = x.id; }
-function go(view) {
+function go(view, help) {
   /* leaving a review or apply screen by the tab bar: that history entry now stands for the new tab, so Back goes to Jobs, not nowhere */
   /* Jobs goes back to the portal's first entry, so a review-then-tab-bar loop never grows history; another tab replaces the current entry */
   if (S.hist > 0) {
     if (view === 'jobs') { var back = S.hist; S.hist = 0; quietPop(); try { history.go(-back); } catch (e) {} }
     else { try { history.replaceState({ sp: 1, depth: S.hist, flow: null, view: view }, '', location.href); } catch (e) {} }
   }
-  S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.focusTo = '.ptitle h1'; var sc = S.scrollApp; render(); if (!sc || S.scrollApp) window.scrollTo(0, 0); }
+  S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.fbHelp = view === 'feedback' && !!help; /* r36: the Help button opens this view with the urgent box */ S.focusTo = '.ptitle h1'; var sc = S.scrollApp; render(); if (!sc || S.scrollApp) window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
   /* round 12: end this session on the server too (fire and forget), before the token is dropped here */
@@ -2313,7 +2385,7 @@ function dkCard(j, top) {
   if (top && !asking) h += '<span class="dk-stamp y" aria-hidden="true">YES</span><span class="dk-stamp p" aria-hidden="true">PASS</span><span class="dk-stamp q" aria-hidden="true">QUESTION</span>';
   h += '<div class="dk-body"><h2 class="dk-ttl" id="dk-ttl">' + esc(j.title) + '</h2><div class="dk-pay' + (est ? ' est' : '') + '">' + esc(payText(j)) + (est ? '<small>Estimate</small>' : '') + '</div>' +
     '<div class="dk-where">' + esc(j.company) + (j.location ? ' · ' + esc(j.location) : '') + '</div>' +
-    '<div class="pills">' + pill + (j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '') + '</div>';
+    '<div class="pills">' + pill + (j.setting ? '<span class="pill">' + esc(j.setting) + '</span>' : '') + basePill(j) + '</div>';
   if (!top) return h + '</div></div>';
   if (j.why) h += '<p class="dk-why">' + esc(j.why) + '</p>';
   var more = (j.notes || link);
@@ -2459,6 +2531,7 @@ document.addEventListener('click', function (e) {
   if (e.target.closest('[data-a2hs-hide]')) { lsSet('sp_a2hs', String(Date.now())); render(); return; }
   var b = e.target.closest('button'); if (!b) return; var d = b.dataset;
   if (deckClick(b, d)) return;
+  if (d.help != null) { S.urg = { open: true }; S.pf.err = ''; go('feedback', true); return; } /* r36: Help in the top bar, the same urgent flow as the menu's Give feedback screen */
   if (d.menu != null) { S.menu = !S.menu; S.focusTo = S.menu ? '.acct .menu [role=menuitem]' : '[data-menu]'; render(); return; }
   if (d.reauth != null) { S.deck = null; document.body.classList.remove('deck-lock'); signOut('Please sign in again. We\'ll email you a new link.'); return; }
   if (d.fb) { ['#fbHelp', '#fbChange', '#fbWhy', '#fbQuote'].forEach(function (id, i) { var el = $(id); if (el) S.fbText[['help', 'change', 'why', 'quote'][i]] = el.value; }); var v = /^\d+$/.test(d.v) ? Number(d.v) : d.v; S.fb[d.fb] = S.fb[d.fb] === v ? null : v; render(); return; }
@@ -2602,7 +2675,7 @@ var PF_COMMUTE = ['Up to 15 minutes', 'Up to 30 minutes', 'Up to 45 minutes', 'U
 var PF_SETTING = ['On site', 'Hybrid', 'Remote', 'On site or hybrid', 'Hybrid or remote', 'Any of these'];
 var PF_CONTACT = ['Email', 'Text', 'Phone call'];
 var PF_SCREENS = ['Jobs', 'Documents', 'Reading or approving documents', 'Applying', 'Applied', 'Signing in', 'Search settings', 'Something else'];
-var PF_WAIT = 'Requests are reviewed as soon as possible. Your matches use your current settings until then.';
+var PF_WAIT = 'Requests are reviewed within 1 business day. Your matches use your current settings until then.';
 S.pf = { draft: {} };
 function pfReset() { S.pf = { draft: {} }; }
 function prefsOf() { var p = (S.data && S.data.prefs) || {}; return { roles: Array.isArray(p.roles) ? p.roles.map(String) : String(p.roles || '').split(/\r?\n/).filter(String), payFloor: String(p.payFloor == null ? '' : p.payFloor), commute: String(p.commute || ''), setting: String(p.setting || ''), contact: String(p.contact || ''), status: String(p.status || ''), searchTerms: Array.isArray(p.searchTerms) ? p.searchTerms.map(String) : [] }; }
@@ -2642,7 +2715,7 @@ function vPrefs() {
     (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
     '<div class="pf-row"><button class="btn gold" data-pfpausesend="' + esc(pauseType) + '"' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Send request') + '</button><button class="btn ghost" data-pfpause="">Cancel</button></div></div>' : '';
   var del = F.del ? '<div class="pf-confirm" role="group" aria-labelledby="pfDelH"><h3 id="pfDelH" tabindex="-1">Ask us to delete your data?</h3>' +
-    '<p>This sends a request to delete your jobs, documents, applications and notes. Nothing is deleted right away: the request is reviewed as soon as possible, and you get an email. Once your data is deleted, your search and this portal stop.</p>' +
+    '<p>This sends a request to delete your jobs, documents, applications and notes. Nothing is deleted right away: the request is reviewed within 1 business day, and you get an email. Once your data is deleted, your search and this portal stop.</p>' +
     '<p>Want a copy first? Download your data above before you send this.</p>' +
     (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
     '<div class="pf-row"><button class="btn danger" data-pfdelyes' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Yes, send the delete request') + '</button><button class="btn ghost" data-pfdel="">Cancel</button></div></div>' : '';
@@ -2786,10 +2859,10 @@ function featureRatings() {
 function fbFeatures() { var f = S.fb || {}, o = {}; if (f.jobs != null) o.jobs = f.jobs; FB_FEATURES.forEach(function (x) { var v = f['ft_' + x[0]]; if (v != null) o[x[0]] = v; }); return o; }
 function urgentBox() {
   var U = S.urg || {};
-  if (U.done) return '<div class="card urg ok" role="status" tabindex="-1"><b>Sent as urgent.</b> A person will get back to you as soon as possible. You can still fill in the survey below, or skip it.</div>';
-  if (!U.open) return '<div class="urg-link"><button class="linkbtn" data-urg="open">Something\'s broken or urgent?</button> <span>Skip the survey and tell us now.</span></div>';
+  if (U.done) return '<div class="card urg ok" role="status" tabindex="-1"><b>Sent as urgent.</b> A person will get back to you within 1 business day.' + (S.fbHelp ? '' : ' You can still fill in the survey below, or skip it.') + '</div>';
+  if (!U.open) return '<div class="urg-link"><button class="linkbtn" data-urg="open">Something\'s broken or urgent?</button> <span>' + (S.fbHelp ? 'Tell us now.' : 'Skip the survey and tell us now.') + '</span></div>';
   var D = S.pf.draft;
-  return '<div class="card urg logbox"><h2 class="pf-h">Something\'s broken or urgent</h2><p class="psub" style="margin:0">This goes straight to a person, outside the survey.</p>' +
+  return '<div class="card urg logbox"><h2 class="pf-h">Something\'s broken or urgent</h2><p class="psub" style="margin:0">' + (S.fbHelp ? 'This goes straight to a person, who replies within 1 business day.' : 'This goes straight to a person, outside the survey.') + '</p>' +
     '<label for="urgWhat">What\'s wrong?</label><textarea id="urgWhat" maxlength="1000" rows="3"' + (U.err ? ' aria-invalid="true" aria-describedby="urgErr"' : '') + '>' + esc(D.urgWhat || '') + '</textarea>' +
     '<label for="urgScreen">Which screen?</label><select id="urgScreen"><option value="">Not sure</option>' + PF_SCREENS.map(function (o) { return '<option' + (D.urgScreen === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>' +
     (U.err ? '<p class="err" role="alert" id="urgErr">' + esc(U.err) + (S.pf.re ? reauthBtn() : '') + '</p>' : '') +
@@ -2817,9 +2890,9 @@ document.addEventListener('click', function (e) {
   if (d.pfsend != null) { sendPrefsChange(); return; }
   if (d.pfpause != null) { S.pf.pause = !!d.pfpause; S.pf.edit = false; S.pf.del = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.pause ? '#pfPauseNote' : '[data-pfpause]'; render(); return; }
   if (d.pfpausesend) { var ty = d.pfpausesend === 'Resume search' ? 'Resume search' : 'Pause search';
-    sendRequest({ type: ty, note: String(S.pf.draft.pfPauseNote || '').trim().slice(0, 1000) }, function (ok) { if (ok) { S.pf.pause = false; delete S.pf.draft.pfPauseNote; S.pf.msg = 'Sent. We will review the request as soon as possible, then ' + (ty === 'Pause search' ? 'pause' : 'restart') + ' your search. Until then nothing changes.'; S.focusTo = '#pfMsg'; } }); return; }
+    sendRequest({ type: ty, note: String(S.pf.draft.pfPauseNote || '').trim().slice(0, 1000) }, function (ok) { if (ok) { S.pf.pause = false; delete S.pf.draft.pfPauseNote; S.pf.msg = 'Sent. We will review the request within 1 business day, then ' + (ty === 'Pause search' ? 'pause' : 'restart') + ' your search. Until then nothing changes.'; S.focusTo = '#pfMsg'; } }); return; }
   if (d.pfdel != null) { S.pf.del = !!d.pfdel; S.pf.edit = false; S.pf.pause = false; S.pf.err = ''; S.pf.msg = ''; S.focusTo = S.pf.del ? '#pfDelH' : '[data-pfdel]'; render(); return; }
-  if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. It is reviewed as soon as possible, and you will get an email. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
+  if (d.pfdelyes != null) { sendRequest({ type: 'Delete my data' }, function (ok) { if (ok) { S.pf.del = false; S.pf.msg = 'Delete request sent. It is reviewed within 1 business day, and you will get an email. Nothing is deleted before then.'; S.focusTo = '#pfMsg'; } }); return; }
   if (d.export) { var day = todayISO(); if (d.export === 'csv') saveFile('steady-path-applications-' + day + '.csv', 'text/csv;charset=utf-8', appsCsv()); else saveFile('steady-path-my-data-' + day + '.json', 'application/json', JSON.stringify(exportData(), null, 2)); toast('Downloaded.'); return; }
   if (d.ics) { var ap = ((S.data && S.data.apps) || []).filter(function (x) { return String(x.id) === d.ics; })[0], txt = ap && icsFor(ap); if (!txt) return; if (isIOS()) { try { location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(txt); return; } catch (e) {} } saveFile('interview-' + slug(ap.company) + '-' + ap.interview + '.ics', 'text/calendar;charset=utf-8', txt); toast('Calendar file downloaded. Open it to add the interview to Outlook or Apple Calendar.'); return; }
   if (d.urg != null) { S.urg = { open: !!d.urg }; S.pf.err = ''; S.focusTo = d.urg ? '#urgWhat' : '[data-urg]'; render(); return; }
@@ -3375,9 +3448,9 @@ document.addEventListener('click', function (e) {
 }, true);
 /* =================== END ROUND 25 =================== */
 </script>
-<script src="../assets/portal-r18.js?v=sp-20261110r33"></script>
+<script src="../assets/portal-r18.js?v=sp-20261112r36"></script>
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/portal.js?v=20261024e"></script>
-<script src="../assets/fit-r35.js?v=sp-20261110r35"></script>
+<script src="../assets/fit-r35.js?v=sp-20261112r36"></script>
 </body>
 </html>
