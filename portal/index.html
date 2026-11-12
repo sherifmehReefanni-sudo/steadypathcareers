@@ -1728,7 +1728,7 @@ var FLOOR_DEF = 'Your floor is the lowest yearly pay you told us you\'d accept.'
 function floorPill(f) { f = String(f || '').toLowerCase(); var t = ' title="' + esc(FLOOR_DEF) + '"'; if (f.indexOf('at or above') === 0) return '<span class="pill ok"' + t + '>Meets your floor</span>'; if (f.indexOf('below') === 0) return '<span class="pill attn"' + t + '>Below your floor</span>'; return ''; }
 /* r36: "$148,000 to $237,000 OTE, base not posted" is pay the employer posted, not an estimate. The "base ... not posted" words are
    set aside only when the pay text also says OTE; any other "not posted" ("Pay not posted", "Base pay not posted") is an estimate as before. */
-var OTE_RE = /\bOTE\b|on[- ]target earnings/i;
+var OTE_RE = /\bOTE\b|\bon[- ]target\b|\btotal target\b/i; /* the same words payBaseParse reads */
 function isEst(j) { var p = String(j.pay || ''); if (OTE_RE.test(p)) p = p.replace(/\bbase\b[^$;]{0,24}\bnot\s+posted/ig, ''); return /estimate/i.test(j.paySource || '') || /not posted|estimate/i.test(p); }
 function payText(j) { var p = String(j.pay == null ? '' : j.pay).split(';')[0].trim(); return p || 'Pay not posted'; }
 function commuteUrl(j) { var h = S.data.client.home; if (!h || !j.location || /remote/i.test(j.location) || /^\s*remote/i.test(j.setting || '')) return ''; return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(h) + '&destination=' + encodeURIComponent(String(j.company).replace(/\s*\(.*?\)/g, '') + ', ' + j.location); }
@@ -2024,19 +2024,85 @@ function payNum(j) {
 }
 /* r36: base pay for the "Highest base pay" sort. Pay shown (j.pay) may say OTE, on-target earnings: base plus commission.
    "$120,000 OTE, base $60,000": the base is used. "$148,000 to $237,000 OTE, base not posted": Pay low is the bottom of the
-   OTE range, not a base, so the job is marked noBase and sorts after every job with base pay. n is yearly (see payNum). */
+   OTE range, not a base, so the job is marked noBase and sorts after every job with base pay. n is yearly (see payNum).
+   Whenever the parser below cannot read a base with confidence the job is treated as noBase (the card says "Base not posted"). */
+/* r36 fix round 2: payBase reads the base with the parser nested inside it (kept inside so the function stands on its own). The parser gives the base figure in a Pay shown text that mentions OTE, as yearly dollars, or null when no base can be read with confidence.
+   Money amounts are found in place (commas kept): $50,000 / 50,000 / $50k / 50K / $30 / $30.50. Amounts joined by to, a dash, a slash, "up to" or
+   "between X and Y" form one range. The text is cut into clauses at commas outside numbers, semicolons, " plus" and " and OTE". A range belongs to
+   the keyword (base or OTE) in its own clause; with both or neither there, to the nearest one. The base is the lowest amount that belongs to base. */
 function payBase(j) {
   var p = String(j && j.pay != null ? j.pay : ''), ote = OTE_RE.test(p), n = payNum(j), noBase = false;
-  if (ote) {
-    var t = p.replace(/,/g, ''), num = '\\$\\s*(\\d+(?:\\.\\d+)?)\\s*(k\\b)?';
-    var unit = '\\s*(?:a year\\s+|per year\\s+|an hour\\s+|per hour\\s+)?base\\b', m = null, hiK = false;
-    if (!/\bbase\b[^$;]{0,24}\bnot\s+posted/i.test(t)) {
-      /* a base range ("$50,000 to $70,000 base") counts at its bottom, like Pay low; then "$60,000 base"; then "base $60,000" (a range after the word starts at its bottom already) */
-      var r = t.match(new RegExp(num + '\\s*(?:to|-|\\u2013|\\u2014)\\s*' + num.replace('\\$', '\\$?') + unit, 'i')); /* the second "$" may be left off: "$50-70k base" */
-      if (r) { m = r; hiK = !!r[4]; } else m = t.match(new RegExp(num + unit, 'i')) || t.match(new RegExp('\\bbase\\b[^$\\d;,]{0,24}' + num, 'i'));
+  function parse(p) {
+    var PB_UNITS = [[/^(?:hour|hr|hourly)$/, 2080], [/^(?:day|daily)$/, 260], [/^(?:week|wk|weekly)$/, 52], [/^(?:month|mo|monthly)$/, 12], [/^(?:year|yr|annum|yearly|annual|annually)$/, 1]];
+    p = String(p == null ? '' : p);
+    var kw = [], m, re = /\bbase\b|\bOTE\b|\bon[- ]target\b|\btotal target\b/gi;
+    while ((m = re.exec(p))) kw.push({ base: /^base$/i.test(m[0]), s: m.index, e: m.index + m[0].length });
+    if (!kw.some(function (k) { return k.base; }) || !kw.some(function (k) { return !k.base; })) return null;
+    if (/\bbase\b[^$;]{0,24}\bnot\s+posted|\bno\s+base\b/i.test(p)) return null;
+    /* amounts, with their place in the text */
+    var am = [], nre = /(\$\s*)?(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?(\s*k\b)?/gi;
+    while ((m = nre.exec(p))) {
+      if (!m[1] && !m[4] && m[2].indexOf(',') < 0) continue; /* a bare small number is not money */
+      if (m[4] && m[2] === '401') continue; /* 401k */
+      am.push({ v: Number(m[2].replace(/,/g, '') + (m[3] || '')), k: !!m[4], s: m.index, e: m.index + m[0].length });
     }
-    if (m) { var b = Number(m[1]) * (m[2] || (hiK && Number(m[1]) < 1000) ? 1000 : 1); n = b > 0 && b < 1000 ? b * 2080 : b || 0; } else noBase = true;
+    if (!am.length) return null;
+    /* clause boundaries */
+    var cuts = [0], i, c;
+    for (i = 0; i < p.length; i++) {
+      c = p.charAt(i);
+      if (c === ';') cuts.push(i + 1);
+      else if (c === ',' && !(/\d/.test(p.charAt(i - 1)) && /^\d{3}(?!\d)/.test(p.slice(i + 1)))) cuts.push(i + 1);
+      else if (/\s/.test(c) && /^(?:plus\b|and\s+(?:OTE\b|on[- ]target\b|total target\b))/i.test(p.slice(i + 1))) cuts.push(i + 1);
+    }
+    cuts.push(p.length + 1);
+    var clauseOf = function (pos) { for (var x = cuts.length - 2; x >= 0; x--) if (pos >= cuts[x]) return x; return 0; };
+    /* ranges: neighbours in one clause joined by a range word */
+    var groups = [], g = null;
+    am.forEach(function (a, n) {
+      var prev = am[n - 1], join = false;
+      if (g && prev && clauseOf(prev.s) === clauseOf(a.s)) {
+        var mid = p.slice(prev.e, a.s);
+        join = /^\s*(?:to|up\s+to|through|-|\u2013|\u2014|\/)\s*$/i.test(mid) || (/^\s*and\s*$/i.test(mid) && /\bbetween\s*$/i.test(p.slice(0, g.s)));
+      }
+      if (join) { g.items.push(a); g.e = a.e; } else { g = { items: [a], s: a.s, e: a.e, cl: clauseOf(a.s) }; groups.push(g); }
+    });
+    var amountFirst = am[0].s < kw[0].s; /* "$X base, $Y OTE" reads amount then word; "base $X, OTE $Y" the other way */
+    var dist = function (G, k) { return k.e <= G.s ? G.s - k.e : k.s >= G.e ? k.s - G.e : 0; };
+    /* in a clause with both words: the word on the side the text puts its words (after the amount, or before it), unless the other
+       word sits right against the amount ("... OTE with $60,000 base") */
+    var nearest = function (G, list) {
+      var best = null, bd = Infinity, dir = null, dd = Infinity;
+      list.forEach(function (k) {
+        var d = dist(G, k), after = k.s >= G.e;
+        if (d < bd) { best = k; bd = d; }
+        if (after === amountFirst && d < dd) { dir = k; dd = d; }
+      });
+      var gap = best ? (best.e <= G.s ? p.slice(best.e, G.s) : p.slice(G.e, best.s)) : '';
+      return dir && !(best !== dir && dd > bd && /^\s{0,2}$/.test(gap)) ? dir : best;
+    };
+    var lows = [], unknown = false;
+    groups.forEach(function (G) {
+      var here = kw.filter(function (k) { return clauseOf(k.s) === G.cl; });
+      var hb = here.some(function (k) { return k.base; }), ho = here.some(function (k) { return !k.base; });
+      var owner = hb && !ho ? true : ho && !hb ? false : (nearest(G, here.length ? here : kw) || {}).base;
+      if (!owner) return;
+      /* the unit right after the range; a "k" on the top of a range covers its bottom ("$50-70k") */
+      var tail = p.slice(G.e, Math.min(cuts[G.cl + 1] - 1, p.length)), um = tail.match(/^\s*(?:\/\s*|per\s+|an?\s+)(hour|hr|day|week|wk|month|mo|year|yr|annum)\b|^\s*(hourly|daily|weekly|monthly|yearly|annually|annual)\b/i);
+      if (/^\s*(?:bi|semi|every)[- ]?\s*\w/i.test(tail)) { unknown = true; return; }
+      var word = um ? (um[1] || um[2]).toLowerCase() : '', mult = 0;
+      PB_UNITS.forEach(function (u) { if (word && u[0].test(word)) mult = u[1]; });
+      var anyK = G.items.some(function (a) { return a.k; });
+      G.items.forEach(function (a) {
+        var v = a.v * (a.k || (anyK && a.v < 1000) ? 1000 : 1);
+        lows.push(mult ? v * mult : v < 1000 ? v * 2080 : v); /* no unit: under 1,000 is hourly, the same rule as payNum */
+      });
+    });
+    if (unknown || !lows.length) return null;
+    var low = Math.min.apply(null, lows);
+    return low > 0 ? Math.round(low) : null;
   }
+  if (ote) { var b = parse(p); if (b == null) noBase = true; else n = b; }
   return { n: n || 0, ote: ote, noBase: noBase };
 }
 /* highest base pay first; then OTE with no posted base (by Pay low among themselves); jobs with no pay last */
