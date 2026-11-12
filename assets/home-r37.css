@@ -381,3 +381,6 @@ footer .brand img{width:30px;height:30px;border-radius:8px}
   .ticker{mask-image:none;-webkit-mask-image:none}
   .ticker div{justify-content:center;padding:0 20px}
 }
+
+/* r40: link to the checks page under the commitments */
+.more{margin:22px 0 0}.more a{display:inline-flex;align-items:center;min-height:44px;font-weight:700;color:inherit;text-decoration:underline;text-underline-offset:4px}
