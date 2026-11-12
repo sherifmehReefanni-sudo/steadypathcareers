@@ -7,7 +7,7 @@ ASSETS = ASSETS.concat(['/portal/', '/assets/portal-r18.css?v=sp-20261110r30', '
 /* r27: Find Your Fit files (r35: deeper quiz, work preferences, weekly match check-in; r36: score meaning line) */
 ASSETS = ASSETS.concat(['/assets/fit-r35.css?v=sp-20261112r36', '/assets/fit-r35.js?v=sp-20261112r36']);
 /* r37: new home page files */
-ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261112r40', '/assets/home-r37.js?v=sp-20261112r37']);
+ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261112r40', '/assets/home-r37.js?v=sp-20261112r40']);
 /* r38: the How we check every job page */
 ASSETS = ASSETS.concat(['/how-we-check/']);
 self.addEventListener('install', function (e) {

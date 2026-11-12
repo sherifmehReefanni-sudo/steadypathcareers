@@ -78,7 +78,7 @@
         var d = document.createElement('article'); d.className = 'jcard';
         d.innerHTML = '<p class="jt">' + esc(j[0]) + '</p><p class="pay">' + esc(j[1]) + '</p><p class="src">Posted by the employer</p><p class="co">' + esc(j[2]) +
           '</p><div class="pills"><span class="pill ok" title="Your floor is the lowest pay you told us you\'d accept.">Meets your floor</span><span class="pill">' + esc(j[3]) +
-          '</span><span class="pill fresh">Checked today</span></div><p class="why">' + esc(j[4]) + '</p>';
+          '</span><span class="pill fresh">Rechecked daily</span></div><p class="why">' + esc(j[4]) + '</p>';
         cards.appendChild(d);
       });
       bYes.disabled = bNo.disabled = false;
@@ -135,7 +135,7 @@
   (function () {
     var ol = $('tSteps'), v = $('tVerdict');
     if (!ol) return;
-    var CH = ['The employer\'s own posting', 'Pay stated by the employer', 'Still open today', 'In your area, or remote for your state', 'Pay that can reach your floor'];
+    var CH = ['The employer\'s own posting', 'Pay stated by the employer', 'Still open', 'In your area, or remote for your state', 'Pay that can reach your floor'];
     var POSTS = [
       { t: 'Customer Success Manager', m: 'Example Co., Morristown, NJ', r: [[1, 'Found on the company careers page.'], [1, '$85,000 to $98,000 per year.'], [1, 'Open and taking applications.'], [1, 'Hybrid, about 35 minutes from home.'], [1, '$85,000 to $98,000. Your floor is $80,000.']], v: 'Sent to your portal, with the pay and a note on why it fits.' },
       { t: 'Sales Associate', m: 'Sample Retail Group, Paramus, NJ', r: [[1, 'Found on the company careers page.'], [0, 'The posting says "competitive pay" and gives no number.']], v: 'Not sent. No pay posted, so it never reaches you.' },
