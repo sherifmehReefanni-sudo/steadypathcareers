@@ -207,8 +207,7 @@
 .fx-count { text-align: right; }
 .fx-alt .linkbtn { min-height: 44px; font-weight: 800; text-align: left; }
 .fx-alt { line-height: 1.6; }
-/* r36: what the Interest match number means. On the results screen it sits above the title list; on the Jobs list it shows
-   under the first score only (later cards in the same list hide it; without :has() support it shows on each card). */
+/* r36: what the Interest match number means. On the results screen it sits above the title list; on the Jobs list the portal
+   puts it on the first card with a score only (fitNoteFirst in fit-r35.js), so no CSS hiding is needed. */
 .fx-smean { display: block; margin: 0 0 12px; font-size: 14px; line-height: 1.45; color: var(--muted); }
 .jfitw .fx-smean { margin: 6px 0 0; font-size: 13px; color: inherit; opacity: .85; }
-.jc:has(.fx-smean) ~ .jc .fx-smean { display: none; }

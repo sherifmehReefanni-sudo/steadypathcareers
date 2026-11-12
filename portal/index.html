@@ -1294,7 +1294,7 @@ function flowStep(d) {
   if (soon && daysFrom(soon.interview) <= 1) return ivStep(soon);
   var rp = jobs.filter(replyNew)[0];
   if (rp) return { k: 'reply', t: 'Steady Path answered your question about ' + coName(rp), s: 'Read the answer, then decide on this job.', act: '<button class="btn gold" data-seereply="' + esc(rp.id) + '">Read the answer</button>' };
-  if (c.wait) return { k: 'answer', t: c.wait === 1 ? '1 new job to answer' : c.wait + ' new jobs to answer', s: 'Say Yes to the ones you want. For each Yes, a resume and cover letter for that job are drafted automatically, usually within about an hour, and checked against your own resume.',
+  if (c.wait) return { k: 'answer', t: c.wait === 1 ? '1 new job to answer' : c.wait + ' new jobs to answer', s: 'Say Yes to the ones you want. For each Yes, a resume and cover letter for that job are drafted automatically, usually within about an hour and always within 1 day, and checked against your own resume.',
     act: deckButton(c) || '<button class="btn gold" data-first>Answer ' + (c.wait === 1 ? 'it' : 'them') + ' now</button>' };
   var r = yes.filter(function (j) { return st[j.id].review.length; })[0];
   if (r) { var w = docWords(st[r.id].review); return { k: 'review', t: 'Read your ' + w + ' for ' + coName(r), s: (st[r.id].review.length > 1 ? 'They are' : 'It is') + ' ready. Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ', then approve ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' or ask for a change.', act: '<button class="btn gold" data-review="' + esc(r.id) + '">Read ' + (st[r.id].review.length > 1 ? 'them' : 'it') + ' now</button>' }; }
@@ -1459,7 +1459,7 @@ function vReview() {
       var card = noFrame() || (!S.demo && !g), u = esc(safeUrl(x.link));
       var wait = !card && (!S.demo || S.rvDemoLoad); /* r36: a real preview is loading (the demo shows a drawn sample, unless &rvload=1) */
       return '<section class="rv-panel" id="rvp-' + esc(x.id) + '" aria-label="' + esc(x.name) + '"' + (x.id === S.flow.tab ? '' : ' hidden') + '>' +
-        (card ? '' : '<div class="rv-pre"><a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>' + (wait ? '<p class="rv-load" role="status" aria-live="polite" data-rvload="">' + RV_LOADING + '</p>' : '') + '</div>') +
+        (card ? '' : '<div class="rv-pre"><a class="kbtn" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open in Google Docs</a>' + (wait ? '<p class="rv-load" role="status" aria-live="polite" data-rvload=""></p>' : '') + '</div>') +
         '<div class="rv-frame' + (card ? ' open' : '') + '">' +
         (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to approve it or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
           : S.demo ? (S.rvDemoLoad ? '<div class="rv-sample" aria-hidden="true"></div>' : sampleDoc(x, j)) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
@@ -1470,11 +1470,13 @@ function vReview() {
     '</main>' + tabbar(flowFrom());
 }
 /* r36: the preview's loading message. It sits above the frame, outside the live parts, so a partial update never resets it.
-   Hidden when the frame's load event fires; after 12 seconds without one it points to the Google Docs link instead. */
-var RV_LOADING = 'Loading your document...', RV_SLOW = 'Still loading. You can open it in Google Docs instead.', RV_SLOW_MS = 12000;
+   It starts empty and is filled a tick later (rvLoadWatch). Hidden when the frame's load event fires; after 12 seconds without one it points to the Google Docs link instead. */
+var RV_LOADING = 'Loading your document...', RV_SLOW = 'Still loading. You can open it in Google Docs instead.', RV_SLOW_MS = 12000, RV_TICK_MS = 60;
 function rvLoadWatch() {
   [].forEach.call(document.querySelectorAll('.rv-panel:not([hidden]) [data-rvload]'), function (m) {
     if (m.getAttribute('data-rvload')) return; m.setAttribute('data-rvload', 'wait');
+    /* the status element is put in the page empty and gets its words a tick later, so screen readers announce the first message too */
+    setTimeout(function () { if (m.getAttribute('data-rvload') === 'wait') m.textContent = RV_LOADING; }, RV_TICK_MS);
     setTimeout(function () { if (m.getAttribute('data-rvload') === 'wait') { m.setAttribute('data-rvload', 'slow'); m.textContent = RV_SLOW; } }, RV_SLOW_MS);
   });
 }
@@ -1538,13 +1540,19 @@ function approveOne(jobId, docId) {
 }
 
 /* ---- apply screen: three guided steps, then "Did you submit it?" ---- */
+/* what the suggested pay answer was worked out from. r36: an OTE job with no posted base says so; every other case reads as before */
+function payNoteSrc(j, noPay) {
+  if (noPay) return isEst(j) ? 'an estimate (no pay was posted)' : 'your minimum (no pay was posted)';
+  if (payBase(j).noBase) return 'the posted OTE, because base pay isn\'t posted: ' + payText(j);
+  return 'the posted pay: ' + payText(j);
+}
 var AP_KIT = [1, 2, 0]; /* each step ticks the matching apply kit checkbox (kitChecks storage) */
 function kitAnswers(j) {
   var kit = j.kit || {};
   /* the third item is a short note shown under the answer (never copied): how a suggestion was worked out, or what it covers */
   var floor = S.data.client.payFloor, fw = typeof payWords === 'function' ? payWords(floor) : String(floor || '');
   var noPay = isEst(j) || !String(j.pay == null ? '' : j.pay).trim();
-  var payNote = 'A suggestion, so check it before you paste it. Worked out from ' + (noPay ? (isEst(j) ? 'an estimate (no pay was posted)' : 'your minimum (no pay was posted)') : 'the posted pay: ' + payText(j)) + (fw ? '; your minimum is ' + fw : '') + '.';
+  var payNote = 'A suggestion, so check it before you paste it. Worked out from ' + payNoteSrc(j, noPay) + (fw ? '; your minimum is ' + fw : '') + '.';
   var whyNote = 'Written from your resume and the posting. If a form asks why you want this employer, add one thing you like about them.';
   return [['pay', 'Suggested pay answer', payNote], ['start', 'When you can start'], ['why', 'Why you fit this job', whyNote]].filter(function (a) { return String(kit[a[0]] || '').trim(); })
     .map(function (a) { return [a[1], String(kit[a[0]]), a[2] || '']; }).concat(qaLines(kit.other), qaLines(S.data.client.std));
@@ -1718,8 +1726,10 @@ function verifyPill(j) {
 /* r36: what "floor" means, on each floor pill (title) and once in the Jobs intro */
 var FLOOR_DEF = 'Your floor is the lowest yearly pay you told us you\'d accept.';
 function floorPill(f) { f = String(f || '').toLowerCase(); var t = ' title="' + esc(FLOOR_DEF) + '"'; if (f.indexOf('at or above') === 0) return '<span class="pill ok"' + t + '>Meets your floor</span>'; if (f.indexOf('below') === 0) return '<span class="pill attn"' + t + '>Below your floor</span>'; return ''; }
-/* r36: "OTE, base not posted" is pay the employer posted, not an estimate; only a missing pay figure or the word estimate counts */
-function isEst(j) { return /estimate/i.test(j.paySource || '') || /not posted|estimate/i.test(String(j.pay || '').replace(/\bbase\b[^$;]{0,24}\bnot\s+posted/ig, '')); }
+/* r36: "$148,000 to $237,000 OTE, base not posted" is pay the employer posted, not an estimate. The "base ... not posted" words are
+   set aside only when the pay text also says OTE; any other "not posted" ("Pay not posted", "Base pay not posted") is an estimate as before. */
+var OTE_RE = /\bOTE\b|on[- ]target earnings/i;
+function isEst(j) { var p = String(j.pay || ''); if (OTE_RE.test(p)) p = p.replace(/\bbase\b[^$;]{0,24}\bnot\s+posted/ig, ''); return /estimate/i.test(j.paySource || '') || /not posted|estimate/i.test(p); }
 function payText(j) { var p = String(j.pay == null ? '' : j.pay).split(';')[0].trim(); return p || 'Pay not posted'; }
 function commuteUrl(j) { var h = S.data.client.home; if (!h || !j.location || /remote/i.test(j.location) || /^\s*remote/i.test(j.setting || '')) return ''; return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(h) + '&destination=' + encodeURIComponent(String(j.company).replace(/\s*\(.*?\)/g, '') + ', ' + j.location); }
 /* ---- round 3: fit label, one reason, the biggest concern, and the next action for a Yes job ---- */
@@ -1832,7 +1842,8 @@ function vJobs() {
   var main = sorted.filter(function (j) { return ansOf(j) !== 'no' || S.leaving[j.id]; }), passed = sorted.filter(function (j) { return ansOf(j) === 'no' && !S.leaving[j.id]; });
   var hintId = hintOn() ? (main.filter(function (j) { return !ansOf(j) && !j.closed; })[0] || {}).id : null;
   var jfx = jfJobs(d, main, passed, hintId); main = jfx.main; passed = jfx.passed; /* round 3: search, sort, filters (the list only) */
-  var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110, jl = jlOn(); /* round 6b: list + detail at 1100px and wider */
+  var n = flowStep(d), longNote = String(cl.weeklyNote || '').length > 110, jl = jlOn();
+  if (!jl && !jfx.on && typeof fitNoteFirst === 'function') fitNoteFirst(main); /* r36: decided here, before the cards below are built */ /* round 6b: list + detail at 1100px and wider */
   var title = !total ? ((d.closed || []).length ? 'New matches are on the way.' : 'Your first matches are on the way.') : c.wait ? c.wait + (c.wait === 1 ? ' job needs' : ' jobs need') + ' your answer' : n.k === 'done' ? 'All caught up.' : 'Your matches are reviewed. Here\'s what\'s next.';
   return shell('jobs', esc(title), 'Pay is shown as the employer posted it. When it isn\'t posted, the card says so.' + (d.jobs.some(function (j) { return floorPill(j.floor); }) ? ' ' + esc(FLOOR_DEF) : '')) + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain' + (jl ? ' xl' : '') + '">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
@@ -2015,11 +2026,16 @@ function payNum(j) {
    "$120,000 OTE, base $60,000": the base is used. "$148,000 to $237,000 OTE, base not posted": Pay low is the bottom of the
    OTE range, not a base, so the job is marked noBase and sorts after every job with base pay. n is yearly (see payNum). */
 function payBase(j) {
-  var p = String(j && j.pay != null ? j.pay : ''), ote = /\bOTE\b|on[- ]target earnings/i.test(p), n = payNum(j), noBase = false;
+  var p = String(j && j.pay != null ? j.pay : ''), ote = OTE_RE.test(p), n = payNum(j), noBase = false;
   if (ote) {
     var t = p.replace(/,/g, ''), num = '\\$\\s*(\\d+(?:\\.\\d+)?)\\s*(k\\b)?';
-    var m = /\bbase\b[^$;]{0,24}\bnot\s+posted/i.test(t) ? null : t.match(new RegExp(num + '\\s*(?:a year\\s+|per year\\s+|an hour\\s+|per hour\\s+)?base\\b', 'i')) || t.match(new RegExp('\\bbase\\b[^$\\d;,]{0,24}' + num, 'i'));
-    if (m) { var b = Number(m[1]) * (m[2] ? 1000 : 1); n = b > 0 && b < 1000 ? b * 2080 : b || 0; } else noBase = true;
+    var unit = '\\s*(?:a year\\s+|per year\\s+|an hour\\s+|per hour\\s+)?base\\b', m = null, hiK = false;
+    if (!/\bbase\b[^$;]{0,24}\bnot\s+posted/i.test(t)) {
+      /* a base range ("$50,000 to $70,000 base") counts at its bottom, like Pay low; then "$60,000 base"; then "base $60,000" (a range after the word starts at its bottom already) */
+      var r = t.match(new RegExp(num + '\\s*(?:to|-|\\u2013|\\u2014)\\s*' + num.replace('\\$', '\\$?') + unit, 'i')); /* the second "$" may be left off: "$50-70k base" */
+      if (r) { m = r; hiK = !!r[4]; } else m = t.match(new RegExp(num + unit, 'i')) || t.match(new RegExp('\\bbase\\b[^$\\d;,]{0,24}' + num, 'i'));
+    }
+    if (m) { var b = Number(m[1]) * (m[2] || (hiK && Number(m[1]) < 1000) ? 1000 : 1); n = b > 0 && b < 1000 ? b * 2080 : b || 0; } else noBase = true;
   }
   return { n: n || 0, ote: ote, noBase: noBase };
 }
@@ -2046,6 +2062,7 @@ function jfJobs(d, main, passed, hintId) {
     var keep = S.jfShown || {}, list = main.concat(passed).filter(function (j) { return keep[j.id] || locked(j.id) || S.leaving[j.id] || jfMatch(j); });
     if (f.sort !== 'order') list = jfSorted(list);
     S.jfShown = {}; list.forEach(function (j) { S.jfShown[j.id] = true; }); n = list.length;
+    if (typeof fitNoteFirst === 'function') fitNoteFirst(list); /* r36: the score-meaning line goes on the first card that shows a score */
     body = n ? '<div class="jlist">' + list.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : jfNone();
   } else { S.jfKey = null; S.jfShown = {}; }
   var head = !show ? '' : '<h2 class="sec-h">Your matches</h2><section class="jfind" aria-label="Find a job">' +
@@ -2130,6 +2147,7 @@ function jlPanes(d, jfx, main, passed, hintId) {
     (list.length ? '<ul class="jl-list jl-main" aria-label="Your matches">' + list.map(item).join('') + '</ul>' : jfx.on ? jfNone() : '<p class="jl-none">No open matches right now. New ones show up here.</p>') +
     (jfx.on ? '' : closedList(d) +
       (pas.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + pas.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<ul class="jl-list" id="passedList" aria-label="Passed">' + pas.map(item).join('') + '</ul>' : '') + '</div>' : '')) + '</div>';
+  if (typeof fitNoteFirst === 'function') fitNoteFirst(sel ? [sel] : []); /* r36: one card in view, so it carries the score-meaning line */
   var det = sel ? jobCard(sel, sel.id === hintId) : '<p class="jl-empty">' + (jfx.on ? 'No job matches this search.' : 'Pick a job from the list to see it here.') + '</p>';
   return '<div class="jl-panes">' + side + '<section class="jl-detail" id="jl-detail" tabindex="-1" data-jl="' + esc(sel ? sel.id : '') + '" aria-label="' + esc(sel ? 'Selected job: ' + sel.title + ', ' + sel.company : 'Selected job') + '">' + det + '</section></div>';
 }
@@ -2201,6 +2219,7 @@ function render() {
   if (S.flow && S.view !== flowFrom()) S.flow = null; /* a review or apply screen lives on the tab it was opened from */
   if (S.view === 'fit' && !(typeof fitOn === 'function' && fitOn())) S.view = 'jobs'; /* r27: no fit object from the API, no fit screen */
   if (S.view === 'billing' && !billOn()) S.view = 'jobs'; /* round 25: no billing object from the API, no billing screen */
+  if (S.view !== 'feedback' || S.flow || S.deck) S.fbHelp = false; /* r36: Help mode ends as soon as any other screen is shown, however it was reached */
   var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs, prep: vPrep, fit: vFit, billing: vBilling }[S.view] || vJobs)();
   var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
   if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;

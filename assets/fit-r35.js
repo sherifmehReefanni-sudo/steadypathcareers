@@ -124,8 +124,15 @@ function fitDeepCard() {
     '<button type="button" class="btn gold" data-fxdeep>' + (n ? 'Pick up where you left off' : 'Take the full version') + '</button></div></div>';
 }
 /* r36: what an Interest match number means, wherever one is shown: once above the title list on the results screen, and one small
-   line under the first job card that shows a score (fit-r35.css hides it on the cards after it). */
+   line under the first job card that shows a score. Which card that is gets decided in JS when the list is built: the portal calls
+   fitNoteFirst(list) with the cards in the order it is about to draw them, and fitWhy adds the line to that one card only. */
 var FIT_SCORE_NOTE = 'This score shows how well the work matches your interests. It doesn\'t measure your qualifications or your chances of being hired.';
+function fitShowsScore(j) { return !!j && j.interestFit != null && j.interestFit !== '' && !j.closed && ansOf(j) !== 'no'; } /* the cards fitFace draws a fit line on */
+function fitNoteFirst(list) {
+  S.fxNote = null; if (!fitDone()) return null;
+  for (var i = 0; i < (list || []).length; i++) if (fitShowsScore(list[i])) { S.fxNote = String(list[i].id); break; }
+  return S.fxNote;
+}
 function fitResults() {
   if (S.fxDemoShare) { S.fxDemoShare = false; setTimeout(fitShareMake, 0); }
   var f = S.data.fit, x = S.fx, s = f.scores, top = f.top3 || [], mx = fitMax(), all60 = f.form === 60;
@@ -239,7 +246,7 @@ function fitWhy(j) {
   var s = both.length ? 'This kind of work leans ' + fitNames(both) + ', ' + (both.length === 1 ? 'one of your top interests.' : both.length === 2 ? 'two of your top interests.' : 'all three of your top interests.') :
     ja.length ? 'This kind of work leans ' + fitNames(ja) + '.' : '';
   s += (s ? ' ' : '') + 'Interest match ' + n + ' of 100.';
-  return '<p class="jfitw"><b>' + (both.length ? 'Why it fits you:' : 'Your interests:') + '</b> ' + esc(s) + ' <a class="fx-src" href="#fitCredit" data-fxsrc>Source</a><span class="fx-smean">' + esc(FIT_SCORE_NOTE) + '</span></p>';
+  return '<p class="jfitw"><b>' + (both.length ? 'Why it fits you:' : 'Your interests:') + '</b> ' + esc(s) + ' <a class="fx-src" href="#fitCredit" data-fxsrc>Source</a>' + (S.fxNote != null && String(j.id) === S.fxNote ? '<span class="fx-smean">' + esc(FIT_SCORE_NOTE) + '</span>' : '') + '</p>';
 }
 /* the O*NET Database credit under the Jobs list, whenever any job card can show an interest line */
 function fitJobsCredit(d) {
