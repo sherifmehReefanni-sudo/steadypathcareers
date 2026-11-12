@@ -177,7 +177,7 @@ function body() {
     chips('settings', 'Work settings you are open to', OPT.settings, { req: 1, multi: 1 }) +
     '<div class="two">' + sel('commute', 'How far will you commute?', OPT.commute) + sel('getThere', 'How do you get to work?', OPT.getThere) + '</div>' +
     chips('nycHybrid', 'Open to a hybrid job in NYC, 2 to 3 days a week?', OPT.nycHybrid) +
-    '<div class="two">' + inp('payFloor', 'Lowest yearly pay you would accept', 'text', { req: 1, ph: '85000', im: 'numeric', help: 'A yearly amount in dollars, like 50000 or 50k. We skip jobs whose posted pay tops out below this amount. If a job doesn\'t post pay, its card says so.' }) + sel('payAim', 'Pay you are aiming for', OPT.payAim) + '</div>' +
+    '<div class="two">' + inp('payFloor', 'Lowest yearly pay you would accept', 'text', { req: 1, ph: '85000', im: 'numeric', help: 'A yearly amount in dollars, like 50000 or 50k. We skip jobs whose posted pay tops out below this amount. If a job doesn\'t post pay, we don\'t send it.' }) + sel('payAim', 'Pay you are aiming for', OPT.payAim) + '</div>' +
     sel('start', 'Earliest start date', OPT.start) + chips('hours', 'Full-time or part-time?', OPT.hours, { req: 1 }) + chips('shifts', 'Shifts you CAN work', OPT.shifts, { multi: 1 }) +
     chips('standOut', 'What would make a job stand out for you?', OPT.standOut, { multi: 1, help: 'Select all that apply. Pay is covered above; these help us rank your matches and point out what each job offers.' }) +
     ((D.standOut || []).length > 1 ? sel('standOutTop', 'Which one matters most?', D.standOut) : '') +
