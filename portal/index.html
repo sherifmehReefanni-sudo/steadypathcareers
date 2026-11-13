@@ -737,6 +737,7 @@ window.SP_DEMO = function () {
     ok: true, notify: true,
     prefs: { roles: ['Associate Dentist', 'General Dentist'], payFloor: '190000', commute: 'Up to 45 minutes', setting: 'On site', contact: 'Email', status: 'active' }, requests: [], /* round 4 */
     fit: typeof fitDemoData === 'function' ? fitDemoData(!!S.fxDemoDone, null, S.fxDemoDeep ? FIT_DEMO_ANS2 : null) : undefined, /* r27: Find Your Fit preview; ?fxdone=1 starts with results; r35: &fxdeep=1 all 60 */
+    week: { weekOf: iso(-2), read: 64, sent: 7, noPay: 21, area: 14, closed: 9, other: 13, sample: true }, /* r42: sample weekly counts, shown with a Sample label; the live API (v1.45) has no such field, so real clients see no weekly line */
     lastMatchCheck: S.mcDemoDate || '', /* r35: weekly match check-in; &mcdate=YYYY-MM-DD hides the card for 7 days from then */
     client: { id: 'C-DEMO', name: 'Jordan T.', firstName: 'Jordan', stage: 'Trial', startDate: iso(-8), trialEnds: iso(9), payFloor: '$190,000', lastTouch: iso(-1), lastFeedback: '', home: 'Hicksville, NY', std: 'Authorized to work in the US: Yes\nNeed visa sponsorship: No\nNY dental license: Yes, active',
       weeklyNote: 'Good week, Jordan. Example Dental Arts has your tailored resume and cover letter ready, so you can apply whenever you like. Your question about loan repayment at Sample Community Dental has an answer on that job. Two new Nassau County openings came in on Monday.' },
@@ -1878,6 +1879,7 @@ function vJobs() {
   return shell('jobs', esc(title), 'Every job we send shows pay as the employer posted it, and is checked on the employer\'s own careers site or applicant system.' + (d.jobs.some(function (j) { return floorPill(j.floor); }) ? ' ' + esc(FLOOR_DEF) : '')) + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain' + (jl ? ' xl' : '') + '">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
     '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b>' + (billOn() ? '<span class="hl-r"><span>' + esc(billHello(cl)) + '</span><button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></span>' : '<span>' + esc(trialText(cl)) + '</span>') + (typeof fitHello === 'function' ? fitHello() : '') + '</div>' +
+    (typeof r42WeekHtml === 'function' ? r42WeekHtml() : '') + /* r42: the weekly line, only when the API sends data.week */
     nxCard(n) + dueCard(d) + (typeof fitJobsCard === 'function' ? fitJobsCard() : '') + /* r27 */
     (typeof mcCard === 'function' ? mcCard(d) : '') + /* r35: weekly match check-in */
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
