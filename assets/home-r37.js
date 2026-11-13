@@ -114,6 +114,12 @@
       pro: "We find real openings that fit you, check each one on the employer's own site, and show the pay as posted. Say yes to one and your resume and cover letter are tailored for it. You send every application yourself.",
       exec: "A quiet, careful search. We check each opening on the employer's own site and show the pay as posted. Nothing goes out under your name: you send every application yourself."
     };
+    /* r47: the same facts in three lines, shown on phones only (the stylesheet picks which span shows) */
+    var LEDE_S = {
+      hourly: "Real openings near you, checked on the employer's own site, hourly pay as posted. A tailored resume. You send every application.",
+      pro: "Real openings, checked on the employer's own site, pay as posted. A tailored resume and cover letter. You send every application.",
+      exec: "Each opening checked on the employer's own site, pay as posted. You send every application yourself."
+    };
     var HELP = 'Drag a card, tap a button, or use your arrow keys.', lvl = 'pro';
     cards.tabIndex = 0;
     cards.setAttribute('role', 'group');
@@ -171,7 +177,8 @@
     function setLevel(v) {
       lvl = v;
       all('.seg-row button').forEach(function (x) { x.setAttribute('aria-pressed', x.getAttribute('data-lvl') === v ? 'true' : 'false'); });
-      lede.textContent = LEDE[v];
+      var lf = lede.querySelector('.lede-full'), ls = lede.querySelector('.lede-short');
+      if (lf && ls) { lf.textContent = LEDE[v]; ls.textContent = LEDE_S[v]; } else lede.textContent = LEDE[v];
     }
     all('.seg-row button').forEach(function (b) {
       b.onclick = function () { setLevel(b.getAttribute('data-lvl')); build(); try { localStorage.setItem('sp-level', lvl); } catch (e) {} };

@@ -451,9 +451,24 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
   body.has-stick footer{padding-bottom:calc(34px + 72px + env(safe-area-inset-bottom,0px))}
 }
 @media (max-width:700px) and (prefers-reduced-motion:reduce){.stickbar,.stickbar.on{transition:none}}
-/* r46: on phones the Start free button and the price come straight after the headline, so both are on the first screen (390x664 and 320x568) */
+/* r46 and r47: the first screen on phones. Headline, a three-line lede, the Start free button, the price line and the top of
+   the sample card all fit at 390x664 and 360x640. The copy column's children join the hero grid (display:contents) so the
+   sample card can sit right under the price, with the level toggles that control it directly below the card. */
+.lede-short{display:none}
 @media (max-width:480px){
-  .hero-copy{display:flex;flex-direction:column;align-items:stretch}
-  .hero-copy>h1{order:1}.hero-copy>.cta-main{order:2;margin-top:20px}.hero-copy>.price-line{order:3;margin-top:12px}.hero-copy>.lede{order:4;margin-top:22px}
-  .hero-copy>.seg{order:5}.hero-copy>.cta-more{order:6}.hero-copy>.watch{order:7;align-self:flex-start}
+  .lede-full{display:none}.lede-short{display:inline}
+  .hero{padding-top:96px}
+  .hero-grid{display:flex;flex-direction:column;align-items:stretch;gap:0}
+  .hero-copy{display:contents}
+  .hero .where{font-size:1rem;margin-bottom:10px;order:0}
+  .hero h1{font-size:2.45rem;order:1}
+  .hero .lede{order:2;margin-top:14px;font-size:1rem;line-height:1.5}
+  .hero-copy>.cta-main{order:3;margin-top:18px}
+  .hero-copy>.price-line{order:4;margin-top:12px;font-size:.92rem}
+  .hero-grid>.deck{order:5;margin-top:26px;align-self:center}
+  .hero-copy>.seg{order:6;margin-top:26px}
+  .hero-copy>.cta-more{order:7}
+  .hero-copy>.watch{order:8;align-self:flex-start}
 }
+@media (max-width:380px){.hero .lede{font-size:.94rem}}
+@media (max-width:359px){.hero h1{font-size:2.2rem}.hero .where{font-size:.94rem}}
