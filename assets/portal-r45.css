@@ -49,3 +49,4 @@
 .t45-filters .p44-chk:has(input:checked) { border-color: var(--gold); background: rgba(227,179,65,.16); }
 .t45-filters .p44-chk input { flex: none; margin: 0; }
 .t45-filters .p44-dev { margin: 0; font-size: 13px; line-height: 1.4; }
+.t45-filters .p44-chk:focus-within { outline: 3px solid var(--gold); outline-offset: 2px; }

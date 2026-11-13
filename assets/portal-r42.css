@@ -25,7 +25,7 @@
   .ptop .brand { flex: none; }
   .ptabs { margin-left: 4px; gap: 0; }
   .ptabs button { padding: 9px 11px; gap: 6px; }
-  #app:not(:has(.pmain.wide)):not(:has(.pmain.xl)) .ptitle { max-width: 728px; margin-left: auto; margin-right: auto; }
+  #app:not(:has(.pmain.wide)):not(:has(.pmain.xl)):not(:has(.pmain.t45)) .ptitle { max-width: 728px; margin-left: auto; margin-right: auto; } /* r47: the finder is a wide page, so its title lines up with its content */
 }
 @media (min-width: 1024px) and (max-width: 1199px) { .ptabs button svg { display: none; } } /* words only until the row has room for the icons */
 @media (prefers-reduced-motion: no-preference) { .tabbar.pv-enter button[aria-current="page"] svg { animation: pvPop .4s cubic-bezier(.3,1.6,.5,1) both; } }
@@ -101,3 +101,5 @@
 .m-grp { display: grid; gap: 8px; min-width: 0; }
 .m-grp .sec-h { margin: 0; }
 .m-main { gap: 18px; }
+/* r47 detail sweep: headings never leave one word alone on a line where the browser can balance them */
+.ptitle h1, .pmain h2, .pmain h3 { text-wrap: balance; }

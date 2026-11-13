@@ -255,7 +255,7 @@ function fitJobsCredit(d) {
 }
 function fitHello() {
   if (!fitOn()) return '';
-  return fitDone() ? '<button type="button" class="linkbtn fx-hl" data-go="fit">Your fit: ' + esc(fitNames(S.data.fit.top3 || [])) + '</button>' : '<button type="button" class="linkbtn fx-hl" data-go="fit">Find your fit: 10 minutes</button>';
+  return fitDone() ? '<button type="button" class="linkbtn fx-hl" data-go="fit">Your fit: ' + esc(fitNames(S.data.fit.top3 || [])) + '</button>' : '<button type="button" class="linkbtn fx-hl" data-go="fit">Find Your Fit: 10 minutes</button>';
 }
 function fitJobsCard() {
   if (!fitOn() || fitDone()) return '';

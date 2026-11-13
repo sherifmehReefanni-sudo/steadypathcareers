@@ -709,10 +709,12 @@
   })();
   /* screens that may still appear later, depending on answers not given yet: they count toward "Question N of M" until passed */
   ['commute', 'confirm', 'rank'].forEach(function (id) { for (var i = 0; i < S.length; i++) if (S[i].id === id) S[i].maybe = 1; });
-  /* A saved place (_at). From r46 it is 100 + the index in the new order; a smaller number is an index in the old order, from a
-     draft saved before r46 (on this device or in a finish-later link), and is carried over by screen id. The backend keeps _at
-     as a number up to 200, so the marker survives a finish-later round trip. startAt() then stops at the first screen with a
-     missing required answer, so an old draft never skips the questions that now come first. */
+  /* A saved place (_at) is always written as the screen's index in the OLD order (OLD_IDS), and read back by screen id. So a
+     draft saved by this form opens on the same screen in a page still running the older script (a cached copy during an
+     update), and a draft saved by the older script opens on the same screen here; the same holds for finish-later links,
+     where the backend keeps _at as a plain number. startAt() then stops at the first screen with a missing required answer,
+     so an old draft never skips the questions that now come first. (A value of 100 or more is 100 + the new-order index, a
+     form this script wrote briefly before release; it is still read.) */
   function atToCur(at) {
     at = Number(at); if (!(at >= 0)) return 0;
     if (at >= 100) return Math.min(S.length - 1, Math.floor(at - 100));
@@ -720,7 +722,7 @@
     for (var i = 0; i < S.length; i++) if (S[i].id === id) return i;
     return 0;
   }
-  function curToAt(i) { return 100 + i; }
+  function curToAt(i) { var k = S[i] ? OLD_IDS.indexOf(S[i].id) : -1; return k < 0 ? 0 : k; }
   /* "Question N of M": M is every screen this person will see given the answers so far, plus the ones that may still appear. */
   function counter() {
     var n = 0, m = 0;
