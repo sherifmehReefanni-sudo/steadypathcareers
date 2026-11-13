@@ -349,6 +349,13 @@ body { overflow-x: hidden; }
   .board .col .app .p44-fuline p[data-fustate] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; align-items: center; margin: 6px 0 0; }
   .board .col .app .p44-fuline p[data-fustate] > .pill { grid-column: 1 / -1; justify-self: start; }
   .board .col .app .p44-fuline p[data-fustate] > .kbtn { min-width: 0; min-height: 44px; margin: 0; padding: 2px 6px; font-size: 13px; line-height: 1.15; white-space: normal; }
+  /* a tighter rhythm inside desktop board cards: slightly smaller body lines and smaller gaps between rows */
+  .board .col .app { padding: 8px 10px 10px; }
+  .board .col .app > .psub, .board .col .app > .nact, .board .col .app > p:not([class]) { font-size: 15px; line-height: 1.4; }
+  .board .col .app > .nact { margin: 4px 0 0; }
+  .board .col .app > .apills { margin-top: 4px; }
+  .board .col .app > .p44-fuline { margin-top: 6px; }
+  .board .col .app > .bd-moves > .bd-lab { margin-top: 6px; }
   /* More and the interview button share a row; an open fold drops between them at full width */
   .board .app > .bd-more:has(+ .bd-fold + .pv-cta) { margin-right: 0; }
   .board .app > .bd-fold + .pv-cta { flex: 0 0 auto; margin: 4px 0 0 auto; }
