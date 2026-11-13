@@ -330,7 +330,7 @@ body { overflow-x: hidden; }
   /* r48: shorter cards on the desktop board, with every control kept (same buttons, same handlers, same attributes).
      - Update sits at the right of the Move to buttons when there is room, and drops to its own line when there is not.
      - In a wide column "Move to" is a label at the start of that row; in a narrow one it stays above the buttons.
-     - The two Add to your calendar buttons are in the More fold with the contact and notes (one tap away).
+     - The two Add to your calendar buttons stay in view, side by side on one row as compact 44px buttons.
      - An empty column shows a quiet dashed slot. */
   .board > .col { container-type: inline-size; }
   .board .app { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; }
@@ -341,7 +341,9 @@ body { overflow-x: hidden; }
   .board .col .app > .bd-moves > .kbtn { flex: 0 0 auto; margin-top: 6px; padding-left: 8px; padding-right: 8px; }
   @container (min-width: 300px) { .board .app > .bd-moves > .bd-lab { flex: 0 0 auto; margin-right: 2px; margin-top: 6px; font-size: 12px; } }
   .board .app > .bd-moves + p:last-child { flex: 0 0 auto; margin: 6px 0 0 auto !important; }
-  .board .app .bd-fold .ics-row { margin-top: 4px; }
+  .board .app > .ics-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 6px; margin-top: 6px; }
+  .board .app > .ics-row .ics-lab { grid-column: 1 / -1; font-size: 12.5px; }
+  .board .app > .ics-row > a, .board .app > .ics-row > button { display: flex; align-items: center; min-height: 44px; min-width: 0; padding: 2px 6px; font-size: 12.5px; line-height: 1.2; text-align: center; white-space: normal; justify-content: center; border-radius: 12px; }
   .board > .col.none::after { content: ""; display: block; height: 44px; margin-top: 4px; border: 1.5px dashed var(--line); border-radius: 10px; opacity: .8; }
   /* when columns continue past the right edge the edge fades instead of cutting a column with a hard line (class set in assets/portal-r18.js) */
   .board.cut-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }
@@ -2058,10 +2060,10 @@ function appCard(x) {
   var pj = x.jobId ? jobById(x.jobId) : null, pdoc = pj ? jobState(pj).prep : null; if (pdoc && !(isReady(pdoc) || /approved/i.test(pdoc.status || ''))) pdoc = null;
   var pills = [ivLabel(x), typeof r44FuLine === 'function' ? '' : fuLabel(x) /* r45: one follow-up line per card, r44's (assets/portal-r44.js r44FuLine) */, isOutreach(x) ? '<span class="pill">Recruiter outreach</span>' : ''].filter(String).join(' ');
   var h = '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">' + (isOutreach(x) ? 'Contacted ' : 'Applied ') + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
-    (pills ? '<div class="apills">' + pills + '</div>' : '') +
+    (pills ? '<div class="apills">' + pills + '</div>' : '') + icsBtn(x) +
     (x.nextAction ? '<p class="nact"><span class="nl">Next:</span> ' + esc(x.nextAction) + '</p>' : '') +
     /* r47: on the desktop board a long card folds its contact and notes text behind More (assets/portal-r18.js r47Fold); the next action and every control stay in view */
-    (function () { var ics = icsBtn(x) /* r48: the two Add to your calendar buttons sit with the contact and notes: in view on phones, one tap away behind More on the desktop board */, t = ics + (x.contact ? '<p class="psub amore">Contact: ' + esc(x.contact) + '</p>' : '') + (x.myNotes ? '<p class="psub amore notes">Your notes: ' + esc(x.myNotes) + '</p>' : ''); if (!t) return ''; var long = !!ics || String(x.contact || '').length + String(x.myNotes || '').length > 60 || (x.contact && x.myNotes) || (t && (x.nextAction || String(x.interview || '').trim())); return long && typeof r47Fold === 'function' ? r47Fold(x.id, coOr(x), t) : t; })() +
+    (function () { var t = (x.contact ? '<p class="psub amore">Contact: ' + esc(x.contact) + '</p>' : '') + (x.myNotes ? '<p class="psub amore notes">Your notes: ' + esc(x.myNotes) + '</p>' : ''); if (!t) return ''; var long = String(x.contact || '').length + String(x.myNotes || '').length > 60 || (x.contact && x.myNotes) || (t && (x.nextAction || String(x.interview || '').trim())); return long && typeof r47Fold === 'function' ? r47Fold(x.id, coOr(x), t) : t; })() +
     appPrepBtn(x) + /* round 6a: opens the interview prep screen */
     (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : '') +
     (typeof r44FuLine === 'function' ? r44FuLine(x) : '') + /* r44: the follow-up date from the guide's intervals, and Draft the note */

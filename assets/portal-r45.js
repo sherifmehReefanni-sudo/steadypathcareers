@@ -70,15 +70,15 @@ function vTraining() {
     body = '<form class="card p44-card t45-filters' + (open ? ' is-open' : '') + '" onsubmit="return false" aria-label="Narrow the list">' +
       '<button type="button" class="t45-fbtn" data-tfopen aria-expanded="' + open + '" aria-controls="tfPanel">' + R48_FIC + '<span>Filters</span>' + r48Badge(f) + '</button>' +
       '<label class="p44-chk"><input type="checkbox" data-tfsaved' + (f.saved ? ' checked' : '') + '>Only the programs I saved</label>' +
+      '<p class="psub p44-dev" data-r44dev>Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.</p>' + /* directly under the Filters row on phones; under the selects from 780 wide */
       '<div class="t45-chips' + (r48N(f) ? ' has' : '') + '" data-tfchips role="group" aria-label="Chosen filters">' + r48Chips(D, f) + '</div>' +
       '<div class="t45-three" id="tfPanel"><div' + (f.area ? ' data-set' : '') + '><label for="tfArea">Area</label><select id="tfArea" data-tff="area">' + opt(D.areas, f.area, 'All areas') + '</select></div>' +
       '<div' + (f.kind ? ' data-set' : '') + '><label for="tfKind">Kind</label><select id="tfKind" data-tff="kind">' + opt(D.kinds, f.kind, 'All kinds') + '</select></div>' +
       '<div' + (f.field ? ' data-set' : '') + '><label for="tfField">Career field</label><select id="tfField" data-tff="field">' + opt(fields, f.field, 'All fields') + '</select></div>' +
-      '<button type="button" class="btn ghost t45-done" data-tfclose>Done</button></div>' +
-      '<p class="psub p44-dev" data-r44dev>Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.</p></form>' +
+      '<button type="button" class="btn ghost t45-done" data-tfclose>Done</button></div></form>' +
       (r45Stale(D.reviewed, r44NyToday()) ? '<p class="warn t45-stale" role="status" data-tfstale>This list may be out of date.</p>' : '') +
       '<div id="tfOut">' + r45Out() + '</div>' +
-      '<p class="psub t45-devcopy" data-tfdev2>Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.</p>'; /* r48: where phones show the note (under the list); the one in the form shows from 780 wide */
+      '<p class="t45-said" role="status" aria-live="polite" data-tfsaid></p>'; /* r48: says the saved-stars note, in view and to screen readers, when the first star of a session is set */
   }
   return shell('training', 'Training and benefits', D ? 'List last checked ' + esc(r45Date(D.reviewed)) + '.' : '') + '<div class="pband" aria-hidden="true"></div><main class="pmain p44 t45">' + r44Sample().replace('<span class="pill">Sample data</span> ', '') +
     '<p class="t45-note" data-tfnote>' + R45_NOTE + '</p>' + body + r42Foot() + '</main>' + tabbar('training');
@@ -99,6 +99,11 @@ if (typeof document !== 'undefined') {
     S.tfOpen = !!on; form.classList.toggle('is-open', !!on); b.setAttribute('aria-expanded', on ? 'true' : 'false'); if (focus) b.focus();
   };
   document.addEventListener('scroll', function (e) { if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-tfchips')) r48Cut(e.target); }, true);
+  /* a chip that takes focus is brought whole into the strip, clear of the faded edges */
+  document.addEventListener('focusin', function (e) { var chip = e.target && e.target.closest ? e.target.closest('.t45-chip') : null, c = chip && chip.parentNode; if (!chip || !c) return; var tight = chip.offsetWidth + 80 > c.clientWidth, pad = tight ? Math.max(0, Math.floor((c.clientWidth - chip.offsetWidth) / 2)) : 40, l = chip.offsetLeft - c.offsetLeft, r = l + chip.offsetWidth, max = c.scrollWidth - c.clientWidth; c.classList.toggle('tight', tight); /* a chip nearly as wide as the strip is centred and the edge fade is lifted while it has focus */ if (l - pad < c.scrollLeft) c.scrollLeft = Math.max(0, l - pad); else if (r + pad > c.scrollLeft + c.clientWidth) c.scrollLeft = Math.min(max, r + pad - c.clientWidth); r48Cut(c); });
+  document.addEventListener('focusout', function (e) { var chip = e.target && e.target.closest ? e.target.closest('.t45-chip') : null; if (chip && chip.parentNode) chip.parentNode.classList.remove('tight'); });
+  /* the faded edge is set whenever the view is drawn, not only when a filter changes */
+  if (window.MutationObserver) { var r48Root = document.getElementById('app') || document.body; new MutationObserver(function () { var c = document.querySelector('[data-tfchips]'); if (c) r48Cut(c); }).observe(r48Root, { childList: true, subtree: true }); }
   window.addEventListener('resize', function () { r48Cut(document.querySelector('[data-tfchips]')); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.tfOpen && S.view === 'training' && e.target && e.target.closest && e.target.closest('.t45-filters')) { e.preventDefault(); r48Open(false, true); } });
   document.addEventListener('change', function (e) {
@@ -109,7 +114,7 @@ if (typeof document !== 'undefined') {
   document.addEventListener('click', function (e) {
     if (!e.target.closest || !r44On() || S.view !== 'training' || !R44.training) return;
     var b = e.target.closest('[data-tfstar]');
-    if (b) { var id = b.getAttribute('data-tfstar'), s = r45Stars(); if (s[id]) delete s[id]; else s[id] = todayISO(); var saved = r44Save(); r45Patch(); var again = document.querySelector('[data-tfstar="' + cssq(id) + '"]'); if (again) again.focus(); if (!saved) toast('This device would not save it.'); return; }
+    if (b) { var id = b.getAttribute('data-tfstar'), s = r45Stars(); if (s[id]) delete s[id]; else s[id] = todayISO(); var saved = r44Save(); r45Patch(); if (s[id] && saved && !S.tfSaid) { S.tfSaid = true; var said = document.querySelector('[data-tfsaid]'); if (said) { said.textContent = 'Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.'; said.classList.add('on'); setTimeout(function () { said.classList.remove('on'); }, 9000); } } var again = document.querySelector('[data-tfstar="' + cssq(id) + '"]'); if (again) again.focus(); if (!saved) toast('This device would not save it.'); return; }
     if (e.target.closest('[data-tfopen]')) { r48Open(!S.tfOpen, false); return; }
     if (e.target.closest('[data-tfclose]')) { r48Open(false, true); return; }
     var chip = e.target.closest('[data-tfdrop]');
