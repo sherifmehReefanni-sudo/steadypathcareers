@@ -35,10 +35,10 @@
 
 /* r47: the finder's first screen. The standing note is plain text; "Only the programs I saved" is a chip in the filter block.
    A select always shows its chosen value whole, at every width:
-   - under 740 wide the block is a wrapping row. A filter still on "All ..." is a short select (its label is kept for
+   - under 780 wide the block is a wrapping row. A filter still on "All ..." is a short select (its label is kept for
      screen readers; the select itself says All areas, All kinds or All fields), so two or three share a line; a filter
      with a value chosen takes a line of its own, with its label above it, wide enough for the longest option.
-   - from 740 up the three sit side by side, each as wide as its longest option needs (186, 207 and 280px or more). */
+   - from 780 up the three sit side by side, each as wide as its longest option needs with a few px to spare (190, 211 and 286px or more). */
 .t45 { gap: 12px; }
 .t45-note { padding: 0; border: 0; border-radius: 0; background: none; font-weight: 500; font-size: 14.5px; line-height: 1.45; color: var(--ink); text-wrap: pretty; max-width: 760px; }
 .t45-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; padding: 12px; }
@@ -68,8 +68,9 @@
   .t45 .p44-sample { margin: 0; font-size: 13px; line-height: 1.3; }
   #tfOut { gap: 8px; }
 }
-@media (min-width: 740px) {
-  .t45-filters { display: grid; grid-template-columns: minmax(186px, 186fr) minmax(207px, 207fr) minmax(280px, 280fr); gap: 10px 12px; align-items: end; }
+@media (max-width: 345px) { .t45-filters { padding: 8px 4px; } .t45-filters select { letter-spacing: -.01em; } } /* a few px to spare for the longest field name at 320 */
+@media (min-width: 780px) {
+  .t45-filters { display: grid; grid-template-columns: minmax(190px, 190fr) minmax(211px, 211fr) minmax(286px, 286fr); gap: 10px 12px; align-items: end; }
   .t45-three > div, .t45-three > div[data-set] { min-width: 0; }
   .t45-three > div:not([data-set]) > label { position: static; width: auto; height: auto; margin: 0 0 3px; overflow: visible; clip: auto; white-space: normal; }
   .t45-filters .p44-chk { grid-column: 1 / -1; justify-self: start; flex: none; border-radius: 999px; padding: 0 14px 0 10px; }

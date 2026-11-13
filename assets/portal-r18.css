@@ -54,8 +54,8 @@
 .a2once .btn { min-height: 44px; }
 .a2once .btn.ghost:focus-visible, .a2once .btn.gold:focus-visible { outline: 3px solid var(--bdx-f2d98a); outline-offset: 2px; }
 
-/* r1: tighter cards on the five-column desktop board */
-@media (min-width: 1101px) {
+/* r1: tighter cards on the five-column desktop board (r47: from 1024, where the five-column board now starts) */
+@media (min-width: 1024px) {
   .board .app { padding: 10px; }
   .board .app .bd-moves { gap: 6px; }
   .board .app .bd-moves .kbtn { padding-left: 10px; padding-right: 10px; font-size: 14px; }
