@@ -10,7 +10,7 @@ ASSETS = ASSETS.concat(['/assets/fit-r35.css?v=sp-20261112r36', '/assets/fit-r35
 /* r37: new home page files */
 ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261112r41', '/assets/home-r37.js?v=sp-20261112r43']);
 /* r42: portal revamp files (Home, five destinations) */
-ASSETS = ASSETS.concat(['/assets/portal-r42.css?v=sp-20261112r43', '/assets/portal-r42.js?v=sp-20261112r43']);
+ASSETS = ASSETS.concat(['/assets/portal-r42.css?v=sp-20261112r43', '/assets/portal-r42.js?v=sp-20261112r44']);
 /* r44: portal Home redesign and the client tools (follow-ups, offer check, interview practice) with their data files */
 ASSETS = ASSETS.concat(['/assets/portal-r44.css?v=sp-20261112r44', '/assets/portal-r44.js?v=sp-20261112r44', '/assets/data/followup-scripts.json', '/assets/data/interview-bank.json']);
 /* r38: the How we check every job page */

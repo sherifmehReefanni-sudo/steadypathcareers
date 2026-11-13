@@ -1999,6 +1999,7 @@ function appCard(x) {
     (x.myNotes ? '<p class="psub amore notes">Your notes: ' + esc(x.myNotes) + '</p>' : '') +
     appPrepBtn(x) + /* round 6a: opens the interview prep screen */
     (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : '') +
+    (typeof r44FuLine === 'function' ? r44FuLine(x) : '') + /* r44: the follow-up date from the guide's intervals, and Draft the note */
     (typeof r18Extras === 'function' ? r18Extras(x) : ''); /* round 18: follow-up note, thank-you note, one-tap moves */
   if (S.updFor !== x.id) return h + '<p style="margin:8px 0 0"><button class="linkbtn" data-upd="' + esc(x.id) + '">Update</button></p></div>';
   var sh = upShown(x), dv = S.upDraft && S.upDraft.id === x.id ? S.upDraft.v : sh, hint = function (raw) { return raw && !ISO_RE.test(raw) ? '<p class="psub" style="margin:2px 0 0">Saved as: ' + esc(raw) + '. Pick a date only if you want to change it.</p>' : ''; };
@@ -2023,7 +2024,7 @@ function vApps() {
   var afx = afApps(d); /* round 3: search and Due filter (more than 6 applications) */
   var n = d.apps.length, title = n ? n + (n === 1 ? ' application' : ' applications') + ' tracked' : ready.length ? ready.length + (ready.length === 1 ? ' application' : ' applications') + ' ready to submit' : 'Nothing sent yet';
   return shell('apps', title, r18BoardSub()) +
-    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + (typeof ivSubNav === 'function' ? ivSubNav('apps') : '') + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : n || ready.length ? '<div class="board">' + cols.map(function (c, k) {
+    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + (typeof ivSubNav === 'function' ? ivSubNav('apps') : '') + (typeof r44DueGroup === 'function' ? r44DueGroup() : '') + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : n || ready.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
         return k === 0 ? r18ReadyCard(x) : appCard(x);
       }).join('') + '</div>';
@@ -3534,7 +3535,7 @@ document.addEventListener('click', function (e) {
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/portal.js?v=20261024e"></script>
 <script src="../assets/fit-r35.js?v=sp-20261112r36"></script>
-<script src="../assets/portal-r42.js?v=sp-20261112r43"></script>
+<script src="../assets/portal-r42.js?v=sp-20261112r44"></script>
 <script src="../assets/portal-r44.js?v=sp-20261112r44"></script>
 </body>
 </html>

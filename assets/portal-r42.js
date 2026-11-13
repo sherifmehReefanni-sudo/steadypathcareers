@@ -105,7 +105,7 @@ function vHome() {
 
 /* Interviews and Applications share one destination; this is the switch between them. */
 function ivSubNav(cur) {
-  return '<nav class="iv-sub" aria-label="Interviews sections"><button type="button" data-go="iv"' + (cur === 'iv' ? ' aria-current="page"' : '') + '>Interviews</button><button type="button" data-go="apps"' + (cur === 'apps' ? ' aria-current="page"' : '') + '>Applications</button></nav>';
+  return '<nav class="iv-sub" aria-label="Interviews sections"><button type="button" data-go="iv"' + (cur === 'iv' ? ' aria-current="page"' : '') + '>Interviews</button><button type="button" data-go="apps"' + (cur === 'apps' ? ' aria-current="page"' : '') + '>Applications</button>' + (typeof vPractice === 'function' ? '<button type="button" data-go="practice"' + (cur === 'practice' ? ' aria-current="page"' : '') + '>Practice</button>' : '') + '</nav>';
 }
 function vIv() {
   var d = S.data, A = r42Stats(), prep = (d.apps || []).filter(function (x) { return pvHas(x); });
@@ -127,6 +127,7 @@ function vMore() {
   if (typeof fitOn === 'function' && fitOn()) rows.push(['<button type="button" data-go="fit">', FIT_NAME, 'An interest guide. Optional.', '</button>']);
   rows.push(['<button type="button" data-help>', 'Help', 'Something broken or urgent, and how to reach us.', '</button>']);
   if (billOn()) rows.push(['<button type="button" data-go="billing">', 'Plan &amp; billing', '', '</button>']);
+  if (typeof vOffer === 'function') rows.push(['<button type="button" data-go="offer">', 'Offer check', 'Compare an offer with posted pay.', '</button>']); /* r44 */
   rows.push(['<button type="button" data-go="prefs">', 'Search settings', 'Roles, pay floor, commute and how we contact you.', '</button>']);
   rows.push(['<button type="button" data-go="feedback">', 'Feedback', 'Tell us how it is going.', '</button>']);
   if (!standalone()) rows.push(['<a href="/app/">', 'Get the app', 'For your phone. No app store needed.', '</a>']);
