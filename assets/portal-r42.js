@@ -142,7 +142,7 @@ function vMore() {
    "Delete my data" request whose note starts with the marker below, so it lands in the Requests tab and the owner's inbox like
    every other portal request. The screen never says the account was deleted. The demo sends nothing. */
 var DEL_MARK = 'ACCOUNT DELETION REQUEST';
-var DEL_NEXT = 'It is reviewed within 1 business day, and you will get an email. We delete your information within 30 days and confirm by email. Nothing is deleted before then.';
+var DEL_NEXT = 'The request is reviewed within 1 business day, and you will get an email. We delete your information within 30 days and confirm by email. Nothing is deleted before then.';
 function delAsked() { return ((S.data && S.data.requests) || []).filter(function (r) { return r && r.type === 'Delete my data'; })[0] || null; }
 function vDelete() {
   var D = S.del || (S.del = { v: '', err: '', done: false, demo: false }), F = S.pf || {}, asked = delAsked(), body;
