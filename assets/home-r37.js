@@ -22,7 +22,41 @@
   var rm = mm('(prefers-reduced-motion: reduce)'), still = !!(rm && rm.matches);
   var hasIO = 'IntersectionObserver' in window;
 
-  if ('serviceWorker' in navigator) { try { navigator.serviceWorker.register('/sw.js'); } catch (e) {} }
+  /* r43: the service worker and its updates. An installed app left open checks for a new release when it comes back into view
+     (at most once in 30 minutes). When a new worker takes over a page that an older one was already running, nothing reloads
+     under the person: a small bar offers Refresh. Never on first install. With unsent text in a field, the bar says so.
+     This block is the same in assets/site.js and assets/home-r37.js. */
+  (function () {
+    if (!('serviceWorker' in navigator)) return;
+    try {
+      var sw = navigator.serviceWorker, had = !!sw.controller, last = Date.now(), GAP = 30 * 60000;
+      var typing = function () {
+        var f = document.querySelectorAll('textarea, input'), i, el, ty;
+        for (i = 0; i < f.length; i++) { el = f[i]; ty = (el.getAttribute('type') || 'text').toLowerCase(); if (/^(hidden|checkbox|radio|submit|button|reset|file|range|color|image)$/.test(ty) || el.readOnly || el.disabled) continue; if (String(el.value || '').trim() && el.value !== el.defaultValue) return true; }
+        return false;
+      };
+      var bar = function () {
+        if (document.getElementById('spUpd')) return;
+        var st = document.createElement('style');
+        st.textContent = '#spUpd{position:fixed;z-index:2147483000;left:50%;transform:translateX(-50%);top:max(10px,env(safe-area-inset-top,0px));box-sizing:border-box;width:max-content;max-width:calc(100vw - 20px);display:flex;align-items:center;gap:12px;padding:8px 8px 8px 16px;border-radius:14px;background:#10213A;color:#FBF6EE;border:1px solid rgba(251,246,238,.45);box-shadow:0 10px 28px rgba(0,0,0,.35);font:700 15px/1.35 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif}#spUpd p{margin:0;min-width:0}#spUpd button{flex:none;min-height:44px;min-width:44px;padding:0 16px;border:0;border-radius:10px;background:#C9A227;color:#10213A;font:inherit;font-weight:800;cursor:pointer}#spUpd button:hover{background:#D9B43A}#spUpd button:focus-visible{outline:3px solid #FBF6EE;outline-offset:2px}@media print{#spUpd{display:none}}';
+        document.head.appendChild(st);
+        var el = document.createElement('div'); el.id = 'spUpd'; el.setAttribute('role', 'status');
+        var p = document.createElement('p'), b = document.createElement('button'); b.type = 'button'; b.textContent = 'Refresh';
+        var say = function () { p.textContent = typing() ? 'A new version is ready. Send or save what you typed, then refresh.' : 'A new version is ready.'; };
+        b.addEventListener('click', function () { location.reload(); });
+        el.appendChild(p); el.appendChild(b); document.body.appendChild(el);
+        setTimeout(say, 60); /* filled a moment after it is in the page, so screen readers announce it */
+        document.addEventListener('input', say, true);
+      };
+      sw.addEventListener('controllerchange', function () { if (!had) { had = true; return; } bar(); }); /* the first worker taking control is the install, not an update */
+      sw.register('/sw.js').then(function (reg) {
+        document.addEventListener('visibilitychange', function () {
+          if (document.visibilityState !== 'visible' || Date.now() - last < GAP) return;
+          last = Date.now(); try { var u = reg.update(); if (u && u['catch']) u['catch'](function () {}); } catch (e) {}
+        });
+      }, function () {});
+    } catch (e) {}
+  })();
 
   /* theme: follows the system until the visitor picks one; the pick is kept in localStorage "sp-theme" */
   (function () {

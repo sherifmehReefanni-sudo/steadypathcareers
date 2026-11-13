@@ -19,7 +19,7 @@ def nav(cur):
     return f'<nav class="topbar" aria-label="Main"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><div class="links">{links}</div><div class="right"><a href="/portal/">Client sign in</a><a class="btn gold" href="/start/">Start free</a></div></nav>'
 
 FOOT = ('<footer class="foot"><div class="wrap"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><nav aria-label="Footer"><a href="/services/">What you get</a><a href="/sample/">Sample report</a><a href="/pay/">Pay lookup</a><a href="/guides/">Guides</a><a href="/free/">Free tools</a><a href="/about/">About</a><a href="' + CAL + '" target="_blank" rel="noopener">Book a call</a><a href="/app/">Get the app (add to your phone)</a><a href="/portal/">Client sign in</a><a href="https://www.instagram.com/steadypathcareershq/" target="_blank" rel="noopener">Instagram</a><a href="https://www.linkedin.com/company/steadypathcareers/" target="_blank" rel="noopener">LinkedIn</a><a href="https://www.youtube.com/@Steadypathcareershq" target="_blank" rel="noopener">YouTube</a></nav><p class="where"><span class="wg wt">&copy; 2026 Steady Path Careers</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg wt">Monmouth County, NJ</span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="/terms/">Terms</a> &middot; <a href="/privacy/">Privacy</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a></span><span class="ws" aria-hidden="true"> &middot; </span><span class="wg"><a href="tel:+17327590008">(732) 759-0008</a></span></p></div></footer>\n'
-        '<script src="/assets/site.js?v=sp-20261110r30"></script>\n<script src="/assets/path.js?v=20261026a"></script>\n<script defer src="/assets/r17.js?v=20261106a"></script>\n'
+        '<script src="/assets/site.js?v=sp-20261112r43"></script>\n<script src="/assets/path.js?v=20261026a"></script>\n<script defer src="/assets/r17.js?v=20261106a"></script>\n'
         """<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "6f62d1e0e28847dcab6b431376defda9"}'></script><!-- End Cloudflare Web Analytics -->\n""")
 
 R17 = 'sp-20261110r30'
@@ -41,6 +41,7 @@ def head(path, title, desc, og_img, og_alt, css, ld):
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap">
 <link rel="stylesheet" href="/assets/site.css?v=sp-20261110r30">
