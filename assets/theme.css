@@ -483,7 +483,7 @@
   .topbar .brand { gap: 8px; }
   .topbar .brand svg { width: 32px; height: 32px; }
 }
-@media (max-width: 359px) {
+@media (max-width: 380px) { /* r47: was 359px; with 44px buttons the one-line name ran into the theme switch at 360 to 380 */
   .topbar { gap: 8px; }
   .mk .topbar .brand, .topbar .brand { font-size: 15px; line-height: 1.1; white-space: normal; min-width: 0; }
   .topbar .brand svg { width: 30px; height: 30px; }
