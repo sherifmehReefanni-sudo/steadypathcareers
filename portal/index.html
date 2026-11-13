@@ -318,7 +318,7 @@ body { overflow-x: hidden; }
    board scrolls sideways inside its own box instead of squeezing the cards. Empty columns stay slim. */
 @media (min-width: 1024px) {
   .board { display: flex; align-items: flex-start; gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-  .board > .col { flex: 1 1 244px; min-width: 244px; } /* 244 keeps the card inside it at 220 or more */
+  .board > .col { flex: 1 1 228px; min-width: 228px; padding-left: 8px; padding-right: 8px; } /* r48 review: 228 (was 244) so five columns fit a 1280 screen without sideways scroll; with 8px column padding the card inside is 212 or more */
   .board > .col.none { flex: 0 0 140px; min-width: 140px; }
   .board > .col h3 > span:last-child { margin-left: 8px; }
   .board > .col.none h3 { margin-bottom: 0; }
@@ -333,6 +333,7 @@ body { overflow-x: hidden; }
      - The two Add to your calendar buttons stay in view, side by side on one row as compact 44px buttons.
      - An empty column shows a quiet dashed slot. */
   .board > .col { container-type: inline-size; }
+  #app .pmain:has(.board) > * { max-width: none; } /* the Due panel and the Search card end where the board ends */
   .board .app { display: flex; flex-wrap: wrap; align-items: center; column-gap: 6px; }
   .board .app > * { flex: 0 0 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
   .board .app > .bd-more { flex: 0 0 auto; margin-right: calc(100% - 64px); }
@@ -342,8 +343,17 @@ body { overflow-x: hidden; }
   @container (min-width: 300px) { .board .app > .bd-moves > .bd-lab { flex: 0 0 auto; margin-right: 2px; margin-top: 6px; font-size: 12px; } }
   .board .app > .bd-moves + p:last-child { flex: 0 0 auto; margin: 6px 0 0 auto !important; }
   .board .app > .ics-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 6px; margin-top: 6px; }
-  .board .app > .ics-row .ics-lab { grid-column: 1 / -1; font-size: 12.5px; }
+  .board .app > .ics-row .ics-lab { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } /* the two buttons name the calendars and each carries its full name for screen readers; the label line is kept for them */
   .board .app > .ics-row > a, .board .app > .ics-row > button { display: flex; align-items: center; min-height: 44px; min-width: 0; padding: 2px 6px; font-size: 12.5px; line-height: 1.2; text-align: center; white-space: normal; justify-content: center; border-radius: 12px; }
+  /* r48 review: the two follow-up buttons share a row (their words wrap inside a 44px button), so a card with a follow-up due is short */
+  .board .col .app .p44-fuline p[data-fustate] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; align-items: center; margin: 6px 0 0; }
+  .board .col .app .p44-fuline p[data-fustate] > .pill { grid-column: 1 / -1; justify-self: start; }
+  .board .col .app .p44-fuline p[data-fustate] > .kbtn { min-width: 0; min-height: 44px; margin: 0; padding: 2px 6px; font-size: 13px; line-height: 1.15; white-space: normal; }
+  /* More and the interview button share a row; an open fold drops between them at full width */
+  .board .app > .bd-more:has(+ .bd-fold + .pv-cta) { margin-right: 0; }
+  .board .app > .bd-fold + .pv-cta { flex: 0 0 auto; margin: 4px 0 0 auto; }
+  .board .app > .bd-fold.open + .pv-cta { margin-left: 0; }
+  .board .app > .pv-cta .btn { padding-left: 12px; padding-right: 12px; font-size: 14.5px; }
   .board > .col.none::after { content: ""; display: block; height: 44px; margin-top: 4px; border: 1.5px dashed var(--line); border-radius: 10px; opacity: .8; }
   /* when columns continue past the right edge the edge fades instead of cutting a column with a hard line (class set in assets/portal-r18.js) */
   .board.cut-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }

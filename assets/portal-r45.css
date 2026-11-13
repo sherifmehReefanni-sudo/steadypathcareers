@@ -69,7 +69,11 @@
 .t45-filters.is-open .t45-three { display: grid; }
 .t45-done { justify-self: start; min-height: 44px; margin-top: 2px; }
 .t45-filters .p44-dev { flex: 1 1 100%; margin: 0; font-size: 13px; line-height: 1.4; }
+.t45-lshort { display: none; }
 @media (max-width: 779px) {
+  .t45-lfull { display: none; }
+  .t45-lshort { display: inline; white-space: nowrap; }
+  .t45-filters .p44-chk { flex: 0 1 auto; }
   .t45-filters.is-open .t45-three { grid-template-columns: minmax(0, 1fr); max-width: 480px; }
   /* the form's parts become items of the page column, so the note about saved stars can sit after the list; the filter row keeps the card look */
   .t45-filters .p44-dev { font-size: 12.5px; line-height: 1.35; }

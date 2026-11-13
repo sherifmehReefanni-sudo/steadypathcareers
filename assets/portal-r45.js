@@ -69,7 +69,7 @@ function vTraining() {
     var open = !!S.tfOpen;
     body = '<form class="card p44-card t45-filters' + (open ? ' is-open' : '') + '" onsubmit="return false" aria-label="Narrow the list">' +
       '<button type="button" class="t45-fbtn" data-tfopen aria-expanded="' + open + '" aria-controls="tfPanel">' + R48_FIC + '<span>Filters</span>' + r48Badge(f) + '</button>' +
-      '<label class="p44-chk"><input type="checkbox" data-tfsaved' + (f.saved ? ' checked' : '') + '>Only the programs I saved</label>' +
+      '<label class="p44-chk"><input type="checkbox" data-tfsaved aria-label="Saved only: only the programs I saved"' + (f.saved ? ' checked' : '') + '><span class="t45-lfull">Only the programs I saved</span><span class="t45-lshort" aria-hidden="true">Saved only</span></label>' + /* r48 review: on phones the chip reads "Saved only" on one line; the checkbox keeps the full name */
       '<p class="psub p44-dev" data-r44dev>Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.</p>' + /* directly under the Filters row on phones; under the selects from 780 wide */
       '<div class="t45-chips' + (r48N(f) ? ' has' : '') + '" data-tfchips role="group" aria-label="Chosen filters">' + r48Chips(D, f) + '</div>' +
       '<div class="t45-three" id="tfPanel"><div' + (f.area ? ' data-set' : '') + '><label for="tfArea">Area</label><select id="tfArea" data-tff="area">' + opt(D.areas, f.area, 'All areas') + '</select></div>' +
