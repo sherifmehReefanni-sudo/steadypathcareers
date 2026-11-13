@@ -323,10 +323,9 @@ body { overflow-x: hidden; }
   .board > .col.none h3 { margin-bottom: 0; }
   .board { scroll-snap-type: x proximity; scroll-padding-left: 0; }
   .board > .col { scroll-snap-align: start; }
-  /* review round: in the 244px columns the pay pill ("$200,000 - $250,000 a year") stays on one line, and a card that has a More
-     fold keeps its applied-on line inside the fold too (the column already says the stage), so a closed card is short */
+  /* review round: in the 244px columns the pay pill ("$200,000 - $250,000 a year") stays on one line. The applied date and
+     status line always shows on every card, folded or not: only contact, notes and helper text fold. */
   .board .app .apills .pill { font-size: 12px; padding-left: 8px; padding-right: 8px; }
-  .board .app:has(> .bd-more[aria-expanded="false"]) > b + .psub + .psub { display: none; }
   /* when columns continue past the right edge the edge fades instead of cutting a column with a hard line (class set in assets/portal-r18.js) */
   .board.cut-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }
   .board.cut-l { -webkit-mask-image: linear-gradient(270deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(270deg, #000 calc(100% - 56px), transparent); }
