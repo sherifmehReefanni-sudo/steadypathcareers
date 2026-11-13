@@ -77,18 +77,18 @@
   ],
   "screenshots": [
     {
+      "src": "/img/app/screen-home.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Home: your next step and where your search stands (sample data)"
+    },
+    {
       "src": "/img/app/screen-jobs.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Jobs: your next step and new matches (sample data)"
-    },
-    {
-      "src": "/img/app/screen-docs.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Documents: open and approve your tailored resume (sample data)"
+      "label": "Jobs: a new match with its posted pay (sample data)"
     }
   ]
 }
