@@ -120,3 +120,33 @@
 .p44-hits button { min-height: 44px; padding: 6px 14px; border: 2px solid var(--line); border-radius: 99px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
 .p44-hits button[aria-checked="true"] { background: var(--navy-fill, #1F3A5F); border-color: var(--navy-fill, #1F3A5F); color: #fff; }
 .p44 .err { color: var(--bad); font-weight: 700; margin: 0; }
+
+/* ---- interview practice ---- */
+.p44-rows, .p44-stories { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.p44-stories { gap: 12px; }
+.p44-row { width: 100%; min-height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.p44-row:hover { border-color: var(--navy); }
+.p44-row > span { display: grid; gap: 2px; min-width: 0; }
+.p44-row b { font-size: 15.5px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; }
+.p44-row span span { font-size: 13.5px; font-weight: 700; color: var(--muted); overflow-wrap: anywhere; }
+.p44-row svg { width: 20px; height: 20px; flex: none; color: var(--muted); }
+.p44-row svg:not(.keep) { transform: rotate(-90deg); }
+.p44-qk { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: 13.5px; font-weight: 800; color: var(--muted); }
+.p44-q h2 { margin: 0; font: 800 22px/1.25 var(--display); color: var(--navy); overflow-wrap: anywhere; }
+.p44-q h2:focus { outline: none; } .p44-q h2:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.p44-timer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.p44-timer .btn.sm { min-height: 44px; padding: 0 14px; }
+.p44-clock { font: 800 26px/1 var(--display); color: var(--navy); font-variant-numeric: tabular-nums; min-width: 3.2ch; }
+.p44-story { margin: 0; display: grid; gap: 8px; }
+.p44-story > div { display: grid; gap: 2px; }
+.p44-story dt { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.p44-story dd { margin: 0; color: var(--ink); line-height: 1.45; overflow-wrap: anywhere; white-space: pre-line; }
+.p44-dev { font-weight: 700; }
+.p44-print { display: none; }
+@media print {
+  #app:has(.p44-pr) header.sky, #app:has(.p44-pr) .pband, #app:has(.p44-pr) .tabbar, .p44-pr > :not(.p44-print), #spUpd { display: none !important; }
+  .p44-pr .p44-print { display: block; color: #000; font: 12pt/1.45 Georgia, serif; }
+  .p44-print h1 { font-size: 18pt; margin: 0 0 4pt; } .p44-print h3 { font-size: 12pt; margin: 14pt 0 2pt; } .p44-print p { margin: 0 0 4pt; }
+  .p44-print .pg, .p44-print .pf { font-size: 9.5pt; color: #444; } .p44-print .pn { white-space: pre-wrap; } .p44-print .pn.blank { height: 54pt; border-bottom: 1px solid #999; }
+  .p44-print .pq { break-inside: avoid; }
+}

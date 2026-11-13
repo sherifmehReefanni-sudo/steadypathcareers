@@ -357,3 +357,125 @@ if (typeof document !== 'undefined') {
     var ob = e.target.closest('[data-r44offer]'); if (ob) r44OfferOpen(ob.getAttribute('data-r44offer'));
   });
 }
+
+/* ================= T1: interview practice ================= */
+/* Questions come from a fixed bank (assets/data/interview-bank.json) and, first, from the client's own prep sheet when it has
+   questions. Nothing here says a question comes from an employer. Notes, practiced marks and stories stay on this device. */
+var R44_TIMER = 90;
+function r44Hash(s) { var h = 0; s = String(s); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+/* pure: the question list for one job. prep: [{ q }] from the prep sheet; fam: a family key or ''. */
+function r44Questions(bank, prep, fam) {
+  var out = [];
+  (prep || []).forEach(function (p) { if (p && p.q) out.push({ id: 'p' + r44Hash(p.q), q: p.q, grp: 'prep' }); });
+  if (!bank) return out;
+  (bank.general || []).forEach(function (x) { out.push({ id: x.id, q: x.q, grp: 'general' }); });
+  (bank.behavioral || []).forEach(function (x) { out.push({ id: x.id, q: x.q, grp: 'behavioral' }); });
+  var F = fam && bank.families && bank.families[fam]; if (F) F.questions.forEach(function (x) { out.push({ id: x.id, q: x.q, grp: 'family' }); });
+  return out;
+}
+var R44_GRP = { prep: 'From your prep sheet', general: 'Common questions for this kind of role: general', behavioral: 'Common questions for this kind of role: about your past work', family: 'Common questions for this kind of role' };
+function r44PracticeJobs() {
+  var d = S.data, out = [], seen = {};
+  (d.apps || []).forEach(function (x) { if (stageOf(x) >= 4 || isOutreach(x) || !(r44Utc(x.interview) || pvHas(x))) return; if (x.jobId) seen[x.jobId] = 1; out.push({ key: 'a:' + x.id, label: [String(x.role || '').trim(), coOr(x)].filter(String).join(' at '), app: x, when: r44Utc(x.interview) ? 'Interview ' + fmtY(x.interview) : 'Prep sheet ready' }); });
+  (d.jobs || []).forEach(function (j) { if (seen[j.id] || ansOf(j) !== 'yes' || j.closed) return; var a = jobApp(j); if (a && stageOf(a) >= 4) return; out.push({ key: 'j:' + j.id, label: [String(j.title || '').trim(), String(j.company || '').trim()].filter(String).join(' at '), app: a || null, when: 'You said yes' }); });
+  return out;
+}
+function r44Pr() { if (!S.pr) S.pr = { job: '', scr: 'jobs', i: 0, left: R44_TIMER, on: false, edit: null, msg: '' }; return S.pr; }
+function r44PrStore() { var st = r44Store(); st.pr = st.pr || {}; ['notes', 'done', 'attach', 'fam'].forEach(function (k) { st.pr[k] = st.pr[k] || {}; }); st.stories = Array.isArray(st.stories) ? st.stories : []; return st; }
+function r44PrJob() { var P = r44Pr(); if (P.job === 'g:any') return { key: 'g:any', label: 'Any job', app: null, when: '' }; return r44PracticeJobs().filter(function (j) { return j.key === P.job; })[0] || null; }
+function r44PrQs(J) { var st = r44PrStore(); return r44Questions(R44.bank, J && J.app ? pvQs(J.app) : [], st.pr.fam[J.key] || ''); }
+function r44PrOf(map, J) { return map[J.key] || (map[J.key] = {}); }
+function r44Story(id) { return r44PrStore().stories.filter(function (s) { return s.id === id; })[0] || null; }
+function r44Clock(n) { return Math.floor(n / 60) + ':' + ('0' + (n % 60)).slice(-2); }
+function r44TimerStop() { var P = S.pr; if (P && P.tick) { clearInterval(P.tick); P.tick = null; } if (P) P.on = false; }
+function r44DevNote() { return '<p class="psub p44-dev" data-r44dev>' + R44_DEVICE + ' Signing out removes it.</p>'; }
+
+function r44PrJobsScr() {
+  var jobs = r44PracticeJobs(), st = r44PrStore();
+  var row = function (j) { var qs = r44PrQs(j), dn = Object.keys(st.pr.done[j.key] || {}).filter(function (id) { return qs.some(function (q) { return q.id === id; }); }).length; return '<li><button type="button" class="p44-row" data-prjob="' + esc(j.key) + '"><span><b>' + esc(j.label) + '</b><span>' + esc([j.when, R44.bank ? dn + ' of ' + qs.length + ' practiced' : ''].filter(String).join(' · ')) + '</span></span>' + IC.chev + '</button></li>'; };
+  return (jobs.length ? '<h2 class="sec-h">Your jobs</h2><ul class="p44-rows">' + jobs.map(row).join('') + '</ul>' : '<div class="card empty"><p class="psub" style="margin:0">A job shows up here when you say yes to it, add an interview date, or get a prep sheet.</p></div>') +
+    '<h2 class="sec-h">Any time</h2><ul class="p44-rows">' + row({ key: 'g:any', label: 'Practice the common questions', app: null, when: 'Not tied to one job' }) +
+    '<li><button type="button" class="p44-row" data-prscr="stories"><span><b>Your stories</b><span>' + (st.stories.length ? st.stories.length + (st.stories.length === 1 ? ' story saved' : ' stories saved') : 'Save a story once, use it for many questions') + '</span></span>' + IC.chev + '</button></li></ul>' + r44DevNote();
+}
+function r44PrListScr(J) {
+  var st = r44PrStore(), qs = r44PrQs(J), done = r44PrOf(st.pr.done, J), notes = r44PrOf(st.pr.notes, J), att = r44PrOf(st.pr.attach, J), fam = st.pr.fam[J.key] || '', B = R44.bank, last = '';
+  var list = qs.map(function (q, i) { var hd = q.grp !== last ? (last ? '</ul>' : '') + '<h2 class="sec-h" data-prgrp="' + q.grp + '">' + esc(q.grp === 'family' ? R44_GRP.family + ': ' + B.families[fam].name : R44_GRP[q.grp]) + '</h2><ul class="p44-rows">' : ''; last = q.grp;
+    return hd + '<li><button type="button" class="p44-row" data-prq="' + i + '"><span><b>' + esc(q.q) + '</b>' + (done[q.id] || notes[q.id] || att[q.id] ? '<span>' + [done[q.id] ? 'Practiced' : '', notes[q.id] ? 'Notes' : '', att[q.id] && r44Story(att[q.id]) ? 'Story: ' + r44Story(att[q.id]).name : ''].filter(String).map(esc).join(' · ') + '</span>' : '') + '</span>' + (done[q.id] ? IC.checkc : IC.chev) + '</button></li>'; }).join('') + (qs.length ? '</ul>' : '');
+  var pr = '<section class="p44-print" aria-hidden="true"><h1>Questions and my notes</h1><p>' + esc(J.label) + (J.when ? ' · ' + esc(J.when) : '') + '</p>' + qs.map(function (q, i) { var s = att[q.id] && r44Story(att[q.id]); return '<div class="pq"><h3>' + (i + 1) + '. ' + esc(q.q) + '</h3><p class="pg">' + esc(q.grp === 'prep' ? R44_GRP.prep : R44_GRP.family) + '</p>' + (notes[q.id] ? '<p class="pn">' + esc(notes[q.id]) + '</p>' : '<p class="pn blank">&nbsp;</p>') + (s ? '<p class="ps"><b>Story: ' + esc(s.name) + '</b><br>Situation: ' + esc(s.s) + '<br>Task: ' + esc(s.t) + '<br>Action: ' + esc(s.a) + '<br>Result: ' + esc(s.r) + '</p>' : '') + '</div>'; }).join('') + '<p class="pf">Common questions are from the Steady Path Careers question bank. They are not from the employer.</p></section>';
+  return '<div class="card p44-card"><p><b>' + esc(J.label) + '</b>' + (J.when ? '<br><span class="psub">' + esc(J.when) + '</span>' : '') + '</p>' +
+    (B ? '<label for="prFam">Kind of role (adds five questions)</label><select id="prFam" data-prfam><option value="">General questions only</option>' + Object.keys(B.families).map(function (k) { return '<option value="' + k + '"' + (fam === k ? ' selected' : '') + '>' + esc(B.families[k].name) + '</option>'; }).join('') + '</select>' : '') +
+    '<p class="psub">Common questions are ones many interviewers ask for this kind of role. They are not from this employer.</p>' +
+    '<div class="p44-acts"><button type="button" class="btn gold" data-prq="0"' + (qs.length ? '' : ' disabled') + '>Start practice</button><button type="button" class="btn ghost" data-prprint>Print questions and my notes</button></div>' + r44DevNote() + '</div>' +
+    (B ? '' : r44Wait('bank')) + list + pr;
+}
+function r44PrQScr(J) {
+  var P = r44Pr(), st = r44PrStore(), qs = r44PrQs(J); if (!qs.length) return r44Wait('bank');
+  if (P.i >= qs.length) P.i = qs.length - 1; if (P.i < 0) P.i = 0;
+  var q = qs[P.i], done = r44PrOf(st.pr.done, J), notes = r44PrOf(st.pr.notes, J), att = r44PrOf(st.pr.attach, J), story = att[q.id] ? r44Story(att[q.id]) : null, off = !!st.pr.timerOff;
+  return '<section class="card p44-card p44-q" data-prqid="' + esc(q.id) + '" aria-labelledby="prQH"><p class="p44-qk"><span>Question ' + (P.i + 1) + ' of ' + qs.length + '</span><span>' + esc(q.grp === 'prep' ? R44_GRP.prep : R44_GRP.family) + '</span></p>' +
+    '<h2 id="prQH" tabindex="-1">' + esc(q.q) + '</h2>' + (q.grp === 'behavioral' ? '<p class="psub">One way to shape the answer: the situation, your task, what you did, and the result.</p>' : '') +
+    '<div class="p44-timer">' + (off ? '<span class="psub">Timer is off.</span><button type="button" class="linkbtn" data-prtimer="toggle">Turn the timer on</button>' :
+      '<span class="p44-clock" id="prT" role="timer" aria-live="off">' + r44Clock(P.left) + '</span><button type="button" class="btn ghost sm" data-prtimer="go">' + (P.on ? 'Pause' : P.left < R44_TIMER && P.left > 0 ? 'Resume' : 'Start timer') + '</button><button type="button" class="btn ghost sm" data-prtimer="reset">Reset</button><button type="button" class="linkbtn" data-prtimer="toggle">Turn the timer off</button>') + '</div>' +
+    '<label for="prNote">Your answer outline</label><textarea id="prNote" rows="6" maxlength="2000" data-prnote="' + esc(q.id) + '">' + esc(notes[q.id] || '') + '</textarea>' +
+    '<label for="prStory">Attach a story</label><select id="prStory" data-prstory="' + esc(q.id) + '"><option value="">No story</option>' + st.stories.map(function (s) { return '<option value="' + esc(s.id) + '"' + (att[q.id] === s.id ? ' selected' : '') + '>' + esc(s.name) + '</option>'; }).join('') + '</select>' +
+    (story ? '<dl class="p44-story"><div><dt>Situation</dt><dd>' + esc(story.s) + '</dd></div><div><dt>Task</dt><dd>' + esc(story.t) + '</dd></div><div><dt>Action</dt><dd>' + esc(story.a) + '</dd></div><div><dt>Result</dt><dd>' + esc(story.r) + '</dd></div></dl>' : '') +
+    '<p style="margin:0"><button type="button" class="linkbtn" data-prscr="stories">' + (st.stories.length ? 'Open your stories' : 'Write your first story') + '</button></p>' +
+    '<label class="p44-chk"><input type="checkbox" data-prdone="' + esc(q.id) + '"' + (done[q.id] ? ' checked' : '') + '>Mark as practiced</label>' +
+    '<div class="p44-acts"><button type="button" class="btn ghost" data-prq="' + (P.i - 1) + '"' + (P.i === 0 ? ' disabled' : '') + '>Previous</button><button type="button" class="btn" data-prq="' + (P.i + 1) + '"' + (P.i >= qs.length - 1 ? ' disabled' : '') + '>Next</button><button type="button" class="btn ghost" data-prscr="list">All questions</button></div>' + r44DevNote() + '</section>';
+}
+function r44PrStoriesScr() {
+  var P = r44Pr(), st = r44PrStore(), E = P.edit, cur = E && E !== 'new' ? r44Story(E) : null, v = P.draft || cur || { name: '', s: '', t: '', a: '', r: '' };
+  var ta = function (id, label, k, hint) { return '<label for="' + id + '">' + label + '</label><textarea id="' + id + '" rows="3" maxlength="1200" data-prsf="' + k + '" placeholder="' + hint + '">' + esc(v[k] || '') + '</textarea>'; };
+  if (E) return '<form class="card p44-card" id="prStoryForm" onsubmit="return false"><h2 class="pf-h" id="prStH" tabindex="-1">' + (cur ? 'Edit this story' : 'A new story') + '</h2><label for="prSName">Name it so you can find it</label><input id="prSName" type="text" maxlength="80" data-prsf="name" value="' + esc(v.name || '') + '">' +
+    ta('prSs', 'Situation', 's', 'Where you were and what was going on') + ta('prSt', 'Task', 't', 'What you had to get done') + ta('prSa', 'Action', 'a', 'What you did') + ta('prSr', 'Result', 'r', 'What changed because of it') +
+    (P.msg ? '<p class="err" role="alert" id="prSErr">' + esc(P.msg) + '</p>' : '') + '<div class="p44-acts"><button type="button" class="btn" data-prssave>Save the story</button><button type="button" class="btn ghost" data-prsedit="">Cancel</button></div>' + r44DevNote() + '</form>';
+  return '<div class="card p44-card"><p>A story is one real thing you did, told in four parts. Save it once and attach it to any question, for any job.</p><div class="p44-acts"><button type="button" class="btn" data-prsedit="new">Write a story</button></div>' + r44DevNote() + '</div>' +
+    (st.stories.length ? '<ul class="p44-stories">' + st.stories.map(function (s) { return '<li class="card p44-card" data-story="' + esc(s.id) + '"><h2 class="pf-h">' + esc(s.name) + '</h2><dl class="p44-story"><div><dt>Situation</dt><dd>' + esc(s.s) + '</dd></div><div><dt>Task</dt><dd>' + esc(s.t) + '</dd></div><div><dt>Action</dt><dd>' + esc(s.a) + '</dd></div><div><dt>Result</dt><dd>' + esc(s.r) + '</dd></div></dl><div class="p44-acts"><button type="button" class="btn ghost" data-prsedit="' + esc(s.id) + '">Edit<span class="sr"> ' + esc(s.name) + '</span></button><button type="button" class="btn ghost" data-prsdel="' + esc(s.id) + '">Delete<span class="sr"> ' + esc(s.name) + '</span></button></div></li>'; }).join('') + '</ul>' : '<div class="card empty"><p class="psub" style="margin:0">No stories yet.</p></div>');
+}
+function vPractice() {
+  var P = r44Pr(), J = r44PrJob(); r44Need('bank', R44_URL.bank);
+  if (P.scr !== 'stories' && !J) { P.scr = 'jobs'; P.job = ''; }
+  if (P.scr !== 'q') r44TimerStop();
+  var body = P.scr === 'stories' ? r44PrStoriesScr() : P.scr === 'q' ? r44PrQScr(J) : P.scr === 'list' ? r44PrListScr(J) : r44PrJobsScr();
+  var back = P.scr === 'jobs' ? '' : '<div class="fl-top"><button type="button" class="fl-back" data-prscr="' + (P.scr === 'q' ? 'list' : P.scr === 'stories' && J ? (P.from === 'q' ? 'q' : 'list') : 'jobs') + '">' + IC.chev + (P.scr === 'q' ? 'All questions' : P.scr === 'stories' && J ? 'Back to practice' : 'All practice') + '</button></div>';
+  var title = P.scr === 'stories' ? 'Your stories' : J && P.scr !== 'jobs' ? 'Practice: ' + esc(J.label) : 'Interview practice';
+  return shell('practice', title, P.scr === 'jobs' ? 'Common questions, a timer and your own notes. No recording.' : '') + '<div class="pband" aria-hidden="true"></div><main class="pmain p44 p44-pr">' + (P.scr === 'jobs' ? ivSubNav('practice') : back) + r44Sample() + body + (P.scr === 'jobs' ? r42Foot() : '') + '</main>' + tabbar('practice');
+}
+if (typeof document !== 'undefined') {
+  var r44SaveSoon = function () { clearTimeout(S.r44SaveT); S.r44SaveT = setTimeout(r44Save, 300); };
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (!t || !t.getAttribute || S.view !== 'practice') return;
+    var qid = t.getAttribute('data-prnote'), J = r44PrJob();
+    if (qid && J) { var n = r44PrOf(r44PrStore().pr.notes, J); if (t.value.trim()) n[qid] = t.value.slice(0, 2000); else delete n[qid]; r44SaveSoon(); return; }
+    var sf = t.getAttribute('data-prsf'); if (sf) { var P = r44Pr(); P.draft = P.draft || Object.assign({ name: '', s: '', t: '', a: '', r: '' }, (P.edit && P.edit !== 'new' && r44Story(P.edit)) || {}); P.draft[sf] = t.value; }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t || !t.getAttribute || S.view !== 'practice') return; var J = r44PrJob(), st = r44PrStore();
+    if (t.hasAttribute('data-prfam') && J) { if (t.value) st.pr.fam[J.key] = t.value; else delete st.pr.fam[J.key]; r44Save(); S.focusTo = '#prFam'; render(); return; }
+    var sid = t.getAttribute('data-prstory'); if (sid && J) { var a = r44PrOf(st.pr.attach, J); if (t.value) a[sid] = t.value; else delete a[sid]; r44Save(); S.focusTo = '#prStory'; render(); return; }
+    var did = t.getAttribute('data-prdone'); if (did && J) { var d = r44PrOf(st.pr.done, J); if (t.checked) d[did] = todayISO(); else delete d[did]; r44Save(); }
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest || !S.data || S.view !== 'practice') return; var P = r44Pr(), st = r44PrStore(), b;
+    if ((b = e.target.closest('[data-prjob]'))) { r44Save(); P.job = b.getAttribute('data-prjob'); P.scr = 'list'; P.i = 0; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
+    if ((b = e.target.closest('[data-prscr]'))) { r44Save(); var to = b.getAttribute('data-prscr'); if (to === 'stories') P.from = P.scr; P.scr = to; P.edit = null; P.draft = null; P.msg = ''; S.focusTo = to === 'q' ? '#prQH' : '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
+    if ((b = e.target.closest('[data-prq]'))) { if (b.disabled) return; r44Save(); r44TimerStop(); P.i = Math.max(0, +b.getAttribute('data-prq') || 0); P.scr = 'q'; P.left = R44_TIMER; S.focusTo = '#prQH'; render(); window.scrollTo(0, 0); return; }
+    if ((b = e.target.closest('[data-prtimer]'))) { var k = b.getAttribute('data-prtimer');
+      if (k === 'toggle') { r44TimerStop(); st.pr.timerOff = !st.pr.timerOff; P.left = R44_TIMER; r44Save(); S.focusTo = '[data-prtimer="toggle"]'; render(); return; }
+      if (k === 'reset') { r44TimerStop(); P.left = R44_TIMER; S.focusTo = '[data-prtimer="go"]'; render(); return; }
+      if (P.on) { r44TimerStop(); } else { if (P.left <= 0) P.left = R44_TIMER; P.on = true; P.tick = setInterval(function () { P.left = Math.max(0, P.left - 1); var el = document.getElementById('prT'); if (el) el.textContent = r44Clock(P.left); if (P.left <= 0 || S.view !== 'practice') { r44TimerStop(); if (S.view === 'practice' && P.scr === 'q') { toast('Time.'); render(); } } }, 1000); }
+      S.focusTo = '[data-prtimer="go"]'; render(); return; }
+    if (e.target.closest('[data-prprint]')) { r44Save(); try { window.print(); } catch (x) {} return; }
+    if ((b = e.target.closest('[data-prsedit]'))) { P.edit = b.getAttribute('data-prsedit') || null; P.draft = null; P.msg = ''; S.focusTo = P.edit ? '#prSName' : '.ptitle h1'; render(); return; }
+    if ((b = e.target.closest('[data-prsdel]'))) { var id = b.getAttribute('data-prsdel'); st.stories = st.stories.filter(function (s) { return s.id !== id; }); Object.keys(st.pr.attach).forEach(function (jk) { Object.keys(st.pr.attach[jk]).forEach(function (q) { if (st.pr.attach[jk][q] === id) delete st.pr.attach[jk][q]; }); }); r44Save(); toast('Story deleted.'); S.focusTo = '.ptitle h1'; render(); return; }
+    if (e.target.closest('[data-prssave]')) {
+      var v = P.draft || (P.edit !== 'new' && r44Story(P.edit)) || {}, name = String(v.name || '').trim();
+      if (!name) { P.msg = 'Give the story a name.'; S.focusTo = '#prSName'; render(); return; }
+      var rec = { id: P.edit && P.edit !== 'new' ? P.edit : 's' + Date.now().toString(36), name: name.slice(0, 80), s: String(v.s || '').trim(), t: String(v.t || '').trim(), a: String(v.a || '').trim(), r: String(v.r || '').trim() };
+      var at = st.stories.map(function (s) { return s.id; }).indexOf(rec.id); if (at >= 0) st.stories[at] = rec; else st.stories.push(rec);
+      var okS = r44Save(); P.edit = null; P.draft = null; P.msg = ''; toast(okS ? 'Story saved on this phone.' : 'This phone would not save it.'); S.focusTo = '.ptitle h1'; render();
+    }
+  });
+  /* leaving practice stops the timer and writes anything typed */
+  (function () { var base = go; go = function (view) { if (S.view === 'practice' && view !== 'practice') { r44TimerStop(); r44Save(); } if (view === 'practice' && S.view !== 'practice') { var P = r44Pr(); if (P.scr === 'q') P.scr = 'list'; } return base.apply(this, arguments); }; })();
+}
