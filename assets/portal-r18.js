@@ -67,7 +67,7 @@ function r18ThanksOn(x) {
 function r18ThanksOpen(x) { return false; }
 function r18Extras(x) {
   var id = esc(x.id), h = '';
-  if (r18FollowDue(x)) {
+  if (typeof r44FuLine !== 'function' && r18FollowDue(x)) { /* r45: with the r44 follow-up line on the card, this older block is not shown; "I followed up" lives on that line */
     var t = r18FollowText(x);
     h += '<div class="bd-fu" role="note"><p class="bd-fuh"><span class="pill gold">No update in a week</span> A short, polite follow-up can help you stand out.</p>' +
       '<details class="bd-fud"><summary>Show a note to send</summary><pre class="bd-txt" id="fu-' + id + '">' + esc(t) + '</pre></details><div class="bd-moves"><button type="button" class="kbtn" data-copy="' + esc(t) + '" aria-label="Copy the follow-up note for ' + esc(coOr(x)) + '">Copy the note</button>' +

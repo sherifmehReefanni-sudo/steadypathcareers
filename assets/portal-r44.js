@@ -140,7 +140,8 @@ function r44FuMarks(id) { var st = r44Store(); st.fu = st.fu || {}; return st.fu
 /* The guide in New York time: a thank-you is for the day of the interview, so "today" for it is the date in America/New_York. */
 function r44NyToday() { try { var p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); if (/^\d{4}-\d\d-\d\d$/.test(p)) return p; } catch (e) {} return todayISO(); }
 /* pure: what is due or coming for one application.
-   a: { col (1 submitted, 2 interview), status, interview, sub (submitted on), sent (the last follow-up date the API holds) }
+   a: { col (1 submitted, 2 interview), status, interview, sub (submitted on), sent (the last follow-up date the API holds),
+        own (the "Follow up on" date the client set themselves; it wins over the guide's interval until a follow-up is sent after it) }
    mk: this device's marks { sent: [dates], thanks, nudge, close }.
    Rules, all from the follow-up guide: about 7 days after applying; one follow-up a week; after two with no answer, the
    closing note and no more reminders; thank-you from the interview date itself; check-in five business days after it.
@@ -151,7 +152,7 @@ function r44FuPlan(a, today, nyToday, mk) {
   if (r44Utc(a.sent) && sent.indexOf(String(a.sent).slice(0, 10)) < 0) sent.push(String(a.sent).slice(0, 10)); sent.sort();
   if (a.col === 1 && !String(a.interview || '').trim() && /^(applied)?$/i.test(String(a.status || '').trim())) {
     if (sent.length >= 2) { if (!mk.close) out.push({ kind: 'close', due: '', days: null, state: 'next', count: sent.length }); }
-    else { var due = r44FuDate(a.sub, sent[sent.length - 1] || ''), d = due ? r44Diff(today, due) : null; if (due && d >= -30) out.push({ kind: 'apply', due: due, days: d, state: d <= 0 ? 'due' : 'upcoming', count: sent.length }); }
+    else { var lastS = sent[sent.length - 1] || '', own = r44Utc(a.own) ? String(a.own).slice(0, 10) : '', due = own && (!lastS || own > lastS) ? own : r44FuDate(a.sub, lastS), d = due ? r44Diff(today, due) : null; if (due && d >= -30) out.push({ kind: 'apply', due: due, days: d, state: d <= 0 ? 'due' : 'upcoming', count: sent.length }); }
   }
   if (a.col === 2 && r44Utc(a.interview)) {
     var iv = String(a.interview).slice(0, 10), dNy = r44Diff(nyToday, iv), nd = r44NudgeDate(iv), dn = r44Diff(today, nd);
@@ -169,11 +170,14 @@ function r44FuItems() {
     if (!x || isOutreach(x)) return; var mk = st.fu[x.id] || {};
     /* the API holds only the last follow-up date, so the count of follow-ups is kept on this device */
     if (realISO(x.followUpSent)) { var d = String(x.followUpSent).slice(0, 10), have = mk.sent || []; if (have.indexOf(d) < 0) { mk = st.fu[x.id] = Object.assign({}, mk, { sent: have.concat([d]).sort() }); dirty = true; } }
-    r44FuPlan({ col: boardCol(x), status: x.status, interview: x.interview, sub: r44FuSub(x), sent: x.followUpSent }, today, ny, mk).forEach(function (o) { o.app = x; out.push(o); });
+    r44FuPlan({ col: boardCol(x), status: x.status, interview: x.interview, sub: r44FuSub(x), sent: x.followUpSent, own: x.followUpOn }, today, ny, mk).forEach(function (o) { o.app = x; out.push(o); });
   });
   if (dirty) r44Save();
   return out.sort(function (a, b) { return a.due < b.due ? -1 : a.due > b.due ? 1 : 0; });
 }
+/* r45: a submitted application's follow-up is shown by this module alone (the card, the Due group, Home and the Jobs list all read it) */
+function r44FuOwns(x) { return !!x && !isOutreach(x) && boardCol(x) === 1 && !String(x.interview || '').trim() && /^(applied)?$/i.test(String(x.status || '').trim()); }
+function r44FuIsDue(x) { return r44FuItems().some(function (o) { return o.app === x && o.state === 'due'; }); }
 /* due now: exactly the items whose card line says so */
 function r44FuDue() { return r44FuItems().filter(function (o) { return o.state === 'due'; }); }
 var R44_FU_NAME = { apply: 'Follow-up', thanks: 'Thank-you note', nudge: 'Check-in', close: 'Closing note' };
@@ -185,7 +189,7 @@ function r44FuLine(x) {
   var its = r44FuItems().filter(function (o) { return o.app === x; });
   var offer = stageOf(x) === 3 && /offer/i.test(String(x.status || '')) ? '<p><button type="button" class="kbtn" data-r44offer="' + esc(x.id) + '">Offer check<span class="sr"> for ' + esc(coOr(x)) + '</span></button></p>' : '';
   if (!its.length) return offer ? '<div class="p44-fuline">' + offer + '</div>' : '';
-  return '<div class="p44-fuline" data-r44fuline="' + esc(x.id) + '">' + offer + its.map(function (o) { return '<p data-fustate="' + o.state + '"><span class="pill ' + (o.state === 'due' ? 'gold' : 'info') + '">' + esc(r44FuLabel(o)) + '</span> ' + r44FuBtn(o) + '</p>'; }).join('') + '</div>';
+  return '<div class="p44-fuline" data-r44fuline="' + esc(x.id) + '">' + offer + its.map(function (o) { return '<p data-fustate="' + o.state + '"><span class="pill ' + (o.state === 'due' ? 'gold' : 'info') + '">' + esc(r44FuLabel(o)) + '</span> ' + r44FuBtn(o) + (o.kind === 'apply' && o.state === 'due' ? '<button type="button" class="kbtn" data-bfollow="' + esc(x.id) + '"' + (S.bdBusy && S.bdBusy[x.id] ? ' aria-disabled="true"' : '') + '>I followed up<span class="sr"> with ' + esc(coOr(x)) + '</span></button>' : '') /* r45: the one follow-up control; the same board followedup request as before */ + '</p>'; }).join('') + '</div>';
 }
 /* the Due group at the top of Applications */
 function r44DueGroup() {

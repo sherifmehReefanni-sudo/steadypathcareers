@@ -1,18 +1,20 @@
 /* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage, and a page opened with ?t= or ?k= is not stored at all. Assets: cache first. API calls (script.google.com) are never touched, so no client data is ever cached. */
-var V = 'sp-20261112r44';
+var V = 'sp-20261113r45';
 var ASSETS = ['/', '/offline.html', '/assets/site.css?v=sp-20261110r30', '/assets/site.js?v=sp-20261112r43', '/assets/path.css?v=sp-20261110r30', '/assets/path.js?v=20261026a', '/assets/r17.css?v=sp-20261110r30', '/assets/r17.js?v=20261106a', '/assets/portal.css?v=sp-20261110r30', '/assets/portal.js?v=20261024e', '/assets/fx.js?v=20261024d', '/assets/intake.js?v=20261024d', '/assets/intake2.js?v=sp-20261112r41', '/assets/theme.css?v=sp-20261110r32', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
 /* r43: '/' is precached, so the home page opens offline after one visit (stored under its path, the key navigations look up). Nothing under /media/ is ever precached. */
 /* r26: new logo. Install fetches every file above past the browser's HTTP cache (cache: 'reload'), so the new mark and icons arrive fresh. */
 /* round 18: the portal's app shell (the page and its round 18 files). Never client data: the API is cross-origin and never touched. */
-ASSETS = ASSETS.concat(['/portal/', '/assets/portal-r18.css?v=sp-20261110r30', '/assets/portal-r18.js?v=sp-20261112r36']);
+ASSETS = ASSETS.concat(['/portal/', '/assets/portal-r18.css?v=sp-20261110r30', '/assets/portal-r18.js?v=sp-20261113r45']);
 /* r27: Find Your Fit files (r35: deeper quiz, work preferences, weekly match check-in; r36: score meaning line) */
 ASSETS = ASSETS.concat(['/assets/fit-r35.css?v=sp-20261112r36', '/assets/fit-r35.js?v=sp-20261112r36']);
 /* r37: new home page files */
 ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261112r41', '/assets/home-r37.js?v=sp-20261112r43']);
 /* r42: portal revamp files (Home, five destinations) */
-ASSETS = ASSETS.concat(['/assets/portal-r42.css?v=sp-20261112r43', '/assets/portal-r42.js?v=sp-20261112r44']);
+ASSETS = ASSETS.concat(['/assets/portal-r42.css?v=sp-20261112r43', '/assets/portal-r42.js?v=sp-20261113r45']);
 /* r44: portal Home redesign and the client tools (follow-ups, offer check, interview practice) with their data files */
-ASSETS = ASSETS.concat(['/assets/portal-r44.css?v=sp-20261112r44', '/assets/portal-r44.js?v=sp-20261112r44', '/assets/data/followup-scripts.json', '/assets/data/interview-bank.json']);
+ASSETS = ASSETS.concat(['/assets/portal-r44.css?v=sp-20261113r45', '/assets/portal-r44.js?v=sp-20261113r45', '/assets/data/followup-scripts.json', '/assets/data/interview-bank.json']);
+/* r45: training and benefits finder */
+ASSETS = ASSETS.concat(['/assets/portal-r45.css?v=sp-20261113r45', '/assets/portal-r45.js?v=sp-20261113r45', '/assets/data/training-finder.json']);
 /* r38: the How we check every job page */
 ASSETS = ASSETS.concat(['/how-we-check/']);
 self.addEventListener('install', function (e) {

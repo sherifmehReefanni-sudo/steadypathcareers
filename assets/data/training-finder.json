@@ -1,0 +1,894 @@
+{
+ "note": "Public programs run by other organizations. Only entries labelled CONFIRMED in r41/training_finder_data.json are here; who, cost and how-to summaries are left out on purpose, so the tool shows the program's own words (quote) and a link, never our restatement. Unemployment how-to-file entries carry a link only.",
+ "reviewed": "2026-11-12",
+ "areas": [
+  [
+   "NJ",
+   "New Jersey"
+  ],
+  [
+   "NYC",
+   "New York City"
+  ],
+  [
+   "LongIsland",
+   "Long Island"
+  ],
+  [
+   "Westchester",
+   "Westchester"
+  ],
+  [
+   "Rockland",
+   "Rockland"
+  ],
+  [
+   "NY-statewide",
+   "New York, statewide"
+  ],
+  [
+   "Federal",
+   "Federal"
+  ]
+ ],
+ "kinds": [
+  [
+   "career-center",
+   "Career centers"
+  ],
+  [
+   "training",
+   "Training"
+  ],
+  [
+   "grant",
+   "Grants and tuition help"
+  ],
+  [
+   "certification",
+   "Certifications"
+  ],
+  [
+   "apprenticeship",
+   "Apprenticeships"
+  ],
+  [
+   "benefits",
+   "Benefits"
+  ]
+ ],
+ "fieldNames": {
+  "clinical": "Healthcare, clinical",
+  "nursing": "Nursing and allied health",
+  "it": "IT and tech",
+  "finance": "Finance and accounting",
+  "sales": "Sales and customer success",
+  "insurance": "Insurance",
+  "office": "Office, admin and HR",
+  "trades": "Skilled trades and construction",
+  "education": "Education",
+  "retail": "Retail, hospitality and service",
+  "logistics": "Logistics, warehouse and drivers",
+  "legal": "Legal",
+  "other": "Something else"
+ },
+ "entries": [
+  {
+   "id": "nj-one-stop",
+   "name": "One-Stop Career Centers",
+   "runBy": "NJ Department of Labor and Workforce Development",
+   "area": "NJ",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nj.gov/labor/career-services/contact-us/one-stops/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"qualified employment counselors to provide guidance for jobseekers\"; \"Walk into any One-Stop Career Center\""
+  },
+  {
+   "id": "nj-training-grants",
+   "name": "Opportunity Partnership Program and On-the-Job Training",
+   "runBy": "NJ Department of Labor and Workforce Development",
+   "area": "NJ",
+   "kind": "grant",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nj.gov/labor/career-services/education-training/training",
+   "checkedOn": "2026-11-12",
+   "quote": "\"You may not self-enroll prior to the approval from the job counselors.\"; \"You must be authorized to work in the US.\""
+  },
+  {
+   "id": "nj-skillup",
+   "name": "SkillUp NJ: free online learning",
+   "runBy": "NJ Department of Labor and Workforce Development",
+   "area": "NJ",
+   "kind": "certification",
+   "fields": [
+    "it",
+    "office",
+    "sales",
+    "retail",
+    "finance"
+   ],
+   "url": "https://www.nj.gov/labor/career-services/education-training/skillup-nj",
+   "checkedOn": "2026-11-12",
+   "quote": "\"build in-demand skills at no cost\"; \"training tracks leading to more than 100 industry certifications\""
+  },
+  {
+   "id": "nj-apprenticeship",
+   "name": "Registered Apprenticeship: become an apprentice",
+   "runBy": "NJ Department of Labor and Workforce Development, Office of Apprenticeship",
+   "area": "NJ",
+   "kind": "apprenticeship",
+   "fields": [
+    "trades",
+    "clinical",
+    "nursing",
+    "it",
+    "finance",
+    "retail",
+    "logistics"
+   ],
+   "url": "https://www.nj.gov/labor/career-services/apprenticeship/findaprogram.shtml",
+   "checkedOn": "2026-11-12",
+   "quote": "\"apprentices are paid while they are learning\"; \"Fill out our online form to connect with us and get more information.\""
+  },
+  {
+   "id": "nj-ccog",
+   "name": "Community College Opportunity Grant (CCOG)",
+   "runBy": "NJ Higher Education Student Assistance Authority (HESAA)",
+   "area": "NJ",
+   "kind": "grant",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.hesaa.org/pages/ccog.aspx",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Adjusted Gross Income (AGI) between $0 - $65,000\"; \"Enroll in at least six (6) credits per semester\""
+  },
+  {
+   "id": "nj-tag",
+   "name": "Tuition Aid Grant (TAG)",
+   "runBy": "NJ Higher Education Student Assistance Authority (HESAA)",
+   "area": "NJ",
+   "kind": "grant",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.hesaa.org/Pages/TAG.aspx",
+   "checkedOn": "2026-11-12",
+   "quote": "\"TAG award amounts vary based on the type of institution at which students enroll.\""
+  },
+  {
+   "id": "nj-tuition-waiver-njit",
+   "name": "Unemployment Tuition Waiver (as applied at NJIT)",
+   "runBy": "New Jersey Institute of Technology, Office of Student Financial Aid Services (state program)",
+   "area": "NJ",
+   "kind": "grant",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.njit.edu/financialaid/node/306",
+   "checkedOn": "2026-11-12",
+   "quote": "\"allow certain unemployed individuals to attend a public institution of higher education\"; \"up to 19 credits\""
+  },
+  {
+   "id": "nj-middlesex-college-unemployed",
+   "name": "Unemployment Resources: training funds and tuition waiver",
+   "runBy": "Middlesex College (public county college)",
+   "area": "NJ",
+   "kind": "grant",
+   "fields": [
+    "all"
+   ],
+   "url": "https://middlesexcollege.edu/academics/career-planning/career-planning-for-students/unemployment-resources/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Determination of eligibility is made by the Department of Labor and Workforce Development\"; \"(up to $4,000 in cost)\""
+  },
+  {
+   "id": "nj-union-county-ajc",
+   "name": "Union County American Job Centers (Workforce Development)",
+   "runBy": "Union County Department of Human Services",
+   "area": "NJ",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://ucnj.org/dhs/workforce-development/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Occupational skills training and Individual Training Accounts (ITA)\"; \"Available by Appointment and Walk-In Assistance\""
+  },
+  {
+   "id": "nj-dvrs",
+   "name": "Vocational Rehabilitation Services (DVRS)",
+   "runBy": "NJ Department of Labor and Workforce Development, Division of Vocational Rehabilitation Services",
+   "area": "NJ",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nj.gov/labor/career-services/special-services/individuals-with-disabilities/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"If you want to investigate our services, you can refer yourself!\""
+  },
+  {
+   "id": "nj-workforce55",
+   "name": "WorkForce 55+ (Mature Workers)",
+   "runBy": "NJ Department of Labor and Workforce Development",
+   "area": "NJ",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nj.gov/labor/career-services/special-services/mature-workers",
+   "checkedOn": "2026-11-12",
+   "quote": "\"You must be 55 years of age or older.\"; \"please complete our online services request form\""
+  },
+  {
+   "id": "nj-displaced-homemakers",
+   "name": "Displaced Homemakers programs",
+   "runBy": "NJ Department of Labor and Workforce Development (local county programs)",
+   "area": "NJ",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nj.gov/labor/career-services/special-services/displaced-homemakers",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Job counseling, training, and placement assistance\"; \"Computer literacy training\""
+  },
+  {
+   "id": "nj-adult-ed",
+   "name": "Adult Education and Literacy Training",
+   "runBy": "NJ Department of Labor and Workforce Development",
+   "area": "NJ",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nj.gov/labor/career-services/education-training/adult-education/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"To inquire about these programs, please complete our online services request form\""
+  },
+  {
+   "id": "nj-ui-file",
+   "name": "Unemployment Insurance: how to apply online",
+   "runBy": "NJ Department of Labor and Workforce Development, Division of Unemployment Insurance",
+   "area": "NJ",
+   "kind": "benefits",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nj.gov/labor/myunemployment/before/about/howtoapply/applyonline.shtml",
+   "checkedOn": "2026-11-12",
+   "unemployment": true
+  },
+  {
+   "id": "nj-ui-training",
+   "name": "Training while collecting unemployment, and Additional Benefits during Training (ABT)",
+   "runBy": "NJ Department of Labor and Workforce Development, Division of Unemployment Insurance",
+   "area": "NJ",
+   "kind": "benefits",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nj.gov/labor/myunemployment/jobseekers/training/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Before enrolling in training, schedule an appointment with a One-Stop career counselor.\"; \"you may be approved to receive up to 26 weeks of benefits.\""
+  },
+  {
+   "id": "ny-career-centers",
+   "name": "New York State Career Centers (locator)",
+   "runBy": "NY State Department of Labor",
+   "area": "NY-statewide",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://dol.ny.gov/career-centers",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Use the Career Center locator to find your center\""
+  },
+  {
+   "id": "ny-coursera",
+   "name": "Online Learning with Coursera",
+   "runBy": "NY State Department of Labor",
+   "area": "NY-statewide",
+   "kind": "certification",
+   "fields": [
+    "it",
+    "finance",
+    "office",
+    "sales"
+   ],
+   "url": "https://dol.ny.gov/online-learning-coursera",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Through Coursera, unemployed New Yorkers will have access to nearly 4,000 programs.\""
+  },
+  {
+   "id": "ny-apprenticeship",
+   "name": "NYS Registered Apprenticeship: become an apprentice",
+   "runBy": "NY State Department of Labor",
+   "area": "NY-statewide",
+   "kind": "apprenticeship",
+   "fields": [
+    "trades",
+    "clinical",
+    "it",
+    "logistics"
+   ],
+   "url": "https://dol.ny.gov/apprenticeship/become-apprentice",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Apprenticeship training is usually offered by the sponsor at no cost to you.\""
+  },
+  {
+   "id": "ny-apprenticeship-announcements",
+   "name": "Apprenticeship recruitment announcements",
+   "runBy": "NY State Department of Labor",
+   "area": "NY-statewide",
+   "kind": "apprenticeship",
+   "fields": [
+    "trades"
+   ],
+   "url": "https://dol.ny.gov/apprenticeship/apprenticeship-announcements",
+   "checkedOn": "2026-11-12",
+   "quote": "\"find open opportunities in every corner of New York State.\""
+  },
+  {
+   "id": "ny-599",
+   "name": "599 Program: approved training while collecting unemployment",
+   "runBy": "NY State Department of Labor",
+   "area": "NY-statewide",
+   "kind": "benefits",
+   "fields": [
+    "all"
+   ],
+   "url": "https://dol.ny.gov/599-program",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Section 599 is a provision of the Unemployment Insurance (UI) Law.\"; \"There is currently a waiting list for 599.2 funds.\""
+  },
+  {
+   "id": "ny-etpl",
+   "name": "Training Opportunities: Eligible Training Provider List and On-the-Job Training",
+   "runBy": "NY State Department of Labor",
+   "area": "NY-statewide",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://dol.ny.gov/training-opportunities",
+   "checkedOn": "2026-11-12",
+   "quote": "\"This is a list of all approved training providers statewide.\""
+  },
+  {
+   "id": "ny-part-time-tap",
+   "name": "Part-Time Tuition Assistance Program (TAP)",
+   "runBy": "NYS Higher Education Services Corporation (HESC)",
+   "area": "NY-statewide",
+   "kind": "grant",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.hesc.ny.gov/find-aid/nys-grants-scholarships/part-time-tap",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Available to students taking three to eleven credits per semester.\""
+  },
+  {
+   "id": "ny-acces-vr",
+   "name": "ACCES-VR vocational rehabilitation",
+   "runBy": "NYS Education Department, Adult Career and Continuing Education Services",
+   "area": "NY-statewide",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.acces.nysed.gov/vr/apply-vocational-rehabilitation-services",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Submit your application to the District Office closest to you.\"; home page: \"ACCES-VR is accepting applications both by email and mail.\""
+  },
+  {
+   "id": "ny-eoc",
+   "name": "SUNY Educational Opportunity Centers (directory)",
+   "runBy": "State University of New York, University Center for Academic and Workforce Development",
+   "area": "NY-statewide",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.ucawd.suny.edu/eoc",
+   "checkedOn": "2026-11-12",
+   "quote": "\"tuition-free programs and services in New York's urban centers\""
+  },
+  {
+   "id": "ny-attain",
+   "name": "ATTAIN technology labs",
+   "runBy": "State University of New York, University Center for Academic and Workforce Development",
+   "area": "NY-statewide",
+   "kind": "certification",
+   "fields": [
+    "office",
+    "finance",
+    "it"
+   ],
+   "url": "https://www.ucawd.suny.edu/attain",
+   "checkedOn": "2026-11-12",
+   "quote": "\"at no cost to the participant\"; certifications named: \"Microsoft Office Specialist (MOS)\", \"Intuit QuickBooks\""
+  },
+  {
+   "id": "nyc-workforce1",
+   "name": "Workforce1 Career Centers",
+   "runBy": "NYC Department of Small Business Services (SBS)",
+   "area": "NYC",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/wf1-career-centers.page",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Workforce1 can help you find and prepare for the job you want - for free.\""
+  },
+  {
+   "id": "nyc-virtual-workforce1",
+   "name": "Virtual Workforce1 Career Center System",
+   "runBy": "NYC Department of Small Business Services (SBS)",
+   "area": "NYC",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/virtual-wf1cc.page",
+   "checkedOn": "2026-11-12",
+   "quote": "\"All of our services are no-cost and do not require in-person visits.\""
+  },
+  {
+   "id": "nyc-healthcare-finance-ops",
+   "name": "Healthcare Finance and Operations training",
+   "runBy": "NYC Department of Small Business Services (SBS)",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "clinical",
+    "office",
+    "finance"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/healthcare-training.page",
+   "checkedOn": "2026-11-12",
+   "quote": "\"This program is currently recruiting qualified candidates.\""
+  },
+  {
+   "id": "nyc-nclex-rn",
+   "name": "NCLEX-RN Preparation for Foreign-Trained Nurses",
+   "runBy": "NYC Department of Small Business Services (SBS) with LaGuardia Community College and Lehman College",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "nursing"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/healthcare-training.page?question=nclexrn",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Applications for the NCLEX-RN Preparation for Foreign-Trained Nurses training program are currently open.\""
+  },
+  {
+   "id": "nyc-cable-installation",
+   "name": "Cable Installation training",
+   "runBy": "NYC Department of Small Business Services (SBS)",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "trades",
+    "it"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/industrial-training.page?question=cable",
+   "checkedOn": "2026-11-12",
+   "quote": "\"This program is currently recruiting qualified candidates.\""
+  },
+  {
+   "id": "nyc-hvac-preapprenticeship",
+   "name": "HVAC Pre-Apprenticeship Training Program",
+   "runBy": "NYC Department of Small Business Services (SBS)",
+   "area": "NYC",
+   "kind": "apprenticeship",
+   "fields": [
+    "trades"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/access-training.page",
+   "checkedOn": "2026-11-12",
+   "quote": "\"All candidates must meet the following eligibility requirements:\""
+  },
+  {
+   "id": "nyc-coolroofs",
+   "name": "NYC CoolRoofs",
+   "runBy": "NYC Department of Small Business Services (SBS)",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "trades"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/industrial-training.page?question=coolroofs",
+   "checkedOn": "2026-11-12",
+   "quote": "\"please complete our NYC °CoolRoofs interest form.\""
+  },
+  {
+   "id": "nyc-first-course",
+   "name": "First Course NYC (culinary apprenticeship)",
+   "runBy": "NYC Department of Small Business Services (SBS)",
+   "area": "NYC",
+   "kind": "apprenticeship",
+   "fields": [
+    "retail"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/food-service.page",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Eight weeks of free, hands-on culinary training\"; \"Make no more than $50,000 annually\"; \"This program is currently recruiting qualified candidates.\""
+  },
+  {
+   "id": "nyc-foundational-launchpad",
+   "name": "Foundational Launchpad (intro to coding)",
+   "runBy": "NYC Department of Small Business Services (SBS)",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "it"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/tech-training.page",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Unemployed, or earn $50,000 or less if currently employed.\"; \"Applications for this program are currently open.\""
+  },
+  {
+   "id": "nyc-future-code",
+   "name": "Future Code NYC (web development)",
+   "runBy": "NYC Department of Small Business Services (SBS)",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "it"
+   ],
+   "url": "https://www.nyc.gov/site/sbs/careers/tech-training.page?question=futurecode",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Eligibility does not guarantee acceptance.\"; \"Applications for this program are currently open.\""
+  },
+  {
+   "id": "nyc-nypl-techconnect",
+   "name": "NYPL TechConnect computer classes",
+   "runBy": "The New York Public Library",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "it",
+    "office"
+   ],
+   "url": "https://www.nypl.org/techconnect",
+   "checkedOn": "2026-11-12",
+   "quote": "\"helps adults develop confidence in their computer skills\"; \"all absolutely free!\""
+  },
+  {
+   "id": "nyc-nypl-career-services",
+   "name": "NYPL Career Services (coaching, resume help)",
+   "runBy": "The New York Public Library",
+   "area": "NYC",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nypl.org/education/adults/career-services",
+   "checkedOn": "2026-11-12",
+   "quote": "\"We offer FREE virtual and in-person support.\""
+  },
+  {
+   "id": "nyc-bronx-eoc",
+   "name": "SUNY Bronx Educational Opportunity Center",
+   "runBy": "State University of New York (Bronx EOC)",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "clinical",
+    "nursing",
+    "office",
+    "it",
+    "other"
+   ],
+   "url": "http://www.bronxeoc.org/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Get the right training and preparation at no cost to you.\"; \"No student loans or any financial aid required.\""
+  },
+  {
+   "id": "nyc-manhattan-eoc",
+   "name": "SUNY Manhattan Educational Opportunity Center",
+   "runBy": "State University of New York (Manhattan EOC, hosted at Borough of Manhattan Community College)",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "clinical",
+    "nursing",
+    "office",
+    "finance",
+    "it",
+    "logistics",
+    "retail",
+    "trades"
+   ],
+   "url": "https://www.bmcc.cuny.edu/meoc/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"We offer free programs to help you learn English\"; \"Register Here for All Sessions.\""
+  },
+  {
+   "id": "nyc-queens-eoc",
+   "name": "SUNY Queens Educational Opportunity Center",
+   "runBy": "State University of New York (Queens EOC, administered by York College)",
+   "area": "NYC",
+   "kind": "training",
+   "fields": [
+    "trades",
+    "clinical",
+    "office",
+    "other"
+   ],
+   "url": "https://www.queenseoc.net/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"ALL EOC PROGRAMS ARE TUITION-FREE FOR ELIGIBLE APPLICANTS.\"; \"A valid photo ID is required to be admitted to the Queens EOC.\""
+  },
+  {
+   "id": "li-hempsteadworks",
+   "name": "HempsteadWorks Career Center",
+   "runBy": "Town of Hempstead / City of Long Beach Workforce Development Board",
+   "area": "LongIsland",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.hempsteadworks.com/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Access approved training programs that prepare you for in-demand careers.\"; \"To access these services, start here.\""
+  },
+  {
+   "id": "li-workforce-partnership",
+   "name": "The Workforce Partnership career centers (Hicksville and Massapequa)",
+   "runBy": "The Workforce Partnership, a consortium of the Town of Oyster Bay, Town of North Hempstead and City of Glen Cove",
+   "area": "LongIsland",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://thewp.org/about-us/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"The Workforce Partnership (TWP) is a consortium of local governments\"; \"These services are free for you.\""
+  },
+  {
+   "id": "li-hicksville-nysdol",
+   "name": "Hicksville Career Center (state listing)",
+   "runBy": "NY State Department of Labor",
+   "area": "LongIsland",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://dol.ny.gov/location/hicksville-career-center",
+   "checkedOn": "2026-11-12",
+   "quote": "\"offers free services to help you in the job search process\""
+  },
+  {
+   "id": "li-nassau-employment",
+   "name": "Nassau County Employment Services (includes 55+ job placement)",
+   "runBy": "Nassau County, NY",
+   "area": "LongIsland",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.nassaucountyny.gov/3300/Employment-Services",
+   "checkedOn": "2026-11-12",
+   "quote": "\"offers a free employment service for Nassau County residents age 55 and over\""
+  },
+  {
+   "id": "li-suffolk-one-stop",
+   "name": "Suffolk County One-Stop Employment Center (Hauppauge)",
+   "runBy": "Suffolk County Department of Labor, Licensing and Consumer Affairs",
+   "area": "LongIsland",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://suffolkcountyny.gov/Labor",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Quality job training, job development, placement and supportive services are provided.\""
+  },
+  {
+   "id": "li-patchogue-career-center",
+   "name": "Workforce New York Career Center (Patchogue)",
+   "runBy": "NY State Department of Labor",
+   "area": "LongIsland",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://dol.ny.gov/location/workforce-new-york-career-center",
+   "checkedOn": "2026-11-12",
+   "quote": "\"free services to help you in the job search process\""
+  },
+  {
+   "id": "li-lieoc",
+   "name": "Long Island Educational Opportunity Center (LIEOC)",
+   "runBy": "State University of New York, sponsored by Farmingdale State College",
+   "area": "LongIsland",
+   "kind": "training",
+   "fields": [
+    "other",
+    "logistics",
+    "office"
+   ],
+   "url": "https://www.longislandeoc.org/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"our classes are all tuition-free.\""
+  },
+  {
+   "id": "wc-weoc",
+   "name": "SUNY Westchester Educational Opportunity Center (WEOC)",
+   "runBy": "State University of New York, administered by SUNY Westchester Community College",
+   "area": "Westchester",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://sunyweoc.org/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"provides tuition-free education\""
+  },
+  {
+   "id": "rk-career-center",
+   "name": "Rockland Works Career Center / Rockland County Career Center (Nyack)",
+   "runBy": "NY State Department of Labor listing (Rockland local workforce area)",
+   "area": "Rockland",
+   "kind": "career-center",
+   "fields": [
+    "all"
+   ],
+   "url": "https://dol.ny.gov/location/rockland-works-career-center",
+   "checkedOn": "2026-11-12",
+   "quote": "\"offers free services to help you in the job search process.\""
+  },
+  {
+   "id": "rk-rcc-reconnect",
+   "name": "SUNY Reconnect at Rockland Community College",
+   "runBy": "Rockland Community College (SUNY)",
+   "area": "Rockland",
+   "kind": "grant",
+   "fields": [
+    "nursing",
+    "it",
+    "trades",
+    "clinical"
+   ],
+   "url": "https://sunyrockland.edu/financial-aid/financial-aid-dept/freecc/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Complete your 2026-2027 FAFSA and 2026-2027 TAP applications.\"; \"covers the cost of tuition, fees, books, and supplies\""
+  },
+  {
+   "id": "fed-ticket-to-work",
+   "name": "Ticket to Work",
+   "runBy": "Social Security Administration",
+   "area": "Federal",
+   "kind": "benefits",
+   "fields": [
+    "all"
+   ],
+   "url": "https://choosework.ssa.gov/about/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"The Ticket Program is free and voluntary.\"; \"You can call the Ticket to Work Help Line at 1-866-968-7842.\""
+  },
+  {
+   "id": "fed-wioa",
+   "name": "Workforce Innovation and Opportunity Act (WIOA): what it is",
+   "runBy": "U.S. Department of Labor, Employment and Training Administration",
+   "area": "Federal",
+   "kind": "grant",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.dol.gov/agencies/eta/wioa/about",
+   "checkedOn": "2026-11-12",
+   "quote": "\"designed to help job seekers access employment, education, training, and support services.\""
+  },
+  {
+   "id": "fed-adult-training",
+   "name": "Adult and dislocated worker training programs",
+   "runBy": "U.S. Department of Labor",
+   "area": "Federal",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.dol.gov/general/topic/training/adulttraining",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Services are designed to meet local needs and may vary from state to state.\""
+  },
+  {
+   "id": "fed-apprenticeship-finder",
+   "name": "Apprenticeship Finder",
+   "runBy": "U.S. Department of Labor (Apprenticeship.gov)",
+   "area": "Federal",
+   "kind": "apprenticeship",
+   "fields": [
+    "trades",
+    "it",
+    "clinical",
+    "logistics",
+    "finance"
+   ],
+   "url": "https://www.apprenticeship.gov/apprenticeship-job-finder",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Search open apprenticeship job opportunities from employers across the country.\""
+  },
+  {
+   "id": "fed-job-corps",
+   "name": "Job Corps",
+   "runBy": "U.S. Department of Labor",
+   "area": "Federal",
+   "kind": "training",
+   "fields": [
+    "trades",
+    "clinical",
+    "it",
+    "retail",
+    "logistics",
+    "office"
+   ],
+   "url": "https://www.jobcorps.gov/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"the nation's largest free, residential career training and education program\""
+  },
+  {
+   "id": "fed-scsep",
+   "name": "Senior Community Service Employment Program (SCSEP)",
+   "runBy": "U.S. Department of Labor, Employment and Training Administration",
+   "area": "Federal",
+   "kind": "training",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.dol.gov/agencies/eta/seniors",
+   "checkedOn": "2026-11-12",
+   "quote": "\"a community service and work-based job training program for older Americans.\""
+  },
+  {
+   "id": "fed-fmcsa-tpr",
+   "name": "Training Provider Registry (required CDL entry-level training)",
+   "runBy": "U.S. Department of Transportation, Federal Motor Carrier Safety Administration",
+   "area": "Federal",
+   "kind": "certification",
+   "fields": [
+    "logistics"
+   ],
+   "url": "https://tpr.fmcsa.dot.gov/",
+   "checkedOn": "2026-11-12",
+   "quote": "\"FMCSA's Training Provider Registry improves highway safety.\""
+  },
+  {
+   "id": "fed-irs-vita",
+   "name": "IRS tax volunteer training and certification (VITA/TCE)",
+   "runBy": "Internal Revenue Service",
+   "area": "Federal",
+   "kind": "certification",
+   "fields": [
+    "finance"
+   ],
+   "url": "https://www.irs.gov/individuals/irs-tax-volunteers",
+   "checkedOn": "2026-11-12",
+   "quote": "\"Training is offered both online and in the classroom.\""
+  },
+  {
+   "id": "fed-ui-how-to-file",
+   "name": "How do I file for unemployment insurance? (federal overview)",
+   "runBy": "U.S. Department of Labor",
+   "area": "Federal",
+   "kind": "benefits",
+   "fields": [
+    "all"
+   ],
+   "url": "https://www.dol.gov/general/topic/unemployment-insurance",
+   "checkedOn": "2026-11-12",
+   "unemployment": true
+  }
+ ]
+}

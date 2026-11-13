@@ -128,6 +128,7 @@ function vMore() {
   rows.push(['<button type="button" data-help>', 'Help', 'Something broken or urgent, and how to reach us.', '</button>']);
   if (billOn()) rows.push(['<button type="button" data-go="billing">', 'Plan &amp; billing', '', '</button>']);
   if (typeof vOffer === 'function') rows.push(['<button type="button" data-go="offer">', 'Offer check', 'Compare an offer with posted pay.', '</button>']); /* r44 */
+  if (typeof vTraining === 'function') rows.push(['<button type="button" data-go="training">', 'Training and benefits', 'Public programs, with links to their official pages.', '</button>']); /* r45 */
   rows.push(['<button type="button" data-go="prefs">', 'Search settings', 'Roles, pay floor, commute and how we contact you.', '</button>']);
   rows.push(['<button type="button" data-go="feedback">', 'Feedback', 'Tell us how it is going.', '</button>']);
   if (!standalone()) rows.push(['<a href="/app/">', 'Get the app', 'For your phone. No app store needed.', '</a>']);
