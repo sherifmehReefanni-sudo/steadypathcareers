@@ -93,6 +93,17 @@ if (typeof document !== 'undefined') {
     if (n) { n.textContent = k || ''; n.classList.toggle('none', !k); } if (sr) sr.textContent = k ? ', ' + k + ' chosen' : ', none chosen';
     r48Cut(c);
   };
+  /* The first star of a session says the saved-stars note. The status region is always in the page and only its text changes,
+     so screen readers announce it. It never takes a tap (pointer-events: none) and is placed in the half of the screen the
+     pressed star is not in: under the top edge when the star is low, above the tab bar (or the bottom edge) when it is high. */
+  var r48Say = function (id) {
+    var said = document.querySelector('[data-tfsaid]'), star = document.querySelector('[data-tfstar="' + cssq(id) + '"]'); if (!said) return;
+    var tab = document.querySelector('.tabbar'), tr = tab ? tab.getBoundingClientRect() : null, floor = tr && tr.height > 0 && tr.top < window.innerHeight ? window.innerHeight - tr.top : 0;
+    var sr = star ? star.getBoundingClientRect() : null, low = sr ? (sr.top + sr.bottom) / 2 > (window.innerHeight - floor) / 2 : false;
+    said.style.top = low ? '8px' : 'auto'; said.style.bottom = low ? 'auto' : (floor + 8) + 'px';
+    said.textContent = 'Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.';
+    clearTimeout(r48Say.t); r48Say.t = setTimeout(function () { var el = document.querySelector('[data-tfsaid]'); if (el) el.textContent = ''; }, 9000);
+  };
   var r48Cut = function (c) { if (!c) return; var max = c.scrollWidth - c.clientWidth; c.classList.toggle('cut-r', max > 1 && c.scrollLeft < max - 1); c.classList.toggle('cut-l', c.scrollLeft > 1); };
   var r48Open = function (on, focus) {
     var form = document.querySelector('.t45-filters'), b = document.querySelector('[data-tfopen]'); if (!form || !b) return;
@@ -114,7 +125,7 @@ if (typeof document !== 'undefined') {
   document.addEventListener('click', function (e) {
     if (!e.target.closest || !r44On() || S.view !== 'training' || !R44.training) return;
     var b = e.target.closest('[data-tfstar]');
-    if (b) { var id = b.getAttribute('data-tfstar'), s = r45Stars(); if (s[id]) delete s[id]; else s[id] = todayISO(); var saved = r44Save(); r45Patch(); if (s[id] && saved && !S.tfSaid) { S.tfSaid = true; var said = document.querySelector('[data-tfsaid]'); if (said) { said.textContent = 'Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.'; said.classList.add('on'); setTimeout(function () { said.classList.remove('on'); }, 9000); } } var again = document.querySelector('[data-tfstar="' + cssq(id) + '"]'); if (again) again.focus(); if (!saved) toast('This device would not save it.'); return; }
+    if (b) { var id = b.getAttribute('data-tfstar'), s = r45Stars(); if (s[id]) delete s[id]; else s[id] = todayISO(); var saved = r44Save(); r45Patch(); if (s[id] && saved && !S.tfSaid) { S.tfSaid = true; r48Say(id); } var again = document.querySelector('[data-tfstar="' + cssq(id) + '"]'); if (again) { try { again.focus({ preventScroll: true }); } catch (e2) { again.focus(); } } /* r48 review: focus goes back to the star without moving the page, so the star stays under the finger for a second tap */ if (!saved) toast('This device would not save it.'); return; }
     if (e.target.closest('[data-tfopen]')) { r48Open(!S.tfOpen, false); return; }
     if (e.target.closest('[data-tfclose]')) { r48Open(false, true); return; }
     var chip = e.target.closest('[data-tfdrop]');

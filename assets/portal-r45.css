@@ -78,9 +78,8 @@
   /* the form's parts become items of the page column, so the note about saved stars can sit after the list; the filter row keeps the card look */
   .t45-filters .p44-dev { font-size: 12.5px; line-height: 1.35; }
 }
-.t45-said { display: none; position: fixed; z-index: 30; left: 12px; right: 12px; bottom: max(84px, calc(env(safe-area-inset-bottom, 0px) + 84px)); margin: 0 auto; max-width: 520px; padding: 10px 14px; border-radius: 12px; background: var(--navy-fill); color: #fff; font-size: 14px; font-weight: 700; line-height: 1.35; box-shadow: 0 8px 24px rgba(16,33,58,.3); }
-.t45-said.on { display: block; }
-@media (min-width: 761px) { .t45-said { bottom: 24px; } }
+.t45-said { position: fixed; z-index: 60; left: 12px; right: 12px; bottom: 8px; margin: 0 auto; max-width: 520px; padding: 10px 14px; border-radius: 12px; background: var(--navy-fill); color: #fff; font-size: 14px; font-weight: 700; line-height: 1.35; box-shadow: 0 8px 24px rgba(16,33,58,.3); pointer-events: none; }
+.t45-said:empty { padding: 0; box-shadow: none; background: none; }
 @media (max-width: 379px) {
   .t45 { gap: 8px; }
   .t45-note { font-size: 13.5px; line-height: 1.4; }
@@ -93,7 +92,7 @@
   .t45 .p44-sample { margin: 0; font-size: 13px; line-height: 1.3; }
   #tfOut { gap: 8px; }
 }
-@media (max-width: 345px) { .t45 { gap: 6px; } #tfOut { gap: 6px; } .t45-note { font-size: 12.5px; } /* three lines instead of four at 320, so the saved-stars note fits under the Filters row with 60px of the first program still showing */ .t45-fbtn > svg { display: none; } .t45-filters { padding: 6px 4px; row-gap: 4px; } .pmain.t45 { padding-top: 4px; } .t45-filters select { padding: 0 18px 0 7px; letter-spacing: -.01em; background-position: right 10px center, right 5px center; } } /* room for the saved-only chip on two lines at 320 */
+@media (max-width: 345px) { .t45 { gap: 6px; } #tfOut { gap: 6px; } .t45-note { font-size: 12.5px; } /* smaller text and tighter gaps at 320, so the saved-stars note fits under the Filters row with 60px of the first program still showing */ .t45-fbtn > svg { display: none; } .t45-filters { padding: 6px 4px; row-gap: 4px; } .pmain.t45 { padding-top: 4px; } .t45-filters select { padding: 0 18px 0 7px; letter-spacing: -.01em; background-position: right 10px center, right 5px center; } } /* room for the saved-only chip on two lines at 320 */
 @media (min-width: 780px) {
   .t45-filters { display: grid; grid-template-columns: minmax(190px, 190fr) minmax(211px, 211fr) minmax(286px, 286fr); gap: 10px 12px; align-items: end; padding: 12px; }
   .t45-fbtn, .t45-chips, .t45-chips.has, .t45-filters.is-open .t45-chips, .t45-done { display: none; }
