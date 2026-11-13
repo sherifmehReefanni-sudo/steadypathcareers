@@ -578,7 +578,6 @@ body.deck-lock { overflow: hidden; }
   .jc .ans3 { gap: 6px; padding-left: 18px; padding-right: 12px; }
   .jc .ans3 button { font-size: 15px; }
   .jc .ans3 button svg { display: none; }
-  .ptop .brand .bname { font-size: 15px; }
 }
 </style>
 <link rel="stylesheet" href="../assets/portal.css?v=sp-20261110r30">
@@ -637,6 +636,22 @@ body.deck-lock { overflow: hidden; }
 .ptop .phelp { margin-left: auto; flex: none; min-height: 44px; padding: 6px 12px; border: 1.5px solid rgba(251,246,238,.35); border-radius: 99px; background: transparent; color: var(--cream); font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; }
 .ptop .phelp:hover, .ptop .phelp[aria-current="page"] { background: rgba(251,246,238,.14); }
 .ptop .phelp + .theme-btn, .ptop .phelp + .acct { margin-left: 8px; }
+/* r47: the header on phones. The full name "Steady Path" always shows (never an ellipsis); Help is a round 44px "?" button so it
+   stays one tap away on every view; the Demo badge sits under the name instead of taking width from it. */
+.ptop .phelp .ph-i { display: none; }
+@media (max-width: 767px) {
+  .ptop { gap: 8px; position: relative; }
+  .ptop .brand { flex: none; gap: 8px; }
+  .ptop .brand .bname { overflow: visible; text-overflow: clip; font-size: 16px; }
+  #app .ptop .theme-btn { width: 44px; height: 44px; flex: none; margin-left: 0; }
+  #app .ptop .acct { margin-left: 0; }
+  .ptop .phelp { width: 44px; height: 44px; min-height: 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+  .ptop .phelp .ph-t { display: none; } .ptop .phelp .ph-i { display: inline; }
+  .ptop .phelp + .theme-btn, .ptop .phelp + .acct { margin-left: 0; }
+  .ptop.isdemo .brand .bname { transform: translateY(-8px); }
+  .ptop .demo-badge { position: absolute; left: 40px; top: calc(50% + 4px); font-size: 10px; line-height: 1.5; padding: 0 7px; pointer-events: none; }
+}
+@media (max-width: 339px) { .ptop { gap: 6px; } .ptop .brand .bname { font-size: 15px; } }
 .hcard { display: grid; gap: 10px; } .hcard p { margin: 0; overflow-wrap: anywhere; }
 .fbft { display: grid; gap: 6px; margin-top: 8px; }
 .fbft-n { font-weight: 700; color: var(--ink); }
@@ -1173,9 +1188,9 @@ function shell(active, title, sub) {
   var cl = S.data.client, first = cl.firstName || String(cl.name || '').split(' ')[0] || 'You';
   var cur = navOf(active);
   var tabs = TABS.map(function (t) { return '<button data-go="' + t[0] + '"' + (cur === t[0] ? ' aria-current="page"' : '') + '>' + IC[t[0]] + t[1] + tabMark(t[0]) + '</button>'; }).join('');
-  return '<header class="sky"><div class="wrap"><div class="ptop"><a class="brand" href="/"><span>' + SP.LOGO + '</span><span class="bname">Steady Path</span></a>' + (S.demo ? '<span class="demo-badge">Demo</span>' : '') +
+  return '<header class="sky"><div class="wrap"><div class="ptop' + (S.demo ? ' isdemo' : '') + '"><a class="brand" href="/"><span>' + SP.LOGO + '</span><span class="bname">Steady Path</span></a>' + (S.demo ? '<span class="demo-badge">Demo</span>' : '') +
     '<nav class="ptabs" aria-label="Portal">' + tabs + '</nav>' +
-    '<button type="button" class="phelp" data-help' + (S.view === 'feedback' && S.fbHelp ? ' aria-current="page"' : '') + '>Help</button>' + SP.themeBtn() + '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
+    '<button type="button" class="phelp" data-help' + (S.view === 'feedback' && S.fbHelp ? ' aria-current="page"' : '') + ' aria-label="Help"><span class="ph-t">Help</span><span class="ph-i" aria-hidden="true">?</span></button>' + SP.themeBtn() + '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
     (S.menu ? '<div class="menu" role="menu" aria-label="Account"><button role="menuitem" data-go="prefs">Your search settings</button><button role="menuitem" data-go="feedback">Give feedback</button>' + (typeof fitOn === 'function' && fitOn() ? '<button role="menuitem" data-go="fit">' + esc(FIT_NAME) + '</button>' : '') + (billOn() ? '<button role="menuitem" data-go="billing">Plan &amp; billing</button>' : '') + '<button role="menuitem" data-signout>Sign out on this device</button><p class="mhelp" role="none"><b>Need help?</b> ' + helpHtml() + '</p><div class="mlegal" role="none"><a role="menuitem" href="/privacy/">Privacy policy</a><a role="menuitem" href="/terms/">Terms</a></div></div>' : '') + '</div></div>' +
     '<div class="ptitle"><h1 tabindex="-1">' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div></div>' + SP.scene(64, active) + '</header>';
 }

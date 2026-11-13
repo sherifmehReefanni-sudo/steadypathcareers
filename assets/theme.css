@@ -505,6 +505,4 @@
     .ptop .brand .bname { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   }
 }
-@container ptop (max-width: 300px) {
-  .ptop .brand .bname { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-}
+/* r47: on phones the header now fits the full name at 320 wide (portal/index.html, "the header on phones"), so the very-small-phone rule that hid it is gone */
