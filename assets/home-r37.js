@@ -5,14 +5,14 @@
   /* Welcome video. While WELCOME_VIDEO is empty, the hero "Watch how it works" button, the "Watch" links
      and the whole theater section stay hidden. Set it to the mp4 path (for example '/img/welcome.mp4') and,
      if you have one, WELCOME_POSTER to a still image, and they all appear. */
-  var WELCOME_VIDEO = '';
+  var WELCOME_VIDEO = '/media/welcome.mp4';
   var WELCOME_POSTER = '/media/welcome-poster.jpg';
   /* The video's length as words (for example '53 seconds') and its chapters as [time, what it covers] pairs
      (for example [['0:00', 'Real jobs, with the pay right there'], ['0:10', '...']]). Fill these from the final cut.
      While they are empty, no length and no chapter list are shown anywhere. */
   var WELCOME_LENGTH = '59 seconds';
   var WELCOME_CAPTIONS = '/media/welcome.vtt';
-  var WELCOME_CHAPTERS = [['0:00', 'An application sent into the dark'], ['0:10', 'Why we built Steady Path Careers'], ['0:16', 'Find Your Fit'], ['0:23', 'Openings checked on the employer\'s own site'], ['0:30', 'What happens when you say yes'], ['0:44', 'You stay in control']];
+  var WELCOME_CHAPTERS = [['0:00', 'An application sent into the dark'], ['0:10', 'Why we built Steady Path Careers'], ['0:16', 'Find Your Fit'], ['0:25', 'Openings checked on the employer\'s own site'], ['0:30', 'What happens when you say yes'], ['0:44', 'You stay in control']];
 
   var root = document.documentElement;
   function $(id) { return document.getElementById(id); }
