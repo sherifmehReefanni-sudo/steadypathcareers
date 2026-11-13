@@ -579,6 +579,27 @@ a.tool:hover { transform: translateY(-4px); border-color: var(--gold); box-shado
 .fx-promise li { font-size: 18px; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) { a.tool { transition: none; } a.tool:hover { transform: none; } }
 @media print { .tool { break-inside: avoid; } }
+
+/* r47: on phones the tools come first. The header is short (small art beside the heading, no button: the tools are right
+   below), and each tool is a compact row, so two or more tools are on the first screen at 390x664. */
+@media (max-width: 760px) {
+  .phero-in { position: relative; padding-bottom: 6px; }
+  .phero .cta { display: none; }
+  .phero .kicker, .phero h1 { padding-right: 92px; }
+  .phero .sub { font-size: 16.5px; line-height: 1.45; margin-bottom: 0; max-width: none; }
+  .phero-art { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: 0; width: 84px; max-width: 84px; margin: 0; }
+  .phero .horizon { height: 40px; }
+  #tools.sec { padding: 18px 0 44px; }
+  #tools h2 { margin: 0 0 2px; font-size: 24px; }
+  #tools .lead { margin: 0 0 12px; font-size: 16px; }
+  .tools { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .tool { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; row-gap: 2px; padding: 14px 16px; border-radius: 16px; }
+  .tool .n { grid-column: 2; grid-row: 1; font-size: 12px; }
+  .tool svg.ic { grid-column: 1; grid-row: 1 / span 3; width: 40px; height: 40px; align-self: start; }
+  .tool h3 { grid-column: 2; grid-row: 2; margin: 0; font-size: 18px; line-height: 1.25; }
+  .tool p { grid-column: 2; grid-row: 3; font-size: 15.5px; line-height: 1.4; }
+  .tool em, .tool .badge { grid-column: 2; grid-row: 4; margin-top: 2px; padding-top: 2px; font-size: 15px; justify-self: start; }
+}
 '''
 
 ICONS = {
