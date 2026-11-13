@@ -10,7 +10,7 @@ ASSETS = ASSETS.concat(['/assets/fit-r35.css?v=sp-20261112r36', '/assets/fit-r35
 /* r37: new home page files */
 ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261112r41', '/assets/home-r37.js?v=sp-20261112r43']);
 /* r42: portal revamp files (Home, five destinations) */
-ASSETS = ASSETS.concat(['/assets/portal-r42.css?v=sp-20261112r42', '/assets/portal-r42.js?v=sp-20261112r42']);
+ASSETS = ASSETS.concat(['/assets/portal-r42.css?v=sp-20261112r43', '/assets/portal-r42.js?v=sp-20261112r43']);
 /* r38: the How we check every job page */
 ASSETS = ASSETS.concat(['/how-we-check/']);
 self.addEventListener('install', function (e) {

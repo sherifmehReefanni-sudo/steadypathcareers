@@ -131,10 +131,46 @@ function vMore() {
   rows.push(['<button type="button" data-go="feedback">', 'Feedback', 'Tell us how it is going.', '</button>']);
   if (!standalone()) rows.push(['<a href="/app/">', 'Get the app', 'For your phone. No app store needed.', '</a>']);
   rows.push(['<button type="button" data-signout>', 'Sign out', 'On this device.', '</button>']);
+  rows.push(['<button type="button" data-go="delete">', 'Delete my account', 'Ask us to delete your account and your data.', '</button>']);
   return shell('more', 'More', '') + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain m-main"><ul class="m-list">' + rows.map(function (r) { return '<li>' + r[0] + '<span class="m-tx"><b>' + r[1] + '</b>' + (r[2] ? '<span>' + r[2] + '</span>' : '') + '</span>' + IC.chev + r[3] + '</li>'; }).join('') + '</ul>' +
     '<footer class="help"><p><b>Need help?</b> ' + helpHtml() + '</p></footer>' + legalLinks() + '</main>' + tabbar('more');
 }
+
+/* ---- r43: Delete my account ----
+   A request, not a delete: the live API (v1.45) has no delete action. It is filed through the existing "prefs" action as a
+   "Delete my data" request whose note starts with the marker below, so it lands in the Requests tab and the owner's inbox like
+   every other portal request. The screen never says the account was deleted. The demo sends nothing. */
+var DEL_MARK = 'ACCOUNT DELETION REQUEST';
+var DEL_NEXT = 'It is reviewed within 1 business day, and you will get an email. We delete your information within 30 days and confirm by email. Nothing is deleted before then.';
+function delAsked() { return ((S.data && S.data.requests) || []).filter(function (r) { return r && r.type === 'Delete my data'; })[0] || null; }
+function vDelete() {
+  var D = S.del || (S.del = { v: '', err: '', done: false, demo: false }), F = S.pf || {}, asked = delAsked(), body;
+  var contact = '<p class="del-help">Questions? ' + helpHtml() + '</p>';
+  if (D.demo) body = '<div class="card del-done" role="status" tabindex="-1" id="delDone"><h2>This is the demo, so nothing was sent.</h2><p>In a real account this sends your delete request to Steady Path.</p><p><button type="button" class="btn ghost" data-go="more">Back to More</button></p></div>';
+  else if (D.done || asked) body = '<div class="card del-done" role="status" tabindex="-1" id="delDone"><h2>Your delete request was sent' + (asked && realISO(asked.date) ? ' on ' + esc(fmtY(String(asked.date).slice(0, 10))) : '') + '.</h2><p>Your account has not been deleted yet. ' + DEL_NEXT + '</p><p>Once your information is deleted, your search and this portal stop.</p><p><button type="button" class="btn ghost" data-go="home">Back to Home</button></p></div>' + contact;
+  else body = '<div class="card del-card"><h2 class="pf-h">What this does</h2>' +
+    '<p>This sends us a request to delete your account and your data: your resume and intake answers, your jobs, documents, applications and notes.</p>' +
+    '<h2 class="pf-h">What happens next</h2><p>' + DEL_NEXT + ' Once your information is deleted, your search and this portal stop.</p>' +
+    (billOn() && billHasPlan() ? '<p class="del-note"><b>You have a paid plan.</b> Cancel it under Plan &amp; billing before you send this. <button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></p>' : '') +
+    '<p class="del-note">Want a copy first? You can download your data in Search settings. <button type="button" class="linkbtn" data-go="prefs">Search settings</button></p>' +
+    '<label for="delType">Type DELETE to confirm</label><input id="delType" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="' + esc(D.v) + '"' + (D.err ? ' aria-invalid="true" aria-describedby="delErr"' : '') + '>' +
+    (D.err ? '<p class="err" role="alert" id="delErr">' + esc(D.err) + '</p>' : '') + (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
+    '<div class="del-acts"><button type="button" class="btn danger" data-delsend' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Sending…' : 'Send delete request') + '</button><button type="button" class="btn ghost" data-go="more">Cancel</button></div></div>' + contact;
+  return shell('', 'Delete my account', 'This sends a request. Nothing is deleted right away.') + '<div class="pband" aria-hidden="true"></div><main class="pmain del-main">' + body + '</main>' + tabbar('');
+}
+document.addEventListener('input', function (e) { if (e.target && e.target.id === 'delType' && S.del) S.del.v = e.target.value; });
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-delsend]'); if (!b || !S.data || S.pf.busy) return;
+  var D = S.del || (S.del = { v: '', err: '', done: false, demo: false }), el = document.getElementById('delType'); if (el) D.v = el.value;
+  if (D.done || delAsked()) return;
+  if (String(D.v).trim().toUpperCase() !== 'DELETE') { D.err = 'Type DELETE in the box to confirm.'; S.focusTo = '#delType'; render(); return; }
+  D.err = '';
+  if (S.demo) { D.demo = true; S.focusTo = '#delDone'; render(); return; } /* the demo sends nothing, not even to its own stand-in API */
+  sendRequest({ type: 'Delete my data', note: DEL_MARK + ': the client confirmed "Delete my account" in the portal by typing DELETE. Delete the account and all of this client\'s data.' }, function (ok) { if (ok) { D.done = true; D.v = ''; S.focusTo = '#delDone'; } });
+});
+/* leaving the screen clears what was typed */
+(function () { var base = go; go = function (view) { if (view !== 'delete' || S.view !== 'delete') S.del = null; return base.apply(this, arguments); }; })();
 
 /* Home's "Open this job": Jobs, with that job selected and in view */
 document.addEventListener('click', function (e) {

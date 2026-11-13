@@ -31,7 +31,7 @@ window.SP = (function () {
       var sw = navigator.serviceWorker, had = !!sw.controller, last = Date.now(), GAP = 30 * 60000;
       var typing = function () {
         var f = document.querySelectorAll('textarea, input'), i, el, ty;
-        for (i = 0; i < f.length; i++) { el = f[i]; ty = (el.getAttribute('type') || 'text').toLowerCase(); if (/^(hidden|checkbox|radio|submit|button|reset|file|range|color|image)$/.test(ty) || el.readOnly || el.disabled) continue; if (String(el.value || '').trim() && el.value !== el.defaultValue) return true; }
+        for (i = 0; i < f.length; i++) { el = f[i]; ty = (el.getAttribute('type') || 'text').toLowerCase(); if (/^(hidden|checkbox|radio|submit|button|reset|file|range|color|image)$/.test(ty) || el.readOnly || el.disabled) continue; if (String(el.value || '').trim()) return true; }
         return false;
       };
       var bar = function () {

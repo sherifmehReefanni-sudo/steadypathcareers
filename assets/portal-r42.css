@@ -77,3 +77,20 @@
 .m-tx b { color: var(--navy); font-size: 16.5px; }
 .m-tx span { color: var(--muted); font-size: 14px; }
 .m-list svg { width: 18px; height: 18px; flex: none; color: var(--muted); transform: rotate(-90deg); }
+
+/* ---- r43: Delete my account ---- */
+.del-card, .del-done { display: grid; gap: 10px; }
+.del-card p, .del-done p { margin: 0; line-height: 1.5; color: var(--ink); overflow-wrap: anywhere; }
+.del-card .pf-h, .del-done h2 { margin: 6px 0 0; font: 800 18px/1.25 var(--display); color: var(--navy); }
+.del-done h2:first-child, .del-card .pf-h:first-child { margin-top: 0; }
+.del-done:focus { outline: none; } .del-done:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.del-note { font-size: 15px; }
+.del-note .linkbtn { min-height: 44px; }
+.del-card label { font-weight: 800; color: var(--navy); margin-top: 6px; }
+.del-card input { width: 100%; max-width: 260px; min-height: 48px; padding: 10px 12px; border: 2px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; box-sizing: border-box; }
+.del-card input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-color: var(--navy); }
+.del-card input[aria-invalid="true"] { border-color: var(--bad); }
+.del-card .err { color: var(--bad); font-weight: 700; font-size: 14.5px; }
+.del-acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.del-acts .btn { min-height: 48px; }
+.del-help { margin: 0; color: var(--muted); font-size: 14.5px; }
