@@ -46,6 +46,16 @@ function r45Out() {
   });
   return '<p class="t45-count" role="status" data-tfcount>' + list.length + (list.length === 1 ? ' program' : ' programs') + ' of ' + D.entries.length + '</p>' + h;
 }
+var R48_FIC = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M7 12h10M10 17h4"/></svg>';
+function r48N(f) { return (f.area ? 1 : 0) + (f.kind ? 1 : 0) + (f.field ? 1 : 0); }
+/* the count sits in a slot of fixed width, so the button is the same size with nothing or three chosen */
+function r48Badge(f) { var n = r48N(f); return '<span class="t45-fn' + (n ? '' : ' none') + '" data-tfn aria-hidden="true">' + (n || '') + '</span><span class="sr" data-tfnsr>' + (n ? ', ' + n + ' chosen' : ', none chosen') + '</span>'; }
+function r48Chips(D, f) {
+  var name = function (list, v) { for (var i = 0; i < list.length; i++) if (list[i][0] === v) return list[i][1]; return v; };
+  var rows = [['area', 'Area', f.area ? name(D.areas, f.area) : ''], ['kind', 'Kind', f.kind ? name(D.kinds, f.kind) : ''], ['field', 'Career field', f.field ? (D.fieldNames[f.field] || f.field) : '']].filter(function (r) { return r[2]; });
+  if (!rows.length) return '<p class="t45-nochip">No filters chosen.</p>';
+  return rows.map(function (r) { return '<button type="button" class="t45-chip" data-tfdrop="' + r[0] + '" aria-label="Remove ' + esc(r[2]) + ' (' + r[1] + ' filter)"><span>' + esc(r[2]) + '</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'; }).join('');
+}
 function vTraining() {
   r44Need('training', R44_URL.training);
   var D = R44.training, f = D ? r45F() : null, body;
@@ -53,19 +63,44 @@ function vTraining() {
   else {
     var opt = function (list, cur, all) { return '<option value="">' + all + '</option>' + list.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (cur === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join(''); };
     var fields = Object.keys(D.fieldNames).map(function (k) { return [k, D.fieldNames[k]]; }), nSaved = Object.keys(r45Stars()).length;
-    body = '<form class="card p44-card t45-filters" onsubmit="return false" aria-label="Narrow the list"><div class="t45-three"><div' + (f.area ? ' data-set' : '') + '><label for="tfArea">Area</label><select id="tfArea" data-tff="area">' + opt(D.areas, f.area, 'All areas') + '</select></div>' +
-      '<div' + (f.kind ? ' data-set' : '') + '><label for="tfKind">Kind</label><select id="tfKind" data-tff="kind">' + opt(D.kinds, f.kind, 'All kinds') + '</select></div>' +
-      '<div' + (f.field ? ' data-set' : '') + '><label for="tfField">Career field</label><select id="tfField" data-tff="field">' + opt(fields, f.field, 'All fields') + '</select></div></div>' +
+    /* r48: on phones the three selects sit in a panel behind one Filters button; the chosen values show as chips that remove
+       themselves when tapped. From 780 wide the button and chips are not shown and the selects are always in view. Looks only:
+       the same three selects with the same ids, the same checkbox, the same filter state. */
+    var open = !!S.tfOpen;
+    body = '<form class="card p44-card t45-filters' + (open ? ' is-open' : '') + '" onsubmit="return false" aria-label="Narrow the list">' +
+      '<button type="button" class="t45-fbtn" data-tfopen aria-expanded="' + open + '" aria-controls="tfPanel">' + R48_FIC + '<span>Filters</span>' + r48Badge(f) + '</button>' +
       '<label class="p44-chk"><input type="checkbox" data-tfsaved' + (f.saved ? ' checked' : '') + '>Only the programs I saved</label>' +
+      '<div class="t45-chips' + (r48N(f) ? ' has' : '') + '" data-tfchips role="group" aria-label="Chosen filters">' + r48Chips(D, f) + '</div>' +
+      '<div class="t45-three" id="tfPanel"><div' + (f.area ? ' data-set' : '') + '><label for="tfArea">Area</label><select id="tfArea" data-tff="area">' + opt(D.areas, f.area, 'All areas') + '</select></div>' +
+      '<div' + (f.kind ? ' data-set' : '') + '><label for="tfKind">Kind</label><select id="tfKind" data-tff="kind">' + opt(D.kinds, f.kind, 'All kinds') + '</select></div>' +
+      '<div' + (f.field ? ' data-set' : '') + '><label for="tfField">Career field</label><select id="tfField" data-tff="field">' + opt(fields, f.field, 'All fields') + '</select></div>' +
+      '<button type="button" class="btn ghost t45-done" data-tfclose>Done</button></div>' +
       '<p class="psub p44-dev" data-r44dev>Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.</p></form>' +
       (r45Stale(D.reviewed, r44NyToday()) ? '<p class="warn t45-stale" role="status" data-tfstale>This list may be out of date.</p>' : '') +
-      '<div id="tfOut">' + r45Out() + '</div>';
+      '<div id="tfOut">' + r45Out() + '</div>' +
+      '<p class="psub t45-devcopy" data-tfdev2>Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.</p>'; /* r48: where phones show the note (under the list); the one in the form shows from 780 wide */
   }
   return shell('training', 'Training and benefits', D ? 'List last checked ' + esc(r45Date(D.reviewed)) + '.' : '') + '<div class="pband" aria-hidden="true"></div><main class="pmain p44 t45">' + r44Sample().replace('<span class="pill">Sample data</span> ', '') +
     '<p class="t45-note" data-tfnote>' + R45_NOTE + '</p>' + body + r42Foot() + '</main>' + tabbar('training');
 }
 if (typeof document !== 'undefined') {
-  var r45Patch = function () { var o = document.getElementById('tfOut'); if (o) o.innerHTML = r45Out(); };
+  var r45Patch = function () { var o = document.getElementById('tfOut'); if (o) o.innerHTML = r45Out(); r48Sync(); };
+  /* r48: the chips and the count follow the filter state */
+  var r48Sync = function () {
+    var c = document.querySelector('[data-tfchips]'), f = r45F(), D = R44.training; if (!c || !D) return;
+    c.innerHTML = r48Chips(D, f); c.classList.toggle('has', r48N(f) > 0);
+    var n = document.querySelector('[data-tfn]'), sr = document.querySelector('[data-tfnsr]'), k = r48N(f);
+    if (n) { n.textContent = k || ''; n.classList.toggle('none', !k); } if (sr) sr.textContent = k ? ', ' + k + ' chosen' : ', none chosen';
+    r48Cut(c);
+  };
+  var r48Cut = function (c) { if (!c) return; var max = c.scrollWidth - c.clientWidth; c.classList.toggle('cut-r', max > 1 && c.scrollLeft < max - 1); c.classList.toggle('cut-l', c.scrollLeft > 1); };
+  var r48Open = function (on, focus) {
+    var form = document.querySelector('.t45-filters'), b = document.querySelector('[data-tfopen]'); if (!form || !b) return;
+    S.tfOpen = !!on; form.classList.toggle('is-open', !!on); b.setAttribute('aria-expanded', on ? 'true' : 'false'); if (focus) b.focus();
+  };
+  document.addEventListener('scroll', function (e) { if (e.target && e.target.hasAttribute && e.target.hasAttribute('data-tfchips')) r48Cut(e.target); }, true);
+  window.addEventListener('resize', function () { r48Cut(document.querySelector('[data-tfchips]')); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.tfOpen && S.view === 'training' && e.target && e.target.closest && e.target.closest('.t45-filters')) { e.preventDefault(); r48Open(false, true); } });
   document.addEventListener('change', function (e) {
     var t = e.target; if (!t || !t.getAttribute || !r44On() || S.view !== 'training' || !R44.training) return;
     var k = t.getAttribute('data-tff'); if (k) { r45F()[k] = t.value; if (t.parentNode) { if (t.value) t.parentNode.setAttribute('data-set', ''); else t.parentNode.removeAttribute('data-set'); } /* r47: layout only; a filter with a value takes its own line so the value is never cut */ r45Patch(); return; }
@@ -75,7 +110,11 @@ if (typeof document !== 'undefined') {
     if (!e.target.closest || !r44On() || S.view !== 'training' || !R44.training) return;
     var b = e.target.closest('[data-tfstar]');
     if (b) { var id = b.getAttribute('data-tfstar'), s = r45Stars(); if (s[id]) delete s[id]; else s[id] = todayISO(); var saved = r44Save(); r45Patch(); var again = document.querySelector('[data-tfstar="' + cssq(id) + '"]'); if (again) again.focus(); if (!saved) toast('This device would not save it.'); return; }
-    if (e.target.closest('[data-tfclear]')) { S.tf = { area: '', kind: '', field: '', saved: false }; S.focusTo = '#tfArea'; render(); }
+    if (e.target.closest('[data-tfopen]')) { r48Open(!S.tfOpen, false); return; }
+    if (e.target.closest('[data-tfclose]')) { r48Open(false, true); return; }
+    var chip = e.target.closest('[data-tfdrop]');
+    if (chip) { var key = chip.getAttribute('data-tfdrop'), sel = document.querySelector('[data-tff="' + key + '"]'); r45F()[key] = ''; if (sel) { sel.value = ''; if (sel.parentNode) sel.parentNode.removeAttribute('data-set'); } r45Patch(); var next = document.querySelector('[data-tfdrop]') || document.querySelector('[data-tfopen]'); if (next) next.focus(); return; }
+    if (e.target.closest('[data-tfclear]')) { S.tf = { area: '', kind: '', field: '', saved: false }; S.focusTo = S.tfOpen || (window.matchMedia && window.matchMedia('(min-width: 780px)').matches) ? '#tfArea' : '[data-tfopen]'; /* r48: on a phone with the panel shut the selects are not on screen */ render(); }
   });
   /* More and Home list the tool. r44Tools is wrapped so nothing about the client decides its line. */
   (function () { var base = r44Tools; r44Tools = function () { var out = base.apply(this, arguments), row = ['training', 'Training and benefits', 'Public training and benefit programs, with links to their official pages.'], at = out.map(function (t) { return t[0]; }).indexOf('fit'); if (at < 0) out.push(row); else out.splice(at, 0, row); return out; }; })();
