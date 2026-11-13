@@ -438,3 +438,16 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
 .screen.has-poster .play,.screen.has-poster .len{z-index:1}
 .tx{margin-top:22px;max-width:60ch}.tx summary{cursor:pointer;min-height:44px;display:inline-flex;align-items:center;font-weight:700;color:#fff}
 .tx p{margin-top:10px;color:#C5CEDF;line-height:1.6;font-size:.98rem}
+
+/* r46: on phones, a Start free bar pinned to the bottom once the hero is out of view. Hidden near the footer, while a field
+   has focus, and while the menu or the video dialog is open (assets/home-r37.js). Never shown on wider screens. */
+.stickbar{display:none}
+@media (max-width:700px){
+  .stickbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;align-items:center;gap:12px;padding:10px max(16px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px));background:var(--night,#0E1A33);color:#DCE3F0;border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -10px 30px -18px rgba(0,0,0,.6);transform:translateY(110%);visibility:hidden;transition:transform .2s ease,visibility 0s linear .2s}
+  .stickbar[hidden]{display:none}
+  .stickbar.on{transform:none;visibility:visible;transition:transform .2s ease}
+  .stickbar .btn{flex:none;min-height:48px;padding:0 22px;white-space:nowrap}
+  .stickbar span{font-size:.84rem;line-height:1.3;min-width:0}
+  body.has-stick footer{padding-bottom:calc(34px + 72px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:700px) and (prefers-reduced-motion:reduce){.stickbar,.stickbar.on{transition:none}}

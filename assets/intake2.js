@@ -520,7 +520,7 @@
     return h('Where should we send your matches?', 'Your email is how you sign in. We call or text only about your search. We never sell your details or share them with employers.') +
       inp('name', 'First and last name, as it should appear on your resume', 'text', { ac: 'name', req: 1 }) +
       inp('email', 'Email you check daily', 'email', { ac: 'email', req: 1, im: 'email' }) +
-      inp('phone', 'Phone', 'tel', { ac: 'tel', req: 1, im: 'tel', ph: '732-555-0123', help: 'Why we ask: so we can call or text you about your search if email is not reaching you.' });
+      inp('phone', 'Phone', 'tel', { ac: 'tel', req: 1, im: 'tel', ph: '732-555-0123', help: 'Why we ask: so a person can reach you if a question about your search needs a quick answer.' });
   } });
   add({ id: 'reach', stop: 1, need: ['contactBy'], html: function () { return h('Best way to reach you?', '') + chips('contactBy', '', O.contactBy, { one: 1 }) + chips('times', 'Best times (optional)', O.times, {}); } });
   add({ id: 'where', stop: 1, need: ['city'], html: function () {
