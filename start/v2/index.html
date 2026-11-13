@@ -220,8 +220,10 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
 @media (max-width: 640px) { .i2-sheet.bare .i2-nav { margin-inline: -16px; padding-inline: 16px; } }
 /* r47 finish: on small phones the five path labels keep clear of one another, and the welcome card has one heading block:
    the small "Welcome" step label is kept for screen readers only, so nothing sits flush left above the indented name and greeting. */
-@media (max-width: 414px) { .i2-stops { font-size: 11.5px; column-gap: 2px; letter-spacing: -.01em; } }
-@media (max-width: 345px) { .i2-stops { font-size: 10.5px; } .i2-path { padding-left: 10px; padding-right: 10px; } }
+/* the stop names were drawn at 17px by an older list rule (.mk li), so on phones Details ran into Story. On phones they are
+   13px (12.5px on the narrowest), and the first and last sit under their own dots at the two ends of the line. */
+@media (max-width: 480px) { .i2-stops { column-gap: 4px; } .i2-stops li { font-size: 13px; } .i2-stops li:first-child { text-align: left; } .i2-stops li:last-child { text-align: right; } }
+@media (max-width: 345px) { .i2-stops li { font-size: 12.5px; } }
 .i2-sheet.bare .i2-step { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 /* r46: the count under the path, the welcome card's extra lines, the compact header */
 .i2-count#i2count { margin: 10px 2px 0; font-size: 14px; font-weight: 800; color: var(--navy); letter-spacing: .02em; }
