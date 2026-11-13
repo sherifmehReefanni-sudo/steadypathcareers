@@ -188,19 +188,6 @@
    "quote": "\"Determination of eligibility is made by the Department of Labor and Workforce Development\"; \"(up to $4,000 in cost)\""
   },
   {
-   "id": "nj-union-county-ajc",
-   "name": "Union County American Job Centers (Workforce Development)",
-   "runBy": "Union County Department of Human Services",
-   "area": "NJ",
-   "kind": "career-center",
-   "fields": [
-    "all"
-   ],
-   "url": "https://ucnj.org/dhs/workforce-development/",
-   "checkedOn": "2026-11-12",
-   "quote": "\"Occupational skills training and Individual Training Accounts (ITA)\"; \"Available by Appointment and Walk-In Assistance\""
-  },
-  {
    "id": "nj-dvrs",
    "name": "Vocational Rehabilitation Services (DVRS)",
    "runBy": "NJ Department of Labor and Workforce Development, Division of Vocational Rehabilitation Services",
@@ -485,19 +472,6 @@
    "quote": "\"This program is currently recruiting qualified candidates.\""
   },
   {
-   "id": "nyc-hvac-preapprenticeship",
-   "name": "HVAC Pre-Apprenticeship Training Program",
-   "runBy": "NYC Department of Small Business Services (SBS)",
-   "area": "NYC",
-   "kind": "apprenticeship",
-   "fields": [
-    "trades"
-   ],
-   "url": "https://www.nyc.gov/site/sbs/careers/access-training.page",
-   "checkedOn": "2026-11-12",
-   "quote": "\"All candidates must meet the following eligibility requirements:\""
-  },
-  {
    "id": "nyc-coolroofs",
    "name": "NYC CoolRoofs",
    "runBy": "NYC Department of Small Business Services (SBS)",
@@ -589,7 +563,7 @@
     "it",
     "other"
    ],
-   "url": "http://www.bronxeoc.org/",
+   "url": "https://www.bronxeoc.org/",
    "checkedOn": "2026-11-12",
    "quote": "\"Get the right training and preparation at no cost to you.\"; \"No student loans or any financial aid required.\""
   },
@@ -656,19 +630,6 @@
    "quote": "\"The Workforce Partnership (TWP) is a consortium of local governments\"; \"These services are free for you.\""
   },
   {
-   "id": "li-hicksville-nysdol",
-   "name": "Hicksville Career Center (state listing)",
-   "runBy": "NY State Department of Labor",
-   "area": "LongIsland",
-   "kind": "career-center",
-   "fields": [
-    "all"
-   ],
-   "url": "https://dol.ny.gov/location/hicksville-career-center",
-   "checkedOn": "2026-11-12",
-   "quote": "\"offers free services to help you in the job search process\""
-  },
-  {
    "id": "li-nassau-employment",
    "name": "Nassau County Employment Services (includes 55+ job placement)",
    "runBy": "Nassau County, NY",
@@ -693,19 +654,6 @@
    "url": "https://suffolkcountyny.gov/Labor",
    "checkedOn": "2026-11-12",
    "quote": "\"Quality job training, job development, placement and supportive services are provided.\""
-  },
-  {
-   "id": "li-patchogue-career-center",
-   "name": "Workforce New York Career Center (Patchogue)",
-   "runBy": "NY State Department of Labor",
-   "area": "LongIsland",
-   "kind": "career-center",
-   "fields": [
-    "all"
-   ],
-   "url": "https://dol.ny.gov/location/workforce-new-york-career-center",
-   "checkedOn": "2026-11-12",
-   "quote": "\"free services to help you in the job search process\""
   },
   {
    "id": "li-lieoc",
@@ -734,19 +682,6 @@
    "url": "https://sunyweoc.org/",
    "checkedOn": "2026-11-12",
    "quote": "\"provides tuition-free education\""
-  },
-  {
-   "id": "rk-career-center",
-   "name": "Rockland Works Career Center / Rockland County Career Center (Nyack)",
-   "runBy": "NY State Department of Labor listing (Rockland local workforce area)",
-   "area": "Rockland",
-   "kind": "career-center",
-   "fields": [
-    "all"
-   ],
-   "url": "https://dol.ny.gov/location/rockland-works-career-center",
-   "checkedOn": "2026-11-12",
-   "quote": "\"offers free services to help you in the job search process.\""
   },
   {
    "id": "rk-rcc-reconnect",
