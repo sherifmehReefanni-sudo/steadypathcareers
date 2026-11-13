@@ -167,22 +167,45 @@ function r44Email(text) { var m = String(text || '').match(/[A-Za-z0-9._%+-]+@[A
 function r44FuMarks(id) { var st = r44Store(); st.fu = st.fu || {}; return st.fu[id] || {}; }
 /* The guide in New York time: a thank-you is for the day of the interview, so "today" for it is the date in America/New_York. */
 function r44NyToday() { try { var p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); if (/^\d{4}-\d\d-\d\d$/.test(p)) return p; } catch (e) {} return todayISO(); }
-/* pure: what is due or coming for one application.
-   a: { col (1 submitted, 2 interview), status, interview, sub (submitted on), sent (the last follow-up date the API holds),
-        own (the "Follow up on" date the client set themselves; it wins over the guide's interval until a follow-up is sent after it) }
+/* THE follow-up rule. Pure, and the only place that decides whether an application has a follow-up reminder. The card line,
+   the Due group, Home's count, the Jobs due list and the Applications Due filter all read its result (through r44FuItems),
+   so they cannot disagree.
+   a: { stage (0-4 from the status; 4 is closed), col (1 submitted, 2 interview, 3 offer or hired, 4 closed), status, interview,
+        outreach (a recruiter-outreach row), sub (submitted on), sent (the last follow-up date the API holds),
+        own (the "Follow up on" date the client or coach set), flag (the coach's "Follow-up due" mark) }
    mk: this device's marks { sent: [dates], thanks, nudge, close }.
-   Rules, all from the follow-up guide: about 7 days after applying; one follow-up a week; after two with no answer, the
-   closing note and no more reminders; thank-you from the interview date itself; check-in five business days after it.
-   A follow-up more than 30 days overdue is dropped everywhere, so a card and the Due group never disagree. */
+   last = the latest follow-up date (API and device). plain = col 1, status Applied or empty, no interview date, not outreach.
+
+   "Follow up with the employer" (kind apply). First row that matches decides:
+     # | application                                         | reminder                           | state
+     1 | closed (stage 4)                                    | none                               |
+     2 | own date set, and no follow-up on or after it       | on the own date (src own)          | due when own <= today, else upcoming.
+       |                                                     |                                    | Never dropped for age; still shown after two follow-ups.
+     3 | own date on or before the last follow-up            | the own date counts as cleared; go on to rows 4 to 7
+     4 | coach flag set (any column that is not closed)      | no date (src flag)                 | due, until the coach clears the flag
+     5 | plain, fewer than two follow-ups                    | 7 days after last, or after sub    | due when that day <= today, else upcoming;
+       |                                                     | (src auto)                         | dropped when more than 30 days overdue
+     6 | plain, two or more follow-ups                       | none (the closing note, below)     |
+     7 | anything else                                       | none                               |
+   Next to it, independent of the rows above:
+     plain with two or more follow-ups, closing note not marked sent  -> kind close, state next (never counted as due)
+     col 2 with an interview date, not outreach: thank-you from the interview day (New York date) for 14 days, check-in five business
+       days after it for 30 days, each until marked sent                    -> kind thanks / nudge, state due
+   The 30 day cut is only for the automatic 7 day rule (row 5). A date or flag a person set is never dropped for age. */
 function r44FuPlan(a, today, nyToday, mk) {
   var out = []; mk = mk || {};
   var sent = (mk.sent || []).filter(function (d) { return !!r44Utc(d); }).map(function (d) { return String(d).slice(0, 10); });
   if (r44Utc(a.sent) && sent.indexOf(String(a.sent).slice(0, 10)) < 0) sent.push(String(a.sent).slice(0, 10)); sent.sort();
-  if (a.col === 1 && !String(a.interview || '').trim() && /^(applied)?$/i.test(String(a.status || '').trim())) {
-    if (sent.length >= 2) { if (!mk.close) out.push({ kind: 'close', due: '', days: null, state: 'next', count: sent.length }); }
-    else { var lastS = sent[sent.length - 1] || '', own = r44Utc(a.own) ? String(a.own).slice(0, 10) : '', due = own && (!lastS || own > lastS) ? own : r44FuDate(a.sub, lastS), d = due ? r44Diff(today, due) : null; if (due && d >= -30) out.push({ kind: 'apply', due: due, days: d, state: d <= 0 ? 'due' : 'upcoming', count: sent.length }); }
+  var stage = a.stage != null ? a.stage : a.col, lastS = sent[sent.length - 1] || '', own = r44Utc(a.own) ? String(a.own).slice(0, 10) : '';
+  var plain = a.col === 1 && !a.outreach && !String(a.interview || '').trim() && /^(applied)?$/i.test(String(a.status || '').trim());
+  var flag = a.flag === true || String(a.flag == null ? '' : a.flag).toLowerCase() === 'yes';
+  if (stage < 4) {
+    if (own && (!lastS || own > lastS)) { var dO = r44Diff(today, own); out.push({ kind: 'apply', src: 'own', due: own, days: dO, state: dO <= 0 ? 'due' : 'upcoming', count: sent.length, draft: plain }); } /* row 2 */
+    else if (flag) out.push({ kind: 'apply', src: 'flag', due: '', days: null, state: 'due', count: sent.length, draft: plain }); /* row 4 */
+    else if (plain && sent.length < 2) { var due = r44FuDate(a.sub, lastS), d = due ? r44Diff(today, due) : null; if (due && d >= -30) out.push({ kind: 'apply', src: 'auto', due: due, days: d, state: d <= 0 ? 'due' : 'upcoming', count: sent.length, draft: true }); } /* row 5 */
+    if (plain && sent.length >= 2 && !mk.close) out.push({ kind: 'close', due: '', days: null, state: 'next', count: sent.length });
   }
-  if (a.col === 2 && r44Utc(a.interview)) {
+  if (a.col === 2 && !a.outreach && r44Utc(a.interview)) {
     var iv = String(a.interview).slice(0, 10), dNy = r44Diff(nyToday, iv), nd = r44NudgeDate(iv), dn = r44Diff(today, nd);
     if (!mk.thanks && dNy <= 0 && dNy >= -14) out.push({ kind: 'thanks', due: iv, days: dNy, state: 'due' });
     if (!mk.nudge && dn <= 0 && dn >= -30) out.push({ kind: 'nudge', due: nd, days: dn, state: 'due' });
@@ -195,35 +218,42 @@ function r44FuSub(x) { return realISO(x.submittedOn) ? String(x.submittedOn).sli
 function r44FuItems() {
   var today = todayISO(), ny = r44NyToday(), out = [], st = r44Store(), dirty = false; st.fu = st.fu || {};
   ((S.data && S.data.apps) || []).forEach(function (x) {
-    if (!x || isOutreach(x)) return; var mk = st.fu[x.id] || {};
+    if (!x) return; var mk = st.fu[x.id] || {};
     /* the API holds only the last follow-up date, so the count of follow-ups is kept on this device */
     if (realISO(x.followUpSent)) { var d = String(x.followUpSent).slice(0, 10), have = mk.sent || []; if (have.indexOf(d) < 0) { mk = st.fu[x.id] = Object.assign({}, mk, { sent: have.concat([d]).sort() }); dirty = true; } }
-    r44FuPlan({ col: boardCol(x), status: x.status, interview: x.interview, sub: r44FuSub(x), sent: x.followUpSent, own: x.followUpOn }, today, ny, mk).forEach(function (o) { o.app = x; out.push(o); });
+    r44FuPlan({ stage: stageOf(x), col: boardCol(x), status: x.status, interview: x.interview, outreach: isOutreach(x), sub: r44FuSub(x), sent: x.followUpSent, own: x.followUpOn, flag: x.followUpDue }, today, ny, mk).forEach(function (o) { o.app = x; out.push(o); });
   });
   if (dirty) r44Save();
   return out.sort(function (a, b) { return a.due < b.due ? -1 : a.due > b.due ? 1 : 0; });
 }
-/* r45: a submitted application's follow-up is shown by this module alone (the card, the Due group, Home and the Jobs list all read it) */
-function r44FuOwns(x) { return !!x && !isOutreach(x) && boardCol(x) === 1 && !String(x.interview || '').trim() && /^(applied)?$/i.test(String(x.status || '').trim()); }
+/* The five surfaces read the rule through these and nothing else:
+   card line r44FuLine, Due group r44DueGroup, Home count r44FuDue().length, Jobs due list r44FuJob, Due filter r44FuIsDue. */
 function r44FuIsDue(x) { return r44FuItems().some(function (o) { return o.app === x && o.state === 'due'; }); }
+/* the Jobs due list names an application's follow-up when it is due, and ahead of time only when a person set the date */
+/* the thank-you note and the check-in after an interview, when due */
+function r44FuJobNotes(x) { return r44FuItems().filter(function (o) { return o.app === x && o.state === 'due' && o.kind !== 'apply'; }); }
+function r44FuJob(x) { return r44FuItems().filter(function (o) { return o.app === x && o.kind === 'apply' && (o.state === 'due' || o.src === 'own'); })[0] || null; }
 /* due now: exactly the items whose card line says so */
 function r44FuDue() { return r44FuItems().filter(function (o) { return o.state === 'due'; }); }
 var R44_FU_NAME = { apply: 'Follow-up', thanks: 'Thank-you note', nudge: 'Check-in', close: 'Closing note' };
-function r44FuWhen(o) { return o.kind === 'thanks' ? 'after your interview' : o.kind === 'close' ? '' : o.days === 0 ? 'due today' : o.days === 1 ? 'due tomorrow' : 'due ' + fmtY(o.due); }
+function r44FuWhen(o) { return o.kind === 'thanks' ? 'after your interview' : o.kind === 'close' ? '' : !o.due ? 'due' : o.days === 0 ? 'due today' : o.days === 1 ? 'due tomorrow' : 'due ' + fmtY(o.due); }
 function r44FuLabel(o) { return o.kind === 'close' ? 'Two follow-ups sent' : (R44_FU_NAME[o.kind] + ' ' + r44FuWhen(o)).trim(); }
 function r44FuBtn(o, label) { return '<button type="button" class="kbtn" data-r44fu="' + o.kind + ':' + esc(o.app.id) + '">' + (label || (o.kind === 'close' ? 'Draft the closing note' : 'Draft the note')) + '<span class="sr"> for ' + esc(coOr(o.app)) + '</span></button>'; }
-/* on each application card */
+/* r45: the one "I followed up" control; the same board followedup request as before */
+function r44FuDone(x) { return '<button type="button" class="kbtn" data-bfollow="' + esc(x.id) + '"' + (S.bdBusy && S.bdBusy[x.id] ? ' aria-disabled="true"' : '') + '>I followed up<span class="sr"> with ' + esc(coOr(x)) + '</span></button>'; }
+/* on each application card. The note to adapt is offered where the guide's after-applying note fits (a submitted application
+   with no reply); any other follow-up reminder gets the pill and "I followed up". */
 function r44FuLine(x) {
   var its = r44FuItems().filter(function (o) { return o.app === x; });
   var offer = stageOf(x) === 3 && /offer/i.test(String(x.status || '')) ? '<p><button type="button" class="kbtn" data-r44offer="' + esc(x.id) + '">Offer check<span class="sr"> for ' + esc(coOr(x)) + '</span></button></p>' : '';
   if (!its.length) return offer ? '<div class="p44-fuline">' + offer + '</div>' : '';
-  return '<div class="p44-fuline" data-r44fuline="' + esc(x.id) + '">' + offer + its.map(function (o) { return '<p data-fustate="' + o.state + '"><span class="pill ' + (o.state === 'due' ? 'gold' : 'info') + '">' + esc(r44FuLabel(o)) + '</span> ' + r44FuBtn(o) + (o.kind === 'apply' && o.state === 'due' ? '<button type="button" class="kbtn" data-bfollow="' + esc(x.id) + '"' + (S.bdBusy && S.bdBusy[x.id] ? ' aria-disabled="true"' : '') + '>I followed up<span class="sr"> with ' + esc(coOr(x)) + '</span></button>' : '') /* r45: the one follow-up control; the same board followedup request as before */ + '</p>'; }).join('') + '</div>';
+  return '<div class="p44-fuline" data-r44fuline="' + esc(x.id) + '">' + offer + its.map(function (o) { return '<p data-fustate="' + o.state + '"><span class="pill ' + (o.state === 'due' ? 'gold' : 'info') + '">' + esc(r44FuLabel(o)) + '</span> ' + (o.kind !== 'apply' || o.draft ? r44FuBtn(o) : '') + (o.kind === 'apply' && o.state === 'due' ? r44FuDone(x) : '') + '</p>'; }).join('') + '</div>';
 }
 /* the Due group at the top of Applications */
 function r44DueGroup() {
   var due = r44FuDue(); if (!due.length) return '';
   return '<section class="card p44-due" data-r44due aria-labelledby="p44DueH"><h2 class="sec-h" id="p44DueH">Due <span class="cnt">' + due.length + '</span></h2><ul>' + due.map(function (o) {
-    return '<li data-due="' + o.kind + ':' + esc(o.app.id) + '"><div><b>' + esc(coOr(o.app)) + '</b><span>' + esc(String(o.app.role || '').trim()) + '</span><span class="p44-when">' + esc(r44FuLabel(o)) + '</span></div>' + r44FuBtn(o) + '</li>'; }).join('') + '</ul></section>';
+    return '<li data-due="' + o.kind + ':' + esc(o.app.id) + '"><div><b>' + esc(coOr(o.app)) + '</b><span>' + esc(String(o.app.role || '').trim()) + '</span><span class="p44-when">' + esc(r44FuLabel(o)) + '</span></div>' + (o.kind !== 'apply' || o.draft ? r44FuBtn(o) : r44FuDone(o.app)) + '</li>'; }).join('') + '</ul></section>';
 }
 function r44FuOpen(kind, id) {
   var x = appById(id); if (!x || !/^(apply|thanks|nudge|close)$/.test(kind)) return;

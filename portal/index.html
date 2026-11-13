@@ -1357,14 +1357,26 @@ function dueItems(d) {
     else if (!replyOf(j)) add(6, '', 'Answering your question about ' + coName(j), 'sp');
   });
   (d.apps || []).forEach(function (x) {
-    var st = stageOf(x); if (st >= 3) return;
-    var dd = daysFrom(x.interview), soon = dd != null && dd >= 0, mine = false;
+    var st = stageOf(x); if (st >= 4) return;
+    var dd = daysFrom(x.interview), soon = st < 3 && dd != null && dd >= 0, mine = false;
     if (soon) { add(dd <= 1 ? -2 : dd <= 7 ? 0 : 3, x.interview, 'Interview with ' + coOr(x) + (x.ivTime ? ', ' + x.ivTime : ''), 'you', pvDueBtn(x, prepQs(x).length ? 'Practice now' : 'Open')); mine = true; }
-    else if (outcomeDue(x)) { add(2, '', 'Tell us how the ' + coOr(x) + ' interview went', 'you', pvDueBtn(x, 'Open')); mine = true; }
-    var fd = daysFrom(x.followUpOn), fu = fd != null ? x.followUpOn : '';
-    if (x.nextAction) { add(fu ? (fd <= 7 ? 0 : 3) : 4, fu, coOr(x) + ': ' + x.nextAction, 'you', goApps); mine = true; }
-    else if (fu) { add(fd <= 7 ? 0 : 3, fu, 'Follow up with ' + coOr(x), 'you', goApps); mine = true; }
-    else if ((typeof r44FuIsDue === 'function' ? r44FuIsDue(x) : fuFlag(x) || r18FollowDue(x)) && !soon) { flagged.push(x); mine = true; } /* r45: the same rule as the card and the Due group */ /* round 18: a week in Submitted with no update */
+    else if (st < 3 && outcomeDue(x)) { add(2, '', 'Tell us how the ' + coOr(x) + ' interview went', 'you', pvDueBtn(x, 'Open')); mine = true; }
+    /* r45: follow-ups come from the one rule in portal-r44.js (r44FuJob). A: the reminder to list, or null. */
+    var A = typeof r44FuJob === 'function' ? r44FuJob(x) : undefined, fd, fu;
+    if (A === undefined) { /* the r44 module did not load: the rule as it was before r44 */
+      fd = daysFrom(x.followUpOn); fu = fd != null ? x.followUpOn : '';
+      if (st >= 3) return;
+      if (x.nextAction) { add(fu ? (fd <= 7 ? 0 : 3) : 4, fu, coOr(x) + ': ' + x.nextAction, 'you', goApps); mine = true; }
+      else if (fu) { add(fd <= 7 ? 0 : 3, fu, 'Follow up with ' + coOr(x), 'you', goApps); mine = true; }
+      else if ((fuFlag(x) || r18FollowDue(x)) && !soon) { flagged.push(x); mine = true; }
+    } else {
+      fu = A && A.src === 'own' ? A.due : ''; fd = fu ? daysFrom(fu) : null;
+      if (st < 3 && x.nextAction) { add(fu ? (fd <= 7 ? 0 : 3) : 4, fu, coOr(x) + ': ' + x.nextAction, 'you', goApps); mine = true; if (A && !fu) flagged.push(x); }
+      else if (fu) { add(fd <= 7 ? 0 : 3, fu, 'Follow up with ' + coOr(x), 'you', goApps); mine = true; }
+      else if (A) { flagged.push(x); mine = true; }
+      r44FuJobNotes(x).forEach(function (o) { add(2, '', R44_FU_NAME[o.kind] + ' for ' + coOr(x), 'you', goApps); mine = true; });
+      if (st >= 3) return;
+    }
     if (!mine && (st === 0 || st === 1)) waiting++;
   });
   if (flagged.length > 2) add(5, '', 'Follow up with ' + flagged.length + ' employers you haven\'t heard from', 'you', goApps);
@@ -1992,7 +2004,7 @@ function isOutreach(x) { return /outreach/i.test(x.type || ''); }
 function appCard(x) {
   var hasQs = prepQs(x).length > 0, hasNotes = !hasQs && (x.prepBring || x.prepAsk), soonIv = daysFrom(x.interview) != null && daysFrom(x.interview) >= 0 && stageOf(x) < 4;
   var pj = x.jobId ? jobById(x.jobId) : null, pdoc = pj ? jobState(pj).prep : null; if (pdoc && !(isReady(pdoc) || /approved/i.test(pdoc.status || ''))) pdoc = null;
-  var pills = [ivLabel(x), typeof r44FuOwns === 'function' && r44FuOwns(x) ? '' : fuLabel(x) /* r45: a submitted application has one follow-up line, r44's */, isOutreach(x) ? '<span class="pill">Recruiter outreach</span>' : ''].filter(String).join(' ');
+  var pills = [ivLabel(x), typeof r44FuLine === 'function' ? '' : fuLabel(x) /* r45: one follow-up line per card, r44's (assets/portal-r44.js r44FuLine) */, isOutreach(x) ? '<span class="pill">Recruiter outreach</span>' : ''].filter(String).join(' ');
   var h = '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">' + (isOutreach(x) ? 'Contacted ' : 'Applied ') + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
     (pills ? '<div class="apills">' + pills + '</div>' : '') + icsBtn(x) +
     (x.nextAction ? '<p class="nact"><span class="nl">Next:</span> ' + esc(x.nextAction) + '</p>' : '') +
@@ -2127,7 +2139,7 @@ function appDue(x) {
   var st = stageOf(x), iv = daysFrom(x.interview), fu = daysFrom(x.followUpOn); if (st === 4) return false;
   if (iv != null && iv >= 0) return true;
   if (outcomeDue(x)) return true;
-  if (typeof r44FuOwns === 'function' && r44FuOwns(x)) return r44FuIsDue(x); /* r45: one rule for a submitted application */
+  if (typeof r44FuIsDue === 'function') return r44FuIsDue(x); /* r45: the one follow-up rule (assets/portal-r44.js r44FuPlan) */
   return fu != null ? fu <= 0 : fuFlag(x);
 }
 function afApps(d) {
