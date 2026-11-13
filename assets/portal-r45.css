@@ -113,3 +113,28 @@
 /* the three sibling views (Interviews, Applications, Practice) keep the sub-tab strip at one height: at 1024 the board's
    one-line description wrapped to two and pushed the strip down 22px */
 @media (min-width: 1024px) and (max-width: 1099px) { #app:has(.pmain .board) .ptitle { padding-right: 140px; } }
+
+/* r48 review: reading views use a wide screen. From 1200 wide, views that have two blocks of their own show them side by
+   side inside the same 1068px the wide views use, starting at the same left edge: More (Your tools, Your account),
+   Documents (the groups flow in two columns), Interviews (Coming up, Interview prep sheets), Practice (Your jobs, Any
+   time) and Search settings (its two cards). Nothing is added or reordered in the page: same blocks, same tab order. */
+@media (min-width: 1200px) {
+  #app .pmain.m-main, #app .pmain.iv-main:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))), #app .pmain.p44-pr:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))), #app .pmain.pf:has(> section.card + section.card) { display: grid; grid-template-columns: repeat(2, minmax(0, 522px)); column-gap: 24px; align-items: start; align-content: start; }
+  #app .pmain.m-main > *, #app .pmain.iv-main > *, #app .pmain.p44-pr > *, #app .pmain.pf > * { max-width: none; }
+  #app .pmain.m-main > :not(.m-grp), #app .pmain.iv-main > :not(h2):not(ul), #app .pmain.p44-pr > :not(h2):not(ul), #app .pmain.pf > :not(section.card) { grid-column: 1 / -1; }
+  #app .pmain.iv-main > nav, #app .pmain.p44-pr > nav { justify-self: start; }
+  #app .pmain.iv-main > h2:nth-of-type(1), #app .pmain.p44-pr > h2:nth-of-type(1) { grid-column: 1; grid-row: 3; }
+  #app .pmain.iv-main > h2:nth-of-type(1) + ul, #app .pmain.p44-pr > h2:nth-of-type(1) + ul { grid-column: 1; grid-row: 4; }
+  #app .pmain.iv-main > h2:nth-of-type(2), #app .pmain.p44-pr > h2:nth-of-type(2) { grid-column: 2; grid-row: 3; }
+  #app .pmain.iv-main > h2:nth-of-type(2) + ul, #app .pmain.p44-pr > h2:nth-of-type(2) + ul { grid-column: 2; grid-row: 4; }
+  #app .pmain.iv-main > nav, #app .pmain.p44-pr > nav { grid-row: 1; }
+  #app .pmain.p44-pr > .p44-sample { grid-row: 2; }
+  #app .pmain.p44-pr > .p44-dev { grid-row: 5; }
+  #app .pmain.iv-main > footer { grid-row: 5; }
+  #app .pmain.p44-pr > footer { grid-row: 6; }
+  #app#app .pmain:has(> .dgrp + .dgrp) { display: block; column-count: 2; column-gap: 24px; padding-right: max(20px, calc(min(1320px, 100vw - 32px) - 1088px)); }
+  #app .pmain:has(> .dgrp + .dgrp) > * { max-width: none; break-inside: avoid; margin-bottom: 14px; }
+  #app .pmain:has(> .dgrp + .dgrp) > :not(.dgrp) { column-span: all; }
+}
+/* the finder's list fills the frame: three programs across from 1280 */
+@media (min-width: 1280px) { #app .pmain.t45 > #tfOut { max-width: none; } .t45-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
