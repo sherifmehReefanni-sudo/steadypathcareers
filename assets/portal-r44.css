@@ -1,0 +1,67 @@
+/* r44: portal Home (sentence, path, tools) and the client tools. Theme tokens; light is cream, dark is navy with a gold next step. */
+
+/* ---- Home: the sentence (the page title) ---- */
+#app:has(.h44-main) .ptitle h1 { font-family: var(--serif, "Newsreader", Georgia, serif); font-style: italic; font-weight: 500; font-size: clamp(28px, 7.2vw, 42px); line-height: 1.08; letter-spacing: -.01em; overflow-wrap: anywhere; }
+#app:has(.h44-main) .ptitle p { font-size: 16px; line-height: 1.5; max-width: 46ch; }
+.h44-main { gap: 18px; }
+.h44-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; grid-template-areas: "a" "p" "x"; }
+.h44-next { grid-area: a; min-width: 0; }
+.h44-path { grid-area: p; }
+.h44-lead { grid-area: x; }
+.h44-lead:empty { display: none; }
+.h44-lead { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.h44-next .btn { min-height: 52px; display: inline-flex; align-items: center; justify-content: center; padding: 0 22px; font-size: 16.5px; border-radius: 12px; box-sizing: border-box; max-width: 100%; }
+.h44-next a.btn.ghost { padding: 0 20px; }
+.h44-next .btn:focus-visible, .h44-card:focus-visible, .h44-tool:focus-visible, .p44 a:focus-visible, .p44 button:focus-visible, .p44 input:focus-visible, .p44 select:focus-visible, .p44 textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* ---- Home: the path ---- */
+.h44-path { position: relative; min-width: 0; }
+.h44-path .sec-h { margin: 0 0 12px; }
+.h44-line { position: absolute; left: 14.5px; top: 58px; bottom: 30px; width: 0; border-left: 3px dashed var(--gold); }
+.h44-stops.h-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.h44-stop { display: flex; align-items: center; gap: 12px; min-width: 0; position: relative; }
+.h44-dot { flex: none; width: 32px; height: 32px; display: grid; place-items: center; }
+.h44-dot::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--navy); border: 4px solid var(--page, #FBF6EE); box-sizing: content-box; }
+.h44-stop.on .h44-dot::before { width: 24px; height: 24px; background: var(--gold); }
+.h44-stops .h44-card.h-tile { flex: 1 1 auto; min-width: 0; min-height: 56px; height: auto; width: auto; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; color: var(--ink); text-decoration: none; text-align: left; }
+.h44-stops .h44-card.h-tile:hover { border-color: var(--navy); }
+.h44-card .h44-t { font-size: 15.5px; font-weight: 700; color: var(--ink); line-height: 1.3; }
+.h44-stops .h44-card.h-tile b { font: inherit; font-weight: 800; color: inherit; font-variant-numeric: tabular-nums; }
+.h44-card .h44-d { font-size: 13.5px; font-weight: 600; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; }
+.h44-card .h44-k { font-size: 12.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+/* the stop that holds the next step: navy on cream (light), gold on navy (dark) */
+.h44-stops .h44-stop.on .h44-card.h-tile { background: var(--navy-fill, #1F3A5F); border-color: var(--navy-fill, #1F3A5F); padding: 16px 18px; }
+.h44-stop.on .h44-card .h44-t { color: #FBF6EE; font-size: 18px; font-weight: 800; }
+.h44-stop.on .h44-card .h44-d { color: #DCE3EE; }
+.h44-stop.on .h44-card .h44-k { color: #F6ECC9; }
+.h44-end { display: flex; align-items: center; gap: 12px; margin: 14px 0 0; color: var(--navy); }
+.h44-end .h44-sun { flex: none; width: 32px; height: 30px; background: var(--page, #FBF6EE); }
+.h44-end span { font: italic 500 17px/1.3 var(--serif, "Newsreader", Georgia, serif); }
+
+/* ---- Home: tools ---- */
+.h44-tools .sec-h { margin: 0 0 10px; }
+.h44-tools ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.h44-tool { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 60px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; text-decoration: none; color: var(--ink); }
+.h44-tool:hover { border-color: var(--navy); }
+.h44-tool b { font-size: 15.5px; font-weight: 800; color: var(--navy); }
+.h44-tool span { font-size: 13.5px; font-weight: 600; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; }
+@media (min-width: 700px) { .h44-tools ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) {
+  .h44-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); grid-template-areas: "a p" "x p"; grid-template-rows: auto 1fr; gap: 18px 32px; align-items: start; }
+  #app:has(.h44-main) .ptitle { max-width: 46%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .h44-path.draw .h44-line { animation: h44draw .9s ease-out both; }
+  @keyframes h44draw { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+}
+/* dark: navy ground, gold next-step card */
+:root[data-theme="dark"] .h44-stops .h44-stop.on .h44-card.h-tile { background: #C9A227; border-color: #C9A227; }
+:root[data-theme="dark"] .h44-stop.on .h44-card .h44-t, :root[data-theme="dark"] .h44-stop.on .h44-card .h44-d, :root[data-theme="dark"] .h44-stop.on .h44-card .h44-k { color: #10213A; }
+:root[data-theme="dark"] .h44-dot::before { background: #C8D2E2; }
+:root[data-theme="dark"] .h44-stop.on .h44-dot::before { background: #C9A227; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .h44-stops .h44-stop.on .h44-card.h-tile { background: #C9A227; border-color: #C9A227; }
+  :root:not([data-theme="light"]) .h44-stop.on .h44-card .h44-t, :root:not([data-theme="light"]) .h44-stop.on .h44-card .h44-d, :root:not([data-theme="light"]) .h44-stop.on .h44-card .h44-k { color: #10213A; }
+  :root:not([data-theme="light"]) .h44-dot::before { background: #C8D2E2; }
+  :root:not([data-theme="light"]) .h44-stop.on .h44-dot::before { background: #C9A227; }
+}

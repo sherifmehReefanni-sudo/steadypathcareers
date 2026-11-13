@@ -1,0 +1,32 @@
+{
+  "note": "Word for word from /free/follow-up-scripts/ (the site's own follow-up guide). test_r44.js checks every line against that page. Change the guide first, then this file.",
+  "source": "/free/follow-up-scripts/",
+  "intervals": { "afterApplyDays": 7, "afterInterviewBusinessDays": 5, "thankYouSameDay": true },
+  "rule": "One follow-up a week is plenty. After two with no answer, send the closing-the-loop note and put your energy elsewhere.",
+  "scripts": {
+    "apply": {
+      "title": "Follow-up 7 days after applying",
+      "when": "About 7 days after you apply, if you haven't heard anything. Send it to the recruiter or the hiring manager if you can find their name.",
+      "subject": "Following up on my application for [Job title]",
+      "body": "Hi [Name],\n\nI applied for the [Job title] role with [Company] last week and wanted to say I am still very interested. [One line on a result that fits the job, like \"In my last role I cut billing errors by a third.\"]\n\nI would welcome the chance to talk about how I can help. Thank you for your time.\n\n[Your name]\n[Phone] | [LinkedIn link]"
+    },
+    "thanks": {
+      "title": "Same-day thank-you after an interview",
+      "when": "The same day, within a few hours. Send a separate note to each person who interviewed you.",
+      "subject": "Thank you for today",
+      "body": "Hi [Name],\n\nThank you for taking the time to talk with me about the [Job title] role at [Company]. I enjoyed learning more about the team and the work, and I am even more interested in the job.\n\n[One sentence linking something they said to something you have done.]\n\nI would welcome the next step. Please let me know if there is anything else I can send you.\n\nThank you again,\n[Your name]"
+    },
+    "nudge": {
+      "title": "Nudge 5 business days after an interview",
+      "when": "Five business days after the interview with no word, or the day after the date they said they'd decide.",
+      "subject": "Checking in on [Job title]",
+      "body": "Hi [Name],\n\nI hope your week is going well. I wanted to check in on the [Job title] role. I enjoyed our conversation on [day] about [something you discussed], and I am still very interested.\n\nIs there an update on timing, or anything else I can send you?\n\nThank you,\n[Your name]"
+    },
+    "offer": {
+      "title": "\"The posting said X, the offer is Y\"",
+      "when": "After you get the written offer and before you accept, if the pay is below the posted range or at its very bottom.",
+      "subject": "Question about the offer for [Job title]",
+      "body": "Hi [Name],\n\nThank you for the offer. I am excited about the [Job title] role and the team.\n\nI want to ask about one thing before I decide. The job posting listed a pay range of [posted range], and the offer is [offered amount]. Could you help me understand how that number was set? Given [the skill or experience from the posting that you bring], I was expecting an offer closer to [your number].\n\nI am glad to talk it through by phone if that is easier.\n\nThank you,\n[Your name]"
+    }
+  }
+}

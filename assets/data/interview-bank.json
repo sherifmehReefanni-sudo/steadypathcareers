@@ -1,0 +1,98 @@
+{
+  "note": "A fixed bank of common interview questions, written by Steady Path Careers. None of these is attributed to any employer. Family keys match the career fields the intake form uses (assets/intake2.js FIELDS).",
+  "label": "Common questions for this kind of role",
+  "general": [
+    { "id": "g1", "q": "Tell me about yourself." },
+    { "id": "g2", "q": "Why do you want this job?" },
+    { "id": "g3", "q": "What do you know about our organization?" },
+    { "id": "g4", "q": "What are your strengths?" },
+    { "id": "g5", "q": "What is something you are working to get better at?" },
+    { "id": "g6", "q": "Why are you leaving, or why did you leave, your last job?" },
+    { "id": "g7", "q": "What pay are you looking for?" },
+    { "id": "g8", "q": "What questions do you have for us?" }
+  ],
+  "behavioral": [
+    { "id": "b1", "q": "Tell me about a time you solved a hard problem at work." },
+    { "id": "b2", "q": "Tell me about a time you disagreed with a coworker or a manager. What did you do?" },
+    { "id": "b3", "q": "Tell me about a mistake you made and how you handled it." },
+    { "id": "b4", "q": "Tell me about a time you had too much to do. How did you decide what came first?" },
+    { "id": "b5", "q": "Tell me about a time you had to learn something quickly." },
+    { "id": "b6", "q": "Tell me about a time you helped an unhappy customer, patient or client." },
+    { "id": "b7", "q": "Tell me about a time you went past what your job asked of you." },
+    { "id": "b8", "q": "Tell me about a time you worked with someone who was hard to work with." }
+  ],
+  "families": {
+    "clinical": { "name": "Healthcare, clinical", "questions": [
+      { "id": "clinical1", "q": "How do you explain a diagnosis or a treatment plan to a patient who is worried?" },
+      { "id": "clinical2", "q": "Tell me about a time you caught something that others had missed." },
+      { "id": "clinical3", "q": "How do you keep your charting accurate on a busy day?" },
+      { "id": "clinical4", "q": "How do you handle a patient who does not want the treatment you recommend?" },
+      { "id": "clinical5", "q": "How do you stay current in your field?" } ] },
+    "nursing": { "name": "Nursing and allied health", "questions": [
+      { "id": "nursing1", "q": "How do you decide what to do first when several patients need you at once?" },
+      { "id": "nursing2", "q": "Tell me about a time you spoke up about a patient safety concern." },
+      { "id": "nursing3", "q": "How do you hand off a patient at the end of a shift?" },
+      { "id": "nursing4", "q": "How do you work with a family member who is upset?" },
+      { "id": "nursing5", "q": "What do you do when you are not sure about an order?" } ] },
+    "it": { "name": "IT and tech", "questions": [
+      { "id": "it1", "q": "Walk me through how you troubleshoot a problem you have not seen before." },
+      { "id": "it2", "q": "How do you explain a technical problem to someone who is not technical?" },
+      { "id": "it3", "q": "Tell me about an outage or an urgent ticket you handled." },
+      { "id": "it4", "q": "How do you keep track of your work and document what you changed?" },
+      { "id": "it5", "q": "What have you taught yourself lately, and how?" } ] },
+    "finance": { "name": "Finance and accounting", "questions": [
+      { "id": "finance1", "q": "Walk me through how you close the books at month end, or the part you owned." },
+      { "id": "finance2", "q": "Tell me about a time you found an error in the numbers. What did you do?" },
+      { "id": "finance3", "q": "How do you check your own work?" },
+      { "id": "finance4", "q": "Which accounting or reporting software have you used, and for what?" },
+      { "id": "finance5", "q": "How do you handle a deadline when you are waiting on someone else for information?" } ] },
+    "sales": { "name": "Sales and customer success", "questions": [
+      { "id": "sales1", "q": "Walk me through a sale you are proud of, from first contact to close." },
+      { "id": "sales2", "q": "How do you handle a customer who says the price is too high?" },
+      { "id": "sales3", "q": "How do you plan your week to reach your number?" },
+      { "id": "sales4", "q": "Tell me about a deal or an account you lost. What did you learn?" },
+      { "id": "sales5", "q": "How do you keep a customer after the sale?" } ] },
+    "insurance": { "name": "Insurance", "questions": [
+      { "id": "insurance1", "q": "How do you explain a coverage gap to a customer in plain words?" },
+      { "id": "insurance2", "q": "Which lines of business have you worked with, and which licenses do you hold?" },
+      { "id": "insurance3", "q": "Tell me about a hard claim or renewal conversation and how it ended." },
+      { "id": "insurance4", "q": "How do you keep your files accurate and compliant?" },
+      { "id": "insurance5", "q": "How do you find coverage a customer needs but did not ask about?" } ] },
+    "office": { "name": "Office, admin and HR", "questions": [
+      { "id": "office1", "q": "How do you keep track of many requests from different people?" },
+      { "id": "office2", "q": "Which office software do you use most, and what do you do with it?" },
+      { "id": "office3", "q": "Tell me about a time you handled confidential information." },
+      { "id": "office4", "q": "Tell me about a process you made simpler or faster." },
+      { "id": "office5", "q": "How do you handle a visitor or caller who is upset?" } ] },
+    "trades": { "name": "Skilled trades and construction", "questions": [
+      { "id": "trades1", "q": "Which tools, equipment or systems do you know best?" },
+      { "id": "trades2", "q": "Tell me about a job where something went wrong on site. What did you do?" },
+      { "id": "trades3", "q": "How do you keep yourself and your crew safe?" },
+      { "id": "trades4", "q": "Which licenses or certifications do you hold?" },
+      { "id": "trades5", "q": "How do you read a plan or a work order and decide where to start?" } ] },
+    "education": { "name": "Education", "questions": [
+      { "id": "education1", "q": "How do you manage a classroom or a group when attention drops?" },
+      { "id": "education2", "q": "Tell me about a student you helped who was struggling." },
+      { "id": "education3", "q": "How do you work with parents or guardians?" },
+      { "id": "education4", "q": "How do you plan a lesson for students at different levels?" },
+      { "id": "education5", "q": "How do you know that students learned what you taught?" } ] },
+    "retail": { "name": "Retail, hospitality and service", "questions": [
+      { "id": "retail1", "q": "Tell me about a time you turned around a bad customer experience." },
+      { "id": "retail2", "q": "How do you stay friendly and accurate during a rush?" },
+      { "id": "retail3", "q": "What days and hours can you work?" },
+      { "id": "retail4", "q": "Have you handled cash, a register or closing duties? Tell me about it." },
+      { "id": "retail5", "q": "What would you do if you saw a coworker break a rule?" } ] },
+    "logistics": { "name": "Logistics, warehouse and drivers", "questions": [
+      { "id": "logistics1", "q": "Which equipment are you trained or certified to operate?" },
+      { "id": "logistics2", "q": "How do you keep your counts and paperwork accurate?" },
+      { "id": "logistics3", "q": "Tell me about a time you noticed a safety problem. What did you do?" },
+      { "id": "logistics4", "q": "How do you handle a late load, a missed delivery window or a short shipment?" },
+      { "id": "logistics5", "q": "What shifts and schedules have you worked?" } ] },
+    "legal": { "name": "Legal", "questions": [
+      { "id": "legal1", "q": "How do you keep track of deadlines across many matters?" },
+      { "id": "legal2", "q": "Which practice areas and document types have you worked on?" },
+      { "id": "legal3", "q": "Tell me about a time you caught an error before it went out." },
+      { "id": "legal4", "q": "How do you handle confidential or privileged material?" },
+      { "id": "legal5", "q": "Which case management or research tools have you used?" } ] }
+  }
+}

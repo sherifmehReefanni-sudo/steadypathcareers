@@ -828,6 +828,7 @@ window.SP_DEMO = function () {
 </style>
 <link rel="stylesheet" href="/assets/theme.css?v=sp-20261110r32">
 <link rel="stylesheet" href="../assets/portal-r42.css?v=sp-20261112r43">
+<link rel="stylesheet" href="../assets/portal-r44.css?v=sp-20261112r44">
 </head>
 <body>
 <div id="app"><div class="skel">Opening your portal…</div></div>
@@ -891,7 +892,7 @@ function linkKeyDrop() { try { sessionStorage.removeItem('sp_linkkey'); } catch 
   if (t || k || q.get('ask') || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
 })();
 /* r42: Home is the landing view. Anything that is not a known view opens Home. */
-if (!/^(home|jobs|docs|apps|iv|more|feedback|prefs|fit|billing|delete)$/.test(S.view)) S.view = 'home';
+if (!/^(home|jobs|docs|apps|iv|more|feedback|prefs|fit|billing|delete|practice|fu|offer)$/.test(S.view)) S.view = 'home';
 S.view0 = S.view;
 
 /* ---- demo mode (?demo=1): sample data from the head script, every write succeeds locally, no network ---- */
@@ -1151,8 +1152,8 @@ function docsReady() { return ((S.data && S.data.docs) || []).filter(needsOk).le
 /* r42: five primary destinations. Applied lives inside Interviews (view 'apps'); Find Your Fit, Help, Plan & billing, Search
    settings and Feedback live under More. navOf maps any view to the destination that is lit for it. */
 var TABS = [['home', 'Home'], ['jobs', 'Jobs'], ['docs', 'Documents'], ['iv', 'Interviews'], ['more', 'More']];
-var VIEW_RE = /^(home|jobs|docs|apps|iv|more|feedback|prefs|fit|billing|delete)$/; /* r43: delete = the Delete my account screen */
-function navOf(v) { return v === 'apps' || v === 'iv' ? 'iv' : /^(home|jobs|docs)$/.test(v || '') ? v : 'more'; }
+var VIEW_RE = /^(home|jobs|docs|apps|iv|more|feedback|prefs|fit|billing|delete|practice|fu|offer)$/; /* r44: practice, fu (a follow-up note), offer */ /* r43: delete = the Delete my account screen */
+function navOf(v) { return v === 'apps' || v === 'iv' || v === 'practice' || v === 'fu' ? 'iv' : /^(home|jobs|docs)$/.test(v || '') ? v : 'more'; }
 function tabCount(k) { var c = counts(); return k === 'jobs' ? c.wait : k === 'docs' ? docsReady() : 0; }
 /* a count on Jobs and Documents (things waiting for the client), a dot on More when Messages holds an answer not opened yet */
 function tabMark(k) {
@@ -2264,7 +2265,7 @@ function render() {
   if (S.view === 'fit' && !(typeof fitOn === 'function' && fitOn())) S.view = 'home'; /* r27: no fit object from the API, no fit screen (r42: Home) */
   if (S.view === 'billing' && !billOn()) S.view = 'home'; /* round 25: no billing object from the API, no billing screen (r42: Home) */
   if (S.view !== 'feedback' || S.flow || S.deck) S.fbHelp = false; /* r36: Help mode ends as soon as any other screen is shown, however it was reached */
-  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ home: vHome, jobs: vJobs, docs: vDocs, apps: vApps, iv: vIv, more: vMore, 'delete': vDelete, feedback: vFeedback, prefs: vPrefs, prep: vPrep, fit: vFit, billing: vBilling }[S.view] || vHome)();
+  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ home: vHome, jobs: vJobs, docs: vDocs, apps: vApps, iv: vIv, more: vMore, 'delete': vDelete, practice: typeof vPractice === 'function' ? vPractice : vHome, fu: typeof vFu === 'function' ? vFu : vHome, offer: typeof vOffer === 'function' ? vOffer : vHome, feedback: vFeedback, prefs: vPrefs, prep: vPrep, fit: vFit, billing: vBilling }[S.view] || vHome)();
   var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
   if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;
   rvLoadWatch(); /* r36 */
@@ -3534,5 +3535,6 @@ document.addEventListener('click', function (e) {
 <script src="../assets/portal.js?v=20261024e"></script>
 <script src="../assets/fit-r35.js?v=sp-20261112r36"></script>
 <script src="../assets/portal-r42.js?v=sp-20261112r43"></script>
+<script src="../assets/portal-r44.js?v=sp-20261112r44"></script>
 </body>
 </html>
