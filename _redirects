@@ -1,3 +1,2 @@
-# Cloudflare Pages only (GitHub Pages ignores this file). The _tools folder holds the scripts that build some pages; it is not part of the site.
 /_tools /404.html 302
 /_tools/* /404.html 302
