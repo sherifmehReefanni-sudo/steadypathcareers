@@ -365,19 +365,20 @@
     if (!bar || !hero || !foot || !window.matchMedia) return;
     var mq = window.matchMedia('(max-width:700px)'), typing = false;
     function open() { var d = document.getElementById('vid'), m = document.querySelector('.menu[open], details.menu[open]'); return !!((d && d.open) || m || document.querySelector('dialog[open]')); }
+    /* no scroll listener: two observers say whether the hero or the footer is on screen */
+    var heroIn = true, footIn = false;
     function upd() {
-      var show = false;
-      if (mq.matches) {
-        var h = hero.getBoundingClientRect(), f = foot.getBoundingClientRect(), vh = window.innerHeight || document.documentElement.clientHeight;
-        show = h.bottom <= 0 && f.top > vh && !typing && !open();
-      }
+      var show = mq.matches && !heroIn && !footIn && !typing && !open();
       bar.hidden = !mq.matches; bar.classList.toggle('on', show);
       if (show) bar.removeAttribute('aria-hidden'); else bar.setAttribute('aria-hidden', 'true');
       var a = bar.querySelector('a'); if (a) { if (show) a.removeAttribute('tabindex'); else a.setAttribute('tabindex', '-1'); }
       document.body.classList.toggle('has-stick', mq.matches);
     }
     var tick = false; function later() { if (tick) return; tick = true; (window.requestAnimationFrame || setTimeout)(function () { tick = false; upd(); }); }
-    window.addEventListener('scroll', later, { passive: true }); window.addEventListener('resize', later);
+    if (!hasIO) return; /* without IntersectionObserver the bar stays off */
+    new IntersectionObserver(function (e) { heroIn = e[e.length - 1].isIntersecting; upd(); }).observe(hero);
+    new IntersectionObserver(function (e) { footIn = e[e.length - 1].isIntersecting; upd(); }).observe(foot);
+    window.addEventListener('resize', later);
     if (mq.addEventListener) mq.addEventListener('change', upd);
     document.addEventListener('focusin', function (e) { var t = e.target; typing = !!(t && t.matches && t.matches('input:not([type=button]):not([type=checkbox]):not([type=radio]), textarea, select, [contenteditable="true"]')); upd(); });
     document.addEventListener('focusout', function () { typing = false; later(); });
