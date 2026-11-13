@@ -77,7 +77,8 @@ function r44Home() {
     '<div class="h44-grid"><section class="h44-next" data-hnext="' + k + '" aria-label="Your next step">' + btn + '</section><div class="h44-lead">' + r42WeekHtml() +
     (last ? '<section class="card h-ans" data-hans aria-labelledby="hAnsH"><h2 class="sec-h" id="hAnsH">Your last answered question</h2><p class="h-ans-j"><b>' + esc(last.title || coName(last)) + '</b>' + (last.company && last.title ? ' at ' + esc(last.company) : '') + (realISO(last.replyDate) ? '<span> · answered ' + esc(fmtY(String(last.replyDate).slice(0, 10))) + '</span>' : '') + '</p><p class="h-ans-t">' + esc(clipWords(String(last.reply).trim(), 280)) + '</p><button type="button" class="linkbtn" data-hjob="' + esc(last.id) + '">Open this job</button></section>' : '') + '</div>' +
     '<section class="h44-path' + (S.r44Drawn ? '' : ' draw') + '" aria-labelledby="h44PathH"><h2 class="sec-h" id="h44PathH">Where your search stands</h2><div class="h44-line" aria-hidden="true"></div><ul class="h-tiles h44-stops">' +
-    stops.map(function (s) { var on = hot === s[0]; return '<li class="h44-stop' + (on ? ' on' : '') + '"><span class="h44-dot" aria-hidden="true"></span>' + r44Link(s[0], 'h-tile h44-card', (on ? '<span class="h44-k">Your next step</span>' : '') + '<span class="h44-t"><b>' + s[1] + '</b> ' + s[2] + '</span><span class="h44-d">' + esc(s[3]) + '</span>', on ? ' data-hot="1"' : ''); }).join('') +
+    stops.map(function (s) { var on = hot === s[0], first = on && k === 'first'; /* brand-new: the first-matches wording, not "0 new matches" */
+      return '<li class="h44-stop' + (on ? ' on' : '') + '"><span class="h44-dot" aria-hidden="true"></span>' + r44Link(s[0], 'h-tile h44-card', first ? '<span class="h44-t">Your first matches are on the way</span><span class="h44-d">You will get an email when your first jobs arrive.</span>' : (on ? '<span class="h44-k">Your next step</span>' : '') + '<span class="h44-t"><b>' + s[1] + '</b> ' + s[2] + '</span><span class="h44-d">' + esc(s[3]) + '</span>', on ? ' data-hot="1"' : ''); }).join('') +
     '</ul><p class="h44-end">' + R44_SUN + '<span>Your next job, one honest step at a time.</span></p></section></div>' +
     (tools.length ? '<section class="h44-tools" aria-labelledby="h44ToolsH"><h2 class="sec-h" id="h44ToolsH">' + (r44Paid() ? 'Included with your plan' : 'Your tools') + '</h2><ul>' + tools.map(function (t) { return '<li>' + r44Link(t[0], 'h44-tool', '<b>' + esc(t[1]) + '</b><span>' + esc(t[2]) + '</span>', ' data-tool="' + t[0] + '"') + '</li>'; }).join('') + '</ul></section>' : '') +
     (plan ? '<section class="card h-plan" data-hplan><p>' + plan + '</p>' + (billOn() ? '<button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button>' : '') + '</section>' : '') +
@@ -136,42 +137,64 @@ function r44Mailto(to, subject, body) { return 'mailto:' + (to ? encodeURICompon
 function r44Email(text) { var m = String(text || '').match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/); return m ? m[0] : ''; }
 
 function r44FuMarks(id) { var st = r44Store(); st.fu = st.fu || {}; return st.fu[id] || {}; }
+/* The guide in New York time: a thank-you is for the day of the interview, so "today" for it is the date in America/New_York. */
+function r44NyToday() { try { var p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); if (/^\d{4}-\d\d-\d\d$/.test(p)) return p; } catch (e) {} return todayISO(); }
+/* pure: what is due or coming for one application.
+   a: { col (1 submitted, 2 interview), status, interview, sub (submitted on), sent (the last follow-up date the API holds) }
+   mk: this device's marks { sent: [dates], thanks, nudge, close }.
+   Rules, all from the follow-up guide: about 7 days after applying; one follow-up a week; after two with no answer, the
+   closing note and no more reminders; thank-you from the interview date itself; check-in five business days after it.
+   A follow-up more than 30 days overdue is dropped everywhere, so a card and the Due group never disagree. */
+function r44FuPlan(a, today, nyToday, mk) {
+  var out = []; mk = mk || {};
+  var sent = (mk.sent || []).filter(function (d) { return !!r44Utc(d); }).map(function (d) { return String(d).slice(0, 10); });
+  if (r44Utc(a.sent) && sent.indexOf(String(a.sent).slice(0, 10)) < 0) sent.push(String(a.sent).slice(0, 10)); sent.sort();
+  if (a.col === 1 && !String(a.interview || '').trim() && /^(applied)?$/i.test(String(a.status || '').trim())) {
+    if (sent.length >= 2) { if (!mk.close) out.push({ kind: 'close', due: '', days: null, state: 'next', count: sent.length }); }
+    else { var due = r44FuDate(a.sub, sent[sent.length - 1] || ''), d = due ? r44Diff(today, due) : null; if (due && d >= -30) out.push({ kind: 'apply', due: due, days: d, state: d <= 0 ? 'due' : 'upcoming', count: sent.length }); }
+  }
+  if (a.col === 2 && r44Utc(a.interview)) {
+    var iv = String(a.interview).slice(0, 10), dNy = r44Diff(nyToday, iv), nd = r44NudgeDate(iv), dn = r44Diff(today, nd);
+    if (!mk.thanks && dNy <= 0 && dNy >= -14) out.push({ kind: 'thanks', due: iv, days: dNy, state: 'due' });
+    if (!mk.nudge && dn <= 0 && dn >= -30) out.push({ kind: 'nudge', due: nd, days: dn, state: 'due' });
+  }
+  return out;
+}
+/* pure: the guide's after-applying note says "last week". That is only true about a week after applying; otherwise the date goes in. */
+function r44ApplyWhen(body, daysSince, dateText) { return daysSince != null && daysSince >= 5 && daysSince <= 9 ? body : String(body).replace('last week', 'on ' + dateText); }
+function r44FuSub(x) { return realISO(x.submittedOn) ? String(x.submittedOn).slice(0, 10) : realISO(x.applied) ? String(x.applied).slice(0, 10) : ''; }
 function r44FuItems() {
-  var today = todayISO(), out = [];
+  var today = todayISO(), ny = r44NyToday(), out = [], st = r44Store(), dirty = false; st.fu = st.fu || {};
   ((S.data && S.data.apps) || []).forEach(function (x) {
-    if (!x || isOutreach(x)) return; var col = boardCol(x), mk = r44FuMarks(x.id);
-    if (col === 1 && !String(x.interview || '').trim() && /^(applied)?$/i.test(String(x.status || '').trim())) {
-      var sub = realISO(x.submittedOn) ? x.submittedOn : x.applied, due = r44FuDate(sub, realISO(x.followUpSent) ? x.followUpSent : '');
-      if (due) out.push({ app: x, kind: 'apply', due: due, days: r44Diff(today, due) });
-    }
-    if (col === 2 && r44Utc(x.interview)) {
-      var iv = String(x.interview).slice(0, 10), dIv = r44Diff(today, iv), nd = r44NudgeDate(iv);
-      if (!mk.thanks && dIv <= 0 && dIv >= -14) out.push({ app: x, kind: 'thanks', due: iv, days: dIv });
-      if (!mk.nudge && dIv < 0) out.push({ app: x, kind: 'nudge', due: nd, days: r44Diff(today, nd) });
-    }
+    if (!x || isOutreach(x)) return; var mk = st.fu[x.id] || {};
+    /* the API holds only the last follow-up date, so the count of follow-ups is kept on this device */
+    if (realISO(x.followUpSent)) { var d = String(x.followUpSent).slice(0, 10), have = mk.sent || []; if (have.indexOf(d) < 0) { mk = st.fu[x.id] = Object.assign({}, mk, { sent: have.concat([d]).sort() }); dirty = true; } }
+    r44FuPlan({ col: boardCol(x), status: x.status, interview: x.interview, sub: r44FuSub(x), sent: x.followUpSent }, today, ny, mk).forEach(function (o) { o.app = x; out.push(o); });
   });
+  if (dirty) r44Save();
   return out.sort(function (a, b) { return a.due < b.due ? -1 : a.due > b.due ? 1 : 0; });
 }
-/* due now: the date has come and it is not long past */
-function r44FuDue() { return r44FuItems().filter(function (o) { return o.days != null && o.days <= 0 && o.days >= (o.kind === 'thanks' ? -14 : -30); }); }
-var R44_FU_NAME = { apply: 'Follow-up', thanks: 'Thank-you note', nudge: 'Check-in' };
-function r44FuWhen(o) { return o.days === 0 ? 'due today' : o.days === 1 ? 'due tomorrow' : 'due ' + fmtY(o.due); }
-function r44FuBtn(o, label) { return '<button type="button" class="kbtn" data-r44fu="' + o.kind + ':' + esc(o.app.id) + '">' + (label || 'Draft the note') + '<span class="sr"> for ' + esc(coOr(o.app)) + '</span></button>'; }
+/* due now: exactly the items whose card line says so */
+function r44FuDue() { return r44FuItems().filter(function (o) { return o.state === 'due'; }); }
+var R44_FU_NAME = { apply: 'Follow-up', thanks: 'Thank-you note', nudge: 'Check-in', close: 'Closing note' };
+function r44FuWhen(o) { return o.kind === 'thanks' ? 'after your interview' : o.kind === 'close' ? '' : o.days === 0 ? 'due today' : o.days === 1 ? 'due tomorrow' : 'due ' + fmtY(o.due); }
+function r44FuLabel(o) { return o.kind === 'close' ? 'Two follow-ups sent' : (R44_FU_NAME[o.kind] + ' ' + r44FuWhen(o)).trim(); }
+function r44FuBtn(o, label) { return '<button type="button" class="kbtn" data-r44fu="' + o.kind + ':' + esc(o.app.id) + '">' + (label || (o.kind === 'close' ? 'Draft the closing note' : 'Draft the note')) + '<span class="sr"> for ' + esc(coOr(o.app)) + '</span></button>'; }
 /* on each application card */
 function r44FuLine(x) {
-  var its = r44FuItems().filter(function (o) { return o.app === x && (o.kind === 'apply' || o.days <= 0); });
+  var its = r44FuItems().filter(function (o) { return o.app === x; });
   var offer = stageOf(x) === 3 && /offer/i.test(String(x.status || '')) ? '<p><button type="button" class="kbtn" data-r44offer="' + esc(x.id) + '">Offer check<span class="sr"> for ' + esc(coOr(x)) + '</span></button></p>' : '';
   if (!its.length) return offer ? '<div class="p44-fuline">' + offer + '</div>' : '';
-  return '<div class="p44-fuline" data-r44fuline="' + esc(x.id) + '">' + offer + its.map(function (o) { return '<p><span class="pill ' + (o.days <= 0 ? 'gold' : 'info') + '">' + R44_FU_NAME[o.kind] + ' ' + r44FuWhen(o) + '</span> ' + r44FuBtn(o) + '</p>'; }).join('') + '</div>';
+  return '<div class="p44-fuline" data-r44fuline="' + esc(x.id) + '">' + offer + its.map(function (o) { return '<p data-fustate="' + o.state + '"><span class="pill ' + (o.state === 'due' ? 'gold' : 'info') + '">' + esc(r44FuLabel(o)) + '</span> ' + r44FuBtn(o) + '</p>'; }).join('') + '</div>';
 }
 /* the Due group at the top of Applications */
 function r44DueGroup() {
   var due = r44FuDue(); if (!due.length) return '';
   return '<section class="card p44-due" data-r44due aria-labelledby="p44DueH"><h2 class="sec-h" id="p44DueH">Due <span class="cnt">' + due.length + '</span></h2><ul>' + due.map(function (o) {
-    return '<li><div><b>' + esc(coOr(o.app)) + '</b><span>' + esc(String(o.app.role || '').trim()) + '</span><span class="p44-when">' + R44_FU_NAME[o.kind] + ' ' + r44FuWhen(o) + '</span></div>' + r44FuBtn(o) + '</li>'; }).join('') + '</ul></section>';
+    return '<li data-due="' + o.kind + ':' + esc(o.app.id) + '"><div><b>' + esc(coOr(o.app)) + '</b><span>' + esc(String(o.app.role || '').trim()) + '</span><span class="p44-when">' + esc(r44FuLabel(o)) + '</span></div>' + r44FuBtn(o) + '</li>'; }).join('') + '</ul></section>';
 }
 function r44FuOpen(kind, id) {
-  var x = appById(id); if (!x || !/^(apply|thanks|nudge)$/.test(kind)) return;
+  var x = appById(id); if (!x || !/^(apply|thanks|nudge|close)$/.test(kind)) return;
   S.fu = { app: String(x.id), kind: kind, subject: null, body: null, msg: '' }; go('fu');
 }
 function r44FuFields(x) { var cl = S.data.client || {}; return { role: x.role, company: x.company, name: cl.name || cl.firstName, day: r44Weekday(x.interview) }; }
@@ -182,9 +205,9 @@ function vFu() {
   var sc = R44.scripts && R44.scripts.scripts[F.kind], body;
   if (!sc) body = r44Wait('scripts');
   else {
-    if (F.subject == null) { var f = r44FuFields(x); F.subject = r44Fill(sc.subject, f); F.body = r44Fill(sc.body, f); }
+    if (F.subject == null) { var f = r44FuFields(x); F.subject = r44Fill(sc.subject, f); F.body = r44Fill(sc.body, f); if (F.kind === 'apply') { var sb = r44FuSub(x); F.body = r44ApplyWhen(F.body, sb ? r44Diff(sb, todayISO()) : null, sb ? fmtY(sb) : ''); } }
     var to = r44Email(x.contact), left = /\[[^\]\n]+\]/.test(F.subject + F.body), mk = r44FuMarks(x.id), sent = F.kind === 'apply' ? false : !!mk[F.kind];
-    body = r44Sample() + '<div class="card p44-card"><h2 class="pf-h">When to send</h2><p>' + esc(sc.when) + '</p>' + (F.kind === 'apply' ? '<p>' + esc(R44.scripts.rule) + '</p>' : '') +
+    body = r44Sample() + '<div class="card p44-card"><h2 class="pf-h">When to send</h2><p>' + esc(sc.when) + '</p>' + (F.kind === 'apply' || F.kind === 'close' ? '<p>' + esc(R44.scripts.rule) + '</p>' : '') +
       '<p class="psub">From our <a href="/free/follow-up-scripts/" target="_blank" rel="noopener">follow-up scripts guide<span class="sr"> (opens in a new tab)</span></a>. General information, not legal or financial advice.</p></div>' +
       '<div class="card p44-card"><label for="fuSub">Subject</label><input id="fuSub" type="text" maxlength="200" value="' + esc(F.subject) + '">' +
       '<label for="fuBody">The note</label><textarea id="fuBody" rows="12" maxlength="4000">' + esc(F.body) + '</textarea>' +
@@ -192,7 +215,7 @@ function vFu() {
       '<p class="psub">' + (to ? 'Open in email addresses it to ' + esc(to) + ', the email saved on this application.' : 'Open in email leaves the address empty. Add the person you are writing to.') + ' You send it yourself. The portal never sends email for you.</p>' +
       '<div class="p44-acts"><button type="button" class="btn" data-r44fucopy>Copy</button><a class="btn ghost" id="fuMail" href="' + esc(r44Mailto(to, F.subject, F.body)) + '">Open in email</a>' +
       (sent ? '' : '<button type="button" class="btn ghost" data-r44fusent' + (S.bdBusy && S.bdBusy[x.id] ? ' disabled' : '') + '>Mark as sent</button>') + '</div>' +
-      (F.kind !== 'apply' ? '<p class="psub p44-dev">' + (sent ? 'Marked as sent on ' + esc(fmtY(mk[F.kind])) + '. ' : '') + R44_DEVICE + '</p>' : '') +
+      (F.kind !== 'apply' ? '<p class="psub p44-dev">' + (sent ? 'Marked as sent on ' + esc(fmtY(mk[F.kind])) + '. ' : '') + R44_DEVICE + '</p>' : '<p class="psub p44-dev">Reminders stop after two follow-ups, as the guide says. The count is kept on this device.</p>') +
       '<p class="p44-msg" role="status" id="fuMsg">' + esc(F.msg || '') + '</p></div>';
   }
   return shell('fu', esc(R44_FU_NAME[F.kind] + ' for ' + coOr(x)), esc(String(x.role || '').trim())) + '<div class="pband" aria-hidden="true"></div><main class="pmain p44 p44-fu"><div class="fl-top"><button type="button" class="fl-back" data-go="apps">' + IC.chev + 'Back to Applications</button></div>' + body + '</main>' + tabbar('fu');
@@ -212,7 +235,7 @@ if (typeof document !== 'undefined') {
     if (e.target.closest('[data-r44fucopy]') && S.fu) { copyText((S.fu.subject ? 'Subject: ' + S.fu.subject + '\n\n' : '') + S.fu.body); return; }
     if (e.target.closest('[data-r44fusent]') && S.fu) {
       var x = appById(S.fu.app); if (!x) return;
-      if (S.fu.kind === 'apply') { r18Move(x.id, 'followedup'); go('apps'); return; } /* the existing "I followed up" request: { action: 'board', stage: 'followedup', id } */
+      if (S.fu.kind === 'apply') { var s0 = r44Store(), t0 = todayISO(); s0.fu = s0.fu || {}; var m0 = s0.fu[x.id] = s0.fu[x.id] || {}; m0.sent = (m0.sent || []).filter(function (d) { return d !== t0; }).concat([t0]).sort(); r44Save(); r18Move(x.id, 'followedup'); go('apps'); return; } /* the existing "I followed up" request: { action: 'board', stage: 'followedup', id } */
       var st = r44Store(); st.fu = st.fu || {}; st.fu[x.id] = st.fu[x.id] || {}; st.fu[x.id][S.fu.kind] = todayISO();
       S.fu.msg = r44Save() ? 'Marked as sent. ' + R44_DEVICE : 'This device would not save it. The note is not marked.'; S.focusTo = '#fuMsg'; render();
     }
@@ -409,19 +432,30 @@ var R44_TIMER = 90;
 function r44Hash(s) { var h = 0; s = String(s); for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
 /* pure: the question list for one job. prep: [{ q }] from the prep sheet; fam: a family key or ''. */
 function r44Questions(bank, prep, fam) {
-  var out = [];
-  (prep || []).forEach(function (p) { if (p && p.q) out.push({ id: 'p' + r44Hash(p.q), q: p.q, grp: 'prep' }); });
+  var out = [], have = [];
+  (prep || []).forEach(function (p) { if (p && p.q && !have.some(function (h) { return r44Near(h, p.q); })) { have.push(p.q); out.push({ id: 'p' + r44Hash(p.q), q: p.q, grp: 'prep' }); } });
   if (!bank) return out;
-  (bank.general || []).forEach(function (x) { out.push({ id: x.id, q: x.q, grp: 'general' }); });
-  (bank.behavioral || []).forEach(function (x) { out.push({ id: x.id, q: x.q, grp: 'behavioral' }); });
-  var F = fam && bank.families && bank.families[fam]; if (F) F.questions.forEach(function (x) { out.push({ id: x.id, q: x.q, grp: 'family' }); });
+  /* a bank question the prep sheet already asks in nearly the same words is left out, on screen and in print */
+  var add = function (x, grp) { if (!have.some(function (h) { return r44Near(h, x.q); })) out.push({ id: x.id, q: x.q, grp: grp }); };
+  (bank.general || []).forEach(function (x) { add(x, 'general'); });
+  (bank.behavioral || []).forEach(function (x) { add(x, 'behavioral'); });
+  var F = fam && bank.families && bank.families[fam]; if (F) F.questions.forEach(function (x) { add(x, 'family'); });
   return out;
+}
+/* pure: the same question in nearly the same words ("Tell us about yourself" and "Tell me about yourself.") */
+function r44Near(a, b) {
+  var tok = function (t) { return String(t || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(String).map(function (w) { return w === 'us' ? 'me' : w === 'our' ? 'your' : w === 'we' ? 'you' : w; }); };
+  var x = tok(a), y = tok(b); if (!x.length || !y.length) return false; if (x.join(' ') === y.join(' ')) return true;
+  var sx = {}, sy = {}, inter = 0, uni = 0; x.forEach(function (w) { sx[w] = 1; }); y.forEach(function (w) { sy[w] = 1; });
+  Object.keys(sx).forEach(function (w) { if (sy[w]) inter++; }); uni = Object.keys(sx).length + Object.keys(sy).length - inter;
+  return uni > 0 && inter / uni >= 0.8;
 }
 var R44_GRP = { prep: 'From your prep sheet', general: 'Common questions for this kind of role: general', behavioral: 'Common questions for this kind of role: about your past work', family: 'Common questions for this kind of role' };
 function r44PracticeJobs() {
   var d = S.data, out = [], seen = {};
-  (d.apps || []).forEach(function (x) { if (stageOf(x) >= 4 || isOutreach(x) || !(r44Utc(x.interview) || pvHas(x))) return; if (x.jobId) seen[x.jobId] = 1; out.push({ key: 'a:' + x.id, label: [String(x.role || '').trim(), coOr(x)].filter(String).join(' at '), app: x, when: r44Utc(x.interview) ? 'Interview ' + fmtY(x.interview) : 'Prep sheet ready' }); });
-  (d.jobs || []).forEach(function (j) { if (seen[j.id] || ansOf(j) !== 'yes' || j.closed) return; var a = jobApp(j); if (a && stageOf(a) >= 4) return; out.push({ key: 'j:' + j.id, label: [String(j.title || '').trim(), String(j.company || '').trim()].filter(String).join(' at '), app: a || null, when: 'You said yes' }); });
+  var over = function (x) { return stageOf(x) >= 4 || /\bhired\b|accepted/i.test(String(x.status || '')); }; /* ended or hired: the search for that job is over */
+  (d.apps || []).forEach(function (x) { if (x.jobId && over(x)) seen[x.jobId] = 1; if (over(x) || isOutreach(x) || !(r44Utc(x.interview) || pvHas(x))) return; if (x.jobId) seen[x.jobId] = 1; out.push({ key: 'a:' + x.id, label: [String(x.role || '').trim(), coOr(x)].filter(String).join(' at '), app: x, when: r44Utc(x.interview) ? 'Interview ' + fmtY(x.interview) : 'Prep sheet ready' }); });
+  (d.jobs || []).forEach(function (j) { if (seen[j.id] || ansOf(j) !== 'yes' || j.closed) return; var a = jobApp(j); if (a && over(a)) return; out.push({ key: 'j:' + j.id, label: [String(j.title || '').trim(), String(j.company || '').trim()].filter(String).join(' at '), app: a || null, when: 'You said yes' }); });
   return out;
 }
 function r44Pr() { if (!S.pr) S.pr = { job: '', scr: 'jobs', i: 0, left: R44_TIMER, on: false, edit: null, msg: '' }; return S.pr; }
@@ -480,7 +514,7 @@ function r44PrQScr(J) {
     (story ? '<dl class="p44-story"><div><dt>Situation</dt><dd>' + esc(story.s) + '</dd></div><div><dt>Task</dt><dd>' + esc(story.t) + '</dd></div><div><dt>Action</dt><dd>' + esc(story.a) + '</dd></div><div><dt>Result</dt><dd>' + esc(story.r) + '</dd></div></dl>' : '') +
     '<p style="margin:0"><button type="button" class="linkbtn" data-prscr="stories">' + (st.stories.length ? 'Open your stories' : 'Write your first story') + '</button></p>' +
     '<label class="p44-chk"><input type="checkbox" data-prdone="' + esc(q.id) + '"' + (done[q.id] ? ' checked' : '') + '>Mark as practiced</label>' +
-    '<div class="p44-acts"><button type="button" class="btn ghost" data-prq="' + (P.i - 1) + '"' + (P.i === 0 ? ' disabled' : '') + '>Previous</button><button type="button" class="btn" data-prq="' + (P.i + 1) + '"' + (P.i >= qs.length - 1 ? ' disabled' : '') + '>Next</button><button type="button" class="btn ghost" data-prscr="list">All questions</button></div>' + r44DevNote() + '</section>';
+    '<div class="p44-acts"><button type="button" class="btn ghost" data-prq="' + (P.i - 1) + '"' + (P.i === 0 ? ' disabled' : '') + '>Previous</button><button type="button" class="btn" data-prq="' + (P.i + 1) + '"' + (P.i >= qs.length - 1 ? ' disabled' : '') + '>Next</button><button type="button" class="btn ghost" data-prback="list">All questions</button></div>' + r44DevNote() + '</section>';
 }
 function r44PrStoriesScr() {
   var P = r44Pr(), st = r44PrStore(), E = P.edit, cur = E && E !== 'new' ? r44Story(E) : null, v = P.draft || cur || { name: '', s: '', t: '', a: '', r: '' };
@@ -489,14 +523,22 @@ function r44PrStoriesScr() {
     ta('prSs', 'Situation', 's', 'Where you were and what was going on') + ta('prSt', 'Task', 't', 'What you had to get done') + ta('prSa', 'Action', 'a', 'What you did') + ta('prSr', 'Result', 'r', 'What changed because of it') +
     (P.msg ? '<p class="err" role="alert" id="prSErr">' + esc(P.msg) + '</p>' : '') + '<div class="p44-acts"><button type="button" class="btn" data-prssave>Save the story</button><button type="button" class="btn ghost" data-prsedit="">Cancel</button></div>' + r44DevNote() + '</form>';
   return '<div class="card p44-card"><p>A story is one real thing you did, told in four parts. Save it once and attach it to any question, for any job.</p><div class="p44-acts"><button type="button" class="btn" data-prsedit="new">Write a story</button></div>' + r44DevNote() + '</div>' +
-    (st.stories.length ? '<ul class="p44-stories">' + st.stories.map(function (s) { return '<li class="card p44-card" data-story="' + esc(s.id) + '"><h2 class="pf-h">' + esc(s.name) + '</h2><dl class="p44-story"><div><dt>Situation</dt><dd>' + esc(s.s) + '</dd></div><div><dt>Task</dt><dd>' + esc(s.t) + '</dd></div><div><dt>Action</dt><dd>' + esc(s.a) + '</dd></div><div><dt>Result</dt><dd>' + esc(s.r) + '</dd></div></dl><div class="p44-acts"><button type="button" class="btn ghost" data-prsedit="' + esc(s.id) + '">Edit<span class="sr"> ' + esc(s.name) + '</span></button><button type="button" class="btn ghost" data-prsdel="' + esc(s.id) + '">Delete<span class="sr"> ' + esc(s.name) + '</span></button></div></li>'; }).join('') + '</ul>' : '<div class="card empty"><p class="psub" style="margin:0">No stories yet.</p></div>');
+    (st.stories.length ? '<ul class="p44-stories">' + st.stories.map(function (s) { return '<li class="card p44-card" data-story="' + esc(s.id) + '"><h2 class="pf-h">' + esc(s.name) + '</h2><dl class="p44-story"><div><dt>Situation</dt><dd>' + esc(s.s) + '</dd></div><div><dt>Task</dt><dd>' + esc(s.t) + '</dd></div><div><dt>Action</dt><dd>' + esc(s.a) + '</dd></div><div><dt>Result</dt><dd>' + esc(s.r) + '</dd></div></dl><div class="p44-acts"><button type="button" class="btn ghost" data-prsedit="' + esc(s.id) + '">Edit<span class="sr"> ' + esc(s.name) + '</span></button><button type="button" class="btn ghost" data-prsdel="' + esc(s.id) + '">Delete<span class="sr"> ' + esc(s.name) + '</span></button></div>' +
+      (P.del === s.id ? '<div class="p44-confirm" role="group" aria-labelledby="prDelQ"><p id="prDelQ" tabindex="-1">Delete this story? It also comes off every question it is attached to.</p><div class="p44-acts"><button type="button" class="btn danger" data-prsdelyes="' + esc(s.id) + '">Delete it</button><button type="button" class="btn ghost" data-prsdelno>Keep it</button></div></div>' : '') + '</li>'; }).join('') + '</ul>' : '<div class="card empty"><p class="psub" style="margin:0">No stories yet.</p></div>');
 }
+/* Each practice screen (a job's questions, a question, the stories) has its own history entry, so Back from a question returns
+   to the question list and Back from the list returns to the jobs. Previous and Next stay on the question's entry. */
+function r44PrGo(scr, job) {
+  var P = r44Pr(); r44TimerStop(); if (job != null) P.job = job; if (scr === 'stories') P.from = P.scr; P.scr = scr; P.edit = null; P.draft = null; P.msg = ''; P.del = null;
+  try { history.pushState({ sp: 1, depth: S.hist + 1, flow: null, view: 'practice', pr: { scr: scr, job: P.job, from: P.from || '', i: P.i } }, '', location.href); S.hist++; } catch (e) {}
+}
+function r44PrBack() { var st = null; try { st = history.state; } catch (e) {} if (st && st.sp && st.pr && S.hist > 0) { history.back(); return true; } return false; }
 function vPractice() {
   var P = r44Pr(), J = r44PrJob(); r44Need('bank', R44_URL.bank);
-  if (P.scr !== 'stories' && !J) { P.scr = 'jobs'; P.job = ''; }
+  if (P.scr !== 'stories' && P.scr !== 'jobs' && !J) { P.scr = 'jobs'; P.job = ''; }
   if (P.scr !== 'q') r44TimerStop();
   var body = P.scr === 'stories' ? r44PrStoriesScr() : P.scr === 'q' ? r44PrQScr(J) : P.scr === 'list' ? r44PrListScr(J) : r44PrJobsScr();
-  var back = P.scr === 'jobs' ? '' : '<div class="fl-top"><button type="button" class="fl-back" data-prscr="' + (P.scr === 'q' ? 'list' : P.scr === 'stories' && J ? (P.from === 'q' ? 'q' : 'list') : 'jobs') + '">' + IC.chev + (P.scr === 'q' ? 'All questions' : P.scr === 'stories' && J ? 'Back to practice' : 'All practice') + '</button></div>';
+  var back = P.scr === 'jobs' ? '' : '<div class="fl-top"><button type="button" class="fl-back" data-prback="' + (P.scr === 'q' ? 'list' : P.scr === 'stories' && J ? (P.from === 'q' ? 'q' : 'list') : 'jobs') + '">' + IC.chev + (P.scr === 'q' ? 'All questions' : P.scr === 'stories' && J ? 'Back to practice' : 'All practice') + '</button></div>';
   var title = P.scr === 'stories' ? 'Your stories' : J && P.scr !== 'jobs' ? 'Practice: ' + esc(J.label) : 'Interview practice';
   return shell('practice', title, P.scr === 'jobs' ? 'Common questions, a timer and your own notes. No recording.' : '') + '<div class="pband" aria-hidden="true"></div><main class="pmain p44 p44-pr">' + (P.scr === 'jobs' ? ivSubNav('practice') : back) + r44Sample() + body + (P.scr === 'jobs' ? r42Foot() : '') + '</main>' + tabbar('practice');
 }
@@ -515,9 +557,13 @@ if (typeof document !== 'undefined') {
   });
   document.addEventListener('click', function (e) {
     if (!e.target.closest || !r44On() || S.view !== 'practice') return; var P = r44Pr(), st = r44PrStore(), b;
-    if ((b = e.target.closest('[data-prjob]'))) { r44Save(); P.job = b.getAttribute('data-prjob'); P.scr = 'list'; P.i = 0; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
-    if ((b = e.target.closest('[data-prscr]'))) { r44Save(); var to = b.getAttribute('data-prscr'); if (to === 'stories') P.from = P.scr; P.scr = to; P.edit = null; P.draft = null; P.msg = ''; S.focusTo = to === 'q' ? '#prQH' : '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
-    if ((b = e.target.closest('[data-prq]'))) { if (b.disabled) return; r44Save(); r44TimerStop(); P.i = Math.max(0, +b.getAttribute('data-prq') || 0); P.scr = 'q'; P.left = R44_TIMER; S.focusTo = '#prQH'; render(); window.scrollTo(0, 0); return; }
+    if ((b = e.target.closest('[data-prjob]'))) { P.i = 0; r44PrGo('list', b.getAttribute('data-prjob')); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
+    if ((b = e.target.closest('[data-prback]'))) { if (!r44PrBack()) { P.scr = b.getAttribute('data-prback'); P.edit = null; P.draft = null; P.del = null; S.focusTo = P.scr === 'q' ? '#prQH' : '.ptitle h1'; render(); window.scrollTo(0, 0); } return; }
+    if ((b = e.target.closest('[data-prscr]'))) { r44PrGo(b.getAttribute('data-prscr')); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
+    if ((b = e.target.closest('[data-prq]'))) { if (b.disabled) return; r44TimerStop(); var ni = Math.max(0, +b.getAttribute('data-prq') || 0);
+      if (P.scr === 'q') { P.i = ni; P.left = R44_TIMER; try { var hs = history.state; if (hs && hs.sp && hs.pr) history.replaceState(Object.assign({}, hs, { pr: Object.assign({}, hs.pr, { i: ni }) }), '', location.href); } catch (x) {} } /* next and previous stay on the question's own entry */
+      else { P.i = ni; P.left = R44_TIMER; r44PrGo('q'); }
+      S.focusTo = '#prQH'; render(); window.scrollTo(0, 0); return; }
     if ((b = e.target.closest('[data-prtimer]'))) { var k = b.getAttribute('data-prtimer');
       if (k === 'toggle') { r44TimerStop(); st.pr.timerOff = !st.pr.timerOff; P.left = R44_TIMER; r44Save(); S.focusTo = '[data-prtimer="toggle"]'; render(); return; }
       if (k === 'reset') { r44TimerStop(); P.left = R44_TIMER; S.focusTo = '[data-prtimer="go"]'; render(); return; }
@@ -525,7 +571,9 @@ if (typeof document !== 'undefined') {
       S.focusTo = '[data-prtimer="go"]'; render(); return; }
     if (e.target.closest('[data-prprint]')) { r44Save(); try { window.print(); } catch (x) {} return; }
     if ((b = e.target.closest('[data-prsedit]'))) { P.edit = b.getAttribute('data-prsedit') || null; P.draft = null; P.msg = ''; S.focusTo = P.edit ? '#prSName' : '.ptitle h1'; render(); return; }
-    if ((b = e.target.closest('[data-prsdel]'))) { var id = b.getAttribute('data-prsdel'); st.stories = st.stories.filter(function (s) { return s.id !== id; }); Object.keys(st.pr.attach).forEach(function (jk) { Object.keys(st.pr.attach[jk]).forEach(function (q) { if (st.pr.attach[jk][q] === id) delete st.pr.attach[jk][q]; }); }); r44Save(); toast('Story deleted.'); S.focusTo = '.ptitle h1'; render(); return; }
+    if ((b = e.target.closest('[data-prsdel]'))) { P.del = b.getAttribute('data-prsdel'); S.focusTo = '#prDelQ'; render(); return; }
+    if (e.target.closest('[data-prsdelno]')) { var was = P.del; P.del = null; S.focusTo = '[data-prsdel="' + cssq(was) + '"]'; render(); return; }
+    if ((b = e.target.closest('[data-prsdelyes]'))) { var id = b.getAttribute('data-prsdelyes'); P.del = null; st.stories = st.stories.filter(function (s) { return s.id !== id; }); Object.keys(st.pr.attach).forEach(function (jk) { Object.keys(st.pr.attach[jk]).forEach(function (q) { if (st.pr.attach[jk][q] === id) delete st.pr.attach[jk][q]; }); }); r44Save(); toast('Story deleted.'); S.focusTo = '.ptitle h1'; render(); return; }
     if (e.target.closest('[data-prssave]')) {
       var v = P.draft || (P.edit !== 'new' && r44Story(P.edit)) || {}, name = String(v.name || '').trim();
       if (!name) { P.msg = 'Give the story a name.'; S.focusTo = '#prSName'; render(); return; }
@@ -535,5 +583,12 @@ if (typeof document !== 'undefined') {
     }
   });
   /* leaving practice stops the timer and writes anything typed */
-  (function () { var base = go; go = function (view) { if (S.view === 'practice' && view !== 'practice') { r44TimerStop(); r44Save(); } if (view === 'practice' && S.view !== 'practice') { var P = r44Pr(); if (P.scr === 'q') P.scr = 'list'; } return base.apply(this, arguments); }; })();
+  (function () { var base = go; go = function (view) { if (S.view === 'practice' && view !== 'practice') { r44TimerStop(); r44Save(); } if (view === 'practice' && S.view !== 'practice' && r44On()) { var P = r44Pr(); P.scr = 'jobs'; P.job = ''; P.edit = null; P.draft = null; P.del = null; } return base.apply(this, arguments); }; })();
+  /* Back, Forward and a reload hand over the entry they landed on (portal-r42.js navRestore) */
+  (function () { var base = navRestore; navRestore = function (st, view) {
+    var r = base.apply(this, arguments); if (view !== 'practice' || !r44On()) return r;
+    var P = r44Pr(), pr = (st && st.pr) || { scr: 'jobs', job: '' }, before = [P.scr, P.job, P.i].join('|');
+    r44TimerStop(); P.scr = /^(jobs|list|q|stories)$/.test(pr.scr || '') ? pr.scr : 'jobs'; P.job = pr.job || ''; P.from = pr.from || ''; if (pr.i != null) P.i = pr.i | 0; P.left = R44_TIMER; P.edit = null; P.draft = null; P.del = null; P.msg = '';
+    return r || before !== [P.scr, P.job, P.i].join('|');
+  }; })();
 }

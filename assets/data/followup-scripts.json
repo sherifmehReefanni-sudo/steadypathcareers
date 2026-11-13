@@ -1,7 +1,11 @@
 {
   "note": "Word for word from /free/follow-up-scripts/ (the site's own follow-up guide). test_r44.js checks every line against that page. Change the guide first, then this file.",
   "source": "/free/follow-up-scripts/",
-  "intervals": { "afterApplyDays": 7, "afterInterviewBusinessDays": 5, "thankYouSameDay": true },
+  "intervals": {
+    "afterApplyDays": 7,
+    "afterInterviewBusinessDays": 5,
+    "thankYouSameDay": true
+  },
   "rule": "One follow-up a week is plenty. After two with no answer, send the closing-the-loop note and put your energy elsewhere.",
   "scripts": {
     "apply": {
@@ -27,6 +31,12 @@
       "when": "After you get the written offer and before you accept, if the pay is below the posted range or at its very bottom.",
       "subject": "Question about the offer for [Job title]",
       "body": "Hi [Name],\n\nThank you for the offer. I am excited about the [Job title] role and the team.\n\nI want to ask about one thing before I decide. The job posting listed a pay range of [posted range], and the offer is [offered amount]. Could you help me understand how that number was set? Given [the skill or experience from the posting that you bring], I was expecting an offer closer to [your number].\n\nI am glad to talk it through by phone if that is easier.\n\nThank you,\n[Your name]"
+    },
+    "close": {
+      "title": "Closing the loop after being ghosted",
+      "when": "After two follow-ups with no reply, usually two to three weeks after your last contact.",
+      "subject": "Closing the loop on [Job title]",
+      "body": "Hi [Name],\n\nI have followed up a couple of times about the [Job title] role and haven't heard back, so I will assume the team has gone another way. I know how busy hiring gets.\n\nThank you for the time you spent with me. If anything changes, or another role opens that fits my background, I would be glad to hear from you.\n\nBest,\n[Your name]"
     }
   }
 }

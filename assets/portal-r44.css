@@ -154,3 +154,5 @@
 .p44-ferr { font-size: 14px; margin: 4px 0 0 !important; }
 .p44-ferr:empty { display: none; }
 .p44 input[aria-invalid="true"] { border-color: var(--bad); }
+.p44-confirm { border: 2px solid var(--bad); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
+.p44-confirm p:focus { outline: none; } .p44-confirm p:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
