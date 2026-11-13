@@ -474,12 +474,12 @@
 @media (min-width: 1101px) {
   .mk .topbar .brand { flex: none; }
   .mk .topbar .links a { padding-left: 6px; padding-right: 6px; }
-  .mk .topbar .theme-btn { margin-left: 2px; width: 42px; }
+  .mk .topbar .theme-btn { margin-left: 2px; width: 44px; } /* r47: 44px like every other header control */
 }
 /* small phones: the brand, the header button and the menu button share 280 to 340px */
 @media (max-width: 380px) {
-  .topbar .theme-btn { width: 40px; height: 40px; }
-  .topbar .theme-btn + .mnav-btn { margin-left: 6px; }
+  .topbar .theme-btn { width: 44px; height: 44px; } /* r47: was 40px, under the 44px tap size */
+  .topbar .theme-btn + .mnav-btn { margin-left: 4px; }
   .topbar .brand { gap: 8px; }
   .topbar .brand svg { width: 32px; height: 32px; }
 }
@@ -489,9 +489,9 @@
   .topbar .brand svg { width: 30px; height: 30px; }
 }
 .login .say .brand { padding-right: 56px; }
-/* the portal header is tight on narrow views: icons keep their size, and the button is a little smaller */
+/* the portal header is tight on narrow views: icons keep their size */
 .ptabs button svg, .ptop .brand svg { flex: none; }
-.ptop .theme-btn { width: 40px; height: 40px; }
+.ptop .theme-btn { width: 44px; height: 44px; } /* r47: was 40px, under the 44px tap size */
 @media (min-width: 761px) {
   .login .say .theme-btn { position: fixed; top: max(20px, env(safe-area-inset-top, 0px)); right: max(24px, env(safe-area-inset-right, 0px)); z-index: 5; }
   .login .say .brand { padding-right: 0; }

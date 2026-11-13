@@ -50,3 +50,21 @@
 .t45-filters .p44-chk input { flex: none; margin: 0; }
 .t45-filters .p44-dev { margin: 0; font-size: 13px; line-height: 1.4; }
 .t45-filters .p44-chk:focus-within { outline: 3px solid var(--gold); outline-offset: 2px; }
+/* r47: under 380 wide the block is tighter still so a program shows on the first screen of a small phone (320x568, 360x640):
+   Area and Kind share the first row, Career field and the saved-only chip the second; the three small labels are kept for
+   screen readers (each select already says what it is: All areas, All kinds, All fields); the note is one size smaller. */
+@media (max-width: 379px) {
+  .t45 { gap: 8px; }
+  .t45-note { font-size: 13.5px; line-height: 1.4; }
+  .t45-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 8px; }
+  .t45-filters .t45-three { display: contents; }
+  .t45-three > div:nth-child(3) { grid-column: auto; }
+  .t45-filters label[for] { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .t45-filters .p44-chk { align-self: stretch; width: auto; margin: 0; padding: 0 8px; font-size: 12.5px; line-height: 1.2; gap: 6px; border-radius: 10px; }
+  .t45-filters .p44-dev { grid-column: 1 / -1; font-size: 12.5px; }
+  .t45-count { font-size: 13.5px; }
+  .t45-grp .sec-h { margin-top: 0; }
+  .pmain.t45 { padding-top: 8px; }
+  .t45 .p44-sample { margin: 0; font-size: 13px; line-height: 1.3; }
+  #tfOut { gap: 8px; }
+}
