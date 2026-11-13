@@ -150,3 +150,7 @@
   .p44-print .pg, .p44-print .pf { font-size: 9.5pt; color: #444; } .p44-print .pn { white-space: pre-wrap; } .p44-print .pn.blank { height: 54pt; border-bottom: 1px solid #999; }
   .p44-print .pq { break-inside: avoid; }
 }
+
+.p44-ferr { font-size: 14px; margin: 4px 0 0 !important; }
+.p44-ferr:empty { display: none; }
+.p44 input[aria-invalid="true"] { border-color: var(--bad); }

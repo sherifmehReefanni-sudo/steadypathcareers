@@ -87,20 +87,29 @@ if (typeof document !== 'undefined' && typeof vHome === 'function') {
   vHome = r44Home;
   /* links on Home and in the tools are real links (they open in a new tab like any link); a plain tap stays in the app */
   document.addEventListener('click', function (e) {
-    var a = e.target.closest && e.target.closest('a[data-r44go]'); if (!a || !S.data || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest && e.target.closest('a[data-r44go]'); if (!a || !r44On() || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault(); var v = a.getAttribute('data-r44go'); if (v === 'prefs' && S.view !== 'prefs') pfReset(); go(v);
   });
   /* the path draws once, on the first Home of this page load */
-  (function () { var base = render; render = function () { var r = base.apply(this, arguments); if (S.status === 'ready' && S.view === 'home' && !S.flow && !S.deck && !S.r44Drawn) setTimeout(function () { S.r44Drawn = true; }, 1200); return r; }; })();
+  (function () { var base = render; render = function () { var r = base.apply(this, arguments); if (S.status === 'ready' && S.view === 'home' && !S.flow && !S.deck && !S.r44Drawn && !S.r44DrawT) S.r44DrawT = setTimeout(function () { S.r44Drawn = true; }, 1200); /* one timer, sets one flag, touches no screen */ return r; }; })();
 }
 
 /* ================= shared: device store and data files ================= */
 /* What the tools keep is on this device only (localStorage, one entry per client id). The live API (v1.45) has no place for
    it; r41/BACKEND_PROPOSAL_v146.md says what a store would need. Signing out removes it, like the portal's other device items. */
-function r44Key() { return 'sp_r44_' + String((S.data && S.data.client && S.data.client.id) || 'none').replace(/[^\w-]/g, ''); }
-function r44Store() { var k = r44Key(); if (S.r44Mem && S.r44Mem.k === k) return S.r44Mem.v; var v = {}; try { v = JSON.parse(lsGet(k) || '{}') || {}; if (typeof v !== 'object' || Array.isArray(v)) v = {}; } catch (e) { v = {}; } S.r44Mem = { k: k, v: v }; return v; }
-function r44Save() { try { lsSet(r44Key(), JSON.stringify(r44Store())); return true; } catch (e) { return false; } }
-var R44_DEVICE = 'Saved on this phone only for now.';
+/* signed in, with a client on screen: every r44 listener and timer checks this first */
+function r44On() { return S.status === 'ready' && !!S.data && !!S.data.client; }
+/* '' when there is no signed-in client id: nothing is read or written then (never a key like sp_r44_none) */
+function r44Key() { var id = r44On() ? String(S.data.client.id == null ? '' : S.data.client.id).replace(/[^\w-]/g, '') : ''; return id ? 'sp_r44_' + id : ''; }
+function r44Store() { var k = r44Key(); if (S.r44Mem && S.r44Mem.k === k) return S.r44Mem.v; var v = {}; if (k) { try { v = JSON.parse(lsGet(k) || '{}') || {}; if (typeof v !== 'object' || Array.isArray(v)) v = {}; } catch (e) { v = {}; } } S.r44Mem = { k: k, v: v }; return v; }
+function r44Save() { var k = r44Key(); if (!k) return false; try { localStorage.setItem(lsKey(k), JSON.stringify(r44Store())); return localStorage.getItem(lsKey(k)) != null; } catch (e) { return false; } }
+/* removes every r44 entry on this device (all client ids) and forgets what is in memory. Called on every way out of a
+   signed-in portal: Sign out, an expired session, a sign-in that fails, and a sign-out in another tab. */
+function r44Wipe() {
+  S.r44Mem = null; S.fu = null; S.pr = null; S.of = null;
+  try { for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (/^(spdemo_)?sp_r44_/.test(k || '')) localStorage.removeItem(k); } } catch (e) {}
+}
+var R44_DEVICE = 'Saved on this device only for now.';
 var R44 = { scripts: null, bank: null, pay: null, busy: {}, err: {} };
 function r44Need(name, url) {
   if (R44[name] || R44.busy[name]) return; R44.busy[name] = true; R44.err[name] = false;
@@ -190,14 +199,14 @@ function vFu() {
 }
 if (typeof document !== 'undefined') {
   document.addEventListener('input', function (e) {
-    var t = e.target; if (!t || !S.fu || (t.id !== 'fuSub' && t.id !== 'fuBody')) return;
+    var t = e.target; if (!t || !r44On() || !S.fu || (t.id !== 'fuSub' && t.id !== 'fuBody')) return;
     if (t.id === 'fuSub') S.fu.subject = t.value; else S.fu.body = t.value;
     var x = appById(S.fu.app), a = document.getElementById('fuMail'), l = document.getElementById('fuLeft');
     if (a && x) a.setAttribute('href', r44Mailto(r44Email(x.contact), S.fu.subject, S.fu.body));
     if (l) l.hidden = !/\[[^\]\n]+\]/.test(S.fu.subject + S.fu.body);
   });
   document.addEventListener('click', function (e) {
-    if (!e.target.closest || !S.data) return;
+    if (!e.target.closest || !r44On()) return;
     var b = e.target.closest('[data-r44fu]'); if (b) { var p = b.getAttribute('data-r44fu').split(':'); r44FuOpen(p[0], p.slice(1).join(':')); return; }
     var rt = e.target.closest('[data-r44retry]'); if (rt) { var n = rt.getAttribute('data-r44retry'); R44.err[n] = false; r44Need(n, R44_URL[n]); render(); return; }
     if (e.target.closest('[data-r44fucopy]') && S.fu) { copyText((S.fu.subject ? 'Subject: ' + S.fu.subject + '\n\n' : '') + S.fu.body); return; }
@@ -205,11 +214,20 @@ if (typeof document !== 'undefined') {
       var x = appById(S.fu.app); if (!x) return;
       if (S.fu.kind === 'apply') { r18Move(x.id, 'followedup'); go('apps'); return; } /* the existing "I followed up" request: { action: 'board', stage: 'followedup', id } */
       var st = r44Store(); st.fu = st.fu || {}; st.fu[x.id] = st.fu[x.id] || {}; st.fu[x.id][S.fu.kind] = todayISO();
-      S.fu.msg = r44Save() ? 'Marked as sent. ' + R44_DEVICE : 'This phone would not save it. The note is not marked.'; S.focusTo = '#fuMsg'; render();
+      S.fu.msg = r44Save() ? 'Marked as sent. ' + R44_DEVICE : 'This device would not save it. The note is not marked.'; S.focusTo = '#fuMsg'; render();
     }
   });
-  /* signing out removes what the tools kept on this device */
-  (function () { var base = signOut; signOut = function () { var k = S.data ? r44Key() : null; var r = base.apply(this, arguments); if (k) { try { lsDel(k); } catch (e) {} } S.r44Mem = null; S.fu = null; S.pr = null; S.of = null; return r; }; })();
+  /* signing out removes what the tools kept on this device, and stops the practice timer first */
+  (function () { var base = signOut; signOut = function () { r44TimerStop(); r44Wipe(); var r = base.apply(this, arguments); r44Wipe(); return r; }; })();
+  /* any screen that is not a signed-in portal (sign-in, link, error after an expired session) leaves nothing behind either */
+  (function () { var base = render; render = function () { if (S.status !== 'ready' && S.status !== 'boot' && !S.token) { r44TimerStop(); r44Wipe(); } else if (S.status === 'ready' && S.view !== 'practice') r44TimerStop(); return base.apply(this, arguments); }; })();
+  /* signed out in another tab: this tab signs out too, so nothing typed here is saved again after the store was removed */
+  window.addEventListener('storage', function (e) {
+    if (S.demo || !e || e.storageArea !== localStorage) return;
+    if (e.key === 'sp_token' && !e.newValue && S.token) { signOut('You signed out in another tab. Sign in again to continue.'); return; }
+    if (e.key && /^sp_r44_/.test(e.key) && e.newValue == null) S.r44Mem = null; /* removed elsewhere: do not write the old copy back */
+  });
+  window.addEventListener('pagehide', function () { r44TimerStop(); });
 }
 
 /* ================= T4: offer check ================= */
@@ -217,27 +235,49 @@ if (typeof document !== 'undefined') {
    file (/pay/data.json, cited the way /pay/ cites it). Nothing here is sent anywhere. */
 var R44_WEEKS = 52;
 function r44Money(n, cents) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }); }
-function r44Pos(v) { v = typeof v === 'string' ? Number(v.replace(/[$,\s]/g, '')) : Number(v); return isFinite(v) && v > 0 ? v : null; }
-/* pure: o = { amount, unit: 'hour' | 'year', hours, days, commute (cost per day on site) }. Returns null until pay and hours are usable. */
+/* pure: read a number the client typed. Digits, commas only as thousands separators, one decimal point. Anything else is
+   refused with a message: nothing is guessed or reinterpreted. Returns { v, err, empty }. A real number (from code) passes. */
+var R44_NUM_ERR = 'Use digits only, like 65000 or 65,000.50.';
+function r44Amt(x) {
+  if (typeof x === 'number') return isFinite(x) && x >= 0 ? { v: x, err: '', empty: false } : { v: null, err: R44_NUM_ERR, empty: false };
+  var t = String(x == null ? '' : x).trim(); if (!t) return { v: null, err: '', empty: true };
+  if (!/^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$|^\.\d+$/.test(t)) return { v: null, err: R44_NUM_ERR, empty: false };
+  return { v: Number(t.replace(/,/g, '')), err: '', empty: false };
+}
+/* pure: the message for each field that cannot be used, by field name. o as r44OfferMath, with commute split into cost, or miles and rate. */
+function r44OfferErrs(o) {
+  var e = {}, a = r44Amt(o.amount), h = r44Amt(o.hours), d = r44Amt(o.days);
+  if (a.err) e.amount = a.err; else if (!a.empty && !(a.v > 0)) e.amount = 'Type an amount above 0.';
+  if (h.err) e.hours = h.err; else if (!h.empty && !(h.v > 0)) e.hours = 'Type hours above 0.'; else if (h.v > 168) e.hours = 'A week has 168 hours. Type 168 or less.';
+  if (d.err) e.days = d.err; else if (d.v > 7) e.days = 'A week has 7 days. Type 0 to 7.';
+  ['commute', 'cost', 'miles', 'rate'].forEach(function (k) { if (o[k] === undefined) return; var r = r44Amt(o[k]); if (r.err) e[k] = r.err; });
+  return e;
+}
+function r44Pos(v) { var r = r44Amt(v); return r.v != null && r.v > 0 ? r.v : null; }
+/* pure: o = { amount, unit: 'hour' | 'year', hours, days, commute (cost per day on site) }. Returns null until pay and hours are
+   usable, and whenever any field holds something that is not a plain number in range. */
 function r44OfferMath(o) {
-  var amt = r44Pos(o.amount), hrs = r44Pos(o.hours); if (!amt || !hrs || hrs > 168) return null;
+  if (Object.keys(r44OfferErrs(o)).length) return null;
+  var amt = r44Pos(o.amount), hrs = r44Pos(o.hours); if (!amt || !hrs) return null;
   var hourly = o.unit === 'hour', yearly = hourly ? amt * hrs * R44_WEEKS : amt, perHour = hourly ? amt : amt / (hrs * R44_WEEKS);
-  var days = Number(o.days), cost = r44Pos(o.commute), hasC = cost != null && days > 0 && days <= 7, commute = hasC ? cost * days * R44_WEEKS : 0;
+  var dr = r44Amt(o.days), days = dr.v == null ? 0 : dr.v, cost = r44Pos(o.commute), hasC = cost != null && days > 0, commute = hasC ? cost * days * R44_WEEKS : 0;
   var lines = [];
   if (hourly) lines.push('Yearly pay: ' + r44Money(amt, true) + ' an hour x ' + hrs + ' hours a week x ' + R44_WEEKS + ' weeks = ' + r44Money(yearly));
   else lines.push('Hourly pay: ' + r44Money(amt) + ' a year / (' + hrs + ' hours a week x ' + R44_WEEKS + ' weeks) = ' + r44Money(perHour, true) + ' an hour');
   if (hasC) { lines.push('Commute: ' + r44Money(cost, true) + ' a day x ' + days + (days === 1 ? ' day' : ' days') + ' a week x ' + R44_WEEKS + ' weeks = ' + r44Money(commute) + ' a year'); lines.push('Pay after commute: ' + r44Money(yearly) + ' - ' + r44Money(commute) + ' = ' + r44Money(yearly - commute) + ' a year'); }
   return { yearly: yearly, hourly: perHour, commute: commute, after: yearly - commute, hasCommute: hasC, lines: lines };
 }
-/* pure: read a posted pay line only when it is one plain amount or one plain range with a clear unit; otherwise null */
+/* pure: a posted pay line is compared ONLY when it is, in full, one amount or one range that says per hour or per year.
+   The Job matcher's own hourly form, "$55 to $65 per hour (about $114,400 to $135,200 a year if full-time, our math)", is read
+   as its hourly range; the bracket is our own arithmetic and is ignored. Everything else returns null and is shown as stored:
+   by the month, week, day or visit, "k" shorthand, OTE, commission, bonus, "up to", "plus", three amounts, no unit. */
 function r44Posted(text) {
-  var p = String(text == null ? '' : text); if (!p.trim() || /OTE|on[- ]target|commission|%|not posted|estimate|bonus/i.test(p)) return null;
-  var re = /\$\s*(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?\s*(k\b)?/gi, m, a = [];
-  while ((m = re.exec(p))) a.push(Number(m[1].replace(/,/g, '') + (m[2] || '')) * (m[3] ? 1000 : 1));
-  if (!a.length || a.length > 2) return null;
-  var lo = a[0], hi = a.length === 2 ? a[1] : a[0]; if (a.length === 2 && /\d\s*k\b/i.test(p) && lo < 1000 && hi >= 1000) lo *= 1000;
-  var unit = /hour|hourly|\/\s*hr\b|\bhr\b/i.test(p) ? 'hour' : /year|yearly|annual|salary|\/\s*yr\b/i.test(p) ? 'year' : lo >= 1000 ? 'year' : lo < 500 ? 'hour' : '';
-  if (!unit || !(lo > 0) || hi < lo || (unit === 'hour' ? hi >= 1000 : lo < 1000)) return null;
+  var p = String(text == null ? '' : text).replace(/\s+/g, ' ').trim(); if (!p) return null;
+  p = p.replace(/ ?\((?:about|approx\.?|approximately|roughly) [^()]*\)\.?$/i, '').trim();
+  var A = '(\\d{1,3}(?:,\\d{3})+|\\d+)(\\.\\d{1,2})?', U = '(per hour|an hour|hourly|/ ?hour|/ ?hr|per hr|per year|a year|yearly|annually|per annum|/ ?year|/ ?yr)';
+  var m = new RegExp('^\\$ ?' + A + '(?: ?(?:to|-|\\u2013|\\u2014) ?\\$? ?' + A + ')? ?' + U + '\\.?$', 'i').exec(p); if (!m) return null;
+  var num = function (d, f) { return Number(d.replace(/,/g, '') + (f || '')); }, lo = num(m[1], m[2]), hi = m[3] != null ? num(m[3], m[4]) : lo, unit = /hour|hr/i.test(m[5]) ? 'hour' : 'year';
+  if (!(lo > 0) || hi < lo || (unit === 'hour' ? hi >= 1000 : lo < 1000)) return null;
   return { lo: lo, hi: hi, unit: unit };
 }
 function r44Place(v, lo, hi) { return v < lo ? 'below' : v > hi ? 'above' : 'within'; }
@@ -275,9 +315,11 @@ function r44Of() {
 }
 function r44OfferOpen(appId) { S.of = null; var o = r44Of(); if (appId) o.job = 'a:' + appId; go('offer'); }
 function r44OfCommute(o) { if (o.mode === 'miles') { var mi = r44Pos(o.miles), rt = r44Pos(o.rate); return mi && rt ? mi * rt : null; } return r44Pos(o.cost); }
+function r44OfErrs() { var o = r44Of(), q = { amount: o.amount, hours: o.hours, days: o.days }; if (o.mode === 'miles') { q.miles = o.miles; q.rate = o.rate; } else q.cost = o.cost; return r44OfferErrs(q); }
 function r44OfferOut() {
   var o = r44Of(), jobs = r44OfferJobs(), J = jobs.filter(function (x) { return x.key === o.job; })[0] || null, h = '';
-  var cost = r44OfCommute(o), M = r44OfferMath({ amount: o.amount, unit: o.unit, hours: o.hours, days: o.days, commute: cost });
+  if (Object.keys(r44OfErrs()).length) return '<div class="card p44-card" data-ofout="fix"><p class="psub" style="margin:0">Fix the field marked above to see the numbers.</p></div>';
+  var cost = r44OfCommute(o), M = r44OfferMath({ amount: o.amount, unit: o.unit, hours: o.hours, days: o.days, commute: cost == null ? '' : cost });
   if (!M) return '<div class="card p44-card" data-ofout="empty"><p class="psub" style="margin:0">Type the offered pay and the hours a week to see the numbers.</p></div>';
   var lines = M.lines.slice(); if (o.mode === 'miles' && cost != null) lines.splice(1, 0, 'Commute cost a day: ' + r44Pos(o.miles) + ' miles x ' + r44Money(r44Pos(o.rate), true) + ' a mile = ' + r44Money(cost, true));
   h += '<section class="card p44-card" data-ofout="math" aria-labelledby="ofMathH"><h2 class="pf-h" id="ofMathH">The arithmetic</h2><dl class="p44-dl"><div><dt>A year</dt><dd data-of="yearly">' + r44Money(M.yearly) + '</dd></div><div><dt>An hour</dt><dd data-of="hourly">' + r44Money(M.hourly, true) + '</dd></div>' +
@@ -288,7 +330,7 @@ function r44OfferOut() {
     var P = r44Posted(J.pay), v = P ? (P.unit === 'hour' ? M.hourly : M.yearly) : null, pl = P ? r44Place(Math.round(v * 100) / 100, P.lo, P.hi) : '';
     h += '<section class="card p44-card" data-ofout="posted" aria-labelledby="ofPostH"><h2 class="pf-h" id="ofPostH">Against the posting</h2><p data-of="posted"><b>Posted:</b> ' + esc(J.pay) + '</p>' +
       (P ? '<p data-of="place" data-place="' + pl + '">Your offer, ' + r44Money(v, P.unit === 'hour') + (P.unit === 'hour' ? ' an hour' : ' a year') + ', is ' + (pl === 'within' ? 'within' : pl) + ' the posted ' + (P.lo === P.hi ? 'pay' : 'range') + '.</p>' + r44Bar(P.lo, P.hi, v) :
-        '<p data-of="place" data-place="">This pay line is not one plain amount or range, so there is no comparison. Read it against your offer yourself.</p>') + '</section>';
+        '<p data-of="place" data-place="">We can\'t compare this pay line automatically.</p>') + '</section>';
   } else if (J) h += '<section class="card p44-card" data-ofout="posted"><h2 class="pf-h">Against the posting</h2><p class="psub" style="margin:0">No posted pay is saved for this job, so there is nothing to compare here.</p></section>';
   /* the pay lookup's data */
   var D = R44.pay, L = D && o.soc ? (D.jobs || []).filter(function (j) { return j.soc === o.soc; })[0] : null, V = L && L[o.st];
@@ -327,14 +369,15 @@ function r44OfHitsHtml() {
 function vOffer() {
   var o = r44Of(), jobs = r44OfferJobs();
   r44Need('pay', R44_URL.pay); r44Need('scripts', R44_URL.scripts);
-  var inp = function (id, label, k, attrs) { return '<div><label for="' + id + '">' + label + '</label><input id="' + id + '" data-of="' + k + '" value="' + esc(o[k]) + '" ' + (attrs || 'type="text" inputmode="decimal" maxlength="12"') + '></div>'; };
+  var errs = r44OfErrs();
+  var inp = function (id, label, k, attrs) { var num = !attrs || /inputmode/.test(attrs); return '<div><label for="' + id + '">' + label + '</label><input id="' + id + '" data-of="' + k + '" value="' + esc(o[k]) + '" ' + (attrs || 'type="text" inputmode="decimal" maxlength="12"') + (num ? ' aria-describedby="ofE_' + k + '"' + (errs[k] ? ' aria-invalid="true"' : '') : '') + '>' + (num ? '<p class="err p44-ferr" id="ofE_' + k + '" data-oferr="' + k + '" aria-live="polite">' + esc(errs[k] || '') + '</p>' : '') + '</div>'; };
   var chk = function (k, label) { return '<label class="p44-chk"><input type="checkbox" data-ofc="' + k + '"' + (o[k] ? ' checked' : '') + '>' + label + '</label>'; };
   return shell('offer', 'Offer check', 'Arithmetic and posted data, not advice on whether to accept.') + '<div class="pband" aria-hidden="true"></div><main class="pmain p44 p44-of">' + r44Sample() +
-    '<div class="card p44-card"><p style="margin:0">Type what you were offered. The numbers below are worked out on this phone. Nothing here is sent or saved.</p></div>' +
+    '<div class="card p44-card"><p style="margin:0">Type what you were offered. The numbers below are worked out on this device. Nothing here is sent or saved.</p></div>' +
     '<form class="card p44-card p44-form" id="ofForm" onsubmit="return false">' +
     '<label for="ofJob">Which job is the offer for?</label><select id="ofJob" data-ofs="job"><option value="">A job that is not listed</option>' + jobs.map(function (j) { return '<option value="' + esc(j.key) + '"' + (o.job === j.key ? ' selected' : '') + '>' + esc(j.label) + '</option>'; }).join('') + '</select>' +
     '<div class="p44-two">' + inp('ofAmt', 'Offered pay, in dollars', 'amount') + '<div><label for="ofUnit">Paid by the</label><select id="ofUnit" data-ofs="unit"><option value="year"' + (o.unit === 'year' ? ' selected' : '') + '>Year</option><option value="hour"' + (o.unit === 'hour' ? ' selected' : '') + '>Hour</option></select></div></div>' +
-    '<div class="p44-two">' + inp('ofHrs', 'Hours a week', 'hours') + inp('ofDays', 'Days on site a week', 'days', 'type="text" inputmode="numeric" maxlength="1"') + '</div>' +
+    '<div class="p44-two">' + inp('ofHrs', 'Hours a week', 'hours') + inp('ofDays', 'Days on site a week', 'days', 'type="text" inputmode="decimal" maxlength="4"') + '</div>' +
     '<fieldset class="p44-fs"><legend>Commute cost for a day on site</legend><label class="p44-chk"><input type="radio" name="ofMode" data-ofm="cost"' + (o.mode === 'cost' ? ' checked' : '') + '>I know the cost (fare, tolls, parking)</label><label class="p44-chk"><input type="radio" name="ofMode" data-ofm="miles"' + (o.mode === 'miles' ? ' checked' : '') + '>Miles times a rate</label>' +
     (o.mode === 'miles' ? '<div class="p44-two">' + inp('ofMiles', 'Round trip miles a day', 'miles') + inp('ofRate', 'Your cost a mile, in dollars', 'rate') + '</div><p class="psub">Use your own cost a mile. We do not supply a rate.</p>' : inp('ofCost', 'Cost a day, in dollars', 'cost')) + '</fieldset>' +
     '<fieldset class="p44-fs"><legend>Benefits in the offer</legend>' + chk('health', 'Health insurance') + chk('retire', 'Retirement match') + chk('pto', 'Paid time off') + '</fieldset>' +
@@ -344,15 +387,16 @@ function vOffer() {
     '<p class="p44-fine">This is arithmetic and posted data, not advice on whether to accept. General information, not legal or financial advice.</p>' + r42Foot() + '</main>' + tabbar('offer');
 }
 if (typeof document !== 'undefined') {
-  var r44OfPatch = function () { var out = document.getElementById('ofOut'), hits = document.getElementById('ofHits'); if (out) out.innerHTML = r44OfferOut(); if (hits) hits.innerHTML = r44OfHitsHtml(); };
-  document.addEventListener('input', function (e) { var t = e.target, k = t && t.getAttribute && t.getAttribute('data-of'); if (!k || !S.of || t.tagName !== 'INPUT') return; S.of[k] = t.value; if (k === 'q') S.of.soc = ''; r44OfPatch(); });
+  var r44OfPatch = function () { var out = document.getElementById('ofOut'), hits = document.getElementById('ofHits'), errs = r44OfErrs(); if (out) out.innerHTML = r44OfferOut(); if (hits) hits.innerHTML = r44OfHitsHtml();
+    [].forEach.call(document.querySelectorAll('[data-oferr]'), function (el) { var k = el.getAttribute('data-oferr'), t = errs[k] || '', f = document.querySelector('[data-of="' + k + '"]'); if (el.textContent !== t) el.textContent = t; if (f) { if (t) f.setAttribute('aria-invalid', 'true'); else f.removeAttribute('aria-invalid'); } }); };
+  document.addEventListener('input', function (e) { var t = e.target, k = t && t.getAttribute && t.getAttribute('data-of'); if (!k || !r44On() || !S.of || t.tagName !== 'INPUT') return; S.of[k] = t.value; if (k === 'q') S.of.soc = ''; r44OfPatch(); });
   document.addEventListener('change', function (e) {
-    var t = e.target; if (!t || !t.getAttribute || !S.of || S.view !== 'offer') return;
+    var t = e.target; if (!t || !t.getAttribute || !r44On() || !S.of || S.view !== 'offer') return;
     var ks = t.getAttribute('data-ofs'), kc = t.getAttribute('data-ofc'), km = t.getAttribute('data-ofm');
     if (ks) { S.of[ks] = t.value; r44OfPatch(); } else if (kc) { S.of[kc] = !!t.checked; r44OfPatch(); } else if (km) { S.of.mode = km; S.focusTo = km === 'miles' ? '#ofMiles' : '#ofCost'; render(); }
   });
   document.addEventListener('click', function (e) {
-    if (!e.target.closest || !S.data) return;
+    if (!e.target.closest || !r44On()) return;
     var b = e.target.closest('[data-ofsoc]'); if (b && S.of) { S.of.soc = b.getAttribute('data-ofsoc'); r44OfPatch(); var again = document.querySelector('#ofHits [aria-checked="true"]'); if (again) again.focus(); return; }
     var ob = e.target.closest('[data-r44offer]'); if (ob) r44OfferOpen(ob.getAttribute('data-r44offer'));
   });
@@ -387,7 +431,22 @@ function r44PrQs(J) { var st = r44PrStore(); return r44Questions(R44.bank, J && 
 function r44PrOf(map, J) { return map[J.key] || (map[J.key] = {}); }
 function r44Story(id) { return r44PrStore().stories.filter(function (s) { return s.id === id; })[0] || null; }
 function r44Clock(n) { return Math.floor(n / 60) + ':' + ('0' + (n % 60)).slice(-2); }
-function r44TimerStop() { var P = S.pr; if (P && P.tick) { clearInterval(P.tick); P.tick = null; } if (P) P.on = false; }
+/* The practice timer has one owner: R44_TICK. It runs only while a signed-in client has a practice question on screen. The tick
+   checks that itself and clears the interval if not, and it is also stopped on sign-out, on leaving the question, on a view
+   change and on pagehide. "Time." shows once, when the count reaches zero. */
+var R44_TICK = null;
+function r44TimerLive() { return r44On() && S.view === 'practice' && !S.flow && !S.deck && !!S.pr && S.pr.scr === 'q' && !!S.pr.on; }
+function r44TimerStop() { if (R44_TICK != null) { clearInterval(R44_TICK); R44_TICK = null; } if (S.pr) S.pr.on = false; }
+function r44TimerStart() {
+  r44TimerStop(); var P = S.pr; if (!r44On() || !P || P.scr !== 'q') return;
+  if (P.left <= 0) P.left = R44_TIMER; P.on = true;
+  R44_TICK = setInterval(function () {
+    if (!r44TimerLive()) { r44TimerStop(); return; }
+    var Q = S.pr; Q.left = Math.max(0, Q.left - 1);
+    var el = document.getElementById('prT'); if (el) el.textContent = r44Clock(Q.left);
+    if (Q.left <= 0) { r44TimerStop(); toast('Time.'); S.focusTo = '[data-prtimer="go"]'; render(); }
+  }, 1000);
+}
 function r44DevNote() { return '<p class="psub p44-dev" data-r44dev>' + R44_DEVICE + ' Signing out removes it.</p>'; }
 
 function r44PrJobsScr() {
@@ -442,28 +501,27 @@ function vPractice() {
   return shell('practice', title, P.scr === 'jobs' ? 'Common questions, a timer and your own notes. No recording.' : '') + '<div class="pband" aria-hidden="true"></div><main class="pmain p44 p44-pr">' + (P.scr === 'jobs' ? ivSubNav('practice') : back) + r44Sample() + body + (P.scr === 'jobs' ? r42Foot() : '') + '</main>' + tabbar('practice');
 }
 if (typeof document !== 'undefined') {
-  var r44SaveSoon = function () { clearTimeout(S.r44SaveT); S.r44SaveT = setTimeout(r44Save, 300); };
   document.addEventListener('input', function (e) {
-    var t = e.target; if (!t || !t.getAttribute || S.view !== 'practice') return;
-    var qid = t.getAttribute('data-prnote'), J = r44PrJob();
-    if (qid && J) { var n = r44PrOf(r44PrStore().pr.notes, J); if (t.value.trim()) n[qid] = t.value.slice(0, 2000); else delete n[qid]; r44SaveSoon(); return; }
+    var t = e.target; if (!t || !t.getAttribute || !r44On() || S.view !== 'practice') return;
+    var qid = t.getAttribute('data-prnote'), J = qid ? r44PrJob() : null;
+    if (qid && J) { var n = r44PrOf(r44PrStore().pr.notes, J); if (t.value.trim()) n[qid] = t.value.slice(0, 2000); else delete n[qid]; r44Save(); return; } /* written on every keystroke: a reload loses nothing */
     var sf = t.getAttribute('data-prsf'); if (sf) { var P = r44Pr(); P.draft = P.draft || Object.assign({ name: '', s: '', t: '', a: '', r: '' }, (P.edit && P.edit !== 'new' && r44Story(P.edit)) || {}); P.draft[sf] = t.value; }
   });
   document.addEventListener('change', function (e) {
-    var t = e.target; if (!t || !t.getAttribute || S.view !== 'practice') return; var J = r44PrJob(), st = r44PrStore();
+    var t = e.target; if (!t || !t.getAttribute || !r44On() || S.view !== 'practice') return; var J = r44PrJob(), st = r44PrStore();
     if (t.hasAttribute('data-prfam') && J) { if (t.value) st.pr.fam[J.key] = t.value; else delete st.pr.fam[J.key]; r44Save(); S.focusTo = '#prFam'; render(); return; }
     var sid = t.getAttribute('data-prstory'); if (sid && J) { var a = r44PrOf(st.pr.attach, J); if (t.value) a[sid] = t.value; else delete a[sid]; r44Save(); S.focusTo = '#prStory'; render(); return; }
     var did = t.getAttribute('data-prdone'); if (did && J) { var d = r44PrOf(st.pr.done, J); if (t.checked) d[did] = todayISO(); else delete d[did]; r44Save(); }
   });
   document.addEventListener('click', function (e) {
-    if (!e.target.closest || !S.data || S.view !== 'practice') return; var P = r44Pr(), st = r44PrStore(), b;
+    if (!e.target.closest || !r44On() || S.view !== 'practice') return; var P = r44Pr(), st = r44PrStore(), b;
     if ((b = e.target.closest('[data-prjob]'))) { r44Save(); P.job = b.getAttribute('data-prjob'); P.scr = 'list'; P.i = 0; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
     if ((b = e.target.closest('[data-prscr]'))) { r44Save(); var to = b.getAttribute('data-prscr'); if (to === 'stories') P.from = P.scr; P.scr = to; P.edit = null; P.draft = null; P.msg = ''; S.focusTo = to === 'q' ? '#prQH' : '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
     if ((b = e.target.closest('[data-prq]'))) { if (b.disabled) return; r44Save(); r44TimerStop(); P.i = Math.max(0, +b.getAttribute('data-prq') || 0); P.scr = 'q'; P.left = R44_TIMER; S.focusTo = '#prQH'; render(); window.scrollTo(0, 0); return; }
     if ((b = e.target.closest('[data-prtimer]'))) { var k = b.getAttribute('data-prtimer');
       if (k === 'toggle') { r44TimerStop(); st.pr.timerOff = !st.pr.timerOff; P.left = R44_TIMER; r44Save(); S.focusTo = '[data-prtimer="toggle"]'; render(); return; }
       if (k === 'reset') { r44TimerStop(); P.left = R44_TIMER; S.focusTo = '[data-prtimer="go"]'; render(); return; }
-      if (P.on) { r44TimerStop(); } else { if (P.left <= 0) P.left = R44_TIMER; P.on = true; P.tick = setInterval(function () { P.left = Math.max(0, P.left - 1); var el = document.getElementById('prT'); if (el) el.textContent = r44Clock(P.left); if (P.left <= 0 || S.view !== 'practice') { r44TimerStop(); if (S.view === 'practice' && P.scr === 'q') { toast('Time.'); render(); } } }, 1000); }
+      if (P.on) r44TimerStop(); else r44TimerStart();
       S.focusTo = '[data-prtimer="go"]'; render(); return; }
     if (e.target.closest('[data-prprint]')) { r44Save(); try { window.print(); } catch (x) {} return; }
     if ((b = e.target.closest('[data-prsedit]'))) { P.edit = b.getAttribute('data-prsedit') || null; P.draft = null; P.msg = ''; S.focusTo = P.edit ? '#prSName' : '.ptitle h1'; render(); return; }
@@ -473,7 +531,7 @@ if (typeof document !== 'undefined') {
       if (!name) { P.msg = 'Give the story a name.'; S.focusTo = '#prSName'; render(); return; }
       var rec = { id: P.edit && P.edit !== 'new' ? P.edit : 's' + Date.now().toString(36), name: name.slice(0, 80), s: String(v.s || '').trim(), t: String(v.t || '').trim(), a: String(v.a || '').trim(), r: String(v.r || '').trim() };
       var at = st.stories.map(function (s) { return s.id; }).indexOf(rec.id); if (at >= 0) st.stories[at] = rec; else st.stories.push(rec);
-      var okS = r44Save(); P.edit = null; P.draft = null; P.msg = ''; toast(okS ? 'Story saved on this phone.' : 'This phone would not save it.'); S.focusTo = '.ptitle h1'; render();
+      var okS = r44Save(); P.edit = null; P.draft = null; P.msg = ''; toast(okS ? 'Story saved on this device.' : 'This device would not save it.'); S.focusTo = '.ptitle h1'; render();
     }
   });
   /* leaving practice stops the timer and writes anything typed */
