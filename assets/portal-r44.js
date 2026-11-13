@@ -257,7 +257,8 @@ if (typeof document !== 'undefined') {
 /* Arithmetic on what the client types, the pay line stored on the job's row (shown as stored) and the pay lookup's own data
    file (/pay/data.json, cited the way /pay/ cites it). Nothing here is sent anywhere. */
 var R44_WEEKS = 52;
-function r44Money(n, cents) { return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }); }
+/* whole dollars, or with cents when asked or when the amount is not a whole dollar: a shown figure never rounds across a line it is compared with */
+function r44Money(n, cents) { n = Number(n); cents = !!cents || Math.round(n * 100) % 100 !== 0; return '$' + n.toLocaleString('en-US', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 }); }
 /* pure: read a number the client typed. Digits, commas only as thousands separators, one decimal point. Anything else is
    refused with a message: nothing is guessed or reinterpreted. Returns { v, err, empty }. A real number (from code) passes. */
 var R44_NUM_ERR = 'Use digits only, like 65000 or 65,000.50.';
@@ -292,11 +293,13 @@ function r44OfferMath(o) {
 }
 /* pure: a posted pay line is compared ONLY when it is, in full, one amount or one range that says per hour or per year.
    The Job matcher's own hourly form, "$55 to $65 per hour (about $114,400 to $135,200 a year if full-time, our math)", is read
-   as its hourly range; the bracket is our own arithmetic and is ignored. Everything else returns null and is shown as stored:
+   as its hourly range; that bracket (it must say "our math") is our own arithmetic and is ignored. Any other bracket, or a word
+   such as OTE, commission, bonus, tips, plus or differential anywhere in the line, means no comparison. Everything else returns null and is shown as stored:
    by the month, week, day or visit, "k" shorthand, OTE, commission, bonus, "up to", "plus", three amounts, no unit. */
 function r44Posted(text) {
   var p = String(text == null ? '' : text).replace(/\s+/g, ' ').trim(); if (!p) return null;
-  p = p.replace(/ ?\((?:about|approx\.?|approximately|roughly) [^()]*\)\.?$/i, '').trim();
+  if (/\b(OTE|on[- ]target|commissions?|bonus(es)?|tips?|plus|differential|incentives?|overtime|stipend)\b|%|\+/i.test(p)) return null; /* anywhere in the line, bracket included */
+  p = p.replace(/ ?\(about \$[^()]*\bour math\)\.?$/i, '').trim(); /* only the matcher's own bracket; any other bracket stays and stops the comparison */
   var A = '(\\d{1,3}(?:,\\d{3})+|\\d+)(\\.\\d{1,2})?', U = '(per hour|an hour|hourly|/ ?hour|/ ?hr|per hr|per year|a year|yearly|annually|per annum|/ ?year|/ ?yr)';
   var m = new RegExp('^\\$ ?' + A + '(?: ?(?:to|-|\\u2013|\\u2014) ?\\$? ?' + A + ')? ?' + U + '\\.?$', 'i').exec(p); if (!m) return null;
   var num = function (d, f) { return Number(d.replace(/,/g, '') + (f || '')); }, lo = num(m[1], m[2]), hi = m[3] != null ? num(m[3], m[4]) : lo, unit = /hour|hr/i.test(m[5]) ? 'hour' : 'year';

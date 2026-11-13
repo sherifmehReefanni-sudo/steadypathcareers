@@ -156,3 +156,8 @@
 .p44 input[aria-invalid="true"] { border-color: var(--bad); }
 .p44-confirm { border: 2px solid var(--bad); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
 .p44-confirm p:focus { outline: none; } .p44-confirm p:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+/* r44 fix round 2: nothing r44 puts on an application card or in the Due group can push the board wider than its column */
+.p44-fuline, .p44-fuline p, .p44-due, .p44-due ul, .p44-due li, .p44-due li > div { min-width: 0; max-width: 100%; }
+.p44-fuline .pill, .p44-due .p44-when { white-space: normal; overflow-wrap: anywhere; text-align: left; max-width: 100%; box-sizing: border-box; }
+.p44-fuline .kbtn, .p44-due .kbtn { max-width: 100%; height: auto; white-space: normal; overflow-wrap: anywhere; text-align: center; padding-top: 6px; padding-bottom: 6px; box-sizing: border-box; flex: 0 1 auto; }
