@@ -66,7 +66,7 @@ def head(path, title, desc, og_img, og_alt, css, ld):
 <style>
 {css.strip()}
 </style>
-<link rel="stylesheet" href="/assets/theme.css?v=sp-20261110r32">
+<link rel="stylesheet" href="/assets/theme.css?v=sp-20261113r47">
 </head>
 <body class="mk">
 <a class="skip" href="#main">Skip to content</a>
