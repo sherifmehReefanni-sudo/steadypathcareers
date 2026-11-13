@@ -161,3 +161,13 @@
 .p44-fuline, .p44-fuline p, .p44-due, .p44-due ul, .p44-due li, .p44-due li > div { min-width: 0; max-width: 100%; }
 .p44-fuline .pill, .p44-due .p44-when { white-space: normal; overflow-wrap: anywhere; text-align: left; max-width: 100%; box-sizing: border-box; }
 .p44-fuline .kbtn, .p44-due .kbtn { max-width: 100%; height: auto; white-space: normal; overflow-wrap: anywhere; text-align: center; padding-top: 6px; padding-bottom: 6px; box-sizing: border-box; flex: 0 1 auto; }
+
+/* r47: Home's tools. On phones they sit right under the path (inside the grid); each row is an icon, a name and one status line. */
+.h44-grid { grid-template-areas: "a" "p" "t" "x"; }
+.h44-tools { grid-area: t; min-width: 0; }
+@media (min-width: 1024px) { .h44-grid { grid-template-areas: "a p" "x p" "t t"; grid-template-rows: auto 1fr auto; } }
+.h44-tool { flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; min-height: 64px; padding: 10px 14px; }
+.h44-ic { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(var(--tint-rgb, 31,58,95), .08); color: var(--navy); font-style: normal; }
+.h44-ic svg { width: 22px; height: 22px; display: block; }
+.h44-tx { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.h44-tool > svg { flex: none; width: 18px; height: 18px; color: var(--muted); transform: rotate(-90deg); }

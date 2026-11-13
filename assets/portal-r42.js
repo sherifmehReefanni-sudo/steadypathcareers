@@ -123,19 +123,24 @@ function vIv() {
 }
 
 function vMore() {
-  var rows = [];
-  if (typeof fitOn === 'function' && fitOn()) rows.push(['<button type="button" data-go="fit">', FIT_NAME, 'An interest guide. Optional.', '</button>']);
+  /* r47: two groups under plain headings, so the tools are easy to find. Every row that was here is still here. */
+  var tools = [], rows = [];
+  if (typeof vPractice === 'function') tools.push(['<button type="button" data-go="practice">', 'Interview practice', 'Common questions, a timer and your own notes.', '</button>']);
+  if (typeof r44FuDue === 'function') tools.push(['<button type="button" data-go="apps">', 'Follow-ups', 'Dates and ready notes for the applications you send.', '</button>']);
+  if (typeof vOffer === 'function') tools.push(['<button type="button" data-go="offer">', 'Offer check', 'Compare an offer with posted pay.', '</button>']); /* r44 */
+  if (typeof vTraining === 'function') tools.push(['<button type="button" data-go="training">', 'Training and benefits', 'Public programs, with links to their official pages.', '</button>']); /* r45 */
+  if (typeof fitOn === 'function' && fitOn()) tools.push(['<button type="button" data-go="fit">', FIT_NAME, 'An interest guide. Optional.', '</button>']);
   rows.push(['<button type="button" data-help>', 'Help', 'Something broken or urgent, and how to reach us.', '</button>']);
   if (billOn()) rows.push(['<button type="button" data-go="billing">', 'Plan &amp; billing', '', '</button>']);
-  if (typeof vOffer === 'function') rows.push(['<button type="button" data-go="offer">', 'Offer check', 'Compare an offer with posted pay.', '</button>']); /* r44 */
-  if (typeof vTraining === 'function') rows.push(['<button type="button" data-go="training">', 'Training and benefits', 'Public programs, with links to their official pages.', '</button>']); /* r45 */
   rows.push(['<button type="button" data-go="prefs">', 'Search settings', 'Roles, pay floor, commute and how we contact you.', '</button>']);
   rows.push(['<button type="button" data-go="feedback">', 'Feedback', 'Tell us how it is going.', '</button>']);
   if (!standalone()) rows.push(['<a href="/app/">', 'Get the app', 'For your phone. No app store needed.', '</a>']);
   rows.push(['<button type="button" data-signout>', 'Sign out', 'On this device.', '</button>']);
   rows.push(['<button type="button" data-go="delete">', 'Delete my account', 'Ask us to delete your account and your data.', '</button>']);
+  var list = function (rs) { return '<ul class="m-list">' + rs.map(function (r) { return '<li>' + r[0] + '<span class="m-tx"><b>' + r[1] + '</b>' + (r[2] ? '<span>' + r[2] + '</span>' : '') + '</span>' + IC.chev + r[3] + '</li>'; }).join('') + '</ul>'; };
   return shell('more', 'More', '') + '<div class="pband" aria-hidden="true"></div>' +
-    '<main class="pmain m-main"><ul class="m-list">' + rows.map(function (r) { return '<li>' + r[0] + '<span class="m-tx"><b>' + r[1] + '</b>' + (r[2] ? '<span>' + r[2] + '</span>' : '') + '</span>' + IC.chev + r[3] + '</li>'; }).join('') + '</ul>' +
+    '<main class="pmain m-main">' + (tools.length ? '<section class="m-grp" aria-labelledby="mToolsH"><h2 class="sec-h" id="mToolsH">Your tools</h2>' + list(tools) + '</section>' : '') +
+    '<section class="m-grp" aria-labelledby="mAcctH"><h2 class="sec-h" id="mAcctH">Your account</h2>' + list(rows) + '</section>' +
     '<footer class="help"><p><b>Need help?</b> ' + helpHtml() + '</p></footer>' + legalLinks() + '</main>' + tabbar('more');
 }
 

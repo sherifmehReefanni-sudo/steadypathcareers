@@ -38,6 +38,14 @@ function r44Link(view, cls, inner, attrs) { return '<a class="' + cls + '" href=
 function r44Paid() { return billOn() && billHasPlan(); }
 var R44_SUN = '<svg class="h44-sun" width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 21a9 9 0 0 1 18 0"/><path d="M15 6v3M5.5 10.5l2 2M24.5 10.5l-2 2M3 21h24"/></svg>';
 
+/* r47: one line icon per tool (24px, the same stroke as the tab icons) */
+var R47_IC = (function () { var w = function (d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false">' + d + '</svg>'; }; return {
+  practice: w('<path d="M12 3a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/>'),
+  apps: w('<path d="M4 6.5h16v11H4z"/><path d="m4.5 7 7.5 6 7.5-6"/>'),
+  offer: w('<path d="M12 4v16M5 8h14M5 8l-2.5 6a3 3 0 0 0 5 0L5 8Zm14 0-2.5 6a3 3 0 0 0 5 0L19 8ZM8 20h8"/>'),
+  training: w('<path d="m3 9 9-4.5L21 9l-9 4.5L3 9Z"/><path d="M7 11.5V16c1.4 1.2 3.1 1.8 5 1.8s3.6-.6 5-1.8v-4.5M21 9v5"/>'),
+  fit: w('<circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/>')
+}; })();
 function r44Tools() {
   var d = S.data, out = [];
   var pj = typeof r44PracticeJobs === 'function' ? r44PracticeJobs() : null;
@@ -79,8 +87,9 @@ function r44Home() {
     '<section class="h44-path' + (S.r44Drawn ? '' : ' draw') + '" aria-labelledby="h44PathH"><h2 class="sec-h" id="h44PathH">Where your search stands</h2><div class="h44-line" aria-hidden="true"></div><ul class="h-tiles h44-stops">' +
     stops.map(function (s) { var on = hot === s[0], first = on && k === 'first'; /* brand-new: the first-matches wording, not "0 new matches" */
       return '<li class="h44-stop' + (on ? ' on' : '') + '"><span class="h44-dot" aria-hidden="true"></span>' + r44Link(s[0], 'h-tile h44-card', first ? '<span class="h44-t">Your first matches are on the way</span><span class="h44-d">You will get an email when your first jobs arrive.</span>' : (on ? '<span class="h44-k">Your next step</span>' : '') + '<span class="h44-t"><b>' + s[1] + '</b> ' + s[2] + '</span><span class="h44-d">' + esc(s[3]) + '</span>', on ? ' data-hot="1"' : ''); }).join('') +
-    '</ul><p class="h44-end">' + R44_SUN + '<span>Your next job, one honest step at a time.</span></p></section></div>' +
-    (tools.length ? '<section class="h44-tools" aria-labelledby="h44ToolsH"><h2 class="sec-h" id="h44ToolsH">' + (r44Paid() ? 'Included with your plan' : 'Your tools') + '</h2><ul>' + tools.map(function (t) { return '<li>' + r44Link(t[0], 'h44-tool', '<b>' + esc(t[1]) + '</b><span>' + esc(t[2]) + '</span>', ' data-tool="' + t[0] + '"') + '</li>'; }).join('') + '</ul></section>' : '') +
+    '</ul><p class="h44-end">' + R44_SUN + '<span>Your next job, one honest step at a time.</span></p></section>' +
+    /* r47: the tools sit inside the grid, right under the path on phones; each row is an icon, a name and one status line */
+    (tools.length ? '<section class="h44-tools" aria-labelledby="h44ToolsH"><h2 class="sec-h" id="h44ToolsH">' + (r44Paid() ? 'Included with your plan' : 'Your tools') + '</h2><ul>' + tools.map(function (t) { return '<li>' + r44Link(t[0], 'h44-tool', '<i class="h44-ic" aria-hidden="true">' + (R47_IC[t[0]] || R47_IC.fit) + '</i><span class="h44-tx"><b>' + esc(t[1]) + '</b><span>' + esc(t[2]) + '</span></span>' + IC.chev, ' data-tool="' + t[0] + '"') + '</li>'; }).join('') + '</ul></section>' : '') + '</div>' +
     (plan ? '<section class="card h-plan" data-hplan><p>' + plan + '</p>' + (billOn() ? '<button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button>' : '') + '</section>' : '') +
     r42Foot() + '</main>' + tabbar('home');
 }

@@ -96,3 +96,8 @@
 .del-help { margin: 0; color: var(--muted); font-size: 14.5px; }
 .del-plan { border: 2px solid var(--attn-line, #EDB77A); background: var(--attn-soft, #FDEBD5); color: var(--attn, #8A4300); border-radius: 12px; padding: 10px 12px; }
 .del-card .del-plan, .del-done .del-plan { color: var(--attn, #8A4300); }
+
+/* r47: More in two groups */
+.m-grp { display: grid; gap: 8px; min-width: 0; }
+.m-grp .sec-h { margin: 0; }
+.m-main { gap: 18px; }
