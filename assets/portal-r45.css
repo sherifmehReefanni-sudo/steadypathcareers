@@ -68,6 +68,7 @@
 .t45-done { justify-self: start; min-height: 44px; margin-top: 2px; }
 .t45-filters .p44-dev { flex: 1 1 100%; margin: 0; font-size: 13px; line-height: 1.4; }
 @media (max-width: 779px) {
+  .t45-filters.is-open .t45-three { grid-template-columns: minmax(0, 1fr); max-width: 480px; }
   /* the form's parts become items of the page column, so the note about saved stars can sit after the list; the filter row keeps the card look */
   .pmain.t45 > .t45-filters { display: flex; }
   .pmain.t45 > .t45-filters .p44-dev { display: none; }
@@ -86,7 +87,7 @@
   .t45 .p44-sample { margin: 0; font-size: 13px; line-height: 1.3; }
   #tfOut { gap: 8px; }
 }
-@media (max-width: 345px) { .t45-fbtn > svg { display: none; } .t45-filters { padding: 8px 4px; } } /* room for the saved-only chip on two lines at 320 */
+@media (max-width: 345px) { .t45-fbtn > svg { display: none; } .t45-filters { padding: 8px 4px; } .t45-filters select { padding: 0 18px 0 7px; letter-spacing: -.01em; background-position: right 10px center, right 5px center; } } /* room for the saved-only chip on two lines at 320 */
 @media (min-width: 780px) {
   .t45-filters { display: grid; grid-template-columns: minmax(190px, 190fr) minmax(211px, 211fr) minmax(286px, 286fr); gap: 10px 12px; align-items: end; padding: 12px; }
   .t45-fbtn, .t45-chips, .t45-chips.has, .t45-filters.is-open .t45-chips, .t45-done { display: none; }
@@ -104,7 +105,7 @@
   #app#app .pmain { max-width: min(1320px, calc(100vw - 32px)); padding-left: 20px; padding-right: 20px; }
   :where(#app .pmain) > * { max-width: 728px; }
   :where(#app .pmain.wide, #app .pmain.xl, #app .pmain.t45) > * { max-width: 1068px; }
-  #app .pmain > .board { max-width: none; }
+  #app .pmain > .board, #app .pmain > :has(> .board) { max-width: none; }
   #app#app .ptitle { margin-left: 0; margin-right: 0; }
 }
 /* the three sibling views (Interviews, Applications, Practice) keep the sub-tab strip at one height: at 1024 the board's
