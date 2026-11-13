@@ -225,18 +225,38 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
 .i2-sheet.bare .i2-facts li { align-items: flex-start; font-size: 15.5px; line-height: 1.35; }
 .i2-sheet.bare .i2-facts { gap: 7px; margin-bottom: 10px; }
 .i2-sheet.bare .i2-hi { margin-bottom: 10px; }
-.st-q { margin: 0 0 0 auto; font-size: 15px; font-weight: 700; color: var(--navy); text-align: right; line-height: 1.25; }
-.st-q a { color: var(--navy); font-weight: 800; white-space: nowrap; display: inline-flex; align-items: center; min-height: 44px; }
-.phero.st-top .topbar { padding: 8px 0; gap: 10px; }
+.st-q { margin: 0 0 0 auto; font-size: 15px; font-weight: 700; color: var(--navy); text-align: right; line-height: 1.25; flex: none; }
+.phero.st-top .topbar .st-q a { color: var(--navy); font-size: 15px !important; font-weight: 800; white-space: nowrap; display: inline-flex; align-items: center; gap: .3em; min-height: 44px; min-width: 44px; }
+.phero.st-top .topbar { padding: 8px 0; gap: 10px; flex-wrap: nowrap; }
+.phero.st-top .topbar .theme-btn { width: 44px; height: 44px; flex: none; margin-left: 0; }
+.phero.st-top .topbar .brand { min-height: 44px; }
 .phero.st-top .horizon { height: 22px; }
+/* fix round: the header on phones. From 320 to 600 wide the name, the phone link and the light/dark button are each whole,
+   on screen, apart from one another and 44px or more to tap. The name takes two lines; the link is two short lines
+   ("Call or text" over the number); at 380 and under it is the number alone (its accessible name is still "Call or text
+   (732) 759-0008"). */
+@media (max-width: 600px) {
+  .phero.st-top .topbar { gap: 8px; }
+  .phero.st-top .topbar .brand { flex: 0 1 auto; min-width: 0; white-space: normal; font-size: 15px; line-height: 1.1; max-width: 150px; gap: 8px; }
+  .phero.st-top .topbar .brand svg { width: 32px; height: 32px; flex: none; }
+  .st-q { font-size: 13px; }
+  .st-q .st-qq { display: none; }
+  .phero.st-top .topbar .st-q a { flex-direction: column; align-items: flex-end; justify-content: center; gap: 0; line-height: 1.25; font-size: 14px !important; }
+}
+@media (max-width: 380px) {
+  .phero.st-top .topbar { gap: 6px; }
+  .phero.st-top .topbar .brand { max-width: 130px; font-size: 14px; gap: 6px; }
+  .phero.st-top .topbar .st-q a { font-size: 12.5px !important; }
+  .st-q .st-l { display: none; }
+}
 .st-first.sec { padding-top: 14px; }
-@media (max-width: 480px) { .st-q { font-size: 13.5px; } .st-q span { display: block; } .i2-sheet.bare .i2-hi { grid-template-columns: 52px minmax(0,1fr); gap: 12px; } .i2-sheet.bare .i2-face { width: 52px; height: 52px; } .i2-sheet.bare .i2-h { font-size: 22px; } }
+@media (max-width: 480px) { .i2-sheet.bare .i2-hi { grid-template-columns: 52px minmax(0,1fr); gap: 12px; } .i2-sheet.bare .i2-face { width: 52px; height: 52px; } .i2-sheet.bare .i2-h { font-size: 22px; } }
 </style>
 <link rel="stylesheet" href="/assets/theme.css?v=sp-20261110r32">
 </head>
 <body class="mk">
 <a class="skip" href="#main">Skip to content</a>
-<header class="phero st-top"><div class="wrap"><nav class="topbar" aria-label="Main"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><p class="st-q"><span>Questions?</span> <a href="tel:+17327590008">Call or text (732) 759-0008</a></p></nav><h1 class="vh">Start free with Steady Path Careers</h1></div><svg class="horizon" viewBox="0 0 1440 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 30 C 240 6 420 20 640 26 C 900 34 1120 4 1440 18 V48 H0Z" fill="#F3D2B6" opacity=".6"/><path d="M0 40 C 260 22 520 38 760 36 C 1000 34 1200 22 1440 32 V48 H0Z" fill="#FBE3CF"/></svg></header>
+<header class="phero st-top"><div class="wrap"><nav class="topbar" aria-label="Main"><a class="brand" href="/"><span data-logo></span>Steady Path Careers</a><p class="st-q"><span class="st-qq">Questions?</span> <a href="tel:+17327590008" aria-label="Call or text (732) 759-0008"><span class="st-l">Call or text</span> <span class="st-n">(732) 759-0008</span></a></p></nav><h1 class="vh">Start free with Steady Path Careers</h1></div><svg class="horizon" viewBox="0 0 1440 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 30 C 240 6 420 20 640 26 C 900 34 1120 4 1440 18 V48 H0Z" fill="#F3D2B6" opacity=".6"/><path d="M0 40 C 260 22 520 38 760 36 C 1000 34 1200 22 1440 32 V48 H0Z" fill="#FBE3CF"/></svg></header>
 <main id="main" class="trail-main" data-trail>
 <section class="sec st-first" data-mile style="--a:#FBE3CF;--b:#F0BC7E"><div class="wrap"><div class="i2wrap"><div id="i2" data-preview="off"><noscript><p>This form needs JavaScript. Please email <a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a> or <a href="https://calendar.app.google/8wyFoDK5k6k1iamT9">book a free 15-minute call</a>.</p></noscript></div><p class="psub" style="margin-top:14px">We never ask for passwords, log in as you, submit anything for you, or contact employers. Questions? <a href="https://calendar.app.google/8wyFoDK5k6k1iamT9" target="_blank" rel="noopener">Book a free 15-minute call</a> or call or text <a href="tel:+17327590008">(732) 759-0008</a>.</p></div></div></section>
 </main>
