@@ -51,7 +51,7 @@ body { overflow-x: hidden; }
 .acct .menu .mlegal { display: flex; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 4px; padding-top: 4px; }
 .acct .menu .mlegal a[role="menuitem"] { font-size: 14px; padding: 10px 14px; }
 .legal { margin: 0; font-size: 13px; color: var(--muted); }
-.legal a { color: inherit; font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; }
+.legal a { color: inherit; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; }
 .login .fine a { color: var(--navy); font-weight: 700; }
 .errscr .box h2:focus { outline: none; }
 .errscr .box h2:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
@@ -335,7 +335,7 @@ body { overflow-x: hidden; }
 /* r47: on wide screens the board's page grows so five full columns fit without sideways scroll (from about 1340 wide) */
 @media (min-width: 1200px) { #app:has(.board) .pmain.wide, #app:has(.board) .sky > .wrap { max-width: min(1320px, calc(100vw - 40px)); } }
 .col { background: var(--sunk); border-radius: 14px; padding: 12px; min-width: 0; }
-.col h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; cursor: pointer; user-select: none; min-height: 32px; align-items: center; }
+.col h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; cursor: pointer; user-select: none; min-height: 44px; align-items: center; } /* r47: the column toggle is a 44px target (was 32) */
 .col h3 .tw { transition: transform .15s; display: inline-block; margin-right: 6px; color: var(--gold); }
 .col.closed h3 .tw { transform: rotate(-90deg); }
 .col.closed .app, .col.closed > p { display: none; }
@@ -3305,7 +3305,7 @@ document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.
 .bl-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 70; overflow: hidden; contain: strict; }
 .bl-confetti i { position: absolute; width: 10px; height: 14px; border-radius: 2px; will-change: transform, opacity; }
 .hello .hl-r { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
-.hello .hl-r .linkbtn { min-height: 32px; min-width: 0; font-size: 14px; }
+.hello .hl-r .linkbtn { min-height: 44px; margin-block: -6px; min-width: 44px; font-size: 14px; } /* r47: a 44px target; the negative margin keeps the row the height it was */
 
 /* motion: first visit only (main.bl-play) */
 @keyframes blDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
