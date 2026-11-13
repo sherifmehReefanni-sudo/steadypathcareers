@@ -825,6 +825,7 @@ window.SP_DEMO = function () {
 @media print { .pv-nav, .pv-st, .pv [data-pvsave], .pv textarea { display: none; } .pv-guide[hidden] { display: grid; } }
 </style>
 <link rel="stylesheet" href="/assets/theme.css?v=sp-20261110r32">
+<link rel="stylesheet" href="../assets/portal-r42.css?v=sp-20261112r42">
 </head>
 <body>
 <div id="app"><div class="skel">Opening your portal…</div></div>
@@ -837,7 +838,7 @@ var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsu
 var SP_EMAIL = 'hello@steadypathcareers.com';
 var SP_TEXT_NUMBER = '';
 
-var S = { token: null, view: 'jobs', data: null, status: 'boot', err: '', jobErr: {}, noteQ: {}, sent: false, pending: {}, notes: {}, fb: {}, fbText: {}, open: {}, demo: false,
+var S = { token: null, view: 'home', data: null, status: 'boot', err: '', jobErr: {}, noteQ: {}, sent: false, pending: {}, notes: {}, fb: {}, fbText: {}, open: {}, demo: false,
   q: {}, conf: {}, deferred: {}, leaving: {}, docBusy: {}, logDraft: {}, deck: null, flow: null, qOpen: {} };
 var $ = function (s) { return document.querySelector(s); };
 var esc = SP.esc, fmtDate = SP.fmtDate, daysFrom = SP.daysFrom;
@@ -867,8 +868,8 @@ function linkKeyDrop() { try { sessionStorage.removeItem('sp_linkkey'); } catch 
 (function () {
   var q = new URLSearchParams(location.search);
   if (q.get('demo') === '1') {
-    S.demo = true; S.token = 'demo'; if (q.get('v')) S.view = q.get('v');
-    if (q.get('review')) S.wantReview = q.get('review');
+    S.demo = true; S.token = 'demo'; if (q.get('v') || q.get('view')) S.view = q.get('v') || q.get('view');
+    if (q.get('review')) { S.wantReview = q.get('review'); if (!(q.get('v') || q.get('view'))) S.view = 'jobs'; } /* r42: a review link is about a job, so it opens over Jobs, as for a real client */
     if (q.get('rvload')) S.rvDemoLoad = true; /* r36: &rvload=1 shows the reader's loading message in the demo (screenshots) */
     if (q.get('t') || q.get('review')) { q.delete('t'); q.delete('review'); history.replaceState({}, '', location.pathname + '?' + q.toString()); }
     return;
@@ -882,11 +883,14 @@ function linkKeyDrop() { try { sessionStorage.removeItem('sp_linkkey'); } catch 
   if (q.get('answered')) S.flashJob = q.get('answered');
   if (q.get('ask')) S.askJob = q.get('ask'); /* round 12: the email's Question button opens that job with its question box */
   if (q.get('closed')) S.flash = 'That job posting has closed, so there is nothing to answer.';
-  if (q.get('v')) S.view = q.get('v');
+  if (q.get('v') || q.get('view')) S.view = q.get('v') || q.get('view'); /* r42: ?view= works like ?v= */
+  else if (q.get('answered') || q.get('closed') || q.get('ask') || q.get('review')) S.view = 'jobs'; /* r42: an email link about a job still opens Jobs, not Home */
   if (q.get('review') && !q.get('expired')) S.wantReview = q.get('review'); /* from the "documents ready" email: open the review screen for that job */
   if (t || k || q.get('ask') || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
 })();
-if (S.view === 'home') S.view = 'jobs';
+/* r42: Home is the landing view. Anything that is not a known view opens Home. */
+if (!/^(home|jobs|docs|apps|iv|more|feedback|prefs|fit|billing)$/.test(S.view)) S.view = 'home';
+S.view0 = S.view;
 
 /* ---- demo mode (?demo=1): sample data from the head script, every write succeeds locally, no network ---- */
 S.demoLog = [];
@@ -942,7 +946,7 @@ function load() {
     if (S.askJob) { var aj = jobById(S.askJob); S.askJob = null; /* round 12: from the email's Question button */
       if (!aj) S.flash = 'We couldn\'t find that job. Here are all your jobs.';
       else if (aj.closed && !jobApp(aj)) S.flash = 'That job posting has closed, so there is nothing to ask.';
-      else { S.view = 'jobs'; jfReset(); if (ansOf(aj) === 'no') S.passedOpen = true; if (ansOf(aj) !== 'q') { S.qOpen[aj.id] = true; S.notes[aj.id] = ''; } S.jsel = aj.id; S.focusTo = '#nt-' + cssq(aj.id); S.scrollJob = aj.id; } }
+      else { S.view = 'jobs'; S.view0 = 'jobs'; jfReset(); if (ansOf(aj) === 'no') S.passedOpen = true; if (ansOf(aj) !== 'q') { S.qOpen[aj.id] = true; S.notes[aj.id] = ''; } S.jsel = aj.id; S.focusTo = '#nt-' + cssq(aj.id); S.scrollJob = aj.id; } }
     if (S.flashJob) { var fj = jobById(S.flashJob); S.flash = 'Saved your answer for ' + (fj ? fj.title + (fj.company ? ' at ' + fj.company : '') : 'that job') + '. Thank you.'; S.flashJob = null; }
     /* Fix the job order once per load so a card never jumps away while the client is answering it:
        unanswered first, then Yes and Question, then No (shown in Passed). */
@@ -950,13 +954,13 @@ function load() {
     S.order = d.jobs.slice().sort(function (a, b) { return grp(a) - grp(b) || String(b.added || '').localeCompare(String(a.added || '')); }).map(function (x) { return x.id; });
     var hs = null; try { hs = history.state; var nv = performance.getEntriesByType('navigation')[0]; if (!nv || (nv.type !== 'reload' && nv.type !== 'back_forward')) hs = null; } catch (e) { hs = null; } /* only a reload or Back/Forward restores a review or apply screen */
     if (S.wantReview || !(hs && hs.sp)) histBase();
-    else if (hs.flow && jobById(hs.flow.job)) { S.flow = { kind: hs.flow.kind === 'apply' ? 'apply' : 'review', job: jobById(hs.flow.job).id, from: hs.flow.from === 'docs' ? 'docs' : 'jobs' }; S.view = S.flow.from; S.hist = hs.depth || 0; S.focusTo = '.ptitle h1'; } /* reload on a review or apply screen: stay there */
-    else if (hs.view === 'prep' && hs.prep && appById(hs.prep)) { S.pv = { id: String(appById(hs.prep).id), from: /^(jobs|docs|apps)$/.test(hs.from || '') ? hs.from : 'apps', i: 0, show: false, next: null, msg: '' }; S.view = 'prep'; S.hist = hs.depth || 0; S.focusTo = '.ptitle h1'; } /* round 8: reload on the prep screen stays there */
-    else S.hist = hs.depth || 0;
+    else if (hs.flow && jobById(hs.flow.job)) { S.flow = { kind: hs.flow.kind === 'apply' ? 'apply' : 'review', job: jobById(hs.flow.job).id, from: hs.flow.from === 'docs' || hs.flow.from === 'home' ? hs.flow.from : 'jobs' }; S.view = S.flow.from; S.hist = hs.depth || 0; S.flowBase = hs.fb != null ? hs.fb : Math.max(0, S.hist - 1); S.focusTo = '.ptitle h1'; } /* reload on a review or apply screen: stay there */
+    else if (hs.view === 'prep' && hs.prep && appById(hs.prep)) { S.pv = { id: String(appById(hs.prep).id), from: /^(jobs|docs|apps|iv|home)$/.test(hs.from || '') ? hs.from : 'apps', i: 0, show: false, next: null, msg: '' }; S.view = 'prep'; S.hist = hs.depth || 0; S.focusTo = '.ptitle h1'; } /* round 8: reload on the prep screen stays there */
+    else { S.hist = hs.depth || 0; if (VIEW_RE.test(hs.view || '')) { S.view = hs.view; if (typeof navRestore === 'function') navRestore(hs, hs.view, true); } } /* r42: a reload stays on the tab (and Find Your Fit step) it was on */
     if (S.wantReview) {
       var rj = jobById(S.wantReview); S.wantReview = null;
       if (rj && rj.closed && !jobApp(rj)) S.flash = 'The ' + coName(rj) + ' posting is no longer open, so those documents don\'t need your OK. It is under Closed postings in your Jobs list.';
-      else if (rj && jobDocs(rj).length) { S.flow = { kind: 'review', job: rj.id }; S.view = 'jobs'; S.focusTo = '.ptitle h1'; histPush(S.flow); }
+      else if (rj && jobDocs(rj).length) { S.view = 'jobs'; histBase(); S.flow = { kind: 'review', job: rj.id }; S.focusTo = '.ptitle h1'; histPush(S.flow); }
       else if (rj) S.flash = 'Your documents for ' + coName(rj) + ' are not ready yet. ' + whenReady();
       else S.flash = 'We couldn\'t find that job. Here are all your jobs.';
     }
@@ -1126,7 +1130,12 @@ var IC = {
   pdf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>',
   ext: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>',
   kit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M12 11v5M9.5 13.5h5"/></svg>',
-  cards: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="13" height="17" rx="2.5" transform="rotate(8 12 12)"/><rect x="4" y="4" width="13" height="17" rx="2.5"/></svg>'
+  cards: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3" width="13" height="17" rx="2.5" transform="rotate(8 12 12)"/><rect x="4" y="4" width="13" height="17" rx="2.5"/></svg>',
+  /* r42: Home, Interviews, More, Messages */
+  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11.5 12 4l8.5 7.5"/><path d="M6 10v9.5h4.5V14h3v5.5H18V10"/></svg>',
+  iv: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h7A2.5 2.5 0 0 1 16 6.5v4A2.5 2.5 0 0 1 13.5 13H10l-3.5 3v-3A2.5 2.5 0 0 1 4 10.5z"/><path d="M19 9.5a2 2 0 0 1 1.5 2V15a2 2 0 0 1-2 2v2.5L15.5 17H13"/></svg>',
+  more: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  msg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5z"/></svg>'
 };
 
 /* ---- shell ---- */
@@ -1137,8 +1146,18 @@ function whenReady(they) { return mailsOn() ? 'We\'ll email you when ' + (!they 
 function counts() { var j = (S.data && S.data.jobs) || []; var c = { yes: 0, no: 0, q: 0, wait: 0 }; j.forEach(function (x) { if (x.closed) return; var a = ansOf(x); if (a) c[a]++; else c.wait++; }); return c; }
 function isReady(x) { var st = String(x.status || ''); return !x.closedJob && /ready|review/i.test(st) && !/approved/i.test(st); }
 function docsReady() { return ((S.data && S.data.docs) || []).filter(needsOk).length; }
-var TABS = [['jobs', 'Jobs'], ['docs', 'Documents'], ['apps', 'Applied']];
+/* r42: five primary destinations. Applied lives inside Interviews (view 'apps'); Find Your Fit, Help, Plan & billing, Search
+   settings and Feedback live under More. navOf maps any view to the destination that is lit for it. */
+var TABS = [['home', 'Home'], ['jobs', 'Jobs'], ['docs', 'Documents'], ['iv', 'Interviews'], ['more', 'More']];
+var VIEW_RE = /^(home|jobs|docs|apps|iv|more|feedback|prefs|fit|billing)$/;
+function navOf(v) { return v === 'apps' || v === 'iv' ? 'iv' : /^(home|jobs|docs)$/.test(v || '') ? v : 'more'; }
 function tabCount(k) { var c = counts(); return k === 'jobs' ? c.wait : k === 'docs' ? docsReady() : 0; }
+/* a count on Jobs and Documents (things waiting for the client), a dot on More when Messages holds an answer not opened yet */
+function tabMark(k) {
+  var n = tabCount(k); if (n) return '<span class="cnt" aria-label="' + n + ' waiting">' + n + '</span>';
+  if (k === 'more' && typeof msgUnread === 'function' && msgUnread()) return '<span class="ndot" role="img" aria-label="New answer in Messages"></span>';
+  return '';
+}
 /* "Email hello@... or text us." with real links; email only until SP_TEXT_NUMBER is set */
 function helpHtml() {
   var mail = '<a class="hlink" href="mailto:' + esc(SP_EMAIL) + '">' + esc(SP_EMAIL) + '</a>', num = String(SP_TEXT_NUMBER || '').replace(/[^\d+]/g, '');
@@ -1148,7 +1167,8 @@ function helpHtml() {
 function legalLinks(cls) { return '<p class="' + (cls || 'legal') + '"><a href="/privacy/">Privacy policy</a> · <a href="/terms/">Terms</a></p>'; }
 function shell(active, title, sub) {
   var cl = S.data.client, first = cl.firstName || String(cl.name || '').split(' ')[0] || 'You';
-  var tabs = TABS.map(function (t) { var n = tabCount(t[0]); return '<button data-go="' + t[0] + '" aria-current="' + (active === t[0]) + '">' + IC[t[0]] + t[1] + (n ? '<span class="cnt" aria-label="' + n + ' waiting">' + n + '</span>' : '') + '</button>'; }).join('');
+  var cur = navOf(active);
+  var tabs = TABS.map(function (t) { return '<button data-go="' + t[0] + '"' + (cur === t[0] ? ' aria-current="page"' : '') + '>' + IC[t[0]] + t[1] + tabMark(t[0]) + '</button>'; }).join('');
   return '<header class="sky"><div class="wrap"><div class="ptop"><a class="brand" href="/"><span>' + SP.LOGO + '</span><span class="bname">Steady Path</span></a>' + (S.demo ? '<span class="demo-badge">Demo</span>' : '') +
     '<nav class="ptabs" aria-label="Portal">' + tabs + '</nav>' +
     '<button type="button" class="phelp" data-help' + (S.view === 'feedback' && S.fbHelp ? ' aria-current="page"' : '') + '>Help</button>' + SP.themeBtn() + '<div class="acct"><button data-menu aria-haspopup="true" aria-expanded="' + !!S.menu + '" aria-label="Account menu for ' + esc(first) + '"><span class="av" aria-hidden="true">' + esc(first.charAt(0).toUpperCase()) + '</span><span class="nm">' + esc(first) + '</span></button>' +
@@ -1156,7 +1176,8 @@ function shell(active, title, sub) {
     '<div class="ptitle"><h1 tabindex="-1">' + title + '</h1>' + (sub ? '<p>' + sub + '</p>' : '') + '</div></div>' + SP.scene(64, active) + '</header>';
 }
 function tabbar(active) {
-  return '<div class="tabbar"><nav aria-label="Portal">' + TABS.map(function (t) { var n = tabCount(t[0]); return '<button data-go="' + t[0] + '" aria-current="' + (active === t[0]) + '">' + IC[t[0]] + '<span>' + t[1] + '</span>' + (n ? '<span class="cnt" aria-label="' + n + ' waiting">' + n + '</span>' : '') + '</button>'; }).join('') + '</nav></div>';
+  var cur = navOf(active);
+  return '<div class="tabbar"><nav aria-label="Portal sections">' + TABS.map(function (t) { return '<button data-go="' + t[0] + '"' + (cur === t[0] ? ' aria-current="page"' : '') + '>' + IC[t[0]] + '<span>' + t[1] + '</span>' + tabMark(t[0]) + '</button>'; }).join('') + '</nav></div>';
 }
 function trialText(c) { var dl = daysFrom(c.trialEnds); if (dl == null) return ''; if (dl < 0) return 'Free pilot ended ' + fmtDate(c.trialEnds); return dl + (dl === 1 ? ' day' : ' days') + ' left in your free pilot'; }
 function reauthBtn() { return ' <button type="button" class="btn ghost sm" data-reauth>Sign in again</button>'; }
@@ -1429,8 +1450,8 @@ function changeBox(st, j) {
     '<label for="changesText">What should change in your ' + esc(docNoun(pick)) + '?</label>' + (S.changesErr ? '<p class="err" role="alert" id="chErr">' + esc(S.changesErr) + '</p>' : '') + '<textarea id="changesText"' + (S.changesErr ? ' aria-invalid="true" aria-describedby="chErr"' : '') + ' placeholder="For example: add my NJ license, or remove my 2015 job.">' + esc(S.changesDraft || '') + '</textarea>' +
     '<div class="row"><button class="btn gold" data-sendchanges="' + esc(pick.id) + '"' + (S.docBusy[pick.id] ? ' disabled' : '') + '>' + (S.docBusy[pick.id] ? 'Sending…' : 'Send changes') + '</button><button class="btn ghost" data-rvchange="">Cancel</button></div></div>';
 }
-function flowFrom() { return S.flow && S.flow.from === 'docs' ? 'docs' : 'jobs'; }
-function backWord() { return flowFrom() === 'docs' ? 'Back to Documents' : 'Back to your jobs'; }
+function flowFrom() { return S.flow && (S.flow.from === 'docs' || S.flow.from === 'home') ? S.flow.from : 'jobs'; } /* r42: a flow opened from Home returns to Home */
+function backWord() { return flowFrom() === 'docs' ? 'Back to Documents' : flowFrom() === 'home' ? 'Back to Home' : 'Back to your jobs'; }
 function flowTop() { return '<div class="fl-top" data-live="top"><button class="fl-back" data-flowclose>' + IC.chev + backWord() + '</button>' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + '</div>'; }
 function vReview() {
   var j = jobById(S.flow.job); if (!j || (j.closed && !jobApp(j))) { S.flow = null; return vJobs(); }
@@ -1586,31 +1607,40 @@ function vApply() {
     '<main class="pmain flow ap" data-ap="' + id + '">' + flowTop() + body + '</main>' + tabbar(flowFrom());
 }
 function openFlow(kind, jobId) {
-  var from = S.flow ? flowFrom() : S.view === 'docs' ? 'docs' : 'jobs';
-  /* remember on the portal's own entry which tab it was, so Back from the review screen lands there */
-  if (!S.hist) { try { history.replaceState({ sp: 1, depth: 0, flow: null, view: from }, '', location.href); } catch (e) {} }
+  var from = S.flow ? flowFrom() : S.view === 'docs' || S.view === 'home' ? S.view : 'jobs';
+  /* remember on the entry we leave which tab it was, so Back from the review screen lands there (r42: at any depth) */
+  if (!S.flow) { try { history.replaceState({ sp: 1, depth: S.hist, flow: null, view: from }, '', location.href); } catch (e) {} }
   S.flow = { kind: kind, job: jobId, from: from }; S.view = from; S.changesFor = null; S.changesDraft = ''; S.changesErr = ''; S.menu = false; S.focusTo = '.ptitle h1'; histPush(S.flow); render(); window.scrollTo(0, 0); }
 function closeFlow(msg) {
-  var n = S.hist, from = flowFrom(); S.flow = null; S.view = from; S.changesFor = null; S.changesErr = ''; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); if (msg) toast(msg);
-  if (n > 0) { S.hist = 0; quietPop(); try { history.go(-n); } catch (e) {} } /* drop the review/apply entries so Back from Jobs leaves no dead screens */
+  /* r42: tabs push history too, so only the entries this flow added (above S.flowBase) are dropped, not the tabs under them */
+  var base = S.flowBase != null ? Math.min(S.flowBase, S.hist) : 0, n = S.hist - base, from = flowFrom(); S.flow = null; S.flowBase = null; S.view = from; S.changesFor = null; S.changesErr = ''; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); if (msg) toast(msg);
+  if (n > 0) { S.hist = base; quietPop(); try { history.go(-n); } catch (e) {} } /* drop the review/apply entries so Back from the tab leaves no dead screens */
 }
-/* Browser Back inside the portal: depth counts entries above the portal's first entry (always Jobs). Review and apply each add one;
-   a tab chosen from a flow screen takes over that entry; "Back to your jobs" and the Jobs tab return to the first entry. So
-   Back goes apply -> review -> jobs and never skips out of the portal from a flow screen. */
-S.hist = 0;
-function histBase() { try { history.replaceState({ sp: 1, depth: 0, flow: null }, '', location.href); } catch (e) {} S.hist = 0; }
-function histPush(f) { try { history.pushState({ sp: 1, depth: S.hist + 1, flow: { kind: f.kind, job: f.job, from: f.from || 'jobs' } }, '', location.href); S.hist++; } catch (e) {} }
+/* Browser Back inside the portal. depth counts entries above the portal's first entry (the view the visit opened on: Home, or the
+   view a link named). r42 (audit M2): every tab change adds an entry (go), so do the Find Your Fit steps and the swipe deck
+   (assets/portal-r42.js); review, apply and interview prep each add one as before. Each entry's state says which screen it
+   stands for, so Back and Forward put that screen back. S.flowBase is the depth under the first review or apply entry: closing a
+   flow drops only the flow's own entries. Back from the first entry leaves the portal, as a browser normally does. */
+S.hist = 0; S.flowBase = null;
+function histBase() { try { history.replaceState({ sp: 1, depth: 0, flow: null, view: S.view }, '', location.href); } catch (e) {} S.hist = 0; S.flowBase = null; }
+function histPush(f) { if (S.flowBase == null) S.flowBase = S.hist; try { history.pushState({ sp: 1, depth: S.hist + 1, fb: S.flowBase, flow: { kind: f.kind, job: f.job, from: f.from || 'jobs' } }, '', location.href); S.hist++; } catch (e) {} }
 /* our own history.go(-n) (closing a flow, or the Jobs tab) already set the screen; its popstate only updates the depth */
 function quietPop() { S.popQuiet = true; clearTimeout(S.popQT); S.popQT = setTimeout(function () { S.popQuiet = false; }, 1500); }
 window.addEventListener('popstate', function (e) {
-  var st = e.state; if (!st || !st.sp || S.status !== 'ready' || S.deck) return;
+  var st = e.state; if (!st || !st.sp || S.status !== 'ready') return;
   S.hist = st.depth || 0;
-  if (S.popQuiet) { S.popQuiet = false; return; }
+  if (S.popQuiet) { S.popQuiet = false; clearTimeout(S.popQT); if (S.popThen) { var pt = S.popThen; S.popThen = null; pt(); } return; }
+  /* r42: Back with the swipe deck open closes the deck (its answers are saved the usual way) and shows the view under it */
+  if (S.deck && !st.deck) deckClose(true);
   if (st.view === 'prep' && prepPop(st)) return; /* round 6a: interview prep screen */
-  var j = st.flow ? jobById(st.flow.job) : null, was = !!S.flow, view = /^(jobs|docs|apps|feedback|fit|billing)$/.test(st.view || '') ? st.view : 'jobs';
-  if (j) { S.flow = { kind: st.flow.kind === 'apply' ? 'apply' : 'review', job: j.id, from: st.flow.from === 'docs' ? 'docs' : 'jobs' }; S.view = S.flow.from; }
-  else { if (!was && S.view === view) return; /* already there (closeFlow got there first) */ S.flow = null; S.view = view; }
-  S.changesFor = null; S.changesErr = ''; S.menu = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0);
+  var j = st.flow ? jobById(st.flow.job) : null, was = !!S.flow || S.view === 'prep', view = VIEW_RE.test(st.view || '') ? st.view : S.view0 || 'home';
+  if (j) { S.flow = { kind: st.flow.kind === 'apply' ? 'apply' : 'review', job: j.id, from: st.flow.from === 'docs' || st.flow.from === 'home' ? st.flow.from : 'jobs' }; S.view = S.flow.from; S.flowBase = st.fb != null ? st.fb : Math.max(0, S.hist - 1); }
+  else {
+    var sub = typeof navRestore === 'function' ? navRestore(st, view) : false; /* r42: a Find Your Fit step or the deck, when the entry stands for one */
+    if (!was && S.view === view && !sub && !!st.help === !!S.fbHelp) return; /* already there (closeFlow got there first) */
+    S.flow = null; S.flowBase = null; S.view = view; S.fbHelp = view === 'feedback' && !!st.help;
+  }
+  S.changesFor = null; S.changesErr = ''; S.menu = false; S.flash = ''; S.focusTo = '.ptitle h1'; S.navPop = true; try { render(); } finally { S.navPop = false; } window.scrollTo(0, 0);
 });
 
 /* ---- home screen card ---- */
@@ -1988,7 +2018,7 @@ function vApps() {
   var afx = afApps(d); /* round 3: search and Due filter (more than 6 applications) */
   var n = d.apps.length, title = n ? n + (n === 1 ? ' application' : ' applications') + ' tracked' : ready.length ? ready.length + (ready.length === 1 ? ' application' : ' applications') + ' ready to submit' : 'Nothing sent yet';
   return shell('apps', title, r18BoardSub()) +
-    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : n || ready.length ? '<div class="board">' + cols.map(function (c, k) {
+    '<div class="pband wide" aria-hidden="true"></div><main class="pmain wide">' + (typeof ivSubNav === 'function' ? ivSubNav('apps') : '') + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + logForm() + afx.head + '<div class="jfres" data-jfres>' + (afx.on ? afx.body : n || ready.length ? '<div class="board">' + cols.map(function (c, k) {
       return '<div class="col' + (S.colOpen[k] ? '' : ' closed') + '"><h3 data-col="' + k + '" role="button" tabindex="0" aria-expanded="' + !!S.colOpen[k] + '"><span><span class="tw" aria-hidden="true">▾</span>' + c + '</span><span>' + by[k].length + '</span></h3>' + by[k].map(function (x) {
         return k === 0 ? r18ReadyCard(x) : appCard(x);
       }).join('') + '</div>';
@@ -2227,10 +2257,10 @@ function render() {
   var fk = focusKey(document.activeElement); saveDrafts();
   var y = window.scrollY, jls = jlBefore();
   if (S.flow && S.view !== flowFrom()) S.flow = null; /* a review or apply screen lives on the tab it was opened from */
-  if (S.view === 'fit' && !(typeof fitOn === 'function' && fitOn())) S.view = 'jobs'; /* r27: no fit object from the API, no fit screen */
-  if (S.view === 'billing' && !billOn()) S.view = 'jobs'; /* round 25: no billing object from the API, no billing screen */
+  if (S.view === 'fit' && !(typeof fitOn === 'function' && fitOn())) S.view = 'home'; /* r27: no fit object from the API, no fit screen (r42: Home) */
+  if (S.view === 'billing' && !billOn()) S.view = 'home'; /* round 25: no billing object from the API, no billing screen (r42: Home) */
   if (S.view !== 'feedback' || S.flow || S.deck) S.fbHelp = false; /* r36: Help mode ends as soon as any other screen is shown, however it was reached */
-  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ jobs: vJobs, docs: vDocs, apps: vApps, feedback: vFeedback, prefs: vPrefs, prep: vPrep, fit: vFit, billing: vBilling }[S.view] || vJobs)();
+  var html = S.deck ? vDeck() : S.flow ? (S.flow.kind === 'apply' ? vApply : vReview)() : ({ home: vHome, jobs: vJobs, docs: vDocs, apps: vApps, iv: vIv, more: vMore, feedback: vFeedback, prefs: vPrefs, prep: vPrep, fit: vFit, billing: vBilling }[S.view] || vHome)();
   var cur = !S.deck && S.flow && S.flow.kind === 'review' ? app.querySelector('.rv[data-rv]') : null;
   if (cur && cur.getAttribute('data-rv') === S.flow.job && cur.getAttribute('data-sig') === S.rvSig) patchLive(app, html); else app.innerHTML = html;
   rvLoadWatch(); /* r36 */
@@ -2269,12 +2299,16 @@ function appScroll() {
 }
 function openAppCol(x) { var k = boardCol(x); if (S.colOpen) S.colOpen[k] = true; else S.openCol = k; S.scrollApp = x.id; }
 function go(view, help) {
-  /* leaving a review or apply screen by the tab bar: that history entry now stands for the new tab, so Back goes to Jobs, not nowhere */
-  /* Jobs goes back to the portal's first entry, so a review-then-tab-bar loop never grows history; another tab replaces the current entry */
-  if (S.hist > 0) {
-    if (view === 'jobs') { var back = S.hist; S.hist = 0; quietPop(); try { history.go(-back); } catch (e) {} }
-    else { try { history.replaceState({ sp: 1, depth: S.hist, flow: null, view: view }, '', location.href); } catch (e) {} }
-  }
+  /* r42 (audit M2): a tab change adds a history entry, so Back returns to the view before it. Leaving a review, apply or interview
+     prep screen by the nav is different: that entry now stands for the new view (replaced, not added), so Back never lands on a
+     half-finished screen twice. Tapping the view already shown adds nothing. */
+  if (!VIEW_RE.test(view)) view = 'home';
+  var here = S.view === view && !S.flow && !!help === !!S.fbHelp;
+  try {
+    if (S.flow || S.view === 'prep') history.replaceState({ sp: 1, depth: S.hist, flow: null, view: view, help: !!help }, '', location.href);
+    else if (!here) { history.pushState({ sp: 1, depth: S.hist + 1, flow: null, view: view, help: !!help }, '', location.href); S.hist++; }
+  } catch (e) {}
+  S.flowBase = null; S.fxSig = null; S.fxHn = 0;
   S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.fbHelp = view === 'feedback' && !!help; /* r36: the Help button opens this view with the urgent box */ S.focusTo = '.ptitle h1'; var sc = S.scrollApp; render(); if (!sc || S.scrollApp) window.scrollTo(0, 0); }
 function signOut(msg) {
   flushDeferred(true);
@@ -2373,16 +2407,20 @@ function deckButton(c) {
   if (!DECK_ENABLED || !coarse() || c.wait < 2) return '';
   return '<button class="deckbtn" data-deck>' + IC.cards + 'Swipe through ' + c.wait + ' new jobs</button>';
 }
-function deckOpen() {
+function deckOpen(fromPop) {
   var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; });
   var ids = S.data.jobs.filter(function (j) { return !ansOf(j) && !locked(j.id) && !j.closed; }).sort(function (a, b) { return (pos[a.id] || 0) - (pos[b.id] || 0); }).map(function (j) { return j.id; });
   if (!ids.length) return;
   S.deck = { ids: ids, i: 0, more: false, qFor: null, y: window.scrollY, tried: {} };
+  /* r42 (audit M2): the deck is its own history entry, so the phone's Back button closes it instead of leaving the portal */
+  if (!fromPop) { try { history.pushState({ sp: 1, depth: S.hist + 1, flow: null, view: S.view, deck: 1 }, '', location.href); S.hist++; } catch (e) {} }
   document.body.classList.add('deck-lock'); S.focusTo = '.dk-acts .dk-yes'; render(); window.scrollTo(0, 0);
 }
-function deckClose() {
+function deckClose(fromPop) {
   if (!S.deck) return;
   flushDeferred();
+  /* closed by its own button: step back off the deck's entry (quietly; the screen is already right) */
+  if (!fromPop) { var onDeck = false; try { onDeck = !!(history.state && history.state.sp && history.state.deck); } catch (e) {} if (onDeck) { quietPop(); try { history.back(); } catch (e) {} } }
   var y = S.deck.y; S.deck = null; document.body.classList.remove('deck-lock');
   S.focusTo = '[data-deck]'; render();
   var fe = document.activeElement; if (!fe || fe === document.body || !fe.closest('#app')) { var h = document.querySelector('.ptitle h1'); if (h) h.focus({ preventScroll: true }); }
@@ -2963,7 +3001,7 @@ function appPrepBtn(x) {
 /* ---- navigation: one history entry, like the review and apply screens ---- */
 function openPrep(id) {
   var x = appById(id); if (!x) return;
-  var from = S.flow ? flowFrom() : S.view === 'prep' && S.pv ? S.pv.from : /^(jobs|docs|apps)$/.test(S.view) ? S.view : 'apps';
+  var from = S.flow ? flowFrom() : S.view === 'prep' && S.pv ? S.pv.from : /^(jobs|docs|apps|iv|home)$/.test(S.view) ? S.view : 'apps';
   /* the entry we leave stands for the tab we were on, so Back lands there */
   if (!S.flow && S.view !== 'prep') { try { history.replaceState({ sp: 1, depth: S.hist, flow: null, view: from }, '', location.href); } catch (e) {} }
   S.pv = { id: String(x.id), from: from, i: 0, show: false, next: null, msg: '' };
@@ -2980,7 +3018,7 @@ function closePrep() {
 function prepPop(st) {
   var x = appById(st.prep); if (!x) return false;
   if (!S.pv || S.pv.id !== String(x.id)) S.pv = { id: String(x.id), i: 0, show: false, next: null, msg: '' };
-  S.pv.from = /^(jobs|docs|apps)$/.test(st.from || '') ? st.from : 'apps';
+  S.pv.from = /^(jobs|docs|apps|iv|home)$/.test(st.from || '') ? st.from : 'apps';
   S.flow = null; S.view = 'prep'; S.menu = false; S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return true;
 }
 /* ---- practice notes: this device only ---- */
@@ -2997,7 +3035,7 @@ function pvWhere(w) {
 }
 function vPrep() {
   var x = S.pv && appById(S.pv.id);
-  if (!x) { S.view = (S.pv && S.pv.from) || 'apps'; return ({ jobs: vJobs, docs: vDocs, apps: vApps }[S.view] || vApps)(); }
+  if (!x) { S.view = (S.pv && S.pv.from) || 'apps'; return ({ jobs: vJobs, docs: vDocs, apps: vApps, iv: vIv, home: vHome }[S.view] || vApps)(); }
   var P = S.pv, from = P.from, dd = daysFrom(x.interview), st = stageOf(x), qs = pvQs(x), has = pvHas(x), out = '';
   var sec = function (k, title, body, cls) { return '<section class="card pv-sec' + (cls ? ' ' + cls : '') + '" aria-labelledby="pv-' + k + '"><h2 class="pv-h" id="pv-' + k + '">' + title + '</h2>' + body + '</section>'; };
   var row = function (k, v) { return '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>'; };
@@ -3039,7 +3077,7 @@ function vPrep() {
       '<label for="pvNext">Notes for next time</label><textarea id="pvNext" maxlength="2000" aria-describedby="pvNextHint">' + esc(nv) + '</textarea><p class="meta" id="pvNextHint">Saved with this application as your notes, so Steady Path sees them too.</p>' +
       '<div class="pv-row"><button type="button" class="btn" data-pvsave' + (P.busy === 'notes' ? ' disabled' : '') + '>' + (P.busy === 'notes' ? 'Saving…' : 'Save notes') + '</button></div>', 'pv-after');
   }
-  var back = from === 'apps' ? 'Back to Applied' : from === 'docs' ? 'Back to Documents' : 'Back to your jobs';
+  var back = from === 'apps' ? 'Back to Applications' : from === 'iv' ? 'Back to Interviews' : from === 'home' ? 'Back to Home' : from === 'docs' ? 'Back to Documents' : 'Back to your jobs';
   return shell(from, 'Interview prep: ' + esc(coOr(x)), esc(pvTxt(x.role))) + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain flow pv" data-pv="' + esc(x.id) + '"><div class="fl-top"><button class="fl-back" data-prepclose>' + IC.chev + back + '</button>' + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + '</div>' + top + out + '</main>' + tabbar(from);
 }
@@ -3481,5 +3519,6 @@ document.addEventListener('click', function (e) {
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/portal.js?v=20261024e"></script>
 <script src="../assets/fit-r35.js?v=sp-20261112r36"></script>
+<script src="../assets/portal-r42.js?v=sp-20261112r42"></script>
 </body>
 </html>

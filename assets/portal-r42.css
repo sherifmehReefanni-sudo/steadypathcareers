@@ -1,0 +1,71 @@
+/* r42: portal revamp, piece 1. Five destinations, Home, Interviews, More. Uses the theme tokens (light and dark). */
+
+/* ---- navigation: five destinations ---- */
+.ptabs button[aria-current="page"] { background: rgba(251,246,238,.14); color: #fff; box-shadow: inset 0 -3px 0 var(--gold); }
+.tabbar nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.tabbar button { min-width: 0; padding: 0 1px; font-size: 12px; letter-spacing: -.01em; }
+.tabbar button > span:not(.cnt):not(.ndot) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tabbar button svg { width: 24px; height: 24px; }
+.tabbar button[aria-current="page"] { color: var(--navy); }
+.tabbar button[aria-current="page"]::before { content: ""; position: absolute; top: 0; width: 36px; height: 3px; border-radius: 3px; background: var(--gold); }
+@media (max-width: 350px) { .tabbar { padding-left: max(2px, env(safe-area-inset-left, 0px)); padding-right: max(2px, env(safe-area-inset-right, 0px)); } .tabbar button { font-size: 10.5px; padding: 0; letter-spacing: -.02em; } }
+.ndot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--attn-badge, #F0A04B); }
+.tabbar .ndot { position: absolute; top: 7px; left: calc(50% + 10px); }
+/* five tabs do not fit the top bar on a tablet: the bottom bar stays until 1024px */
+@media (min-width: 761px) and (max-width: 1023px) {
+  .ptabs { display: none; }
+  .tabbar { display: block; }
+  .pmain { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+}
+/* desktop: five top tabs need the wide header row on every view; the page title stays lined up with a narrow page's content */
+@media (min-width: 1024px) {
+  .sky > .wrap { max-width: 1108px; }
+  #app:not(:has(.pmain.wide)):not(:has(.pmain.xl)) .ptitle { max-width: 728px; margin-left: auto; margin-right: auto; }
+}
+@media (prefers-reduced-motion: no-preference) { .tabbar.pv-enter button[aria-current="page"] svg { animation: pvPop .4s cubic-bezier(.3,1.6,.5,1) both; } }
+
+/* ---- Home ---- */
+.h-main { gap: 16px; }
+.h-next { padding: 20px 18px 20px; }
+.h-next h2 { font-size: 23px; overflow-wrap: anywhere; }
+.h-next .nx-acts .btn { min-height: 48px; }
+.h-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.h-tile { width: 100%; height: 100%; min-height: 92px; text-align: left; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 12px; color: var(--ink); font: inherit; cursor: pointer; }
+.h-tile b { font: 800 30px/1 var(--display); color: var(--navy); font-variant-numeric: tabular-nums; }
+.h-tile span { font-size: 14px; font-weight: 700; color: var(--muted); line-height: 1.25; }
+.h-tile.attn { border-color: var(--attn-line, #EDB77A); background: var(--attn-soft, #FDEBD5); }
+.h-tile.attn b, .h-tile.attn span { color: var(--attn, #8A4300); }
+.h-tile:hover { border-color: var(--navy); }
+.h-tile:focus-visible, .m-list button:focus-visible, .m-list a:focus-visible, .iv-sub button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+@media (min-width: 700px) { .h-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.h-week .sec-h, .h-ans .sec-h { margin: 0 0 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.h-sample { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+.h-week-t { margin: 0; font-size: 16.5px; line-height: 1.5; color: var(--ink); }
+.h-week-d { margin: 6px 0 0; font-size: 13.5px; font-weight: 700; color: var(--muted); }
+.h-ans-j { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+.h-ans-j span { color: var(--muted); font-size: 14px; font-weight: 700; }
+.h-ans-t { margin: 6px 0 2px; color: var(--ink); line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
+.h-plan { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 10px 16px; }
+.h-plan p { margin: 0; color: var(--muted); font-size: 14.5px; font-weight: 700; }
+
+/* ---- Interviews ---- */
+.iv-sub { display: inline-flex; align-self: flex-start; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; max-width: 100%; }
+.iv-sub button { border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 800; font-size: 15px; min-height: 44px; padding: 0 16px; border-radius: 9px; cursor: pointer; }
+.iv-sub button[aria-current="page"] { background: var(--navy-fill); color: #fff; }
+.iv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.iv-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.iv-tx { display: grid; gap: 4px; min-width: 0; flex: 1 1 200px; }
+.iv-tx b { color: var(--navy); font-size: 16.5px; overflow-wrap: anywhere; }
+.iv-tx > span { color: var(--muted); font-size: 14.5px; font-weight: 700; overflow-wrap: anywhere; }
+.iv-tx .apills { display: flex; flex-wrap: wrap; gap: 6px; }
+.iv-tx .pill { white-space: normal; }
+
+/* ---- More ---- */
+.m-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.m-list li + li { border-top: 1px solid var(--line); }
+.m-list button, .m-list a { width: 100%; min-height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px; border: 0; background: transparent; color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.m-list button:hover, .m-list a:hover { background: rgba(var(--tint-rgb, 31,58,95), .06); }
+.m-tx { display: grid; gap: 2px; min-width: 0; }
+.m-tx b { color: var(--navy); font-size: 16.5px; }
+.m-tx span { color: var(--muted); font-size: 14px; }
+.m-list svg { width: 18px; height: 18px; flex: none; color: var(--muted); transform: rotate(-90deg); }
