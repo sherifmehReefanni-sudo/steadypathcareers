@@ -41,12 +41,13 @@
            portal's bottom bar, the intake buttons or a dialog. The home page header is pinned to the page top (absolute),
            so while the strip is there it takes its place in the flow under it. "Not now" hides it until the next page load. */
         var st = document.createElement('style');
-        st.textContent = '#spUpd{position:static;box-sizing:border-box;width:100%;margin:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 12px;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));padding-top:max(8px,env(safe-area-inset-top,0px));background:#10213A;color:#FBF6EE;border-bottom:1px solid rgba(251,246,238,.45);font:700 15px/1.35 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center}#spUpd p{margin:0;min-width:0;flex:0 1 auto}#spUpd div{display:flex;gap:8px;flex:none}#spUpd button{min-height:44px;min-width:44px;padding:0 16px;border-radius:10px;font:inherit;font-weight:800;cursor:pointer}#spUpd .go{border:0;background:#C9A227;color:#10213A}#spUpd .go:hover{background:#D9B43A}#spUpd .no{border:1.5px solid rgba(251,246,238,.6);background:transparent;color:#FBF6EE}#spUpd .no:hover{background:rgba(251,246,238,.12)}#spUpd button:focus-visible{outline:3px solid #FBF6EE;outline-offset:2px}#spUpd~header.top{top:auto}#spUpd~#app .login .say .theme-btn{margin-top:var(--sp-upd-h,60px)}@media print{#spUpd{display:none}}';
+        st.textContent = '#spUpd{position:static;box-sizing:border-box;width:100%;margin:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 12px;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));padding-top:max(8px,env(safe-area-inset-top,0px));background:#10213A;color:#FBF6EE;border-bottom:1px solid rgba(251,246,238,.45);font:700 15px/1.35 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center}#spUpd p{margin:0;min-width:0;flex:0 1 auto}#spUpd div{display:flex;gap:8px;flex:none}#spUpd button{min-height:44px;min-width:44px;padding:0 16px;border-radius:10px;font:inherit;font-weight:800;cursor:pointer}#spUpd .go{border:0;background:#C9A227;color:#10213A}#spUpd .go:hover{background:#D9B43A}#spUpd .no{border:1.5px solid rgba(251,246,238,.6);background:transparent;color:#FBF6EE}#spUpd .no:hover{background:rgba(251,246,238,.12)}#spUpd button:focus-visible{outline:3px solid #FBF6EE;outline-offset:2px}#spUpd~header.top{top:auto}@media (min-width:768px){#spUpd~#app .login .say .theme-btn{margin-top:var(--sp-upd-h,60px)}}@media print{#spUpd{display:none}}';
         document.head.appendChild(st);
         var el = document.createElement('div'); el.id = 'spUpd'; el.setAttribute('role', 'status');
         var p = document.createElement('p'), acts = document.createElement('div'), b = document.createElement('button'), n = document.createElement('button');
         b.type = 'button'; b.className = 'go'; b.textContent = 'Refresh'; n.type = 'button'; n.className = 'no'; n.textContent = 'Not now';
-        var say = function () { p.textContent = typing() ? 'A new version is ready. Send or save what you typed, then refresh.' : 'A new version is ready.'; };
+        var say = function () { p.textContent = typing() ? 'A new version is ready. Send or save what you typed, then refresh.' : 'A new version is ready.'; size(); };
+        var size = function () { try { document.documentElement.style.setProperty('--sp-upd-h', el.offsetHeight + 'px'); } catch (e) {} }; /* re-measured whenever the text changes or the window resizes */
         var shift = function (dy) { try { if (dy && window.scrollY > 0 && !(window.CSS && CSS.supports && CSS.supports('overflow-anchor', 'auto'))) window.scrollBy(0, dy); } catch (e) {} }; /* keeps the reader's place where the browser does not */
         b.addEventListener('click', function () { location.reload(); });
         n.addEventListener('click', function () { off = true; var h = el.offsetHeight; document.removeEventListener('input', say, true); el.remove(); st.remove(); shift(-h); });
@@ -54,7 +55,7 @@
         document.body.insertBefore(el, document.body.firstChild); shift(el.offsetHeight);
         try { document.documentElement.style.setProperty('--sp-upd-h', el.offsetHeight + 'px'); } catch (e) {} /* the portal sign-in screen pins its theme button to the screen top: it moves down by the strip's height */
         setTimeout(say, 60); /* filled a moment after it is in the page, so screen readers announce it */
-        document.addEventListener('input', say, true);
+        document.addEventListener('input', say, true); window.addEventListener('resize', size);
       };
       sw.addEventListener('controllerchange', function () { if (!had) { had = true; return; } bar(); }); /* the first worker taking control is the install, not an update */
       sw.register('/sw.js').then(function (reg) {
