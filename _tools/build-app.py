@@ -18,7 +18,11 @@ OLD_DESC = re.search(r'<meta name="description" content="([^"]*)">', head).group
 OLD_TITLE = re.search(r'<title>([^<]*)</title>', head).group(1)  # r33: the About title, also used in og:title
 head = head.replace(OLD_DESC, DESC).replace(OLD_TITLE, TITLE)
 head = head.replace('https://steadypathcareers.com/about/', 'https://steadypathcareers.com/app/')
-head = head.replace('<link rel="apple-touch-icon" href="/apple-touch-icon.png">', '<link rel="apple-touch-icon" href="/apple-touch-icon.png">\n<link rel="manifest" href="/manifest.webmanifest">\n<meta name="theme-color" content="#10213A">')
+# r43: about/index.html (the head this page starts from) now carries the manifest link itself, so only add what is missing: exactly one manifest link, one theme-color.
+if 'rel="manifest"' not in head:
+    head = head.replace('<link rel="apple-touch-icon" href="/apple-touch-icon.png">', '<link rel="apple-touch-icon" href="/apple-touch-icon.png">\n<link rel="manifest" href="/manifest.webmanifest">')
+if 'name="theme-color"' not in head:
+    head = head.replace('<link rel="manifest" href="/manifest.webmanifest">', '<link rel="manifest" href="/manifest.webmanifest">\n<meta name="theme-color" content="#10213A">')
 head = re.sub(r'<style>\n\.mk \.prose \.card.*?</style>\n', '', head, flags=re.S)
 CSS = '''<style id="app-page">
 .ap-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); margin-top: 26px; }
