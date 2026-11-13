@@ -21,7 +21,9 @@ function r18ReadyCard(j) {
   var id = esc(j.id), busy = S.bdBusy['job:' + j.id];
   return '<div class="app rdy" data-rdy="' + id + '"><b>' + esc(j.company || j.title) + '</b><div class="psub">' + esc(j.title) + '</div>' +
     '<div class="apills"><span class="pill ok">Documents approved</span>' + (j.pay ? '<span class="pill">' + esc(payText(j)) + '</span>' : '') + '</div>' +
-    '<p class="bd-note">You submit it yourself on the employer\'s site. Then tap I submitted it, and it moves to Submitted.</p>' +
+    /* r47: on the desktop board this helper sits behind a More button, so the card is not a strip of wrapped text; on phones it shows as before */
+    '<button type="button" class="bd-more" data-bdmore="' + id + '" aria-expanded="' + !!(S.bdMore && S.bdMore[j.id]) + '" aria-controls="bdn-' + id + '">More</button>' +
+    '<p class="bd-note' + (S.bdMore && S.bdMore[j.id] ? ' open' : '') + '" id="bdn-' + id + '">You submit it yourself on the employer\'s site. Then tap I submitted it, and it moves to Submitted.</p>' +
     '<div class="bd-moves" role="group" aria-label="' + esc('Next for ' + coName(j)) + '"><button type="button" class="kbtn solid" data-applyflow="' + id + '">' + IC.check + 'Apply step by step</button>' +
     '<button type="button" class="kbtn" data-bsubmit="' + id + '"' + (busy ? ' aria-disabled="true"' : '') + '>' + (busy ? 'Saving…' : 'I submitted it') + '</button></div></div>';
 }
@@ -230,6 +232,7 @@ document.addEventListener('click', function (e) {
   if (d.msfeedback != null) { r18MsClose(function () { go('feedback'); }); return; }
   if (S.status !== 'ready') return;
   if (t.getAttribute('aria-disabled') === 'true' && (d.bmove || d.bclosed || d.bsubmit || d.bfollow)) return;
+  if (d.bdmore) { S.bdMore = S.bdMore || {}; S.bdMore[d.bdmore] = !S.bdMore[d.bdmore]; t.setAttribute('aria-expanded', String(!!S.bdMore[d.bdmore])); var bn = document.getElementById(t.getAttribute('aria-controls')); if (bn) bn.classList.toggle('open', !!S.bdMore[d.bdmore]); return; } /* r47: shows or hides a card's helper line; nothing is sent */
   if (d.bsubmit) { r18Submit(d.bsubmit); return; }
   if (d.bfollow) { r18Move(d.bfollow, 'followedup'); return; }
   if (d.bmove && d.bid) {
