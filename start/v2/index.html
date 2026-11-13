@@ -215,6 +215,9 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
 @media (display-mode: standalone) { .foot nav a[href="/app/"] { display: none; } }
 </style>
 <style>
+/* r46: the welcome card's "Let's go" button stays in view: it rides the bottom edge of the screen until its own place in the card scrolls into view */
+.i2-sheet.bare .i2-nav { position: sticky; bottom: 0; z-index: 3; margin: 12px -22px 0; padding: 10px 22px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); }
+@media (max-width: 640px) { .i2-sheet.bare .i2-nav { margin-inline: -16px; padding-inline: 16px; } }
 /* r46: the count under the path, the welcome card's extra lines, the compact header */
 .i2-count#i2count { margin: 10px 2px 0; font-size: 14px; font-weight: 800; color: var(--navy); letter-spacing: .02em; }
 .i2-saves { font-size: 14.5px; line-height: 1.45; }

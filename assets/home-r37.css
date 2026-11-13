@@ -451,3 +451,9 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
   body.has-stick footer{padding-bottom:calc(34px + 72px + env(safe-area-inset-bottom,0px))}
 }
 @media (max-width:700px) and (prefers-reduced-motion:reduce){.stickbar,.stickbar.on{transition:none}}
+/* r46: on phones the Start free button and the price come straight after the headline, so both are on the first screen (390x664 and 320x568) */
+@media (max-width:480px){
+  .hero-copy{display:flex;flex-direction:column;align-items:stretch}
+  .hero-copy>h1{order:1}.hero-copy>.cta-main{order:2;margin-top:20px}.hero-copy>.price-line{order:3;margin-top:12px}.hero-copy>.lede{order:4;margin-top:22px}
+  .hero-copy>.seg{order:5}.hero-copy>.cta-more{order:6}.hero-copy>.watch{order:7;align-self:flex-start}
+}
