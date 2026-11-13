@@ -22,7 +22,7 @@
 .t45-tags .pill { white-space: normal; }
 .t45-q { margin: 0; padding: 10px 12px; border-left: 4px solid var(--line); background: var(--sunk, #F6EDD9); border-radius: 0 10px 10px 0; color: var(--ink); }
 .t45-q p { line-height: 1.5; }
-.t45-q footer { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.t45-q footer { margin: 4px 0 0; padding: 0; border: 0; background: none; text-align: left; min-height: 0; font-size: 13px; font-weight: 700; color: var(--muted); }
 .t45-go .btn { min-height: 44px; display: inline-flex; align-items: center; box-sizing: border-box; max-width: 100%; }
 .t45-chk { font-size: 13px; font-weight: 700; color: var(--muted); }
 .t45-star { flex: none; width: 44px; height: 44px; margin: -8px -8px 0 0; border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; cursor: pointer; color: var(--muted); }
