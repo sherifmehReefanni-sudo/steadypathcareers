@@ -142,17 +142,20 @@ function vMore() {
    "Delete my data" request whose note starts with the marker below, so it lands in the Requests tab and the owner's inbox like
    every other portal request. The screen never says the account was deleted. The demo sends nothing. */
 var DEL_MARK = 'ACCOUNT DELETION REQUEST';
-var DEL_NEXT = 'The request is reviewed within 1 business day, and you will get an email. We delete your information within 30 days and confirm by email. Nothing is deleted before then.';
+/* r43 fix: only what is true today. The API emails the owner, not the client, when a request arrives, so nothing here says the
+   client gets an email about the request. The privacy policy promises the delete within 30 days and an email confirming it. */
+var DEL_NEXT = 'Your request goes to Steady Path. Your account stays as it is until we act on it. We delete your information within 30 days and confirm by email.';
+function delPlanNote() { return billOn() && billHasPlan() ? '<p class="del-note del-plan"><b>You have a paid plan. Sending this request does not cancel your plan or stop charges.</b> To cancel, use Plan &amp; billing. <button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></p>' : ''; }
 function delAsked() { return ((S.data && S.data.requests) || []).filter(function (r) { return r && r.type === 'Delete my data'; })[0] || null; }
 function vDelete() {
   var D = S.del || (S.del = { v: '', err: '', done: false, demo: false }), F = S.pf || {}, asked = delAsked(), body;
   var contact = '<p class="del-help">Questions? ' + helpHtml() + '</p>';
   if (D.demo) body = '<div class="card del-done" role="status" tabindex="-1" id="delDone"><h2>This is the demo, so nothing was sent.</h2><p>In a real account this sends your delete request to Steady Path.</p><p><button type="button" class="btn ghost" data-go="more">Back to More</button></p></div>';
-  else if (D.done || asked) body = '<div class="card del-done" role="status" tabindex="-1" id="delDone"><h2>Your delete request was sent' + (asked && realISO(asked.date) ? ' on ' + esc(fmtY(String(asked.date).slice(0, 10))) : '') + '.</h2><p>Your account has not been deleted yet. ' + DEL_NEXT + '</p><p>Once your information is deleted, your search and this portal stop.</p><p><button type="button" class="btn ghost" data-go="home">Back to Home</button></p></div>' + contact;
+  else if (D.done || asked) body = '<div class="card del-done" role="status" tabindex="-1" id="delDone"><h2>Your delete request was sent' + (asked && realISO(asked.date) ? ' on ' + esc(fmtY(String(asked.date).slice(0, 10))) : '') + '.</h2><p>Your account has not been deleted yet. ' + DEL_NEXT + '</p><p>Once your information is deleted, your search and this portal stop.</p>' + delPlanNote() + '<p><button type="button" class="btn ghost" data-go="home">Back to Home</button></p></div>' + contact;
   else body = '<div class="card del-card"><h2 class="pf-h">What this does</h2>' +
     '<p>This sends us a request to delete your account and your data: your resume and intake answers, your jobs, documents, applications and notes.</p>' +
     '<h2 class="pf-h">What happens next</h2><p>' + DEL_NEXT + ' Once your information is deleted, your search and this portal stop.</p>' +
-    (billOn() && billHasPlan() ? '<p class="del-note"><b>You have a paid plan.</b> Cancel it under Plan &amp; billing before you send this. <button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></p>' : '') +
+    delPlanNote() +
     '<p class="del-note">Want a copy first? You can download your data in Search settings. <button type="button" class="linkbtn" data-go="prefs">Search settings</button></p>' +
     '<label for="delType">Type DELETE to confirm</label><input id="delType" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="' + esc(D.v) + '"' + (D.err ? ' aria-invalid="true" aria-describedby="delErr"' : '') + '>' +
     (D.err ? '<p class="err" role="alert" id="delErr">' + esc(D.err) + '</p>' : '') + (F.err ? '<p class="err" role="alert">' + esc(F.err) + (F.re ? reauthBtn() : '') + '</p>' : '') +
@@ -160,17 +163,34 @@ function vDelete() {
   return shell('', 'Delete my account', 'This sends a request. Nothing is deleted right away.') + '<div class="pband" aria-hidden="true"></div><main class="pmain del-main">' + body + '</main>' + tabbar('');
 }
 document.addEventListener('input', function (e) { if (e.target && e.target.id === 'delType' && S.del) S.del.v = e.target.value; });
-document.addEventListener('click', function (e) {
-  var b = e.target.closest && e.target.closest('[data-delsend]'); if (!b || !S.data || S.pf.busy) return;
+document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('[data-delsend]')) delSend(); });
+/* Enter in the DELETE box does what the button does */
+document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'delType' && !e.isComposing) { e.preventDefault(); delSend(); } });
+function delSend() {
+  if (!S.data || S.view !== 'delete' || (S.pf && S.pf.busy)) return;
   var D = S.del || (S.del = { v: '', err: '', done: false, demo: false }), el = document.getElementById('delType'); if (el) D.v = el.value;
   if (D.done || delAsked()) return;
   if (String(D.v).trim().toUpperCase() !== 'DELETE') { D.err = 'Type DELETE in the box to confirm.'; S.focusTo = '#delType'; render(); return; }
   D.err = '';
   if (S.demo) { D.demo = true; S.focusTo = '#delDone'; render(); return; } /* the demo sends nothing, not even to its own stand-in API */
   sendRequest({ type: 'Delete my data', note: DEL_MARK + ': the client confirmed "Delete my account" in the portal by typing DELETE. Delete the account and all of this client\'s data.' }, function (ok) { if (ok) { D.done = true; D.v = ''; S.focusTo = '#delDone'; } });
-});
+}
 /* leaving the screen clears what was typed */
 (function () { var base = go; go = function (view) { if (view !== 'delete' || S.view !== 'delete') S.del = null; return base.apply(this, arguments); }; })();
+
+/* ---- r43 fix: a focused control is never left under the fixed bottom bar ----
+   scroll-padding covers most cases; a tall field that is already partly in view is not moved by the browser, so this does it. */
+document.addEventListener('focusin', function (e) {
+  var el = e.target; if (!el || !el.getBoundingClientRect || (el.closest && el.closest('.tabbar, .deck'))) return;
+  var fix = function () {
+    var bar = document.querySelector('.tabbar'); if (!bar || !bar.offsetHeight || document.activeElement !== el) return;
+    var top = bar.getBoundingClientRect().top, r = el.getBoundingClientRect(), room = top - 12;
+    if (r.bottom <= room || r.height <= 0) return;
+    var dy = Math.min(r.bottom - room, Math.max(0, r.top - 12)); /* never push the top of a tall field off the screen */
+    if (dy > 0) window.scrollBy(0, dy);
+  };
+  fix(); setTimeout(fix, 80);
+});
 
 /* Home's "Open this job": Jobs, with that job selected and in view */
 document.addEventListener('click', function (e) {

@@ -24,27 +24,35 @@
 
   /* r43: the service worker and its updates. An installed app left open checks for a new release when it comes back into view
      (at most once in 30 minutes). When a new worker takes over a page that an older one was already running, nothing reloads
-     under the person: a small bar offers Refresh. Never on first install. With unsent text in a field, the bar says so.
+     under the person: a strip at the top of the page offers Refresh or Not now. Never on first install. With unsent text in a field, the bar says so.
      This block is the same in assets/site.js and assets/home-r37.js. */
   (function () {
     if (!('serviceWorker' in navigator)) return;
     try {
-      var sw = navigator.serviceWorker, had = !!sw.controller, last = Date.now(), GAP = 30 * 60000;
+      var sw = navigator.serviceWorker, had = !!sw.controller, last = Date.now(), GAP = 30 * 60000, off = false;
       var typing = function () {
         var f = document.querySelectorAll('textarea, input'), i, el, ty;
         for (i = 0; i < f.length; i++) { el = f[i]; ty = (el.getAttribute('type') || 'text').toLowerCase(); if (/^(hidden|checkbox|radio|submit|button|reset|file|range|color|image)$/.test(ty) || el.readOnly || el.disabled) continue; if (String(el.value || '').trim()) return true; }
         return false;
       };
       var bar = function () {
-        if (document.getElementById('spUpd')) return;
+        if (off || document.getElementById('spUpd')) return;
+        /* A strip in the normal flow, first in <body>: it pushes the page down and never sits over a header, a nav, the
+           portal's bottom bar, the intake buttons or a dialog. The home page header is pinned to the page top (absolute),
+           so while the strip is there it takes its place in the flow under it. "Not now" hides it until the next page load. */
         var st = document.createElement('style');
-        st.textContent = '#spUpd{position:fixed;z-index:2147483000;left:50%;transform:translateX(-50%);top:max(10px,env(safe-area-inset-top,0px));box-sizing:border-box;width:max-content;max-width:calc(100vw - 20px);display:flex;align-items:center;gap:12px;padding:8px 8px 8px 16px;border-radius:14px;background:#10213A;color:#FBF6EE;border:1px solid rgba(251,246,238,.45);box-shadow:0 10px 28px rgba(0,0,0,.35);font:700 15px/1.35 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif}#spUpd p{margin:0;min-width:0}#spUpd button{flex:none;min-height:44px;min-width:44px;padding:0 16px;border:0;border-radius:10px;background:#C9A227;color:#10213A;font:inherit;font-weight:800;cursor:pointer}#spUpd button:hover{background:#D9B43A}#spUpd button:focus-visible{outline:3px solid #FBF6EE;outline-offset:2px}@media print{#spUpd{display:none}}';
+        st.textContent = '#spUpd{position:static;box-sizing:border-box;width:100%;margin:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 12px;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));padding-top:max(8px,env(safe-area-inset-top,0px));background:#10213A;color:#FBF6EE;border-bottom:1px solid rgba(251,246,238,.45);font:700 15px/1.35 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center}#spUpd p{margin:0;min-width:0;flex:0 1 auto}#spUpd div{display:flex;gap:8px;flex:none}#spUpd button{min-height:44px;min-width:44px;padding:0 16px;border-radius:10px;font:inherit;font-weight:800;cursor:pointer}#spUpd .go{border:0;background:#C9A227;color:#10213A}#spUpd .go:hover{background:#D9B43A}#spUpd .no{border:1.5px solid rgba(251,246,238,.6);background:transparent;color:#FBF6EE}#spUpd .no:hover{background:rgba(251,246,238,.12)}#spUpd button:focus-visible{outline:3px solid #FBF6EE;outline-offset:2px}#spUpd~header.top{top:auto}#spUpd~#app .login .say .theme-btn{margin-top:var(--sp-upd-h,60px)}@media print{#spUpd{display:none}}';
         document.head.appendChild(st);
         var el = document.createElement('div'); el.id = 'spUpd'; el.setAttribute('role', 'status');
-        var p = document.createElement('p'), b = document.createElement('button'); b.type = 'button'; b.textContent = 'Refresh';
+        var p = document.createElement('p'), acts = document.createElement('div'), b = document.createElement('button'), n = document.createElement('button');
+        b.type = 'button'; b.className = 'go'; b.textContent = 'Refresh'; n.type = 'button'; n.className = 'no'; n.textContent = 'Not now';
         var say = function () { p.textContent = typing() ? 'A new version is ready. Send or save what you typed, then refresh.' : 'A new version is ready.'; };
+        var shift = function (dy) { try { if (dy && window.scrollY > 0 && !(window.CSS && CSS.supports && CSS.supports('overflow-anchor', 'auto'))) window.scrollBy(0, dy); } catch (e) {} }; /* keeps the reader's place where the browser does not */
         b.addEventListener('click', function () { location.reload(); });
-        el.appendChild(p); el.appendChild(b); document.body.appendChild(el);
+        n.addEventListener('click', function () { off = true; var h = el.offsetHeight; document.removeEventListener('input', say, true); el.remove(); st.remove(); shift(-h); });
+        acts.appendChild(b); acts.appendChild(n); el.appendChild(p); el.appendChild(acts);
+        document.body.insertBefore(el, document.body.firstChild); shift(el.offsetHeight);
+        try { document.documentElement.style.setProperty('--sp-upd-h', el.offsetHeight + 'px'); } catch (e) {} /* the portal sign-in screen pins its theme button to the screen top: it moves down by the strip's height */
         setTimeout(say, 60); /* filled a moment after it is in the page, so screen readers announce it */
         document.addEventListener('input', say, true);
       };
