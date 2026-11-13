@@ -53,9 +53,9 @@ function vTraining() {
   else {
     var opt = function (list, cur, all) { return '<option value="">' + all + '</option>' + list.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (cur === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join(''); };
     var fields = Object.keys(D.fieldNames).map(function (k) { return [k, D.fieldNames[k]]; }), nSaved = Object.keys(r45Stars()).length;
-    body = '<form class="card p44-card t45-filters" onsubmit="return false" aria-label="Narrow the list"><div class="t45-three"><div><label for="tfArea">Area</label><select id="tfArea" data-tff="area">' + opt(D.areas, f.area, 'All areas') + '</select></div>' +
-      '<div><label for="tfKind">Kind</label><select id="tfKind" data-tff="kind">' + opt(D.kinds, f.kind, 'All kinds') + '</select></div>' +
-      '<div><label for="tfField">Career field</label><select id="tfField" data-tff="field">' + opt(fields, f.field, 'All fields') + '</select></div></div>' +
+    body = '<form class="card p44-card t45-filters" onsubmit="return false" aria-label="Narrow the list"><div class="t45-three"><div' + (f.area ? ' data-set' : '') + '><label for="tfArea">Area</label><select id="tfArea" data-tff="area">' + opt(D.areas, f.area, 'All areas') + '</select></div>' +
+      '<div' + (f.kind ? ' data-set' : '') + '><label for="tfKind">Kind</label><select id="tfKind" data-tff="kind">' + opt(D.kinds, f.kind, 'All kinds') + '</select></div>' +
+      '<div' + (f.field ? ' data-set' : '') + '><label for="tfField">Career field</label><select id="tfField" data-tff="field">' + opt(fields, f.field, 'All fields') + '</select></div></div>' +
       '<label class="p44-chk"><input type="checkbox" data-tfsaved' + (f.saved ? ' checked' : '') + '>Only the programs I saved</label>' +
       '<p class="psub p44-dev" data-r44dev>Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.</p></form>' +
       (r45Stale(D.reviewed, r44NyToday()) ? '<p class="warn t45-stale" role="status" data-tfstale>This list may be out of date.</p>' : '') +
@@ -68,7 +68,7 @@ if (typeof document !== 'undefined') {
   var r45Patch = function () { var o = document.getElementById('tfOut'); if (o) o.innerHTML = r45Out(); };
   document.addEventListener('change', function (e) {
     var t = e.target; if (!t || !t.getAttribute || !r44On() || S.view !== 'training' || !R44.training) return;
-    var k = t.getAttribute('data-tff'); if (k) { r45F()[k] = t.value; r45Patch(); return; }
+    var k = t.getAttribute('data-tff'); if (k) { r45F()[k] = t.value; if (t.parentNode) { if (t.value) t.parentNode.setAttribute('data-set', ''); else t.parentNode.removeAttribute('data-set'); } /* r47: layout only; a filter with a value takes its own line so the value is never cut */ r45Patch(); return; }
     if (t.hasAttribute('data-tfsaved')) { r45F().saved = !!t.checked; r45Patch(); }
   });
   document.addEventListener('click', function (e) {

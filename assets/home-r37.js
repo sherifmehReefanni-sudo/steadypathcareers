@@ -116,8 +116,8 @@
     };
     /* r47: the same facts in three lines, shown on phones only (the stylesheet picks which span shows) */
     var LEDE_S = {
-      hourly: "Real openings near you, checked on the employer's own site, hourly pay as posted. A tailored resume. You send every application.",
-      pro: "Real openings, checked on the employer's own site, pay as posted. A tailored resume and cover letter. You send every application.",
+      hourly: "Jobs near you, checked on the employer's own site, hourly pay as posted. Say yes for a tailored resume. You send every application.",
+      pro: "Jobs checked on the employer's own site, pay as posted. Say yes and get a tailored resume and cover letter. You send every application.",
       exec: "Each opening checked on the employer's own site, pay as posted. You send every application yourself."
     };
     var HELP = 'Drag a card, tap a button, or use your arrow keys.', lvl = 'pro';

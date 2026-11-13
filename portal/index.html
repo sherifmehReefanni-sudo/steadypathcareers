@@ -312,7 +312,7 @@ body { overflow-x: hidden; }
 
 /* applied tab (kept from the old page, tightened) */
 .board { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
-@media (min-width: 761px) and (max-width: 1023px) { .board { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 761px) and (max-width: 1023px) { .board { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } } /* r47: two columns here (three squeezed cards until pills and buttons wrapped) */
 /* r47: the desktop board. Columns share the width but a card is never under 220px wide; if they do not all fit, the
    board scrolls sideways inside its own box instead of squeezing the cards. Empty columns stay slim. */
 @media (min-width: 1024px) {
@@ -321,7 +321,15 @@ body { overflow-x: hidden; }
   .board > .col.none { flex: 0 0 140px; min-width: 140px; }
   .board > .col h3 > span:last-child { margin-left: 8px; }
   .board > .col.none h3 { margin-bottom: 0; }
+  .board { scroll-snap-type: x proximity; scroll-padding-left: 0; }
+  .board > .col { scroll-snap-align: start; }
+  /* when columns continue past the right edge the edge fades instead of cutting a column with a hard line (class set in assets/portal-r18.js) */
+  .board.cut-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }
+  .board.cut-l { -webkit-mask-image: linear-gradient(270deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(270deg, #000 calc(100% - 56px), transparent); }
+  .board.cut-l.cut-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent); }
 }
+/* r47: on wide screens the board's page grows so five full columns fit without sideways scroll (from about 1340 wide) */
+@media (min-width: 1200px) { #app:has(.board) .pmain.wide, #app:has(.board) .sky > .wrap { max-width: min(1320px, calc(100vw - 48px)); } }
 .col { background: var(--sunk); border-radius: 14px; padding: 12px; min-width: 0; }
 .col h3 { margin: 0 0 10px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; cursor: pointer; user-select: none; min-height: 32px; align-items: center; }
 .col h3 .tw { transition: transform .15s; display: inline-block; margin-right: 6px; color: var(--gold); }
@@ -2032,8 +2040,8 @@ function appCard(x) {
   var h = '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">' + (isOutreach(x) ? 'Contacted ' : 'Applied ') + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
     (pills ? '<div class="apills">' + pills + '</div>' : '') + icsBtn(x) +
     (x.nextAction ? '<p class="nact"><span class="nl">Next:</span> ' + esc(x.nextAction) + '</p>' : '') +
-    (x.contact ? '<p class="psub amore">Contact: ' + esc(x.contact) + '</p>' : '') +
-    (x.myNotes ? '<p class="psub amore notes">Your notes: ' + esc(x.myNotes) + '</p>' : '') +
+    /* r47: on the desktop board a long card folds its contact and notes text behind More (assets/portal-r18.js r47Fold); the next action and every control stay in view */
+    (function () { var t = (x.contact ? '<p class="psub amore">Contact: ' + esc(x.contact) + '</p>' : '') + (x.myNotes ? '<p class="psub amore notes">Your notes: ' + esc(x.myNotes) + '</p>' : ''); if (!t) return ''; var long = String(x.contact || '').length + String(x.myNotes || '').length > 60 || (x.contact && x.myNotes) || (t && (x.nextAction || String(x.interview || '').trim())); return long && typeof r47Fold === 'function' ? r47Fold(x.id, coOr(x), t) : t; })() +
     appPrepBtn(x) + /* round 6a: opens the interview prep screen */
     (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : '') +
     (typeof r44FuLine === 'function' ? r44FuLine(x) : '') + /* r44: the follow-up date from the guide's intervals, and Draft the note */

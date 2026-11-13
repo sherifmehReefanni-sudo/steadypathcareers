@@ -500,9 +500,5 @@
    761px to about 1000px), or on very small phones, the wordmark used to shrink to one letter. It is now visually hidden
    (still read out as the link name) and the logo stays. Browsers without container queries keep the old behavior. */
 .ptop { container-type: inline-size; container-name: ptop; }
-@media (min-width: 761px) {
-  @container ptop (max-width: 900px) {
-    .ptop .brand .bname { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  }
-}
+/* r47: the name is no longer hidden between 761 and 1000 wide: the five tabs are not in this row below 1024, so it fits */
 /* r47: on phones the header now fits the full name at 320 wide (portal/index.html, "the header on phones"), so the very-small-phone rule that hid it is gone */

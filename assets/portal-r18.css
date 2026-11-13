@@ -64,14 +64,13 @@
   .board .app .bd-note, .board .app .bd-fuh { font-size: 13.5px; }
 }
 
-/* r47: the helper line on a Ready to submit card. Always shown on phones and tablets; on the desktop board it is behind "More". */
+/* r47: folded text on a board card (assets/portal-r18.js r47Fold). Always shown on phones and tablets; behind More on the desktop board. */
 .bd-more { display: none; }
 @media (min-width: 1024px) {
-  .board .bd-more { display: inline-flex; align-items: center; min-height: 44px; margin: 4px 0 0; padding: 0 2px; border: 0; background: none; color: var(--navy); font: inherit; font-size: 14px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-  .board .bd-more[aria-expanded="true"] { text-decoration: none; }
+  .board .bd-more { display: inline-flex; align-items: center; justify-content: flex-start; min-width: 44px; min-height: 44px; margin: 4px 0 0; padding: 0 4px 0 0; border: 0; background: none; color: var(--navy); font: inherit; font-size: 14px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
   .board .bd-more:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
-  .board .bd-note { display: none; }
-  .board .bd-note.open { display: block; }
+  .board .bd-fold { display: none; }
+  .board .bd-fold.open { display: block; }
 }
 /* r47: no hill or dotted-path art behind the Applications view (it ran behind the Log button, column headers and cards) */
 html[data-pv="apps"] .pband::before { display: none; }

@@ -17,13 +17,18 @@ function boardCol(x) { var s = stageOf(x); return s <= 1 ? 1 : s; }
 function r18ReadyJobs(d) {
   return orderedJobs(d).filter(function (j) { if (ansOf(j) !== 'yes' || j.closed || S.deferred[j.id] || S.pending[j.id]) return false; var s = jobState(j); return s.applyReady && !s.app; });
 }
+/* r47: on the desktop board, text that makes a card long sits behind a More button (Less when open), so a card is not a strip of
+   wrapped text. On phones and tablets the text shows as before and there is no button. Only text is ever folded, never a control.
+   The button's accessible name says which card it is about, so it is not confused with the More tab. Nothing is sent. */
+function r47Fold(id, name, inner) {
+  var open = !!(S.bdMore && S.bdMore[id]);
+  return '<button type="button" class="bd-more" data-bdmore="' + esc(id) + '" data-bdname="' + esc(name) + '" aria-expanded="' + open + '" aria-controls="bdn-' + esc(id) + '" aria-label="' + (open ? 'Less' : 'More') + ' about ' + esc(name) + '">' + (open ? 'Less' : 'More') + '</button><div class="bd-fold' + (open ? ' open' : '') + '" id="bdn-' + esc(id) + '">' + inner + '</div>';
+}
 function r18ReadyCard(j) {
   var id = esc(j.id), busy = S.bdBusy['job:' + j.id];
   return '<div class="app rdy" data-rdy="' + id + '"><b>' + esc(j.company || j.title) + '</b><div class="psub">' + esc(j.title) + '</div>' +
     '<div class="apills"><span class="pill ok">Documents approved</span>' + (j.pay ? '<span class="pill">' + esc(payText(j)) + '</span>' : '') + '</div>' +
-    /* r47: on the desktop board this helper sits behind a More button, so the card is not a strip of wrapped text; on phones it shows as before */
-    '<button type="button" class="bd-more" data-bdmore="' + id + '" aria-expanded="' + !!(S.bdMore && S.bdMore[j.id]) + '" aria-controls="bdn-' + id + '">More</button>' +
-    '<p class="bd-note' + (S.bdMore && S.bdMore[j.id] ? ' open' : '') + '" id="bdn-' + id + '">You submit it yourself on the employer\'s site. Then tap I submitted it, and it moves to Submitted.</p>' +
+    r47Fold('job:' + j.id, coName(j), '<p class="bd-note">You submit it yourself on the employer\'s site. Then tap I submitted it, and it moves to Submitted.</p>') + /* r47: behind More on the desktop board */
     '<div class="bd-moves" role="group" aria-label="' + esc('Next for ' + coName(j)) + '"><button type="button" class="kbtn solid" data-applyflow="' + id + '">' + IC.check + 'Apply step by step</button>' +
     '<button type="button" class="kbtn" data-bsubmit="' + id + '"' + (busy ? ' aria-disabled="true"' : '') + '>' + (busy ? 'Saving…' : 'I submitted it') + '</button></div></div>';
 }
@@ -232,7 +237,7 @@ document.addEventListener('click', function (e) {
   if (d.msfeedback != null) { r18MsClose(function () { go('feedback'); }); return; }
   if (S.status !== 'ready') return;
   if (t.getAttribute('aria-disabled') === 'true' && (d.bmove || d.bclosed || d.bsubmit || d.bfollow)) return;
-  if (d.bdmore) { S.bdMore = S.bdMore || {}; S.bdMore[d.bdmore] = !S.bdMore[d.bdmore]; t.setAttribute('aria-expanded', String(!!S.bdMore[d.bdmore])); var bn = document.getElementById(t.getAttribute('aria-controls')); if (bn) bn.classList.toggle('open', !!S.bdMore[d.bdmore]); return; } /* r47: shows or hides a card's helper line; nothing is sent */
+  if (d.bdmore) { S.bdMore = S.bdMore || {}; var on = S.bdMore[d.bdmore] = !S.bdMore[d.bdmore]; t.setAttribute('aria-expanded', String(on)); t.textContent = on ? 'Less' : 'More'; t.setAttribute('aria-label', (on ? 'Less' : 'More') + ' about ' + (d.bdname || 'this application')); var bn = document.getElementById(t.getAttribute('aria-controls')); if (bn) bn.classList.toggle('open', on); return; } /* r47: shows or hides a card's folded text; nothing is sent */
   if (d.bsubmit) { r18Submit(d.bsubmit); return; }
   if (d.bfollow) { r18Move(d.bfollow, 'followedup'); return; }
   if (d.bmove && d.bid) {
@@ -255,3 +260,13 @@ document.addEventListener('keydown', function (e) {
   else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
   else if (i < 0) { e.preventDefault(); f[0].focus(); }
 });
+
+/* r47: the desktop board fades the edge where columns continue out of view (classes cut-l and cut-r on .board). Layout only. */
+(function () {
+  if (typeof document === 'undefined') return;
+  var edge = function () { var b = document.querySelector('.board'); if (!b) return; var more = b.scrollWidth - b.clientWidth; b.classList.toggle('cut-r', more > 4 && b.scrollLeft < more - 4); b.classList.toggle('cut-l', more > 4 && b.scrollLeft > 4); };
+  document.addEventListener('scroll', function (e) { if (e.target && e.target.classList && e.target.classList.contains('board')) edge(); }, true);
+  window.addEventListener('resize', edge);
+  var app = document.getElementById('app'); if (app && typeof MutationObserver === 'function') new MutationObserver(function () { edge(); }).observe(app, { childList: true });
+  edge();
+})();

@@ -46,7 +46,7 @@ p{margin:0}
 .top nav.main a{text-decoration:none;opacity:.86;padding:12px 0}
 .top nav.main a:hover{opacity:1}
 .top .btn{min-height:44px;padding:0 20px;font-size:.95rem}
-.themeb{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--top-line);background:var(--top-chip);color:inherit;cursor:pointer;padding:0;display:grid;place-content:center}
+.themeb{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--top-line);background:var(--top-chip);color:inherit;cursor:pointer;padding:0;display:grid;place-content:center}
 
 /* hero: before dawn */
 .hero{position:relative;color:#fff;background:var(--hero-sky);overflow:hidden;padding:132px 0 0}
@@ -304,7 +304,7 @@ section[id],[id].foryou,#faq{scroll-margin-top:12px}
 .top nav.main a{min-width:44px;text-align:center}
 .top .btn{white-space:nowrap}
 .menu{display:none;position:relative}
-.menu summary{list-style:none;width:44px;height:44px;border-radius:50%;background:var(--top-chip);border:1.5px solid var(--top-line);display:grid;place-content:center;gap:4px;cursor:pointer}
+.menu summary{list-style:none;width:44px;height:44px;border-radius:12px;background:var(--top-chip);border:1.5px solid var(--top-line);display:grid;place-content:center;gap:4px;cursor:pointer}
 .menu summary::-webkit-details-marker{display:none}
 .menu summary i{display:block;width:18px;height:2px;border-radius:2px;background:currentColor}
 .menu-panel{position:absolute;right:0;top:54px;width:min(270px,calc(100vw - 40px));display:grid;gap:2px;padding:10px;border-radius:20px;background:#10213A;box-shadow:0 0 0 1px rgba(255,255,255,.14),0 30px 60px -20px rgba(0,0,0,.8)}
@@ -472,3 +472,4 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
 }
 @media (max-width:380px){.hero .lede{font-size:.94rem}}
 @media (max-width:359px){.hero h1{font-size:2.2rem}.hero .where{font-size:.94rem}}
+/* r47 finish: the theme and menu buttons are rounded squares here too, the same shape as on every other page (still 44px) */
