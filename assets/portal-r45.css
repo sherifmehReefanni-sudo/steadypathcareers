@@ -32,3 +32,20 @@
 .t45-star[aria-pressed="true"] svg { fill: var(--gold); }
 .t45-star:hover { background: rgba(var(--tint-rgb, 31,58,95), .08); }
 .t45-star:focus-visible, .t45 a:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* r47: the finder's first screen. The standing note is plain text, the three filters sit in one compact row (two and one at
+   320), and "Only the programs I saved" is a chip in the same block, so a program is on the first screen of a phone. */
+.t45 { gap: 12px; }
+.t45-note { padding: 0; border: 0; border-radius: 0; background: none; font-weight: 500; font-size: 14.5px; line-height: 1.45; color: var(--ink); text-wrap: pretty; max-width: 760px; }
+.t45-filters { padding: 12px; gap: 8px; }
+@media (max-width: 479px) { .t45-filters { padding: 10px; } }
+.t45-three { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.t45-three > div:nth-child(3) { grid-column: 1 / -1; }
+@media (min-width: 380px) { .t45-three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; } .t45-three > div:nth-child(3) { grid-column: auto; } }
+@media (min-width: 700px) { .t45-three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } }
+.t45-filters label[for] { display: block; margin: 0 0 3px; font-size: 12.5px; font-weight: 800; letter-spacing: .02em; color: var(--muted); }
+.t45-filters select { width: 100%; min-width: 0; min-height: 44px; padding: 0 22px 0 9px; font-size: 16px; border-radius: 10px; text-overflow: ellipsis; -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: right 12px center, right 7px center; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+.t45-filters .p44-chk { align-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin: 2px 0 0; padding: 0 14px 0 10px; border: 1.5px solid var(--line); border-radius: 999px; font-size: 14.5px; font-weight: 700; cursor: pointer; width: fit-content; max-width: 100%; }
+.t45-filters .p44-chk:has(input:checked) { border-color: var(--gold); background: rgba(227,179,65,.16); }
+.t45-filters .p44-chk input { flex: none; margin: 0; }
+.t45-filters .p44-dev { margin: 0; font-size: 13px; line-height: 1.4; }
