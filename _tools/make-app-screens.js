@@ -25,7 +25,8 @@ srv.listen(0, '127.0.0.1', async () => {
   const p = await c.newPage();
   for (const [view, file] of SHOTS) {
     await p.goto(base + '/portal/?demo=1&view=' + view, { waitUntil: 'load' }); await p.waitForSelector('.ptitle h1'); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(500);
-    if (view === 'jobs') { await p.evaluate(() => { const j = document.querySelector('.jc, [data-job]'); if (j) window.scrollTo(0, j.getBoundingClientRect().top + window.scrollY - 16); }); await p.waitForTimeout(300); } /* Jobs: the first match, with its pay and the Yes, No, Question buttons */
+    if (view === 'jobs') { /* Jobs: the first match, with its pay and the Yes, No, Question buttons. The header (and its Demo badge) has scrolled away by then, so this script pins a copy of that badge to the top corner of the picture: every screen must say it is demo data. */
+      await p.evaluate(() => { const j = document.querySelector('.jc, [data-job]'); if (j) window.scrollTo(0, j.getBoundingClientRect().top + window.scrollY - 46); const b = document.querySelector('.demo-badge'); if (!b) throw new Error('no Demo badge to copy'); const c = b.cloneNode(true); c.textContent = 'Demo data'; c.style.cssText = 'position:fixed;top:8px;right:16px;left:auto;z-index:99;font-size:13px;line-height:1.6;padding:2px 12px;box-shadow:0 2px 8px rgba(16,33,58,.25)'; document.body.appendChild(c); }); await p.waitForTimeout(300); }
     await p.screenshot({ path: path.join(ROOT, 'img', 'app', file) }); console.log('wrote img/app/' + file);
   }
   await b.close(); srv.close();
