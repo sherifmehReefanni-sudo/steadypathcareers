@@ -253,7 +253,7 @@
     if (!plain(V.skills)) V.skills = {}; if (!plain(V.deal)) V.deal = {}; if (!plain(V.style)) V.style = {};
   }
   fixMod();
-  var cur = Math.max(0, Number(D._at) || 0), file = null, parsed = null, parsing = false, readOk = false, noFileOk = false, leaving = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
+  var cur = 0 /* set from the saved place once the screens exist (atToCur) */, file = null, parsed = null, parsing = false, readOk = false, noFileOk = false, leaving = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
   var autoT = null, fromReview = false, laterOpen = false, laterBusy = false, laterMsg = '', laterKind = '', dealAnim = false, parseT = null;
   /* Saving (round 6). base is the saved-at stamp of the copy this tab last read or wrote. A save whose base is older than the
      stored copy (another tab or window wrote since) is refused: this tab reloads that newer copy instead, so a stale tab never
@@ -265,7 +265,7 @@
     try {
       var old = storedCopy(), oldAt = old && typeof old._saved === 'number' ? old._saved : 0;
       if (!force && oldAt > base) { refreshFromStorage(true); return false; }
-      var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = cur; c._saved = Math.max(Date.now(), oldAt + 1);
+      var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = curToAt(cur); c._saved = Math.max(Date.now(), oldAt + 1);
       var t = JSON.stringify(c); localStorage.setItem(KEY, t);
       if (localStorage.getItem(KEY) !== t) return false;
       base = c._saved; D._saved = c._saved; return true;
@@ -279,7 +279,7 @@
     try {
       D = cleanState(o, true); V = D.v2; fixMod(); base = Number(D._saved) || 0;
       if (typeof S !== 'undefined' && S.length && ROOT.querySelector('[data-screen]') && !ROOT.querySelector('[data-screen="draft"]')) {
-        cur = Number(D._at) || 0; startAt();
+        cur = atToCur(D._at); startAt();
         if (show) { msgKind = 'info'; msg = 'Your answers were updated in another tab or window, so this tab now shows them.'; render(false); }
       }
     } finally { refreshing = false; }
@@ -317,7 +317,7 @@
     try { post({ action: 'ievent', sid: SID, screen: screen, stop: Math.max(0, Math.min(4, stop | 0)), field: FIELDS.indexOf(V.field) >= 0 ? V.field : '' }).catch(function () {}); } catch (e) {}
   }
   /* "finish later" draft: everything on this device except the agreement boxes, the signature, the honeypot and any file */
-  function draftData() { var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = cur; return c; }
+  function draftData() { var c = cleanState(JSON.parse(JSON.stringify(D))); c._at = curToAt(cur); return c; }
 
   /* ---------------- helpers that read answers ---------------- */
   function field() { return FIELDS.indexOf(V.field) >= 0 ? F[V.field] : null; }
@@ -497,25 +497,30 @@
   window.__i2parse = parseResume; /* for tests */
 
   /* ---------------- screens ---------------- */
-  var STOPS = ['Welcome', 'You', 'Your field', 'Your ideal job', 'Your story'], SHORT = ['Start', 'You', 'Field', 'Ideal job', 'Story'];
-  var CHEER = ['', 'Nice start. Next, the work you do.', "That's the hardest part done.", 'Almost there. Now the fun part: your story.', ''];
+  /* r46: the form opens with the search itself (no name, no contact details), then asks where to send matches, then the rest.
+     The screens are still defined below in their old order and keep their ids; ORDER (after the last add) puts them in the new
+     one and gives each its stop. The five stops are renamed to fit. */
+  var STOPS = ['Welcome', 'Your search', 'You', 'The details', 'Your story'], SHORT = ['Start', 'Search', 'You', 'Details', 'Story'];
+  var CHEER = ['', 'That is the search itself. Next, where to send your matches.', 'Thank you. Next, the details of the work you want.', 'Last part: your story.', ''];
   /* A screen: id, stop (0-4), show() (optional), html(), need() returns missing keys, auto (single-tap screens move on by themselves). */
   var S = [];
   function add(s) { S.push(s); }
 
   add({ id: 'welcome', stop: 0, bare: 1, html: function () {
     var resume = D._saved && D.name ? '<p class="i2-note">Welcome back, ' + esc(String(D.name).split(' ')[0]) + '. Your answers are saved on this device, so you can pick up where you left off.</p>' : '';
-    return '<div class="i2-hi"><img class="i2-face i2-mark" src="' + esc(MARK) + '" alt="" width="88" height="88" decoding="async"><div><p class="i2-k">Steady Path Careers</p><h2 class="i2-h">Hi, welcome.</h2><p class="i2-p">A few minutes here helps us find jobs that actually fit you.</p></div></div>' +
-      '<ul class="i2-facts"><li>' + icon('spark', 'ic sm') + '<span>About 10 minutes, mostly taps</span></li><li>' + icon('shield', 'ic sm') + '<span>Answers save on this device as you go</span></li><li>' + icon('clip', 'ic sm') + '<span>Have your resume handy, if you have one</span></li></ul>' + resume +
+    return '<div class="i2-hi"><img class="i2-face i2-mark" src="' + esc(MARK) + '" alt="" width="88" height="88" decoding="async"><div><p class="i2-k">Steady Path Careers</p><h2 class="i2-h">Hi, welcome.</h2><p class="i2-p">About 15 minutes. Most of it is tapping. You can stop anytime and pick up later.</p></div></div>' +
+      '<ul class="i2-facts"><li>' + icon('spark', 'ic sm') + '<span>Free for 14 days. No card. Then $99 a month only if you choose to continue.</span></li><li>' + icon('shield', 'ic sm') + '<span>We never apply for you, log in as you, or contact employers.</span></li><li>' + icon('shield', 'ic sm') + '<span>Your answers are never sold or shared with employers.</span></li><li>' + icon('clip', 'ic sm') + '<span>What happens next: we go through your answers within 1 business day and email you. Matches show up in your portal.</span></li></ul>' +
+      '<p class="i2-note i2-saves">Your answers save on this phone or computer as you go. Until you tap Send or ask for a finish-later link, the only things sent to us are which screen you are on and the kind of work you pick, with a random ID and no name.</p>' + resume +
       (PREVIEW ? '<p class="i2-warn"><b>Preview.</b> This version sends nothing. At the end you will see exactly what it would send.</p>' : '');
-  }, next: "Let's go" });
+  }, next: "Let's go", after: '<p class="i2-talk">Want to talk to a person first? Call or text <a href="tel:+17327590008">(732) 759-0008</a>.</p>' });
   add({ id: 'referred', stop: 0, html: function () { return h('Did someone send you our way?', 'Optional. It helps us thank them.') + inp('referred', 'Their name', 'text', { ph: 'First and last name', ac: 'off' }); }, skip: 1 });
 
   add({ id: 'contact', stop: 1, need: ['name', 'email', 'phone'], html: function () {
-    return h('First, how do we reach you?', 'Your email is also how you sign in to your portal.') +
+    /* r46: the phone stays required, because the live API (v1.45 writeIntake_) refuses a submission without one */
+    return h('Where should we send your matches?', 'Your email is how you sign in. We call or text only about your search. We never sell your details or share them with employers.') +
       inp('name', 'First and last name, as it should appear on your resume', 'text', { ac: 'name', req: 1 }) +
       inp('email', 'Email you check daily', 'email', { ac: 'email', req: 1, im: 'email' }) +
-      inp('phone', 'Phone', 'tel', { ac: 'tel', req: 1, im: 'tel', ph: '732-555-0123' });
+      inp('phone', 'Phone', 'tel', { ac: 'tel', req: 1, im: 'tel', ph: '732-555-0123', help: 'Why we ask: so we can call or text you about your search if email is not reaching you.' });
   } });
   add({ id: 'reach', stop: 1, need: ['contactBy'], html: function () { return h('Best way to reach you?', '') + chips('contactBy', '', O.contactBy, { one: 1 }) + chips('times', 'Best times (optional)', O.times, {}); } });
   add({ id: 'where', stop: 1, need: ['city'], html: function () {
@@ -688,6 +693,42 @@
       '<div class="hp" aria-hidden="true"><label>Website<input tabindex="-1" autocomplete="off" data-k="website"></label></div>';
   }, next: function () { return PREVIEW ? 'See what would be sent' : (busy ? 'Sending…' : 'Send my intake'); } });
 
+  /* r46: the order people see. OLD_IDS is the order drafts were saved under before r46 (their _at is an index into it). */
+  var OLD_IDS = S.map(function (x) { return x.id; });
+  var ORDER = [
+    ['welcome', 0],
+    ['situation', 1], ['field', 1], ['titles', 1], ['seniority', 1], ['pay', 1], ['setting', 1],
+    ['contact', 2], ['reach', 2], ['where', 2], ['commute', 2] /* it says "From <your town>", so it follows the town */, ['resume', 2], ['confirm', 2], ['edu', 2], ['linkedin', 2], ['urgency', 2], ['auth', 2],
+    ['mod0', 3], ['mod1', 3], ['mod2', 3], ['mod3', 3], ['skills', 3], ['software', 3], ['schedule', 3], ['standout', 3], ['rank', 3], ['companies', 3], ['deal', 3], ['style', 3],
+    ['strengths', 4], ['win', 4], ['why', 4], ['know', 4], ['docs', 4], ['referred', 4], ['review', 4], ['confirmSend', 4]
+  ];
+  (function () {
+    var by = {}; S.forEach(function (x) { by[x.id] = x; });
+    if (ORDER.length !== S.length || ORDER.some(function (o) { return !by[o[0]]; })) return; /* a screen was added or renamed without updating ORDER: keep the old order whole */
+    S = ORDER.map(function (o) { by[o[0]].stop = o[1]; return by[o[0]]; });
+  })();
+  /* screens that may still appear later, depending on answers not given yet: they count toward "Question N of M" until passed */
+  ['commute', 'confirm', 'rank'].forEach(function (id) { for (var i = 0; i < S.length; i++) if (S[i].id === id) S[i].maybe = 1; });
+  /* A saved place (_at). From r46 it is 100 + the index in the new order; a smaller number is an index in the old order, from a
+     draft saved before r46 (on this device or in a finish-later link), and is carried over by screen id. The backend keeps _at
+     as a number up to 200, so the marker survives a finish-later round trip. startAt() then stops at the first screen with a
+     missing required answer, so an old draft never skips the questions that now come first. */
+  function atToCur(at) {
+    at = Number(at); if (!(at >= 0)) return 0;
+    if (at >= 100) return Math.min(S.length - 1, Math.floor(at - 100));
+    var id = OLD_IDS[Math.floor(at)]; if (!id) return 0;
+    for (var i = 0; i < S.length; i++) if (S[i].id === id) return i;
+    return 0;
+  }
+  function curToAt(i) { return 100 + i; }
+  /* "Question N of M": M is every screen this person will see given the answers so far, plus the ones that may still appear. */
+  function counter() {
+    var n = 0, m = 0;
+    for (var i = 1; i < S.length; i++) { var v = visible(i); if (v || (i > cur && S[i].maybe)) m++; if (v && i <= cur) n++; }
+    return { n: n, m: m };
+  }
+  cur = atToCur(D._at);
+
   /* ---------------- small builders ---------------- */
   function h(t, s) { return '<h2 class="i2-h">' + esc(t) + '</h2>' + (s ? '<p class="i2-p">' + esc(s) + '</p>' : ''); }
   function get(k) { if (k.indexOf('v2.mod.') === 0) return modOf()[k.slice(7)]; if (k.indexOf('v2.') === 0) return V[k.slice(3)]; return D[k]; }
@@ -831,10 +872,11 @@
     var s = S[cur], st = s.stop, ae = document.activeElement, keep = focus === false ? focusSel(ae) : null, had = focus === false && ae && ROOT.contains(ae) && ae !== ROOT;
     var caret = null; try { if (keep && ae.selectionStart != null) caret = [ae.selectionStart, ae.selectionEnd]; } catch (e) {}
     var cls = msgKind === 'err' ? 'i2-err' : 'i2-info', role = msgKind === 'err' ? 'alert' : 'status';
-    var html = pathbar(st) + '<div class="i2-card-wrap"><section class="i2-sheet' + (s.bare ? ' bare' : '') + '" data-screen="' + s.id + '" aria-labelledby="i2title i2q">' +
+    var cn = counter();
+    var html = pathbar(st) + (s.bare ? '' : '<p class="i2-count" id="i2count">Question ' + cn.n + ' of ' + cn.m + '</p>') + '<div class="i2-card-wrap"><section class="i2-sheet' + (s.bare ? ' bare' : '') + '" data-screen="' + s.id + '" aria-labelledby="i2title i2q">' +
       '<p class="i2-step" id="i2title">' + (s.bare ? 'Welcome' : 'Stop ' + (st + 1) + ' of 5: ' + esc(STOPS[st])) + '</p>' +
       (msg ? '<div class="' + cls + '" id="i2msg" role="' + role + '" tabindex="-1">' + msg + '</div>' : '') +
-      s.html() + nav(s) + '</section></div>';
+      s.html() + nav(s) + (s.after || '') + '</section></div>';
     ROOT.innerHTML = html;
     var q = ROOT.querySelector('.i2-sheet .i2-h'); if (q) { q.id = 'i2q'; q.setAttribute('tabindex', '-1'); }
     markBad();
@@ -1188,7 +1230,7 @@
     for (var i = 0; i < cur; i++) if (visible(i) && needOf(S[i]).length) { cur = i; break; }
     while (cur > 0 && !visible(cur)) cur--;
   }
-  function useState(st) { D = st; V = D.v2; fixMod(); file = null; parsed = null; parsing = false; readOk = false; noFileOk = false; cur = Number(D._at) || 0; startAt(); }
+  function useState(st) { D = st; V = D.v2; fixMod(); file = null; parsed = null; parsing = false; readOk = false; noFileOk = false; cur = atToCur(D._at); startAt(); }
   function hasLocal() { return !!(D._saved && (String(D.name || '').trim() || String(D.email || '').trim() || V.field)); }
   /* "finish later" link: /start/v2/?d=<key> (backend v1.27 intakeDraftLoad). Never in PREVIEW. The emailed answers replace the
      ones on this device as a whole; when this device already has answers, the person picks one set. The two are never mixed. */
@@ -1211,7 +1253,7 @@
   function expired() {
     dropKey(); refreshFromStorage(false);
     var newer = (Number(D._saved) || 0) > startBase;
-    if (!hasLocal()) cur = 0; else cur = Number(D._at) || 0; startAt(); msgKind = 'info';
+    if (!hasLocal()) cur = 0; else cur = atToCur(D._at); startAt(); msgKind = 'info';
     msg = hasLocal() && newer ? 'Your saved answers were opened in another tab or window. Here they are.' : hasLocal() ? 'That link has already been used or has expired. The answers saved on this device are still here.' : USED;
     render(false);
   }
@@ -1229,9 +1271,9 @@
       if (d && d.error === 'expired') { expired(); return; }
       /* an old backend that does not know the action: after two such answers for the same link, treat it as used or expired */
       if (d && d.error === 'unknown action') { var uk = 'sp_i2_unk_' + dkey, un = 0; try { un = Number(sessionStorage.getItem(uk)) + 1; sessionStorage.setItem(uk, String(un)); } catch (e) {} if (un >= 2) { expired(); return; } }
-      refreshFromStorage(false); cur = Number(D._at) || 0; startAt(); msgKind = 'info'; msg = 'We could not open your saved answers just now, so you are seeing the answers on this device. Reload this page in a few minutes to try the link again.'; render(false);
+      refreshFromStorage(false); cur = atToCur(D._at); startAt(); msgKind = 'info'; msg = 'We could not open your saved answers just now, so you are seeing the answers on this device. Reload this page in a few minutes to try the link again.'; render(false);
     }).catch(function (e) {
-      loadingDraft = false; refreshFromStorage(false); cur = Number(D._at) || 0; startAt(); msgKind = 'info';
+      loadingDraft = false; refreshFromStorage(false); cur = atToCur(D._at); startAt(); msgKind = 'info';
       msg = (e && e.name === 'AbortError' ? 'Your saved answers are taking too long to open' : 'We could not reach our server to open your saved answers') + ', so you are seeing the answers on this device. Reload this page to try the link again.';
       render(false);
     });
