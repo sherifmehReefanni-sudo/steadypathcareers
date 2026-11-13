@@ -76,3 +76,19 @@
   .t45-filters .p44-chk { grid-column: 1 / -1; justify-self: start; flex: none; border-radius: 999px; padding: 0 14px 0 10px; }
   .t45-filters .p44-dev { grid-column: 1 / -1; }
 }
+
+/* r48: one frame. From 1024 wide the header bar, the page title, the sub-tab strip and the content of every portal view start at
+   the same left edge, so nothing shifts sideways when you move between views. The frame is as wide as the five-column board
+   needs (up to 1320px); reading views keep their 728px measure and wide views their 1068px, both starting at that edge. Only the
+   board uses the full frame. Looks only: no markup or behaviour changes. */
+@media (min-width: 1024px) {
+  #app#app .sky > .wrap { max-width: min(1320px, calc(100vw - 32px)); }
+  #app#app .pmain { max-width: min(1320px, calc(100vw - 32px)); padding-left: 20px; padding-right: 20px; }
+  :where(#app .pmain) > * { max-width: 728px; }
+  :where(#app .pmain.wide, #app .pmain.xl, #app .pmain.t45) > * { max-width: 1068px; }
+  #app .pmain > .board { max-width: none; }
+  #app#app .ptitle { margin-left: 0; margin-right: 0; }
+}
+/* the three sibling views (Interviews, Applications, Practice) keep the sub-tab strip at one height: at 1024 the board's
+   one-line description wrapped to two and pushed the strip down 22px */
+@media (min-width: 1024px) and (max-width: 1099px) { #app:has(.pmain .board) .ptitle { padding-right: 140px; } }
