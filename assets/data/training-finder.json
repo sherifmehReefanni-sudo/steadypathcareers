@@ -133,7 +133,7 @@
    ],
    "url": "https://www.nj.gov/labor/career-services/apprenticeship/findaprogram.shtml",
    "checkedOn": "2026-11-12",
-   "quote": "\"apprentices are paid while they are learning\"; \"Fill out our online form to connect with us and get more information.\""
+   "quote": "\"apprentices are paid while they are learning\"; \"Fill out our online form to connect with us and get more information...\""
   },
   {
    "id": "nj-ccog",
@@ -263,7 +263,7 @@
    ],
    "url": "https://www.nj.gov/labor/myunemployment/jobseekers/training/",
    "checkedOn": "2026-11-12",
-   "quote": "\"Before enrolling in training, schedule an appointment with a One-Stop career counselor.\"; \"you may be approved to receive up to 26 weeks of benefits.\""
+   "quote": "\"Before enrolling in training, schedule an appointment with a One-Stop career counselor.\"; \"you may be approved to receive up to 26 weeks of benefits...\""
   },
   {
    "id": "ny-career-centers",
@@ -292,7 +292,7 @@
    ],
    "url": "https://dol.ny.gov/online-learning-coursera",
    "checkedOn": "2026-11-12",
-   "quote": "\"Through Coursera, unemployed New Yorkers will have access to nearly 4,000 programs.\""
+   "quote": "\"Through Coursera, unemployed New Yorkers will have access to nearly 4,000 programs...\""
   },
   {
    "id": "ny-apprenticeship",
@@ -308,7 +308,7 @@
    ],
    "url": "https://dol.ny.gov/apprenticeship/become-apprentice",
    "checkedOn": "2026-11-12",
-   "quote": "\"Apprenticeship training is usually offered by the sponsor at no cost to you.\""
+   "quote": "\"Apprenticeship training is usually offered by the sponsor at no cost to you...\""
   },
   {
    "id": "ny-apprenticeship-announcements",
@@ -521,7 +521,7 @@
    ],
    "url": "https://www.nyc.gov/site/sbs/careers/tech-training.page?question=futurecode",
    "checkedOn": "2026-11-12",
-   "quote": "\"Eligibility does not guarantee acceptance.\"; \"Applications for this program are currently open.\""
+   "quote": "\"Eligibility does not guarantee acceptance...\"; \"Applications for this program are currently open.\""
   },
   {
    "id": "nyc-nypl-techconnect",
@@ -548,7 +548,7 @@
    ],
    "url": "https://www.nypl.org/education/adults/career-services",
    "checkedOn": "2026-11-12",
-   "quote": "\"We offer FREE virtual and in-person support.\""
+   "quote": "\"We offer FREE virtual and in-person support...\""
   },
   {
    "id": "nyc-bronx-eoc",
@@ -614,7 +614,7 @@
    ],
    "url": "https://www.hempsteadworks.com/",
    "checkedOn": "2026-11-12",
-   "quote": "\"Access approved training programs that prepare you for in-demand careers.\"; \"To access these services, start here.\""
+   "quote": "\"Access approved training programs that prepare you for in-demand careers...\"; \"To access these services, start here.\""
   },
   {
    "id": "li-workforce-partnership",
@@ -653,22 +653,7 @@
    ],
    "url": "https://suffolkcountyny.gov/Labor",
    "checkedOn": "2026-11-12",
-   "quote": "\"Quality job training, job development, placement and supportive services are provided.\""
-  },
-  {
-   "id": "li-lieoc",
-   "name": "Long Island Educational Opportunity Center (LIEOC)",
-   "runBy": "State University of New York, sponsored by Farmingdale State College",
-   "area": "LongIsland",
-   "kind": "training",
-   "fields": [
-    "other",
-    "logistics",
-    "office"
-   ],
-   "url": "https://www.longislandeoc.org/",
-   "checkedOn": "2026-11-12",
-   "quote": "\"our classes are all tuition-free.\""
+   "quote": "\"Quality job training, job development, placement and supportive services are provided...\""
   },
   {
    "id": "wc-weoc",
@@ -710,7 +695,7 @@
    ],
    "url": "https://choosework.ssa.gov/about/",
    "checkedOn": "2026-11-12",
-   "quote": "\"The Ticket Program is free and voluntary.\"; \"You can call the Ticket to Work Help Line at 1-866-968-7842.\""
+   "quote": "\"The Ticket Program is free and voluntary.\"; \"You can call the Ticket to Work Help Line at 1-866-968-7842...\""
   },
   {
    "id": "fed-wioa",
@@ -723,7 +708,7 @@
    ],
    "url": "https://www.dol.gov/agencies/eta/wioa/about",
    "checkedOn": "2026-11-12",
-   "quote": "\"designed to help job seekers access employment, education, training, and support services.\""
+   "quote": "\"designed to help job seekers access employment, education, training, and support services...\""
   },
   {
    "id": "fed-adult-training",
@@ -753,7 +738,7 @@
    ],
    "url": "https://www.apprenticeship.gov/apprenticeship-job-finder",
    "checkedOn": "2026-11-12",
-   "quote": "\"Search open apprenticeship job opportunities from employers across the country.\""
+   "quote": "\"Search open apprenticeship job opportunities from employers across the country...\""
   },
   {
    "id": "fed-job-corps",
@@ -797,7 +782,7 @@
    ],
    "url": "https://tpr.fmcsa.dot.gov/",
    "checkedOn": "2026-11-12",
-   "quote": "\"FMCSA's Training Provider Registry improves highway safety.\""
+   "quote": "\"FMCSA's Training Provider Registry improves highway safety...\""
   },
   {
    "id": "fed-irs-vita",
