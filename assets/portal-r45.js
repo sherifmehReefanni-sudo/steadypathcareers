@@ -5,9 +5,6 @@
    client data. Nothing is sent anywhere. A star per entry is kept on this device in the r44 store (sp_r44_<client id>). */
 
 /* ---- pure ---- */
-/* the area a filter can start on, from the home line in the payload ("Edison, NJ"). New York gives the statewide list, because
-   the home line does not say which part of New York. Anything else: no default. */
-function r45AreaFrom(home) { var m = String(home || '').match(/,\s*(NJ|NY)\b\.?\s*(\d{5})?\s*$/i); return !m ? '' : m[1].toUpperCase() === 'NJ' ? 'NJ' : 'NY-statewide'; }
 /* f: { area, kind, field, saved (bool) }, stars: { id: 1 }. A field filter keeps entries for that field and entries for all fields. */
 function r45Filter(entries, f, stars) {
   f = f || {}; stars = stars || {};
@@ -26,8 +23,11 @@ function r45Date(iso) { var m = String(iso || '').match(/^(\d{4})-(\d\d)-(\d\d)/
 /* ---- view ---- */
 var R45_NOTE = 'These are public programs run by other organizations. We do not run them and cannot say whether you qualify. Confirm details with the program.';
 var R45_UI = 'Rules and system status change. Confirm with the agency before you act.';
+/* the address is the department's unemployment page as listed in r41/training_finder_sources.md */
+var R45_GAP = 'This list is not complete. For unemployment in New York, go to the <a href="https://dol.ny.gov/unemployment" target="_blank" rel="noopener noreferrer">New York State Department of Labor\'s website<span class="sr"> (opens in a new tab)</span></a>.';
 R44_URL.training = '/assets/data/training-finder.json';
-function r45F() { if (!S.tf) S.tf = { area: r45AreaFrom((S.data.client || {}).home), kind: '', field: '', saved: false }; return S.tf; }
+/* the filters always start on All areas, All kinds, All fields: nothing in the client's data sets a default */
+function r45F() { if (!S.tf) S.tf = { area: '', kind: '', field: '', saved: false }; return S.tf; }
 function r45Stars() { var st = r44Store(); st.tf = st.tf || {}; st.tf.saved = st.tf.saved || {}; return st.tf.saved; }
 function r45Card(e, D, stars) {
   var on = !!stars[e.id], area = (D.areas.filter(function (a) { return a[0] === e.area; })[0] || [e.area, e.area])[1], kind = (D.kinds.filter(function (k) { return k[0] === e.kind; })[0] || [e.kind, e.kind])[1], u = safeUrl(e.url);
@@ -42,7 +42,7 @@ function r45Out() {
   if (!list.length) return '<div class="card empty" data-tfempty><p class="psub" style="margin:0">' + (f.saved && !Object.keys(stars).length ? 'You have not saved any programs yet. Tap the star on a program to keep it here.' : 'No programs on this list match these choices. Try another area or kind, or show all.') + '</p><p style="margin:10px 0 0"><button type="button" class="btn ghost" data-tfclear>Show all programs</button></p></div>';
   D.kinds.forEach(function (k) {
     var g = list.filter(function (e) { return e.kind === k[0]; }); if (!g.length) return;
-    h += '<section class="t45-grp" data-tfgrp="' + k[0] + '" aria-labelledby="tfg-' + k[0] + '"><h2 class="sec-h" id="tfg-' + k[0] + '">' + esc(k[1]) + ' <span class="t45-n">' + g.length + '</span></h2>' + (k[0] === 'benefits' ? '<p class="t45-warn" data-tfui>' + R45_UI + '</p>' : '') + '<ul class="t45-list">' + g.map(function (e) { return r45Card(e, D, stars); }).join('') + '</ul></section>';
+    h += '<section class="t45-grp" data-tfgrp="' + k[0] + '" aria-labelledby="tfg-' + k[0] + '"><h2 class="sec-h" id="tfg-' + k[0] + '">' + esc(k[1]) + ' <span class="t45-n">' + g.length + '</span></h2>' + (k[0] === 'benefits' ? '<p class="t45-warn" data-tfui>' + R45_UI + '</p><p class="t45-gap" data-tfgap>' + R45_GAP + '</p>' : '') + '<ul class="t45-list">' + g.map(function (e) { return r45Card(e, D, stars); }).join('') + '</ul></section>';
   });
   return '<p class="t45-count" role="status" data-tfcount>' + list.length + (list.length === 1 ? ' program' : ' programs') + ' of ' + D.entries.length + '</p>' + h;
 }
@@ -78,7 +78,7 @@ if (typeof document !== 'undefined') {
     if (e.target.closest('[data-tfclear]')) { S.tf = { area: '', kind: '', field: '', saved: false }; S.focusTo = '#tfArea'; render(); }
   });
   /* More and Home list the tool. r44Tools is wrapped so nothing about the client decides its line. */
-  (function () { var base = r44Tools; r44Tools = function () { var out = base.apply(this, arguments), row = ['training', 'Training and benefits', 'Public programs in New Jersey and New York, with links to their official pages.'], at = out.map(function (t) { return t[0]; }).indexOf('fit'); if (at < 0) out.push(row); else out.splice(at, 0, row); return out; }; })();
+  (function () { var base = r44Tools; r44Tools = function () { var out = base.apply(this, arguments), row = ['training', 'Training and benefits', 'Public training and benefit programs, with links to their official pages.'], at = out.map(function (t) { return t[0]; }).indexOf('fit'); if (at < 0) out.push(row); else out.splice(at, 0, row); return out; }; })();
   /* signing out forgets the filter choices too (the stars go with the r44 store) */
   (function () { var base = r44Wipe; r44Wipe = function () { S.tf = null; return base.apply(this, arguments); }; })();
 }

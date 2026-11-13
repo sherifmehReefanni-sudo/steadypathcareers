@@ -10,6 +10,7 @@
 .t45-grp { display: grid; gap: 10px; min-width: 0; }
 .t45-grp .sec-h { margin: 6px 0 0; display: flex; align-items: center; gap: 8px; }
 .t45-n { font-size: 12px; font-weight: 800; letter-spacing: 0; color: var(--muted); }
+.t45-gap { margin: 8px 0 0; line-height: 1.5; }
 .t45-warn { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--attn-soft, #FDEBD5); color: var(--attn, #8A4300); font-weight: 800; line-height: 1.4; }
 .t45-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
 @media (min-width: 1024px) { .pmain.t45 { max-width: 1100px; } .t45-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .t45-note, .t45-filters { max-width: 760px; } }

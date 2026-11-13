@@ -111,13 +111,41 @@ function r44Wipe() {
   try { for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (/^(spdemo_)?sp_r44_/.test(k || '')) localStorage.removeItem(k); } } catch (e) {}
 }
 var R44_DEVICE = 'Saved on this device only for now.';
-var R44 = { scripts: null, bank: null, pay: null, busy: {}, err: {} };
+var R44 = { scripts: null, bank: null, pay: null, busy: {}, err: {}, tries: {} };
+/* what each data file must look like before a view may use it; anything else counts as a failed load */
+var R44_SHAPE = {
+  scripts: function (d) { return !!d.scripts && typeof d.scripts === 'object' && !!d.intervals; },
+  bank: function (d) { return Array.isArray(d.general) && Array.isArray(d.behavioral) && !!d.families && typeof d.families === 'object'; },
+  pay: function (d) { return !Array.isArray(d); },
+  training: function (d) { return Array.isArray(d.entries) && Array.isArray(d.areas) && Array.isArray(d.kinds) && !!d.fieldNames && typeof d.fieldNames === 'object'; }
+};
+var R44_TIMEOUT = 12000, R44_RETRY_MS = 1500;
+/* Loads one data file. Views call this on every render, so it must be safe to call any number of times:
+   it does nothing while the file is loaded, loading, or marked failed. A load makes one request; if that fails
+   (network, a status that is not 2xx, no answer in R44_TIMEOUT ms, text that is not JSON, or the wrong shape) it
+   makes exactly one more by itself after R44_RETRY_MS, without re-rendering in between. If that fails too it marks
+   the file failed and renders once; nothing is requested again until the person presses "Try again". */
 function r44Need(name, url) {
-  if (R44[name] || R44.busy[name]) return; R44.busy[name] = true; R44.err[name] = false;
-  fetch(url).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }).then(function (d) { R44[name] = d; R44.busy[name] = false; if (S.status === 'ready') render(); })
-    .catch(function () { R44.busy[name] = false; R44.err[name] = true; if (S.status === 'ready') render(); });
+  if (R44[name] || R44.busy[name] || R44.err[name]) return;
+  R44.busy[name] = true; R44.tries[name] = 0; r44Get(name, url);
 }
-function r44Wait(name) { return R44.err[name] ? '<div class="card" role="alert"><p style="margin:0">This could not be loaded. Check your connection, then <button type="button" class="linkbtn" data-r44retry="' + name + '">try again</button>.</p></div>' : '<div class="card"><p class="psub" style="margin:0" role="status">Loading…</p></div>'; }
+function r44Get(name, url) {
+  R44.tries[name] = (R44.tries[name] || 0) + 1;
+  var done = false, ac = typeof AbortController === 'function' ? new AbortController() : null;
+  var fail = function () {
+    if (done) return; done = true; clearTimeout(tm);
+    if (R44.tries[name] < 2) { setTimeout(function () { if (R44.busy[name] && !R44[name]) r44Get(name, url); }, R44_RETRY_MS); return; }
+    R44.busy[name] = false; R44.err[name] = true; if (S.status === 'ready') render();
+  };
+  var tm = setTimeout(function () { if (ac) { try { ac.abort(); } catch (e) {} } fail(); }, R44_TIMEOUT);
+  fetch(url, ac ? { signal: ac.signal } : undefined).then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }).then(function (d) {
+    if (done) return;
+    if (!d || typeof d !== 'object' || (R44_SHAPE[name] && !R44_SHAPE[name](d))) throw new Error('shape');
+    done = true; clearTimeout(tm); R44[name] = d; R44.busy[name] = false; R44.err[name] = false; if (S.status === 'ready') render();
+  }).catch(fail);
+}
+var R44_FAIL = 'We couldn\'t load this list.';
+function r44Wait(name) { return R44.err[name] ? '<div class="card" role="alert" data-r44fail="' + name + '"><p style="margin:0 0 10px">' + R44_FAIL + '</p><button type="button" class="btn ghost" data-r44retry="' + name + '">Try again</button></div>' : '<div class="card"><p class="psub" style="margin:0" role="status">Loading…</p></div>'; }
 var R44_URL = { scripts: '/assets/data/followup-scripts.json', bank: '/assets/data/interview-bank.json', pay: '/pay/data.json' };
 function r44Sample() { return S.demo ? '<p class="p44-sample"><span class="pill">Sample data</span> This is the demo. Nothing you do here is sent.</p>' : ''; }
 
@@ -235,7 +263,7 @@ if (typeof document !== 'undefined') {
   document.addEventListener('click', function (e) {
     if (!e.target.closest || !r44On()) return;
     var b = e.target.closest('[data-r44fu]'); if (b) { var p = b.getAttribute('data-r44fu').split(':'); r44FuOpen(p[0], p.slice(1).join(':')); return; }
-    var rt = e.target.closest('[data-r44retry]'); if (rt) { var n = rt.getAttribute('data-r44retry'); R44.err[n] = false; r44Need(n, R44_URL[n]); render(); return; }
+    var rt = e.target.closest('[data-r44retry]'); if (rt) { var n = rt.getAttribute('data-r44retry'); if (!R44_URL[n] || R44.busy[n]) return; R44.err[n] = false; r44Need(n, R44_URL[n]); render(); return; }
     if (e.target.closest('[data-r44fucopy]') && S.fu) { copyText((S.fu.subject ? 'Subject: ' + S.fu.subject + '\n\n' : '') + S.fu.body); return; }
     if (e.target.closest('[data-r44fusent]') && S.fu) {
       var x = appById(S.fu.app); if (!x) return;
@@ -391,7 +419,7 @@ function r44PaySrc(d) {
 function r44OfHits() { var o = r44Of(), D = R44.pay, q = String(o.q || '').trim(); if (!D || !q) return []; return (D.jobs || []).map(function (j) { return [r44PayScore(j, q), j]; }).filter(function (x) { return x[0]; }).sort(function (a, b) { return b[0] - a[0]; }).slice(0, 4).map(function (x) { return x[1]; }); }
 function r44OfHitsHtml() {
   var o = r44Of(), hits = r44OfHits(), q = String(o.q || '').trim();
-  if (!R44.pay) return R44.err.pay ? '<p class="err" role="alert">The pay lookup data could not be loaded. <button type="button" class="linkbtn" data-r44retry="pay">Try again</button></p>' : '';
+  if (!R44.pay) return R44.err.pay ? '<p class="err" role="alert" data-r44fail="pay">' + R44_FAIL + ' <button type="button" class="linkbtn" data-r44retry="pay">Try again</button></p>' : '';
   if (!q) return '';
   if (!hits.length) return '<p class="psub">No match yet for "' + esc(q) + '". Try a simpler word, like "nurse", "technician", "clerk" or "sales".</p>';
   return '<div class="p44-hits" role="radiogroup" aria-label="Jobs in the pay lookup">' + hits.map(function (j) { return '<button type="button" role="radio" aria-checked="' + (o.soc === j.soc) + '" data-ofsoc="' + esc(j.soc) + '">' + esc(j.title) + '</button>'; }).join('') + '</div>';
