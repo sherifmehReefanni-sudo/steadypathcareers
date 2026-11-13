@@ -313,12 +313,12 @@ body { overflow-x: hidden; }
 /* applied tab (kept from the old page, tightened) */
 .board { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 @media (min-width: 761px) and (max-width: 1023px) { .board { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-/* r47: the desktop board. Columns share the width but a column with cards is never under 220px; if they do not all fit, the
+/* r47: the desktop board. Columns share the width but a card is never under 220px wide; if they do not all fit, the
    board scrolls sideways inside its own box instead of squeezing the cards. Empty columns stay slim. */
 @media (min-width: 1024px) {
   .board { display: flex; align-items: flex-start; gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
-  .board > .col { flex: 1 1 220px; min-width: 220px; }
-  .board > .col.none { flex: 0 0 152px; min-width: 152px; }
+  .board > .col { flex: 1 1 244px; min-width: 244px; } /* 244 keeps the card inside it at 220 or more */
+  .board > .col.none { flex: 0 0 140px; min-width: 140px; }
   .board > .col h3 > span:last-child { margin-left: 8px; }
   .board > .col.none h3 { margin-bottom: 0; }
 }
