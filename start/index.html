@@ -265,7 +265,7 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
 <script src="/assets/path.js?v=20261026a"></script>
 <script src="/assets/fx.js?v=20261024d"></script>
 <script src="/assets/intake2.js?v=sp-20261113r46"></script>
-<script>/* r46: Cloudflare Web Analytics counts this page view the way the other public pages do. It is not loaded when the address carries a finish-later key (?d=) or a sign-in token (?t= or ?k=), so that address is never reported. */
-(function () { try { if (/[?&](d|t|k)=/.test(location.search)) return; var s = document.createElement('script'); s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js'; s.setAttribute('data-cf-beacon', '{"token": "6f62d1e0e28847dcab6b431376defda9"}'); document.head.appendChild(s); } catch (e) {} })();</script>
+<script>/* r46: Cloudflare Web Analytics counts this page view the way the other public pages do. It is loaded only when the address has no query string, or one made only of campaign tags (utm_...) and "from". Any other parameter, however it is written or encoded (a finish-later key, a sign-in token, anything unknown), means the script is not loaded, so such an address is never reported. */
+(function () { try { var q = new URLSearchParams(location.search), plain = true; q.forEach(function (v, k) { if (!/^(utm_[a-z0-9_]{1,40}|from)$/.test(k)) plain = false; }); if (!plain || location.hash.length > 1) return; var s = document.createElement('script'); s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js'; s.setAttribute('data-cf-beacon', '{"token": "6f62d1e0e28847dcab6b431376defda9"}'); document.head.appendChild(s); } catch (e) {} })();</script>
 </body>
 </html>

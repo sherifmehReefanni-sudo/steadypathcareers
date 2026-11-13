@@ -373,6 +373,16 @@
       if (show) bar.removeAttribute('aria-hidden'); else bar.setAttribute('aria-hidden', 'true');
       var a = bar.querySelector('a'); if (a) { if (show) a.removeAttribute('tabindex'); else a.setAttribute('tabindex', '-1'); }
       document.body.classList.toggle('has-stick', mq.matches);
+      /* fix round: nothing that has keyboard focus may sit under the bar. While the bar shows, the page keeps that much room
+         at the bottom when it scrolls a control into view, and a control that is already under the bar is scrolled clear. */
+      shown = show; document.documentElement.style.scrollPaddingBottom = show ? (bar.offsetHeight + 12) + 'px' : '';
+      if (show) clear(document.activeElement);
+    }
+    var shown = false;
+    function clear(el) {
+      if (!shown || !el || el === document.body || bar.contains(el) || !el.getBoundingClientRect) return;
+      var r = el.getBoundingClientRect(), top = bar.getBoundingClientRect().top;
+      if (r.height && r.bottom > top - 8 && r.top < (window.innerHeight || 0)) window.scrollBy(0, Math.ceil(r.bottom - (top - 12)));
     }
     var tick = false; function later() { if (tick) return; tick = true; (window.requestAnimationFrame || setTimeout)(function () { tick = false; upd(); }); }
     if (!hasIO) return; /* without IntersectionObserver the bar stays off */
@@ -380,6 +390,7 @@
     new IntersectionObserver(function (e) { footIn = e[e.length - 1].isIntersecting; upd(); }).observe(foot);
     window.addEventListener('resize', later);
     if (mq.addEventListener) mq.addEventListener('change', upd);
+    document.addEventListener('focusin', function (e) { clear(e.target); setTimeout(function () { clear(document.activeElement); }, 80); /* again once the bar has settled */ });
     document.addEventListener('focusin', function (e) { var t = e.target; typing = !!(t && t.matches && t.matches('input:not([type=button]):not([type=checkbox]):not([type=radio]), textarea, select, [contenteditable="true"]')); upd(); });
     document.addEventListener('focusout', function () { typing = false; later(); });
     document.addEventListener('click', function () { setTimeout(upd, 0); }); document.addEventListener('toggle', later, true);
