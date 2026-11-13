@@ -1628,7 +1628,8 @@ function histPush(f) { if (S.flowBase == null) S.flowBase = S.hist; try { histor
 /* our own history.go(-n) (closing a flow, or the Jobs tab) already set the screen; its popstate only updates the depth */
 function quietPop() { S.popQuiet = true; clearTimeout(S.popQT); S.popQT = setTimeout(function () { S.popQuiet = false; }, 1500); }
 window.addEventListener('popstate', function (e) {
-  var st = e.state; if (!st || !st.sp || S.status !== 'ready') return;
+  var st = e.state; if (!st || !st.sp) return;
+  if (S.status !== 'ready') { try { history.replaceState({}, '', location.href); } catch (x) {} return; } /* r42: signed out: an old portal entry reached by Back or Forward shows nothing and is blanked */
   S.hist = st.depth || 0;
   if (S.popQuiet) { S.popQuiet = false; clearTimeout(S.popQT); if (S.popThen) { var pt = S.popThen; S.popThen = null; pt(); } return; }
   /* r42: Back with the swipe deck open closes the deck (its answers are saved the usual way) and shows the view under it */
@@ -2322,6 +2323,16 @@ function signOut(msg) {
   S.pvMem = null; S.pv = null; S.dhOpen = null; S.jsel = null; if (S.view === 'prep') S.view = 'jobs';
   dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.qOpen = {}; S.notes = {}; S.seenMem = null; S.colOpen = null; S.lastEmail = ''; S.linkKey = null; linkKeyDrop(); S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
+  histSignOut();
+}
+/* r42: tabs, the deck and the readers add history entries. Signing out steps back off all of them and blanks the entry it lands
+   on, so Back leaves the sign-in screen on the first press, as it did before tabs had entries. */
+function histSignOut() {
+  var n = 0, blank = function () { try { history.replaceState({}, '', location.href); } catch (e) {} };
+  try { var hs = history.state; n = hs && hs.sp ? hs.depth | 0 : 0; } catch (e) {}
+  S.hist = 0; S.flowBase = null; S.fxSig = null; S.fxHn = 0; S.popThen = null;
+  if (n > 0) { var once = function () { window.removeEventListener('popstate', once); blank(); }; window.addEventListener('popstate', once); try { history.go(-n); } catch (e) { window.removeEventListener('popstate', once); blank(); } }
+  else blank();
 }
 
 function redeemCode(code) {

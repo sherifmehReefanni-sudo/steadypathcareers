@@ -23,26 +23,26 @@ function r42Next(f) {
 }
 /* Application numbers for Home. apps: the API's apps[]; today: ISO date; stageOf: the portal's own stage function (4 = ended).
    open: applications still in progress (not ended, not hired, not a recruiter outreach note).
-   ivUp: interviews dated today or later. ivSoon: the nearest of those within 7 days, or null. */
+   ivUp: interviews dated today or later, on applications that are not ended and not marked hired. ivSoon: the nearest of those within 7 days, or null. */
 function r42AppStats(apps, today, stageOf) {
   var out = { open: 0, ivUp: 0, ivSoon: null, list: [] }, best = null;
   (Array.isArray(apps) ? apps : []).forEach(function (x) {
     if (!x) return; var st = stageOf(x), ended = st >= 4;
     if (!ended && !/hired|accepted/i.test(String(x.status || '')) && !/outreach/i.test(String(x.type || ''))) out.open++;
     var dd = r42Days(today, x.interview);
-    if (dd != null && dd >= 0 && !ended) { out.ivUp++; out.list.push({ app: x, days: dd }); if (dd <= 7 && (best == null || dd < best)) { best = dd; out.ivSoon = x; } }
+    if (dd != null && dd >= 0 && !ended && !/\bhired\b/i.test(String(x.status || ''))) { /* hired: the search for this job is over, like an ended one */ out.ivUp++; out.list.push({ app: x, days: dd }); if (dd <= 7 && (best == null || dd < best)) { best = dd; out.ivSoon = x; } }
   });
   out.list.sort(function (a, b) { return a.days - b.days; });
   return out;
 }
 /* The weekly "work you didn't see" line. w is the optional data.week = { weekOf, read, sent, noPay, area, closed, other }.
-   Returns null (show nothing) unless weekOf is a real date that is not in the future, read is a whole number above 0, and sent is
+   Returns null (show nothing) unless weekOf is a real date that is not in the future and not more than 13 days old, read is a whole number above 0, and sent is
    a whole number no larger than read. Reason counts that are missing, zero or not whole numbers are left out; a reason total
    larger than read hides the reasons. Never fills in a number. */
 function r42WeekLine(w, today) {
   if (!w || typeof w !== 'object') return null;
   var read = r42Num(w.read), sent = r42Num(w.sent), age = r42Days(w.weekOf, today);
-  if (age == null || age < 0 || !read || sent == null || sent > read) return null;
+  if (age == null || age < 0 || age > 13 || !read || sent == null || sent > read) return null;
   var parts = [], sum = sent, bad = false;
   [['noPay', ' had no posted pay'], ['area', [' was outside your area or commute', ' were outside your area or commute']], ['closed', [' was closed', ' were closed']], ['other', ' didn\'t fit your floor or field']].forEach(function (r) {
     if (w[r[0]] == null || w[r[0]] === '') return; var n = r42Num(w[r[0]]); if (n == null) { bad = true; return; } if (!n) return;
@@ -89,6 +89,7 @@ function vHome() {
   else if (k === 'interview') { var x = A.ivSoon, dd = r42Days(todayISO(), x.interview);
     nx = ['Coming up', 'Interview with ' + esc(coOr(x)) + ' ' + esc(r42When(dd, x)), esc([x.role, x.ivTime].filter(function (v) { return String(v || '').trim(); }).join(' · ')), (pvHas(x) ? '<button class="btn gold" data-nxprep="' + esc(x.id) + '">Open your interview prep</button>' : '') + '<button class="btn ' + (pvHas(x) ? 'ghost' : 'gold') + '" data-go="iv">See your interviews</button>']; }
   else if (k === 'fit') nx = ['Your next step', 'Finish ' + esc(FIT_NAME), 'An interest guide. Optional, and it never limits which jobs you see.', '<button class="btn gold" data-go="fit">Open ' + esc(FIT_NAME) + '</button>'];
+  else if (!d.jobs.length && !(d.closed || []).length && !d.docs.length && !d.apps.length) { k = 'first'; nx = ['Getting started', 'Your first matches are on the way.', 'You will get an email when your first jobs arrive.', '<button class="btn ghost" data-go="jobs">Open Jobs</button>']; } /* a brand-new client: the words Jobs uses for this state */
   else nx = ['Nothing waiting', 'You\'re caught up.', 'Nothing needs you right now. New matches show up under Jobs.', '<button class="btn ghost" data-go="jobs">Open Jobs</button>'];
   var tile = function (n, label, view, attn) { return '<li><button type="button" class="h-tile' + (attn && n ? ' attn' : '') + '" data-go="' + view + '"><b>' + n + '</b><span>' + label + '</span></button></li>'; };
   var la = r42LastAnswer(d.jobs), plan = billOn() ? esc(billHello(cl)) : esc(trialText(cl));
@@ -173,7 +174,17 @@ function r42FitHist() {
 /* popstate (and a reload) hand over the entry they landed on. Returns true when it changed which Find Your Fit screen, or the
    deck, is showing. */
 function navRestore(st, view, reload) {
-  if (reload) return false; /* a reload keeps the tab; typed quiz answers are not kept on the device, so the quiz starts where it stands */
+  if (reload) { /* a reload keeps the tab. Quiz answers are not kept on the device, so the quiz is back at its first screen: the
+     question entries under this one are dropped, and Back from that screen leaves Find Your Fit in one press. */
+    var rf = st && st.fx;
+    if (rf) S.fxEp = rf.ep | 0;
+    if (rf && view === 'fit' && rf.step === 'q' && (rf.hn | 0) > 0) {
+      S.fxEp = (rf.ep | 0) + 1; S.fxHn = 0; quietPop();
+      S.popThen = function () { S.fxSig = r42FxSig(S.fx); try { history.replaceState({ sp: 1, depth: S.hist, flow: null, view: 'fit', fx: r42FxState() }, '', location.href); } catch (e) {} };
+      try { history.go(-(rf.hn | 0)); } catch (e) {}
+    }
+    return false;
+  }
   if (st && st.deck && !S.deck && view === 'jobs' && typeof deckOpen === 'function' && counts().wait) { S.view = 'jobs'; S.flow = null; deckOpen(true); return true; }
   if (view !== 'fit' || !st || !st.fx || !S.fx || !(typeof fitOn === 'function' && fitOn())) return false;
   var f = st.fx; if (f.ep !== S.fxEp) return false;

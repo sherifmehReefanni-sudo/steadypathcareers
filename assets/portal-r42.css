@@ -11,6 +11,8 @@
 @media (max-width: 350px) { .tabbar { padding-left: max(2px, env(safe-area-inset-left, 0px)); padding-right: max(2px, env(safe-area-inset-right, 0px)); } .tabbar button { font-size: 10.5px; padding: 0; letter-spacing: -.02em; } }
 .ndot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--attn-badge, #F0A04B); }
 .tabbar .ndot { position: absolute; top: 7px; left: calc(50% + 10px); }
+/* a control reached by Tab or a link is scrolled clear of the fixed bottom bar, never under it */
+@media (max-width: 1023px) { html { scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); } }
 /* five tabs do not fit the top bar on a tablet: the bottom bar stays until 1024px */
 @media (min-width: 761px) and (max-width: 1023px) {
   .ptabs { display: none; }
