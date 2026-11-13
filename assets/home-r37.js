@@ -5,13 +5,14 @@
   /* Welcome video. While WELCOME_VIDEO is empty, the hero "Watch how it works" button, the "Watch" links
      and the whole theater section stay hidden. Set it to the mp4 path (for example '/img/welcome.mp4') and,
      if you have one, WELCOME_POSTER to a still image, and they all appear. */
-  var WELCOME_VIDEO = '';
-  var WELCOME_POSTER = '';
+  var WELCOME_VIDEO = '/media/welcome.mp4';
+  var WELCOME_POSTER = '/media/welcome-poster.jpg';
   /* The video's length as words (for example '53 seconds') and its chapters as [time, what it covers] pairs
      (for example [['0:00', 'Real jobs, with the pay right there'], ['0:10', '...']]). Fill these from the final cut.
      While they are empty, no length and no chapter list are shown anywhere. */
-  var WELCOME_LENGTH = '';
-  var WELCOME_CHAPTERS = [];
+  var WELCOME_LENGTH = '59 seconds';
+  var WELCOME_CAPTIONS = '/media/welcome.vtt';
+  var WELCOME_CHAPTERS = [['0:00', 'An application sent into the dark'], ['0:10', 'Why we built Steady Path Careers'], ['0:16', 'Find Your Fit'], ['0:23', 'Openings checked on the employer\'s own site'], ['0:30', 'What happens when you say yes'], ['0:44', 'You stay in control']];
 
   var root = document.documentElement;
   function $(id) { return document.getElementById(id); }
@@ -242,6 +243,8 @@
       [['wLen', WELCOME_LENGTH], ['sLen', 'Welcome video, ' + WELCOME_LENGTH]].forEach(function (x) { var el = $(x[0]); if (el) { el.textContent = x[1]; el.hidden = false; } });
       var scr = document.querySelector('.screen'); if (scr) scr.setAttribute('aria-label', 'Play the welcome video, ' + WELCOME_LENGTH);
     }
+    var scrn = document.querySelector('.screen');
+    if (scrn && WELCOME_POSTER) { var im = new Image(); im.alt = ''; im.className = 'poster'; im.loading = 'lazy'; im.width = 720; im.height = 1280; im.src = WELCOME_POSTER; scrn.insertBefore(im, scrn.firstChild); scrn.classList.add('has-poster'); }
     var ch = $('chapters');
     if (ch && WELCOME_CHAPTERS.length) {
       ch.innerHTML = WELCOME_CHAPTERS.map(function (c) { return '<li><b>' + esc(c[0]) + '</b><span>' + esc(c[1]) + '</span></li>'; }).join('');
@@ -255,13 +258,15 @@
           v = document.createElement('video');
           v.controls = true; v.setAttribute('playsinline', ''); v.preload = 'none';
           if (WELCOME_POSTER) v.poster = WELCOME_POSTER;
-          v.src = WELCOME_VIDEO; box.appendChild(v);
+          v.src = WELCOME_VIDEO;
+          if (WELCOME_CAPTIONS) { var tr = document.createElement('track'); tr.kind = 'captions'; tr.srclang = 'en'; tr.label = 'English'; tr.src = WELCOME_CAPTIONS; v.appendChild(tr); }
+          box.classList.add('has-video'); box.appendChild(v);
         }
         d.showModal();
         var p = v.play(); if (p && p.catch) p.catch(function () {});
       });
     });
-    d.addEventListener('close', function () { var v = d.querySelector('video'); if (v) v.pause(); if (opener) opener.focus(); });
+    d.addEventListener('close', function () { var v = d.querySelector('video'); if (v) { v.pause(); try { v.currentTime = 0; } catch (e) {} } if (opener) opener.focus(); });
     $('vidX').onclick = function () { d.close(); };
     d.addEventListener('click', function (e) { if (e.target === d) d.close(); });
   })();

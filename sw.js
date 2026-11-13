@@ -1,13 +1,13 @@
 /* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage, and a page opened with ?t= or ?k= is not stored at all. Assets: cache first. API calls (script.google.com) are never touched, so no client data is ever cached. */
-var V = 'sp-20261112r40';
-var ASSETS = ['/offline.html', '/assets/site.css?v=sp-20261110r30', '/assets/site.js?v=sp-20261110r30', '/assets/path.css?v=sp-20261110r30', '/assets/path.js?v=20261026a', '/assets/r17.css?v=sp-20261110r30', '/assets/r17.js?v=20261106a', '/assets/portal.css?v=sp-20261110r30', '/assets/portal.js?v=20261024e', '/assets/fx.js?v=20261024d', '/assets/intake.js?v=20261024d', '/assets/intake2.js?v=sp-20261112r39', '/assets/theme.css?v=sp-20261110r32', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
+var V = 'sp-20261112r41';
+var ASSETS = ['/offline.html', '/assets/site.css?v=sp-20261110r30', '/assets/site.js?v=sp-20261110r30', '/assets/path.css?v=sp-20261110r30', '/assets/path.js?v=20261026a', '/assets/r17.css?v=sp-20261110r30', '/assets/r17.js?v=20261106a', '/assets/portal.css?v=sp-20261110r30', '/assets/portal.js?v=20261024e', '/assets/fx.js?v=20261024d', '/assets/intake.js?v=20261024d', '/assets/intake2.js?v=sp-20261112r41', '/assets/theme.css?v=sp-20261110r32', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
 /* r26: new logo. Install fetches every file above past the browser's HTTP cache (cache: 'reload'), so the new mark and icons arrive fresh. */
 /* round 18: the portal's app shell (the page and its round 18 files). Never client data: the API is cross-origin and never touched. */
 ASSETS = ASSETS.concat(['/portal/', '/assets/portal-r18.css?v=sp-20261110r30', '/assets/portal-r18.js?v=sp-20261112r36']);
 /* r27: Find Your Fit files (r35: deeper quiz, work preferences, weekly match check-in; r36: score meaning line) */
 ASSETS = ASSETS.concat(['/assets/fit-r35.css?v=sp-20261112r36', '/assets/fit-r35.js?v=sp-20261112r36']);
 /* r37: new home page files */
-ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261112r40', '/assets/home-r37.js?v=sp-20261112r40']);
+ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261112r41', '/assets/home-r37.js?v=sp-20261112r41']);
 /* r38: the How we check every job page */
 ASSETS = ASSETS.concat(['/how-we-check/']);
 self.addEventListener('install', function (e) {
@@ -23,6 +23,7 @@ self.addEventListener('fetch', function (e) {
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
   if (url.origin !== location.origin) return; // never intercept the API or fonts
+  if (url.pathname.indexOf('/media/') === 0) return; // r41: video and captions go straight to the network (range requests are never cached)
   var tok = url.searchParams.has('t') || url.searchParams.has('k'); // round 18: a URL with a sign-in token or link key is never stored
   if (tok && req.mode !== 'navigate') return;
   if (req.mode === 'navigate') {

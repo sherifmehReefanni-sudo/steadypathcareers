@@ -210,7 +210,7 @@ footer .brand{color:#fff;margin-right:auto}
 .screen .play::before{content:"";border-left:24px solid var(--night);border-block:15px solid transparent;margin-left:7px}
 .screen .len{position:absolute;left:0;right:0;top:calc(58% + 58px);text-align:center;font-size:.92rem;color:#E6EBF4;font-weight:700}
 .screen svg{position:absolute;inset:auto 0 0;width:100%}
-dialog.vid{border:0;padding:0;background:transparent;max-width:min(92vw,420px);width:100%}
+dialog.vid{border:0;padding:0;background:transparent;max-width:min(92vw,420px,calc((100vh - 120px)*9/16));width:100%}
 dialog.vid::backdrop{background:rgba(6,12,24,.9)}
 dialog.vid .box{aspect-ratio:9/16;border-radius:28px;overflow:hidden;background:#0B1830;display:grid;place-content:center;color:#C5CEDF;text-align:center;padding:24px}
 dialog.vid video{width:100%;height:100%;object-fit:cover}
@@ -428,3 +428,13 @@ footer .brand img{width:30px;height:30px;border-radius:8px}
 .deck-note{background:rgba(8,19,38,.78)}
 /* the play ring only pulses while the hero is on screen */
 .hero.off .watch i::after{animation-play-state:paused}
+
+/* r41: welcome video. Portrait 9:16 in the theater and the dialog; the poster fills the theater screen. */
+dialog.vid .box.has-video{padding:0;display:block}
+dialog.vid video{object-fit:contain;display:block;background:#0B1830}
+.screen .poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.screen.has-poster .cap,.screen.has-poster svg{display:none}
+.screen.has-poster::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,19,38,.15),rgba(8,19,38,.45))}
+.screen.has-poster .play,.screen.has-poster .len{z-index:1}
+.tx{margin-top:22px;max-width:60ch}.tx summary{cursor:pointer;min-height:44px;display:inline-flex;align-items:center;font-weight:700;color:#fff}
+.tx p{margin-top:10px;color:#C5CEDF;line-height:1.6;font-size:.98rem}
