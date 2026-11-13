@@ -116,7 +116,7 @@ var R44 = { scripts: null, bank: null, pay: null, busy: {}, err: {}, tries: {} }
 var R44_SHAPE = {
   scripts: function (d) { return !!d.scripts && typeof d.scripts === 'object' && !!d.intervals; },
   bank: function (d) { return Array.isArray(d.general) && Array.isArray(d.behavioral) && !!d.families && typeof d.families === 'object'; },
-  pay: function (d) { return !Array.isArray(d); },
+  pay: function (d) { return Array.isArray(d.jobs); },
   training: function (d) { return Array.isArray(d.entries) && Array.isArray(d.areas) && Array.isArray(d.kinds) && !!d.fieldNames && typeof d.fieldNames === 'object'; }
 };
 var R44_TIMEOUT = 12000, R44_RETRY_MS = 1500;
@@ -224,7 +224,9 @@ function r44FuItems() {
     r44FuPlan({ stage: stageOf(x), col: boardCol(x), status: x.status, interview: x.interview, outreach: isOutreach(x), sub: r44FuSub(x), sent: x.followUpSent, own: x.followUpOn, flag: x.followUpDue }, today, ny, mk).forEach(function (o) { o.app = x; out.push(o); });
   });
   if (dirty) r44Save();
-  return out.sort(function (a, b) { return a.due < b.due ? -1 : a.due > b.due ? 1 : 0; });
+  /* by date; a reminder with no date (the coach's flag) first, the closing note last */
+  var key = function (o) { return o.kind === 'close' ? '9999' : o.due; };
+  return out.sort(function (a, b) { return key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0; });
 }
 /* The five surfaces read the rule through these and nothing else:
    card line r44FuLine, Due group r44DueGroup, Home count r44FuDue().length, Jobs due list r44FuJob, Due filter r44FuIsDue. */
@@ -551,7 +553,7 @@ function r44DevNote() { return '<p class="psub p44-dev" data-r44dev>' + R44_DEVI
 function r44PrJobsScr() {
   var jobs = r44PracticeJobs(), st = r44PrStore();
   var row = function (j) { var qs = r44PrQs(j), dn = Object.keys(st.pr.done[j.key] || {}).filter(function (id) { return qs.some(function (q) { return q.id === id; }); }).length; return '<li><button type="button" class="p44-row" data-prjob="' + esc(j.key) + '"><span><b>' + esc(j.label) + '</b><span>' + esc([j.when, R44.bank ? dn + ' of ' + qs.length + ' practiced' : ''].filter(String).join(' · ')) + '</span></span>' + IC.chev + '</button></li>'; };
-  return (jobs.length ? '<h2 class="sec-h">Your jobs</h2><ul class="p44-rows">' + jobs.map(row).join('') + '</ul>' : '<div class="card empty"><p class="psub" style="margin:0">A job shows up here when you say yes to it, add an interview date, or get a prep sheet.</p></div>') +
+  return (R44.err.bank ? r44Wait('bank') : '') + (jobs.length ? '<h2 class="sec-h">Your jobs</h2><ul class="p44-rows">' + jobs.map(row).join('') + '</ul>' : '<div class="card empty"><p class="psub" style="margin:0">A job shows up here when you say yes to it, add an interview date, or get a prep sheet.</p></div>') +
     '<h2 class="sec-h">Any time</h2><ul class="p44-rows">' + row({ key: 'g:any', label: 'Practice the common questions', app: null, when: 'Not tied to one job' }) +
     '<li><button type="button" class="p44-row" data-prscr="stories"><span><b>Your stories</b><span>' + (st.stories.length ? st.stories.length + (st.stories.length === 1 ? ' story saved' : ' stories saved') : 'Save a story once, use it for many questions') + '</span></span>' + IC.chev + '</button></li></ul>' + r44DevNote();
 }
