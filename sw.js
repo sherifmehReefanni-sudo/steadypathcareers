@@ -14,7 +14,7 @@ ASSETS = ASSETS.concat(['/assets/portal-r42.css?v=sp-20261113r47', '/assets/port
 /* r44: portal Home redesign and the client tools (follow-ups, offer check, interview practice) with their data files */
 ASSETS = ASSETS.concat(['/assets/portal-r44.css?v=sp-20261113r47', '/assets/portal-r44.js?v=sp-20261113r47', '/assets/data/followup-scripts.json', '/assets/data/interview-bank.json']);
 /* r45: training and benefits finder */
-ASSETS = ASSETS.concat(['/assets/portal-r45.css?v=sp-20261113r47', '/assets/portal-r45.js?v=sp-20261113r45', '/assets/data/training-finder.json']);
+ASSETS = ASSETS.concat(['/assets/portal-r45.css?v=sp-20261113r47', '/assets/portal-r45.js?v=sp-20261113r47', '/assets/data/training-finder.json']);
 /* r38: the How we check every job page */
 ASSETS = ASSETS.concat(['/how-we-check/']);
 self.addEventListener('install', function (e) {
