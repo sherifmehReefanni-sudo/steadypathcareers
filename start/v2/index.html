@@ -265,6 +265,8 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
 }
 }
 .st-first.sec { padding-top: 14px; }
+/* r48: the kicker over "Hi, welcome." was drawn at 17px by an older paragraph rule and wrapped beside the logo on phones; it is one line */
+@media (max-width: 480px) { .i2-hi .i2-k { font-size: 12.5px; white-space: nowrap; letter-spacing: .04em; } }
 @media (max-width: 480px) { .i2-sheet.bare .i2-hi { grid-template-columns: 52px minmax(0,1fr); gap: 12px; } .i2-sheet.bare .i2-face { width: 52px; height: 52px; } .i2-sheet.bare .i2-h { font-size: 22px; } }
 </style>
 <link rel="stylesheet" href="/assets/theme.css?v=sp-20261113r47">

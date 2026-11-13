@@ -192,6 +192,11 @@ html[data-pv="apply"] .sky::after { background-image: url("data:image/svg+xml,%3
   .nx-acts { justify-content: flex-end; }
   .nx-acts .deckbtn { width: auto; padding: 0 20px; }
 }
+/* r48: a next-step card whose kind has no picture (a reply to read, for one) gave the picture's 132px column to nothing:
+   an empty band at its left. Those cards use the whole width for their words. */
+.nx:not([data-nx="answer"]):not([data-nx="review"]):not([data-nx="apply"]):not([data-nx="interview"]):not([data-nx="write"]):not([data-nx="wait"]):not([data-nx="heard"]):not([data-nx="done"]):not([data-nx="start"]) .nx-art { display: none; }
+.nx:not([data-nx="answer"]):not([data-nx="review"]):not([data-nx="apply"]):not([data-nx="interview"]):not([data-nx="write"]):not([data-nx="wait"]):not([data-nx="heard"]):not([data-nx="done"]):not([data-nx="start"]) .nx-tx { padding-right: 0; }
+@media (min-width: 761px) { .nx:not([data-nx="answer"]):not([data-nx="review"]):not([data-nx="apply"]):not([data-nx="interview"]):not([data-nx="write"]):not([data-nx="wait"]):not([data-nx="heard"]):not([data-nx="done"]):not([data-nx="start"]) { grid-template-columns: minmax(0, 1fr) auto; } }
 
 /* journey map: the gold road with a stop per stage; each Yes job sits at its stage */
 .jmap { background: rgba(var(--wash-rgb),.75); border: 1.5px solid var(--bdx-eadfc8); border-radius: 18px; padding: 12px 10px 14px; box-shadow: 0 8px 20px rgba(16,33,58,.06); }

@@ -175,5 +175,5 @@
 /* r47 finish: tool rows are one height. The status line shows at most two lines (the full text stays in the page for screen
    readers and wraps to two lines at every width tested); a row pair on wide screens is equal height. */
 .h44-tools li { display: flex; }
-.h44-tool { flex: 1; min-height: 76px; box-sizing: border-box; }
+.h44-tool { flex: 1; min-height: 84px; /* r48: every row the same height, whether its status line is one line or two */ box-sizing: border-box; }
 .h44-tx span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
