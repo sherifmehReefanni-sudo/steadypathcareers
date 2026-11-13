@@ -378,9 +378,17 @@
       shown = show; document.documentElement.style.scrollPaddingBottom = show ? (bar.offsetHeight + 12) + 'px' : '';
       if (show) clear(document.activeElement);
     }
-    var shown = false;
+    /* Second fix round: the scroll is for keyboard focus only. Focus that comes from a tap or a click must never move the
+       page, or the press and the release land on different things and the tap is lost. keys is true from a Tab (or other
+       key) until the next pointer press; nothing scrolls while a pointer is down, and the element must also match
+       :focus-visible where the browser knows it. */
+    var shown = false, keys = false, down = false;
+    function byKeys(el) { if (!keys || down) return false; try { return el.matches(':focus-visible'); } catch (e) { return true; } }
+    ['pointerdown', 'mousedown', 'touchstart'].forEach(function (t) { document.addEventListener(t, function () { down = true; keys = false; }, true); });
+    ['pointerup', 'pointercancel', 'mouseup', 'touchend', 'touchcancel'].forEach(function (t) { document.addEventListener(t, function () { down = false; }, true); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Tab' || /^Arrow|^Page|^Home$|^End$/.test(e.key || '')) keys = true; }, true);
     function clear(el) {
-      if (!shown || !el || el === document.body || bar.contains(el) || !el.getBoundingClientRect) return;
+      if (!shown || !el || el === document.body || bar.contains(el) || !el.getBoundingClientRect || !byKeys(el)) return;
       var r = el.getBoundingClientRect(), top = bar.getBoundingClientRect().top;
       if (r.height && r.bottom > top - 8 && r.top < (window.innerHeight || 0)) window.scrollBy(0, Math.ceil(r.bottom - (top - 12)));
     }

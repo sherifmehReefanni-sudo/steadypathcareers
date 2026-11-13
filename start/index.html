@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>/* the address exactly as the page was first opened, kept before any script tidies it; the analytics loader at the foot of the page decides from this */ window.__spFirst = [location.search, location.hash];</script>
 <meta name="darkreader-lock">
 <meta name="color-scheme" content="light dark">
 <script>try{var t=localStorage.getItem('sp-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
@@ -227,16 +228,18 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
 .i2-sheet.bare .i2-hi { margin-bottom: 10px; }
 .st-q { margin: 0 0 0 auto; font-size: 15px; font-weight: 700; color: var(--navy); text-align: right; line-height: 1.25; flex: none; }
 .phero.st-top .topbar .st-q a { color: var(--navy); font-size: 15px !important; font-weight: 800; white-space: nowrap; display: inline-flex; align-items: center; gap: .3em; min-height: 44px; min-width: 44px; }
-.phero.st-top .topbar { padding: 8px 0; gap: 10px; flex-wrap: nowrap; }
+.phero.st-top .topbar { padding: 8px 0; gap: 12px; flex-wrap: nowrap; } /* 12px or more between the name, the link and the theme button at every width */
+.phero.st-top .topbar .st-q { margin-left: auto; padding-left: 0; }
+.phero.st-top .topbar .brand { flex: 0 1 auto; }
 .phero.st-top .topbar .theme-btn { width: 44px; height: 44px; flex: none; margin-left: 0; }
 .phero.st-top .topbar .brand { min-height: 44px; }
 .phero.st-top .horizon { height: 22px; }
-/* fix round: the header on phones. From 320 to 600 wide the name, the phone link and the light/dark button are each whole,
+/* fix round: the header on phones. From 320 to 700 wide the name, the phone link and the light/dark button are each whole,
    on screen, apart from one another and 44px or more to tap. The name takes two lines; the link is two short lines
    ("Call or text" over the number); at 380 and under it is the number alone (its accessible name is still "Call or text
    (732) 759-0008"). */
-@media (max-width: 600px) {
-  .phero.st-top .topbar { gap: 8px; }
+@media (max-width: 700px) { /* second fix round: was 600; between 601 and 615 the one-line name ran into "Questions?" */
+  .phero.st-top .topbar { gap: 12px; }
   .phero.st-top .topbar .brand { flex: 0 1 auto; min-width: 0; white-space: normal; font-size: 15px; line-height: 1.1; max-width: 150px; gap: 8px; }
   .phero.st-top .topbar .brand svg { width: 32px; height: 32px; flex: none; }
   .st-q { font-size: 13px; }
@@ -244,10 +247,15 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
   .phero.st-top .topbar .st-q a { flex-direction: column; align-items: flex-end; justify-content: center; gap: 0; line-height: 1.25; font-size: 14px !important; }
 }
 @media (max-width: 380px) {
-  .phero.st-top .topbar { gap: 6px; }
   .phero.st-top .topbar .brand { max-width: 130px; font-size: 14px; gap: 6px; }
   .phero.st-top .topbar .st-q a { font-size: 12.5px !important; }
   .st-q .st-l { display: none; }
+}
+@media (max-width: 345px) {
+  .phero.st-top .topbar .brand { max-width: 112px; font-size: 13px; gap: 5px; }
+  .phero.st-top .topbar .brand svg { width: 28px; height: 28px; }
+  .phero.st-top .topbar .st-q a { font-size: 12px !important; }
+}
 }
 .st-first.sec { padding-top: 14px; }
 @media (max-width: 480px) { .i2-sheet.bare .i2-hi { grid-template-columns: 52px minmax(0,1fr); gap: 12px; } .i2-sheet.bare .i2-face { width: 52px; height: 52px; } .i2-sheet.bare .i2-h { font-size: 22px; } }
@@ -266,6 +274,11 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
 <script src="/assets/fx.js?v=20261024d"></script>
 <script src="/assets/intake2.js?v=sp-20261113r46"></script>
 <script>/* r46: Cloudflare Web Analytics counts this page view the way the other public pages do. It is loaded only when the address has no query string, or one made only of campaign tags (utm_...) and "from". Any other parameter, however it is written or encoded (a finish-later key, a sign-in token, anything unknown), means the script is not loaded, so such an address is never reported. */
-(function () { try { var q = new URLSearchParams(location.search), plain = true; q.forEach(function (v, k) { if (!/^(utm_[a-z0-9_]{1,40}|from)$/.test(k)) plain = false; }); if (!plain || location.hash.length > 1) return; var s = document.createElement('script'); s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js'; s.setAttribute('data-cf-beacon', '{"token": "6f62d1e0e28847dcab6b431376defda9"}'); document.head.appendChild(s); } catch (e) {} })();</script>
+(function () { try {
+  /* decided once, from the address as first opened: window.__spFirst (set in the head), checked against the browser's own record of the navigation where it has one. The form removes a used key from the address bar, so the address is not read again here. */
+  var first = window.__spFirst, nav = null; try { nav = performance.getEntriesByType('navigation')[0]; } catch (e) {}
+  var urls = []; if (first) urls.push(first[0] + first[1]); if (nav && nav.name) { var u = new URL(nav.name); urls.push(u.search + u.hash); } if (!urls.length) return;
+  var plain = urls.every(function (x) { var h = x.indexOf('#'), qs = h < 0 ? x : x.slice(0, h), hash = h < 0 ? '' : x.slice(h); if (hash.length > 1) return false; var ok = true; new URLSearchParams(qs).forEach(function (v, k) { if (!/^(utm_[a-z0-9_]{1,40}|from)$/.test(k)) ok = false; }); return ok && !/[?&](?:d|t|k|%64|%74|%6b)(?:=|&|$)/i.test(qs); });
+  if (!plain) return; var s = document.createElement('script'); s.defer = true; s.src = 'https://static.cloudflareinsights.com/beacon.min.js'; s.setAttribute('data-cf-beacon', '{"token": "6f62d1e0e28847dcab6b431376defda9"}'); document.head.appendChild(s); } catch (e) {} })();</script>
 </body>
 </html>

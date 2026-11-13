@@ -228,16 +228,18 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
 .i2-sheet.bare .i2-hi { margin-bottom: 10px; }
 .st-q { margin: 0 0 0 auto; font-size: 15px; font-weight: 700; color: var(--navy); text-align: right; line-height: 1.25; flex: none; }
 .phero.st-top .topbar .st-q a { color: var(--navy); font-size: 15px !important; font-weight: 800; white-space: nowrap; display: inline-flex; align-items: center; gap: .3em; min-height: 44px; min-width: 44px; }
-.phero.st-top .topbar { padding: 8px 0; gap: 10px; flex-wrap: nowrap; }
+.phero.st-top .topbar { padding: 8px 0; gap: 12px; flex-wrap: nowrap; } /* 12px or more between the name, the link and the theme button at every width */
+.phero.st-top .topbar .st-q { margin-left: auto; padding-left: 0; }
+.phero.st-top .topbar .brand { flex: 0 1 auto; }
 .phero.st-top .topbar .theme-btn { width: 44px; height: 44px; flex: none; margin-left: 0; }
 .phero.st-top .topbar .brand { min-height: 44px; }
 .phero.st-top .horizon { height: 22px; }
-/* fix round: the header on phones. From 320 to 600 wide the name, the phone link and the light/dark button are each whole,
+/* fix round: the header on phones. From 320 to 700 wide the name, the phone link and the light/dark button are each whole,
    on screen, apart from one another and 44px or more to tap. The name takes two lines; the link is two short lines
    ("Call or text" over the number); at 380 and under it is the number alone (its accessible name is still "Call or text
    (732) 759-0008"). */
-@media (max-width: 600px) {
-  .phero.st-top .topbar { gap: 8px; }
+@media (max-width: 700px) { /* second fix round: was 600; between 601 and 615 the one-line name ran into "Questions?" */
+  .phero.st-top .topbar { gap: 12px; }
   .phero.st-top .topbar .brand { flex: 0 1 auto; min-width: 0; white-space: normal; font-size: 15px; line-height: 1.1; max-width: 150px; gap: 8px; }
   .phero.st-top .topbar .brand svg { width: 32px; height: 32px; flex: none; }
   .st-q { font-size: 13px; }
@@ -245,10 +247,15 @@ input[type=range] { width: 100%; accent-color: var(--navy); min-height: 46px; }
   .phero.st-top .topbar .st-q a { flex-direction: column; align-items: flex-end; justify-content: center; gap: 0; line-height: 1.25; font-size: 14px !important; }
 }
 @media (max-width: 380px) {
-  .phero.st-top .topbar { gap: 6px; }
   .phero.st-top .topbar .brand { max-width: 130px; font-size: 14px; gap: 6px; }
   .phero.st-top .topbar .st-q a { font-size: 12.5px !important; }
   .st-q .st-l { display: none; }
+}
+@media (max-width: 345px) {
+  .phero.st-top .topbar .brand { max-width: 112px; font-size: 13px; gap: 5px; }
+  .phero.st-top .topbar .brand svg { width: 28px; height: 28px; }
+  .phero.st-top .topbar .st-q a { font-size: 12px !important; }
+}
 }
 .st-first.sec { padding-top: 14px; }
 @media (max-width: 480px) { .i2-sheet.bare .i2-hi { grid-template-columns: 52px minmax(0,1fr); gap: 12px; } .i2-sheet.bare .i2-face { width: 52px; height: 52px; } .i2-sheet.bare .i2-h { font-size: 22px; } }
