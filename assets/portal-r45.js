@@ -29,9 +29,11 @@ R44_URL.training = '/assets/data/training-finder.json';
 /* the filters always start on All areas, All kinds, All fields: nothing in the client's data sets a default */
 function r45F() { if (!S.tf) S.tf = { area: '', kind: '', field: '', saved: false }; return S.tf; }
 function r45Stars() { var st = r44Store(); st.tf = st.tf || {}; st.tf.saved = st.tf.saved || {}; return st.tf.saved; }
+var R48_STARNOTE = 'Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.'; /* the standing note's own words */
 function r45Card(e, D, stars) {
   var on = !!stars[e.id], area = (D.areas.filter(function (a) { return a[0] === e.area; })[0] || [e.area, e.area])[1], kind = (D.kinds.filter(function (k) { return k[0] === e.kind; })[0] || [e.kind, e.kind])[1], u = safeUrl(e.url);
   return '<li class="card t45-card" data-tf="' + esc(e.id) + '"><div class="t45-top"><h3>' + esc(e.name) + '</h3><button type="button" class="t45-star" data-tfstar="' + esc(e.id) + '" aria-pressed="' + on + '" aria-label="' + (on ? 'Saved. Remove ' : 'Save ') + esc(e.name) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg></button></div>' +
+    (on && S.tfSaidId === e.id ? '<p class="t45-starline" data-tfstarline>' + R48_STARNOTE + '</p>' : '') + /* r48: shown in the card whose star was the first of the session */
     '<p class="t45-by">Run by ' + esc(e.runBy) + '</p><p class="t45-tags"><span class="pill">' + esc(area) + '</span><span class="pill">' + esc(kind) + '</span></p>' +
     (e.quote ? '<blockquote class="t45-q"><p>' + esc(e.quote) + '</p><footer>from the program\'s page</footer></blockquote>' : '') +
     (u ? '<p class="t45-go"><a class="btn ghost" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + (e.unemployment ? 'Open the official page' : 'Open the program\'s page') + '<span class="sr"> for ' + esc(e.name) + ' (opens in a new tab)</span></a></p>' : '') +
@@ -93,17 +95,24 @@ if (typeof document !== 'undefined') {
     if (n) { n.textContent = k || ''; n.classList.toggle('none', !k); } if (sr) sr.textContent = k ? ', ' + k + ' chosen' : ', none chosen';
     r48Cut(c);
   };
-  /* The first star of a session says the saved-stars note. The status region is always in the page and only its text changes,
-     so screen readers announce it. It never takes a tap (pointer-events: none) and is placed in the half of the screen the
-     pressed star is not in: under the top edge when the star is low, above the tab bar (or the bottom edge) when it is high. */
+  /* The first star of a session says the saved-stars note. It is a line inside the starred card, directly under the star's
+     row, in normal flow: the card grows and nothing floats over anything. It stays until the client leaves the view (so
+     taking it away never moves a star under a finger). The status region is always in the page, out of sight, and only its
+     text changes, so screen readers announce the sentence once. */
   var r48Say = function (id) {
-    var said = document.querySelector('[data-tfsaid]'), star = document.querySelector('[data-tfstar="' + cssq(id) + '"]'); if (!said) return;
-    var tab = document.querySelector('.tabbar'), tr = tab ? tab.getBoundingClientRect() : null, floor = tr && tr.height > 0 && tr.top < window.innerHeight ? window.innerHeight - tr.top : 0;
-    var sr = star ? star.getBoundingClientRect() : null, low = sr ? (sr.top + sr.bottom) / 2 > (window.innerHeight - floor) / 2 : false;
-    said.style.top = low ? '8px' : 'auto'; said.style.bottom = low ? 'auto' : (floor + 8) + 'px';
-    said.textContent = 'Your saved stars: ' + R44_DEVICE.charAt(0).toLowerCase() + R44_DEVICE.slice(1) + ' Signing out removes them.';
+    S.tfSaidId = id; r45Patch();
+    var said = document.querySelector('[data-tfsaid]'); if (!said) return;
+    said.textContent = R48_STARNOTE;
+    /* if the line landed under the tab bar or below the screen, bring it into view, a moment later so a quick second tap on the star still lands */
+    clearTimeout(r48Say.s); r48Say.s = setTimeout(function () {
+      var line = document.querySelector('[data-tfstarline]'); if (!line || r48Say.down) return;
+      var tab = document.querySelector('.tabbar'), tr = tab ? tab.getBoundingClientRect() : null, floor = tr && tr.height > 0 && tr.top < window.innerHeight ? tr.top : window.innerHeight, r = line.getBoundingClientRect();
+      if (r.bottom > floor - 8) window.scrollBy(0, Math.ceil(r.bottom - (floor - 8)));
+    }, 450);
     clearTimeout(r48Say.t); r48Say.t = setTimeout(function () { var el = document.querySelector('[data-tfsaid]'); if (el) el.textContent = ''; }, 9000);
   };
+  document.addEventListener('pointerdown', function () { r48Say.down = true; }, true); document.addEventListener('pointerup', function () { r48Say.down = false; }, true); document.addEventListener('pointercancel', function () { r48Say.down = false; }, true);
+  (function () { var base = go; go = function (v) { if (v !== 'training') S.tfSaidId = null; return base.apply(this, arguments); }; })();
   var r48Cut = function (c) { if (!c) return; var max = c.scrollWidth - c.clientWidth; c.classList.toggle('cut-r', max > 1 && c.scrollLeft < max - 1); c.classList.toggle('cut-l', c.scrollLeft > 1); };
   var r48Open = function (on, focus) {
     var form = document.querySelector('.t45-filters'), b = document.querySelector('[data-tfopen]'); if (!form || !b) return;

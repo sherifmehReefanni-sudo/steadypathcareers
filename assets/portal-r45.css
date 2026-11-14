@@ -44,6 +44,7 @@
 .t45-note { padding: 0; border: 0; border-radius: 0; background: none; font-weight: 500; font-size: 14.5px; line-height: 1.45; color: var(--ink); text-wrap: pretty; max-width: 760px; }
 .t45-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 10px; }
 .t45-filters label[for] { display: block; margin: 0 0 3px; font-size: 12.5px; font-weight: 800; letter-spacing: .02em; color: var(--muted); }
+.p44-of select { -webkit-appearance: none; appearance: none; padding-right: 30px; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: right 15px center, right 10px center; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; } /* r48: Offer check's selects carry the same arrow as the finder's */
 .t45-filters select { width: 100%; min-width: 0; min-height: 44px; padding: 0 22px 0 9px; font-size: 16px; border-radius: 10px; -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: right 12px center, right 7px center; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
 .t45-fbtn { flex: none; display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 0 10px 0 12px; border: 1.5px solid var(--navy); border-radius: 12px; background: var(--surface); color: var(--navy); font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
 .t45-fbtn[aria-expanded="true"] { background: var(--navy-fill); color: #fff; }
@@ -78,8 +79,8 @@
   /* the form's parts become items of the page column, so the note about saved stars can sit after the list; the filter row keeps the card look */
   .t45-filters .p44-dev { font-size: 12.5px; line-height: 1.35; }
 }
-.t45-said { position: fixed; z-index: 60; left: 12px; right: 12px; bottom: 8px; margin: 0 auto; max-width: 520px; padding: 10px 14px; border-radius: 12px; background: var(--navy-fill); color: #fff; font-size: 14px; font-weight: 700; line-height: 1.35; box-shadow: 0 8px 24px rgba(16,33,58,.3); pointer-events: none; }
-.t45-said:empty { padding: 0; box-shadow: none; background: none; }
+.t45-said { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; } /* always in the page for screen readers; the words a sighted client sees are the line in the card */
+.t45-starline { margin: 6px 0 2px; padding: 8px 10px; border-radius: 10px; background: rgba(227,179,65,.2); color: var(--ink); font-size: 13.5px; font-weight: 700; line-height: 1.35; }
 @media (max-width: 379px) {
   .t45 { gap: 8px; }
   .t45-note { font-size: 13.5px; line-height: 1.4; }
@@ -122,22 +123,25 @@
    Documents (the groups flow in two columns), Interviews (Coming up, Interview prep sheets), Practice (Your jobs, Any
    time) and Search settings (its two cards). Nothing is added or reordered in the page: same blocks, same tab order. */
 @media (min-width: 1200px) {
-  #app .pmain.m-main, #app .pmain.iv-main:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))), #app .pmain.p44-pr:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))), #app .pmain.pf:has(> section.card + section.card) { display: grid; grid-template-columns: repeat(2, minmax(0, 522px)); column-gap: 24px; align-items: start; align-content: start; }
-  #app .pmain.m-main > *, #app .pmain.iv-main > *, #app .pmain.p44-pr > *, #app .pmain.pf > * { max-width: none; }
-  #app .pmain.m-main > :not(.m-grp), #app .pmain.iv-main > :not(h2):not(ul), #app .pmain.p44-pr > :not(h2):not(ul), #app .pmain.pf > :not(section.card) { grid-column: 1 / -1; }
-  #app .pmain.iv-main > nav, #app .pmain.p44-pr > nav { justify-self: start; }
-  #app .pmain.iv-main > h2:nth-of-type(1), #app .pmain.p44-pr > h2:nth-of-type(1) { grid-column: 1; grid-row: 3; }
-  #app .pmain.iv-main > h2:nth-of-type(1) + ul, #app .pmain.p44-pr > h2:nth-of-type(1) + ul { grid-column: 1; grid-row: 4; }
-  #app .pmain.iv-main > h2:nth-of-type(2), #app .pmain.p44-pr > h2:nth-of-type(2) { grid-column: 2; grid-row: 3; }
-  #app .pmain.iv-main > h2:nth-of-type(2) + ul, #app .pmain.p44-pr > h2:nth-of-type(2) + ul { grid-column: 2; grid-row: 4; }
-  #app .pmain.iv-main > nav, #app .pmain.p44-pr > nav { grid-row: 1; }
-  #app .pmain.p44-pr > .p44-sample { grid-row: 2; }
-  #app .pmain.p44-pr > .p44-dev { grid-row: 5; }
-  #app .pmain.iv-main > footer { grid-row: 5; }
-  #app .pmain.p44-pr > footer { grid-row: 6; }
-  #app#app .pmain:has(> .dgrp + .dgrp) { display: block; column-count: 2; column-gap: 24px; padding-right: max(20px, calc(min(1320px, 100vw - 32px) - 1088px)); }
-  #app .pmain:has(> .dgrp + .dgrp) > * { max-width: none; break-inside: avoid; margin-bottom: 14px; }
-  #app .pmain:has(> .dgrp + .dgrp) > :not(.dgrp) { column-span: all; }
+  /* More: its two groups side by side */
+  #app .pmain.m-main { display: grid; grid-template-columns: repeat(2, minmax(0, 522px)); column-gap: 24px; align-items: start; align-content: start; }
+  #app .pmain.m-main > * { max-width: none; }
+  #app .pmain.m-main > :not(.m-grp) { grid-column: 1 / -1; }
+  /* Interviews and Practice: two headed groups, each heading with its own content under it in its own column. Whatever follows
+     a heading (a list or an empty-state card) goes with that heading. Only when the view has exactly two headings. */
+  #app .pmain.iv-main:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))), #app .pmain.p44-pr:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) { display: grid; grid-template-columns: repeat(2, minmax(0, 522px)); grid-auto-flow: row; column-gap: 24px; align-items: start; align-content: start; }
+  #app .pmain.iv-main > *, #app .pmain.p44-pr > * { max-width: none; grid-column: 1 / -1; }
+  #app .pmain.iv-main > nav, #app .pmain.p44-pr > nav { justify-self: start; grid-row: 1; }
+  #app .pmain.iv-main:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > h2:nth-of-type(1), #app .pmain.p44-pr:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > h2:nth-of-type(1) { grid-column: 1; grid-row: 3; }
+  #app .pmain.iv-main:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > h2:nth-of-type(1) + *, #app .pmain.p44-pr:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > h2:nth-of-type(1) + * { grid-column: 1; grid-row: 4; }
+  #app .pmain.iv-main:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > h2:nth-of-type(2), #app .pmain.p44-pr:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > h2:nth-of-type(2) { grid-column: 2; grid-row: 3; }
+  #app .pmain.iv-main:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > h2:nth-of-type(2) + *, #app .pmain.p44-pr:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > h2:nth-of-type(2) + * { grid-column: 2; grid-row: 4; }
+  #app .pmain.iv-main:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > footer, #app .pmain.p44-pr:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > footer { grid-row: 6; }
+  #app .pmain.p44-pr:has(> h2:nth-of-type(2)):not(:has(> h2:nth-of-type(3))) > .p44-dev { grid-row: 5; }
+  /* Documents and Search settings: the blocks flow down column one, then column two, with no gaps */
+  #app#app .pmain:has(> .dgrp + .dgrp), #app#app .pmain.pf:has(> section.card ~ section.card) { display: block; column-count: 2; column-gap: 24px; padding-right: max(20px, calc(min(1320px, 100vw - 32px) - 1088px)); }
+  #app .pmain:has(> .dgrp + .dgrp) > *, #app .pmain.pf:has(> section.card ~ section.card) > * { max-width: none; break-inside: avoid; margin-bottom: 14px; }
+  #app .pmain:has(> .dgrp + .dgrp) > :not(.dgrp), #app .pmain.pf:has(> section.card ~ section.card) > :not(section.card) { column-span: all; }
 }
 /* the finder's list fills the frame: three programs across from 1280 */
 @media (min-width: 1280px) { #app .pmain.t45 > #tfOut { max-width: none; } .t45-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
