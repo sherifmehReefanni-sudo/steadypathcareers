@@ -484,3 +484,100 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
 @media (prefers-reduced-motion:reduce){.chapters li button{transition:none}}
 
 /* r50: the watch section is the heading, one line and the video; nothing below the line */
+
+/* ===== r51: colour bands, Sam, shorter phone layout ===== */
+:root{--mint:#DDF3EC;--mint-2:#BFE8DB;--skyband:#E3ECFB;--goldband-a:#F9DE86;--goldband-b:#F2C14E;--coral:#FF6B5B;--teal:#14B8A6;--sky:#5B8DEF}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--mint:#0F2F33;--mint-2:#174247;--skyband:#13284A;--goldband-a:#5A3F12;--goldband-b:#7A5614}}
+:root[data-theme="dark"]{--mint:#0F2F33;--mint-2:#174247;--skyband:#13284A;--goldband-a:#5A3F12;--goldband-b:#7A5614}
+.sec.band-mint{background:var(--mint)}
+.sec.band-sky{background:var(--skyband)}
+.sec.band-gold{background:linear-gradient(160deg,var(--goldband-a),var(--goldband-b))}
+.sec.band-navy{background:var(--night);color:#fff;--focus:#E3B341}
+.band-mint .post,.band-mint .ticket{box-shadow:inset 0 0 0 1.5px var(--mint-2),var(--shadow)}
+.band-mint .hold{border-top-color:var(--mint-2)}
+
+/* Sam */
+.sam{display:block;height:auto;max-width:none}
+.sec-head.with-sam{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;max-width:none}
+.sam-disc{flex:none;width:132px;height:132px;border-radius:50%;background:var(--gold-2);display:grid;place-items:end center;overflow:hidden;box-shadow:0 0 0 6px rgba(242,217,138,.18)}
+.sam-disc .sam{width:104px;margin-bottom:-26px}
+
+/* first week on navy */
+.band-navy .sec-head .voice{color:var(--gold-2)}
+.band-navy .week .when{color:var(--gold-2)}
+.band-navy .week p{color:#C5CEDF}
+.band-navy .week li::after{background:var(--gold);box-shadow:0 0 0 4px var(--night)}
+.band-navy .week li::before{background:rgba(242,217,138,.55)}
+
+/* price on gold, Sam presenting it */
+.band-gold .price{grid-template-columns:auto minmax(0,560px);justify-content:center;align-items:end;gap:28px}
+.price-sam .sam{width:170px}
+.band-gold .pbox{position:relative}
+@media (max-width:900px){
+  .band-gold .price{grid-template-columns:minmax(0,1fr);gap:0;justify-items:center}
+  .price-sam{margin-bottom:-6px;position:relative;z-index:1;align-self:end;justify-self:end;margin-right:8%}
+  .price-sam .sam{width:118px}
+  .band-gold .pbox{width:100%}
+}
+
+/* tools as icon cards */
+.tools.cards{border-top:0;gap:14px}
+.tools.cards a{padding:20px;border:0;border-radius:var(--r-m);background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--line),var(--shadow);display:grid;grid-template-columns:48px 1fr;column-gap:14px;align-items:start;transition:transform .2s ease,box-shadow .2s ease}
+.tools.cards a:hover{padding-left:20px;transform:translateY(-3px)}
+.tools.cards a h3{grid-column:2;margin:2px 0 0}
+.tools.cards a p{grid-column:2;margin-top:4px}
+.tools.cards .ti{grid-row:1 / span 2;width:48px;height:48px;border-radius:14px;display:grid;place-items:center}
+.ti-mint{background:#CFF1E6;color:#0F6B5A}.ti-gold{background:#FBE7A6;color:#7A5600}.ti-sky{background:#DCE7FD;color:#2A4FA8}
+.ti-coral{background:#FFE0DB;color:#B23A2C}.ti-navy{background:#DCE3EF;color:#1F3A5F}
+:root[data-theme="dark"] .ti{filter:saturate(.9) brightness(.92)}
+@media (max-width:900px){.tools.cards{grid-template-columns:minmax(0,1fr)}}
+
+/* FAQ: seven here, the rest on /questions/ */
+#questions .faq{max-width:760px}
+#questions .faq h2{margin-bottom:12px}
+.faq-all{margin-top:22px;font-weight:800}
+.faq-all a{text-decoration-color:var(--gold);text-decoration-thickness:3px;text-underline-offset:5px}
+
+/* close: Sam cheering */
+.sam-cheer{width:150px;margin:0 auto 6px}
+
+/* is this for you */
+#fields .foryou{margin-top:0}
+#fields .ticker{margin-top:36px}
+
+/* bolder interest chart */
+.radar polygon#radarShape{fill:rgba(242,183,5,.5);stroke:#C98F0A;stroke-width:4}
+.radar g[stroke]{stroke:#9DB3DA;stroke-width:2}
+.radar text{font-size:15px;font-weight:800}
+.band-sky .fit li::before{background:var(--sky)}
+
+/* shorter phone layout */
+@media (max-width:600px){
+  .sec{padding:60px 0}
+  .sec-head{margin-bottom:28px}
+  .chk .posts{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 8px;margin:0 -2px;-webkit-overflow-scrolling:touch}
+  .chk .posts .post{flex:0 0 78%;scroll-snap-align:start;padding:14px 16px}
+  .chk .posts .fine{flex:0 0 100%;display:none}
+  .hold{margin-top:36px}
+  .hold div{padding:16px 14px 0 0}
+  .hold h3{font-size:1.02rem}
+  .hold p{font-size:.9rem}
+  .shot .phone{width:min(62%,220px)}
+  .tailor{gap:28px}
+  .sam-disc{width:104px;height:104px}.sam-disc .sam{width:84px;margin-bottom:-20px}
+  .week{gap:26px}
+  .fit{gap:20px}
+  .radar{max-width:340px}
+  .sam-cheer{width:120px}
+}
+@media (prefers-reduced-motion:reduce){.tools.cards a{transition:none}.tools.cards a:hover{transform:none}}
+/* r51: phone trims. Tools swipe sideways; the portal screenshot under the resume demo is left to wider screens and the app page */
+@media (max-width:600px){
+  .tools.cards{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding:4px 20px 14px;margin:0 -20px;-webkit-overflow-scrolling:touch}
+  .tools.cards a{flex:0 0 78%;scroll-snap-align:start;grid-template-columns:44px 1fr}
+  #tailor .shot{display:none}
+  .radar{max-width:260px}
+  .close{padding-top:56px}
+}
+
+.tools.cards a{align-content:start}
