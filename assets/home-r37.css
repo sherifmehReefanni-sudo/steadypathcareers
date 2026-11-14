@@ -270,7 +270,7 @@ dialog.vid .x{display:block;margin:14px auto 0;min-height:44px;padding:0 22px;bo
 #radarShape{transform-origin:210px 190px;transition:transform 1.1s cubic-bezier(.2,.8,.2,1),opacity .6s}
 .radar.wait #radarShape{transform:scale(.05);opacity:0}
 .week li::before{transform-origin:left;transition:transform 1s ease}
-.week.wait li::before{transform:scaleX(0)}
+.week.wait:not(.road) li::before{transform:scaleX(0)}
 .week li:nth-child(2)::before{transition-delay:.25s}.week li:nth-child(3)::before{transition-delay:.5s}.week li:nth-child(4)::before{transition-delay:.75s}
 .tools a{transition:padding-left .2s ease}
 .tools a:hover{padding-left:10px}
@@ -592,3 +592,49 @@ dialog.vid{max-height:100vh;overflow:auto}
 dialog.vid .vtx{margin:12px auto 0;color:#E6EBF4;text-align:left}
 dialog.vid .vtx summary{cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;font:700 .95rem Manrope,system-ui,sans-serif;text-decoration:underline;text-underline-offset:4px}
 dialog.vid .vtx p{margin:6px 0 0;max-height:38vh;overflow:auto;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.08);font-size:.95rem;line-height:1.6}
+
+/* ===== r54: hero facts first; Your first week as a winding road ===== */
+.hero h1{font-family:Newsreader,Georgia,serif;font-style:italic;font-weight:400;letter-spacing:0;line-height:1.25;font-size:clamp(1.15rem,1.8vw,1.45rem);color:var(--gold-2);margin-top:6px}
+.hero .lede{font-weight:800;color:#fff;letter-spacing:-.01em;line-height:1.3;font-size:clamp(1.35rem,2.6vw,2.05rem);max-width:28em;margin-top:14px}
+.price-line b{color:#fff;font-weight:800}
+@media (max-width:900px){.hero h1{font-size:1.12rem}.hero .lede{font-size:1.32rem;line-height:1.32}}
+@media (max-width:380px){.hero .lede{font-size:1.18rem}}
+@media (max-width:359px){.hero h1{font-size:1.05rem}}
+
+.sec.band-road{background:var(--paper)}
+.road-sum{margin-top:10px;font-weight:700;color:var(--ink-2)}
+.week.road{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;counter-reset:none;padding-top:10px}
+.week.road li{position:relative;padding:0 18px 0 0}
+.week.road li::before,.week.road li::after{display:none}
+.road .dot{position:relative;z-index:2;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;color:#fff;font:800 1.15rem Manrope,system-ui,sans-serif;box-shadow:0 0 0 5px var(--paper),0 8px 18px -6px rgba(16,33,58,.45)}
+.road .st1 .dot{background:#0F9E8E}.road .st2 .dot{background:#3F6FD8}.road .st3 .dot{background:#E2523F}.road .st4 .dot{background:#C98F0A}
+.road .seg{position:absolute;z-index:1;overflow:visible;pointer-events:none}
+.road .seg path{fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.road .seg .rd{stroke:#1F3A5F;stroke-width:16px}
+.road .seg .ln{stroke:#F2D98A;stroke-width:2.5px;stroke-dasharray:9 9}
+:root[data-theme="dark"] .road .seg .rd{stroke:#3A5A88}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .road .seg .rd{stroke:#3A5A88}}
+.road .seg-h{left:23px;top:-7px;width:100%;height:60px}
+.road .seg-v{display:none}
+.road .tx{margin-top:18px}
+.road .when{font-family:Newsreader,serif;font-style:italic;font-size:1.12rem}
+.road .st1 .when{color:#0F7E72}.road .st2 .when{color:#2F5BC0}.road .st3 .when{color:#C2412F}.road .st4 .when{color:#9A6C00}
+:root[data-theme="dark"] .road .when{filter:brightness(1.6)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .road .when{filter:brightness(1.6)}}
+.road h3{margin:4px 0 6px}
+.road .tx>p:last-child{font-size:.96rem;color:var(--ink-2)}
+@media (max-width:900px){
+  .week.road{grid-template-columns:minmax(0,1fr);gap:0}
+  .week.road li{display:grid;grid-template-columns:46px minmax(0,1fr);column-gap:22px;padding:0 0 34px}
+  .week.road li:last-child{padding-bottom:0}
+  .road .tx{margin-top:0}
+  .road .seg-h{display:none}
+  .road .seg-v{display:block;left:-9px;top:23px;width:64px;height:100%}
+}
+/* the road draws in once (skipped with reduced motion: the script never adds .wait then) */
+.road .seg .ln,.road .seg .rd{transition:opacity .8s ease}
+.week.road.wait .seg path{opacity:0}
+.week.road.wait .dot{transform:scale(.4);opacity:0}
+.road .dot{transition:transform .45s cubic-bezier(.3,1.5,.5,1),opacity .3s ease}
+.road .st2 .dot{transition-delay:.15s}.road .st3 .dot{transition-delay:.3s}.road .st4 .dot{transition-delay:.45s}
+@media (prefers-reduced-motion:reduce){.road .dot,.road .seg path{transition:none}}
