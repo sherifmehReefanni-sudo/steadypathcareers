@@ -1961,10 +1961,11 @@ var R52_SAM_EMPTY = '<img class="r52-sam" src="/img/sam/sam-wave.svg" alt="" wid
 function r52Week(week, rest) {
   var inner = week + rest; if (!inner) return '';
   var items = dueItems(S.data).filter(function (x) { return x.who === 'you'; }), mine = items.length;
+  var lateN = items.filter(function (x) { var dd = x.when ? daysFrom(x.when) : null; return dd != null && dd < 0; }).length;
   var soonN = items.filter(function (x) { var dd = x.when ? daysFrom(x.when) : null; return dd != null && dd <= 1; }).length; /* overdue, today or tomorrow */
   var open = S.tweekOpen != null ? S.tweekOpen : soonN > 0; /* something due by tomorrow opens it until the client opens or closes it themselves */
   var parts = [];
-  if (mine) parts.push(mine + (mine === 1 ? ' thing for you' : ' things for you') + ' in Due next' + (soonN ? ' (' + soonN + ' due by tomorrow)' : ''));
+  if (mine) parts.push(mine + (mine === 1 ? ' thing for you' : ' things for you') + ' in Due next' + (soonN ? ' (' + (lateN ? lateN + ' overdue' + (soonN > lateN ? ', ' + (soonN - lateN) + ' due by tomorrow' : '') : soonN + ' due by tomorrow') + ')' : ''));
   if (week) parts.push('your weekly report');
   var sub = parts.length ? parts.join(', and ') : 'More for this week';
   sub = sub.charAt(0).toUpperCase() + sub.slice(1);
