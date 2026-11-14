@@ -12,7 +12,7 @@
      While they are empty, no length and no chapter list are shown anywhere. */
   var WELCOME_LENGTH = '1 minute 6 seconds';
   var WELCOME_CAPTIONS = '/media/welcome-r49.vtt';
-  var WELCOME_CHAPTERS = [['0:00', 'How it works, start to finish'], ['0:04', 'Start free: about 15 minutes, no card'], ['0:12', 'Real openings, checked on the employer\'s own site'], ['0:20', 'A resume and cover letter for each job you say yes to'], ['0:30', 'You send every application yourself'], ['0:36', 'Follow-ups tracked in your portal'], ['0:42', 'Interview practice and offer checks'], ['0:51', 'Free for 14 days, then $99 a month']];
+  var WELCOME_CHAPTERS = []; /* r50: chapter list removed from the page at the owner's request */
 
   var root = document.documentElement;
   function $(id) { return document.getElementById(id); }
