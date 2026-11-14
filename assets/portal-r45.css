@@ -149,11 +149,20 @@
    stage name ("Interview") are never cut at the right or broken inside a word at 320 and 360; spare width is shared equally,
    so from 390 up the columns are equal as before. */
 .jm { grid-template-columns: repeat(5, minmax(min-content, 1fr)); }
-#app .jm-l, #app .jm-m { overflow-wrap: normal; word-break: normal; }
+#app .jm-l { overflow-wrap: normal; word-break: normal; }
+/* r49 review fix: a marker never sets its column's width (long words such as "Healthcare" or "Prudential" with three or more
+   stages in use would push the road past its card and scroll the page sideways). Only the stage names do; a marker word
+   wider than its column wraps inside the word instead. */
+#app .jm-m { overflow-wrap: anywhere; word-break: normal; min-width: 0; max-width: 100%; }
 @media (max-width: 374px) { .jm { column-gap: 4px; } .jm .jm-l { font-size: 12px; } } /* at 320 "Applied" and "Interview" keep a space between them */
 /* r49: on the desktop board the interview button ("Interview practice") stays on one line beside More at every width from
    1024: a little less side padding, and room up to exactly More's width and the gap. Longer words still wrap whole. */
 @media (min-width: 1024px) {
   .board .app > .bd-fold + .pv-cta { max-width: calc(100% - 50px); }
   .board .app > .pv-cta .btn { padding-left: 6px; padding-right: 6px; }
+}
+/* r49 review fix: on phones a marker shows its whole short label instead of cutting it after three lines. A word wider than
+   its column breaks with a hyphen where the language allows, otherwise anywhere; the marker grows taller, never wider. */
+@media (max-width: 414px) {
+  #app .jm .jm-m { display: block; -webkit-line-clamp: unset; overflow: visible; height: auto; font-size: 10.5px; line-height: 1.12; padding: 4px 2px; hyphens: auto; -webkit-hyphens: auto; }
 }
