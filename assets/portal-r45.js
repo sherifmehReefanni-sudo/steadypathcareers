@@ -152,3 +152,30 @@ if (typeof document !== 'undefined') {
   /* signing out forgets the filter choices too (the stars go with the r44 store) */
   (function () { var base = r44Wipe; r44Wipe = function () { S.tf = null; return base.apply(this, arguments); }; })();
 }
+
+/* r49 review fix: the Jobs road keeps every marker word whole while the words fit across the card. After each render and on
+   resize, a road wider than its card gets .jm-tight (equal columns, words may wrap inside), so the page never scrolls sideways. */
+(function () {
+  function fit() {
+    var roads = document.querySelectorAll('.jm');
+    for (var i = 0; i < roads.length; i++) {
+      var r = roads[i];
+      if (r.classList.contains('jm-tight')) r.classList.remove('jm-tight');
+      var box = r.parentElement, cs = getComputedStyle(box), rr = r.getBoundingClientRect(), br = box.getBoundingClientRect();
+      var right = br.right - (parseFloat(cs.paddingRight) || 0) - (parseFloat(cs.borderRightWidth) || 0);
+      if (r.scrollWidth > r.clientWidth + 1 || rr.right > right + 0.5 || document.documentElement.scrollWidth > window.innerWidth + 1 && rr.right > window.innerWidth) r.classList.add('jm-tight');
+    }
+  }
+  var queued = false;
+  function soon() { if (queued) return; queued = true; (window.requestAnimationFrame || setTimeout)(function () { queued = false; fit(); }); }
+  function start() {
+    var app = document.getElementById('app') || document.body;
+    if ('MutationObserver' in window) new MutationObserver(function (ms) {
+      for (var k = 0; k < ms.length; k++) { var t = ms[k].target; if (t.nodeType === 1 && (t.querySelector && t.querySelector('.jm') || t.closest && t.closest('.jm'))) { soon(); return; } }
+    }).observe(app, { childList: true, subtree: true });
+    window.addEventListener('resize', soon);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(soon);
+    soon();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
+})();
