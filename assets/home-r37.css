@@ -174,7 +174,7 @@ p{margin:0}
 
 /* close: full sunrise */
 .close{position:relative;text-align:center;color:#10213A;background:linear-gradient(180deg,var(--page) 0%,#F6DFA9 34%,#F0BE6B 68%,#E99A5B 100%);padding:clamp(80px,11vw,140px) 0 0;overflow:hidden}
-:root[data-theme="dark"] .close{background:linear-gradient(180deg,var(--page) 0%,#3B3A6B 30%,#B5796A 66%,#E9A867 100%);color:#fff}
+:root[data-theme="dark"] .close{background:linear-gradient(180deg,var(--page) 0%,#3B3A6B 40%,#B5796A 86%,#E9A867 100%);color:#fff}
 .close h2{font-size:clamp(2.4rem,6.5vw,4.6rem)}
 .close p{margin:18px auto 30px;max-width:30em;font-size:1.12rem}
 .close svg{margin-top:56px;width:100%;height:auto}
@@ -354,7 +354,7 @@ html.js .fields-text{position:absolute;width:1px;height:1px;overflow:hidden;clip
 .faq details p{overflow-wrap:anywhere}
 
 /* closing sunrise follows the system setting too */
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .close{background:linear-gradient(180deg,var(--page) 0%,#3B3A6B 30%,#B5796A 66%,#E9A867 100%);color:#fff;--focus:#fff}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .close{background:linear-gradient(180deg,var(--page) 0%,#3B3A6B 40%,#B5796A 86%,#E9A867 100%);color:#fff;--focus:#fff}}
 :root[data-theme="dark"] .close{--focus:#fff}
 
 /* footer */
@@ -581,3 +581,7 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
 }
 
 .tools.cards a{align-content:start}
+
+/* r51 review fixes: Is this for you? on white, not tan; tool cards only as tall as their text on phones */
+.sec.band-paper{background:var(--paper)}
+@media (max-width:600px){.tools.cards{align-items:flex-start}}
