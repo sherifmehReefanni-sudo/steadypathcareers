@@ -183,7 +183,7 @@ if (typeof document !== 'undefined') {
 
 /* r52: Sam pops up for a moment after an approval, a sent application or an offer. Decorative only (aria-hidden); the toast still says what happened. */
 (function () {
-  var CHEER = /^Approved\.|approved\. Thank you\.|^Nice work\. It is on your Applied tab\.|^An offer!/;
+  var CHEER = /^Approved\.|\bapproved\.(\s|$)|^Nice work\. It is on your Applied tab\.|^An offer!|^Moved to Submitted\.|^Moved to Offer\.|^Moved to Interview\.|^Marked as hired\./;
   function samCheer() {
     var old = document.querySelector('.r52-cheer'); if (old) old.remove();
     var d = document.createElement('div'); d.className = 'r52-cheer'; d.setAttribute('aria-hidden', 'true');
@@ -194,7 +194,7 @@ if (typeof document !== 'undefined') {
   function wrap() {
     if (typeof window.toast !== 'function' || window.toast.r52) return;
     var orig = window.toast;
-    var w = function (t) { var r = orig.apply(this, arguments); try { if (CHEER.test(String(t || ''))) samCheer(); } catch (e) {} return r; };
+    var w = function (t) { var held = !!document.querySelector('.toast.undo'); var r = orig.apply(this, arguments); try { if (!held && CHEER.test(String(t || ''))) samCheer(); } catch (e) {} return r; }; /* no cheer while an Undo toast holds the spot (the toast is not shown then) */
     w.r52 = true; window.toast = w;
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wrap); else wrap();

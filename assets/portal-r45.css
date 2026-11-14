@@ -192,11 +192,12 @@
 
 /* Sam in empty states */
 .card.empty .r52-sam { width: 64px; height: auto; margin: 0 auto 8px; display: block; }
-.card.empty.e-jobs, .card.empty.e-docs { text-align: center; }
+.card.empty:has(.r52-sam) { text-align: center; }
+.card.empty:has(.r52-sam)::before { display: none; } /* Sam replaces the empty-state picture, not added beside it */
 
 /* Sam cheers after an approval, a sent application or an offer */
-.r52-cheer { position: fixed; right: 14px; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); z-index: 98; width: 96px; pointer-events: none; animation: r52pop 2.1s cubic-bezier(.3,1.4,.5,1) forwards; }
-.r52-cheer img { width: 96px; height: auto; display: block; filter: drop-shadow(0 8px 14px rgba(16,33,58,.25)); }
+.r52-cheer { position: fixed; right: 14px; bottom: calc(170px + env(safe-area-inset-bottom, 0px)); z-index: 98; width: 84px; pointer-events: none; animation: r52pop 2.1s cubic-bezier(.3,1.4,.5,1) forwards; }
+.r52-cheer img { width: 84px; height: auto; display: block; filter: drop-shadow(0 8px 14px rgba(16,33,58,.25)); }
 @keyframes r52pop { 0% { transform: translateY(140%) rotate(-8deg); opacity: 0; } 18% { transform: translateY(0) rotate(4deg); opacity: 1; } 30% { transform: translateY(-6%) rotate(-3deg); } 42%, 80% { transform: translateY(0) rotate(0); opacity: 1; } 100% { transform: translateY(140%); opacity: 0; } }
 @media (min-width: 1024px) { .r52-cheer { bottom: 28px; right: 28px; } }
 @media (prefers-reduced-motion: reduce) { .r52-cheer { animation: r52fade 1.8s linear forwards; } @keyframes r52fade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } } }

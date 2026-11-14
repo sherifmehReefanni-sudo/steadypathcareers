@@ -1958,15 +1958,19 @@ function hintOn() { return !lsGet('sp_swipehint') && coarse(); }
 /* r52: "This week" holds the weekly report, Due next, Find Your Fit, the match check-in, the note from Steady Path, the feedback ask and
    the install card, under the matches. Closed by default; open state kept for the visit. Nothing inside: no fold. */
 var R52_SAM_EMPTY = '<img class="r52-sam" src="/img/sam/sam-wave.svg" alt="" width="72" height="106" loading="lazy" decoding="async">';
-function r52Week(inner) {
-  if (!inner) return '';
-  var items = dueItems(S.data), mine = items.filter(function (x) { return x.who === 'you'; }).length;
-  var soon = items.some(function (x) { var dd = x.when ? daysFrom(x.when) : null; return x.who === 'you' && dd != null && dd <= 1; }); /* overdue, today or tomorrow */
-  var open = S.tweekOpen != null ? S.tweekOpen : soon; /* something due by tomorrow opens it until the client closes it */
-  var sub = mine ? mine + (mine === 1 ? ' thing for you' : ' things for you') + ' in Due next' + (soon ? ', due soon' : '') + ', plus your weekly report' : 'Your weekly report and more';
-  return '<details class="tweek' + (soon ? ' soon' : '') + '"' + (open ? ' open' : '') + '><summary><span class="tw-h">This week</span><span class="tw-s">' + esc(sub) + '</span></summary><div class="tw-in">' + inner + '</div></details>';
+function r52Week(week, rest) {
+  var inner = week + rest; if (!inner) return '';
+  var items = dueItems(S.data).filter(function (x) { return x.who === 'you'; }), mine = items.length;
+  var soonN = items.filter(function (x) { var dd = x.when ? daysFrom(x.when) : null; return dd != null && dd <= 1; }).length; /* overdue, today or tomorrow */
+  var open = S.tweekOpen != null ? S.tweekOpen : soonN > 0; /* something due by tomorrow opens it until the client opens or closes it themselves */
+  var parts = [];
+  if (mine) parts.push(mine + (mine === 1 ? ' thing for you' : ' things for you') + ' in Due next' + (soonN ? ' (' + soonN + ' due by tomorrow)' : ''));
+  if (week) parts.push('your weekly report');
+  var sub = parts.length ? parts.join(', and ') : 'More for this week';
+  sub = sub.charAt(0).toUpperCase() + sub.slice(1);
+  return '<details class="tweek' + (soonN ? ' soon' : '') + '"' + (open ? ' open' : '') + '><summary><span class="tw-h">This week</span><span class="tw-s">' + esc(sub) + '</span></summary><div class="tw-in">' + inner + '</div></details>';
 }
-document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.classList && t.classList.contains('tweek')) S.tweekOpen = t.open; }, true);
+document.addEventListener('click', function (e) { var sm = e.target && e.target.closest && e.target.closest('.tweek > summary'); if (sm) S.tweekOpen = !sm.parentNode.open; }, true);
 function vJobs() {
   var d = S.data, c = counts(), cl = d.client, total = d.jobs.length, decided = total - c.wait;
   var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; });
@@ -1988,7 +1992,7 @@ function vJobs() {
     closedList(d) +
     (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '')) + '</div>' + (jl ? '</div>' : '') +
     r52Week(
-    (typeof r42WeekHtml === 'function' ? r42WeekHtml() : '') + /* r42: the weekly line, only when the API sends data.week */
+    (typeof r42WeekHtml === 'function' ? r42WeekHtml() : ''), /* r42: the weekly line, only when the API sends data.week */
     dueCard(d) + (typeof fitJobsCard === 'function' ? fitJobsCard() : '') + /* r27 */
     (typeof mcCard === 'function' ? mcCard(d) : '') + /* r35: weekly match check-in */
     (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Steady Path' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
@@ -2417,7 +2421,7 @@ function go(view, help) {
   } catch (e) {}
   S.flowBase = null; S.fxSig = null; S.fxHn = 0;
   S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.fbHelp = view === 'feedback' && !!help; /* r36: the Help button opens this view with the urgent box */ S.focusTo = '.ptitle h1'; var sc = S.scrollApp; render(); if (!sc || S.scrollApp) window.scrollTo(0, 0); }
-function signOut(msg) {
+function signOut(msg) { S.tweekOpen = null;
   flushDeferred(true);
   /* round 12: end this session on the server too (fire and forget), before the token is dropped here */
   if (S.token) { try { post({ action: 'signout', t: S.token }, true).catch(function () {}); } catch (e) {} }
@@ -2459,7 +2463,7 @@ function markApplied(jobId) {
     S.applyBusy = null;
     if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' });
       openAppCol(jobApp(j)); /* round 12: the Applied column that got it opens, and the card is scrolled into view there */ /* on the apply screen the done card says it, so no toast on top of it */
-      if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; } else toast('Nice work. It is on your Applied tab.');
+      if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; if (typeof r52SamCheer === 'function') r52SamCheer(); } else toast('Nice work. It is on your Applied tab.');
       var ax0 = jobApp(j); if (ax0 && !ax0.submittedOn) { ax0.submittedOn = todayISO(); ax0.lastUpdate = todayISO(); } r18MsCheck(false); } /* round 18 */
     else { if (r.error === 'expired') S.jobErr[j.id] = { msg: errText('expired'), re: true }; toast(errText(r.error, 'job')); }
     render();
