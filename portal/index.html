@@ -1644,7 +1644,7 @@ function approveOne(jobId, docId) {
     /* the last needed OK: the same hand-off to the apply screen as the main approve button */
     if (!nx && st.applyReady && !jobApp(j)) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
     if (nx && S.flow && S.flow.job === j.id) { S.flow.tab = nx.id; S.focusTo = '[data-rvtab="' + cssq(nx.id) + '"]'; toast(what + ' approved. Next: your ' + docNoun(nx) + '.'); }
-    else toast(what + ' approved. Thank you.');
+    else { toast(what + ' approved. Thank you.'); S.focusTo = '.ptitle h1'; }
     render();
   }, true);
 }
