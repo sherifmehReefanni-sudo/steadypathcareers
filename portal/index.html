@@ -1617,7 +1617,7 @@ function approveJob(jobId) {
     if (k >= ids.length) {
       S.rvBusy = false;
       if (jobState(j).applyReady && !jobApp(j) && S.flow && S.flow.job === j.id) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
-      else { toast('Approved. Thank you.'); render(); }
+      else { toast('Approved. Thank you.'); S.focusTo = '.ptitle h1'; render(); }
       return;
     }
     docStatus(ids[k], 'Approved', '', function (ok) { if (ok) step(k + 1); else { S.rvBusy = false; render(); } }, true);
@@ -1639,7 +1639,7 @@ function approveOne(jobId, docId) {
   docStatus(docId, 'Approved', '', function (ok) {
     S.rvBusy = false;
     if (!ok) { S.focusTo = '[data-rvok]'; render(); return; }
-    if (!S.flow || S.flow.job !== j.id) { toast(docLabel(x) + ' approved.'); render(); return; } /* the client moved on: no hand-off */
+    if (!S.flow || S.flow.job !== j.id) { toast(docLabel(x) + ' approved.'); S.focusTo = '.ptitle h1'; render(); return; } /* the client moved on: no hand-off */
     var st = jobState(j), nx = st.review[0], what = docLabel(x);
     /* the last needed OK: the same hand-off to the apply screen as the main approve button */
     if (!nx && st.applyReady && !jobApp(j)) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
@@ -2804,7 +2804,10 @@ document.addEventListener('click', function (e) {
       else S.logMsg = r.error === 'expired' ? 'Your sign-in has expired. Please sign in again.' : 'Sorry, that update didn\'t save. Please try again.';
       render(); });
     return; }
-  if (d.approve) { docStatus(d.approve, 'Approved', ''); return; }
+  if (d.approve) { var apId = d.approve; docStatus(apId, 'Approved', '', function (ok) { /* r53: focus stays with the document, not the page body */
+      var dx = S.data.docs.filter(function (y) { return y.id === apId; })[0];
+      S.focusTo = !ok ? '[data-approve="' + cssq(apId) + '"]' : dx && safeUrl(dx.link) ? '[data-doc="' + cssq(apId) + '"] .acts a' : '.ptitle h1';
+      render(); }); return; }
   if (d.changes) { S.changesFor = d.changes; S.changesDraft = ''; S.changesErr = ''; S.focusTo = '#changesText'; render(); return; }
   if (d.sendchanges) { var t = $('#changesText'); var txt = t ? t.value : '';
     if (!txt.trim()) { S.changesErr = 'Write what should change first, then tap Send.'; S.changesDraft = txt; S.focusTo = '#changesText'; render(); return; } /* never post an empty request */

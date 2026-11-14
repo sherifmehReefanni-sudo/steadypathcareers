@@ -586,3 +586,9 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
 .sec.band-paper{background:var(--paper)}
 @media (max-width:600px){.tools.cards{align-items:flex-start}}
 .band-paper .ticker{--tk-bg:var(--paper)}
+
+/* r53: the transcript lives inside the video player, closed until asked for */
+dialog.vid{max-height:100vh;overflow:auto}
+dialog.vid .vtx{margin:12px auto 0;color:#E6EBF4;text-align:left}
+dialog.vid .vtx summary{cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;font:700 .95rem Manrope,system-ui,sans-serif;text-decoration:underline;text-underline-offset:4px}
+dialog.vid .vtx p{margin:6px 0 0;max-height:38vh;overflow:auto;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.08);font-size:.95rem;line-height:1.6}
