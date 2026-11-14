@@ -5,14 +5,14 @@
   /* Welcome video. While WELCOME_VIDEO is empty, the hero "Watch how it works" button, the "Watch" links
      and the whole theater section stay hidden. Set it to the mp4 path (for example '/img/welcome.mp4') and,
      if you have one, WELCOME_POSTER to a still image, and they all appear. */
-  var WELCOME_VIDEO = '/media/welcome.mp4';
-  var WELCOME_POSTER = '/media/welcome-poster.jpg';
+  var WELCOME_VIDEO = '/media/welcome-r49.mp4';
+  var WELCOME_POSTER = '/media/welcome-r49-poster.jpg';
   /* The video's length as words (for example '53 seconds') and its chapters as [time, what it covers] pairs
      (for example [['0:00', 'Real jobs, with the pay right there'], ['0:10', '...']]). Fill these from the final cut.
      While they are empty, no length and no chapter list are shown anywhere. */
-  var WELCOME_LENGTH = '59 seconds';
-  var WELCOME_CAPTIONS = '/media/welcome.vtt';
-  var WELCOME_CHAPTERS = [['0:00', 'An application sent into the dark'], ['0:10', 'Why we built Steady Path Careers'], ['0:16', 'Find Your Fit'], ['0:25', 'Openings checked on the employer\'s own site'], ['0:30', 'What happens when you say yes'], ['0:44', 'You stay in control']];
+  var WELCOME_LENGTH = '1 minute 6 seconds';
+  var WELCOME_CAPTIONS = '/media/welcome-r49.vtt';
+  var WELCOME_CHAPTERS = [['0:00', 'How it works, start to finish'], ['0:04', 'Start free: about 15 minutes, no card'], ['0:12', 'Real openings, checked on the employer\'s own site'], ['0:20', 'A resume and cover letter for each job you say yes to'], ['0:30', 'You send every application yourself'], ['0:36', 'Follow-ups tracked in your portal'], ['0:42', 'Interview practice and offer checks'], ['0:51', 'Free for 14 days, then $99 a month']];
 
   var root = document.documentElement;
   function $(id) { return document.getElementById(id); }
@@ -297,7 +297,8 @@
     if (scrn && WELCOME_POSTER) { var im = new Image(); im.alt = ''; im.className = 'poster'; im.loading = 'lazy'; im.width = 720; im.height = 1280; im.src = WELCOME_POSTER; scrn.insertBefore(im, scrn.firstChild); scrn.classList.add('has-poster'); }
     var ch = $('chapters');
     if (ch && WELCOME_CHAPTERS.length) {
-      ch.innerHTML = WELCOME_CHAPTERS.map(function (c) { return '<li><b>' + esc(c[0]) + '</b><span>' + esc(c[1]) + '</span></li>'; }).join('');
+      /* r49: each chapter is a button that opens the video at that point */
+      ch.innerHTML = WELCOME_CHAPTERS.map(function (c) { var p = c[0].split(':'), sec = (+p[0]) * 60 + (+p[1]); return '<li><button type="button" data-video data-at="' + sec + '" aria-label="Play from ' + esc(c[0]) + ', ' + esc(c[1]) + '"><b>' + esc(c[0]) + '</b><span>' + esc(c[1]) + '</span></button></li>'; }).join('');
       ch.hidden = false;
     }
     all('[data-video]').forEach(function (b) {
@@ -313,6 +314,8 @@
           box.classList.add('has-video'); box.appendChild(v);
         }
         d.showModal();
+        var at = +(b.getAttribute('data-at') || 0);
+        if (at) { if (v.readyState >= 1) { try { v.currentTime = at; } catch (e) {} } else { v.preload = 'metadata'; v.addEventListener('loadedmetadata', function () { try { v.currentTime = at; } catch (e) {} }, { once: true }); } }
         var p = v.play(); if (p && p.catch) p.catch(function () {});
       });
     });

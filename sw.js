@@ -8,7 +8,7 @@ ASSETS = ASSETS.concat(['/portal/', '/assets/portal-r18.css?v=sp-20261113r47', '
 /* r27: Find Your Fit files (r35: deeper quiz, work preferences, weekly match check-in; r36: score meaning line) */
 ASSETS = ASSETS.concat(['/assets/fit-r35.css?v=sp-20261112r36', '/assets/fit-r35.js?v=sp-20261113r47']);
 /* r37: new home page files */
-ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261113r48', '/assets/home-r37.js?v=sp-20261113r47']);
+ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261114r49', '/assets/home-r37.js?v=sp-20261114r49']);
 /* r42: portal revamp files (Home, five destinations) */
 ASSETS = ASSETS.concat(['/assets/portal-r42.css?v=sp-20261113r47', '/assets/portal-r42.js?v=sp-20261113r47']);
 /* r44: portal Home redesign and the client tools (follow-ups, offer check, interview practice) with their data files */
