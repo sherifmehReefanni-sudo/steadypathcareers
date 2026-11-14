@@ -162,7 +162,8 @@ if (typeof document !== 'undefined') {
       var r = roads[i];
       if (r.classList.contains('jm-tight')) r.classList.remove('jm-tight');
       var box = r.parentElement, cs = getComputedStyle(box), rr = r.getBoundingClientRect(), br = box.getBoundingClientRect();
-      var right = br.right - (parseFloat(cs.paddingRight) || 0) - (parseFloat(cs.borderRightWidth) || 0);
+      /* the card's padding may hold the road (it did before r49); only past the card's inner border edge is too wide */
+      var right = br.right - (parseFloat(cs.borderRightWidth) || 0);
       if (r.scrollWidth > r.clientWidth + 1 || rr.right > right + 0.5 || document.documentElement.scrollWidth > window.innerWidth + 1 && rr.right > window.innerWidth) r.classList.add('jm-tight');
     }
   }
