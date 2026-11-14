@@ -81,7 +81,6 @@
 }
 .t45-said { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; } /* always in the page for screen readers; the words a sighted client sees are the line in the card */
 .t45-starline { margin: 6px 0 2px; padding: 8px 10px; border-radius: 10px; background: rgba(227,179,65,.2); color: var(--ink); font-size: 13.5px; font-weight: 700; line-height: 1.35; }
-.t45-starline.up { margin: 0 0 8px; } /* r49: the same line above the star's row, used when there is no room under it */
 @media (max-width: 379px) {
   .t45 { gap: 8px; }
   .t45-note { font-size: 13.5px; line-height: 1.4; }

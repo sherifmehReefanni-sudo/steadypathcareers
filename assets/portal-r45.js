@@ -114,6 +114,10 @@ if (typeof document !== 'undefined') {
     said.textContent = R48_STARNOTE;
     clearTimeout(r48Say.t); r48Say.t = setTimeout(function () { var el = document.querySelector('[data-tfsaid]'); if (el) el.textContent = ''; }, 9000);
   };
+  /* r49: pressing a star does not give it focus natively (the browser then scrolled a star near the tab bar 5 to 9px into view under the finger); the click handler focuses it without moving the page */
+  document.addEventListener('mousedown', function (e) { if (e.button === 0 && e.target.closest && e.target.closest('[data-tfstar]') && S.view === 'training') e.preventDefault(); });
+  /* and the portal's rule that lifts a focused control clear of the tab bar (assets/portal-r42.js) is not applied to that focus: the star was just tapped where it is, so it stays there */
+  var r49Keep = null; document.addEventListener('focusin', function (e) { if (r49Keep && e.target === r49Keep) e.stopImmediatePropagation(); }, true);
   (function () { var base = go; go = function (v) { if (v !== 'training') { S.tfSaidId = null; S.tfSaidUp = false; } return base.apply(this, arguments); }; })();
   var r48Cut = function (c) { if (!c) return; var max = c.scrollWidth - c.clientWidth; c.classList.toggle('cut-r', max > 1 && c.scrollLeft < max - 1); c.classList.toggle('cut-l', c.scrollLeft > 1); };
   var r48Open = function (on, focus) {
@@ -136,7 +140,7 @@ if (typeof document !== 'undefined') {
   document.addEventListener('click', function (e) {
     if (!e.target.closest || !r44On() || S.view !== 'training' || !R44.training) return;
     var b = e.target.closest('[data-tfstar]');
-    if (b) { var id = b.getAttribute('data-tfstar'), s = r45Stars(), y0 = b.getBoundingClientRect().top; if (s[id]) delete s[id]; else s[id] = todayISO(); var saved = r44Save(); r45Patch(); if (s[id] && saved && !S.tfSaid) { S.tfSaid = true; r48Say(id); } else if (s[id] && S.tfSaidId === id) r49Place(id); var again = document.querySelector('[data-tfstar="' + cssq(id) + '"]'); if (again) { var dy = again.getBoundingClientRect().top - y0; if (Math.abs(dy) >= 1) { try { window.scrollTo({ top: window.scrollY + dy, behavior: 'instant' }); } catch (e3) { window.scrollBy(0, dy); } } /* r49: a line added or removed above the star is matched in the same moment, before anything is drawn, so the star stays under the finger */ try { again.focus({ preventScroll: true }); } catch (e2) { again.focus(); } } /* r48 review: focus goes back to the star without moving the page, so the star stays under the finger for a second tap */ if (!saved) toast('This device would not save it.'); return; }
+    if (b) { var id = b.getAttribute('data-tfstar'), s = r45Stars(), y0 = b.getBoundingClientRect().top; if (s[id]) delete s[id]; else s[id] = todayISO(); var saved = r44Save(); r45Patch(); if (s[id] && saved && !S.tfSaid) { S.tfSaid = true; r48Say(id); } else if (s[id] && S.tfSaidId === id) r49Place(id); var again = document.querySelector('[data-tfstar="' + cssq(id) + '"]'); if (again) { var dy = again.getBoundingClientRect().top - y0; if (Math.abs(dy) >= 1) { try { window.scrollTo({ top: window.scrollY + dy, behavior: 'instant' }); } catch (e3) { window.scrollBy(0, dy); } } /* r49: a line added or removed above the star is matched in the same moment, before anything is drawn, so the star stays under the finger */ r49Keep = again; try { again.focus({ preventScroll: true }); } catch (e2) { again.focus(); } r49Keep = null; } /* r48 review: focus goes back to the star without moving the page, so the star stays under the finger for a second tap */ if (!saved) toast('This device would not save it.'); return; }
     if (e.target.closest('[data-tfopen]')) { r48Open(!S.tfOpen, false); return; }
     if (e.target.closest('[data-tfclose]')) { r48Open(false, true); return; }
     var chip = e.target.closest('[data-tfdrop]');
