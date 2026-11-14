@@ -585,3 +585,4 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
 /* r51 review fixes: Is this for you? on white, not tan; tool cards only as tall as their text on phones */
 .sec.band-paper{background:var(--paper)}
 @media (max-width:600px){.tools.cards{align-items:flex-start}}
+.band-paper .ticker{--tk-bg:var(--paper)}
