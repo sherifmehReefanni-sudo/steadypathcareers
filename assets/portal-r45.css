@@ -81,6 +81,7 @@
 }
 .t45-said { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; } /* always in the page for screen readers; the words a sighted client sees are the line in the card */
 .t45-starline { margin: 6px 0 2px; padding: 8px 10px; border-radius: 10px; background: rgba(227,179,65,.2); color: var(--ink); font-size: 13.5px; font-weight: 700; line-height: 1.35; }
+.t45-starline.up { margin: 0 0 8px; } /* r49: the same line above the star's row, used when there is no room under it */
 @media (max-width: 379px) {
   .t45 { gap: 8px; }
   .t45-note { font-size: 13.5px; line-height: 1.4; }
@@ -145,3 +146,15 @@
 }
 /* the finder's list fills the frame: three programs across from 1280 */
 @media (min-width: 1280px) { #app .pmain.t45 > #tfOut { max-width: none; } .t45-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* r49: the Jobs road. Each stage column is at least as wide as its longest word, so a marker ("Example · Associate") and a
+   stage name ("Interview") are never cut at the right or broken inside a word at 320 and 360; spare width is shared equally,
+   so from 390 up the columns are equal as before. */
+.jm { grid-template-columns: repeat(5, minmax(min-content, 1fr)); }
+#app .jm-l, #app .jm-m { overflow-wrap: normal; word-break: normal; }
+@media (max-width: 374px) { .jm { column-gap: 4px; } .jm .jm-l { font-size: 12px; } } /* at 320 "Applied" and "Interview" keep a space between them */
+/* r49: on the desktop board the interview button ("Interview practice") stays on one line beside More at every width from
+   1024: a little less side padding, and room up to exactly More's width and the gap. Longer words still wrap whole. */
+@media (min-width: 1024px) {
+  .board .app > .bd-fold + .pv-cta { max-width: calc(100% - 50px); }
+  .board .app > .pv-cta .btn { padding-left: 6px; padding-right: 6px; }
+}
