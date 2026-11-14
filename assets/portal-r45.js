@@ -180,3 +180,23 @@ if (typeof document !== 'undefined') {
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
+
+/* r52: Sam pops up for a moment after an approval, a sent application or an offer. Decorative only (aria-hidden); the toast still says what happened. */
+(function () {
+  var CHEER = /^Approved\.|approved\. Thank you\.|^Nice work\. It is on your Applied tab\.|^An offer!/;
+  function samCheer() {
+    var old = document.querySelector('.r52-cheer'); if (old) old.remove();
+    var d = document.createElement('div'); d.className = 'r52-cheer'; d.setAttribute('aria-hidden', 'true');
+    d.innerHTML = '<img src="/img/sam/sam-cheer.svg" alt="" width="96" height="141">';
+    document.body.appendChild(d);
+    setTimeout(function () { if (d.parentNode) d.remove(); }, 2300);
+  }
+  function wrap() {
+    if (typeof window.toast !== 'function' || window.toast.r52) return;
+    var orig = window.toast;
+    var w = function (t) { var r = orig.apply(this, arguments); try { if (CHEER.test(String(t || ''))) samCheer(); } catch (e) {} return r; };
+    w.r52 = true; window.toast = w;
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wrap); else wrap();
+  window.r52SamCheer = samCheer;
+})();

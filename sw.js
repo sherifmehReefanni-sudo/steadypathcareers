@@ -1,5 +1,5 @@
 /* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage, and a page opened with ?t= or ?k= is not stored at all. Assets: cache first. API calls (script.google.com) are never touched, so no client data is ever cached. */
-var V = 'sp-20261114r51';
+var V = 'sp-20261114r52';
 var ASSETS = ['/', '/offline.html', '/assets/site.css?v=sp-20261110r30', '/assets/site.js?v=sp-20261112r43', '/assets/path.css?v=sp-20261110r30', '/assets/path.js?v=20261026a', '/assets/r17.css?v=sp-20261110r30', '/assets/r17.js?v=20261106a', '/assets/portal.css?v=sp-20261113r48', '/assets/portal.js?v=20261024e', '/assets/fx.js?v=20261024d', '/assets/intake.js?v=20261024d', '/assets/intake2.js?v=sp-20261113r47', '/assets/theme.css?v=sp-20261113r47', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
 /* r43: '/' is precached, so the home page opens offline after one visit (stored under its path, the key navigations look up). Nothing under /media/ is ever precached. */
 /* r26: new logo. Install fetches every file above past the browser's HTTP cache (cache: 'reload'), so the new mark and icons arrive fresh. */
@@ -14,7 +14,7 @@ ASSETS = ASSETS.concat(['/assets/portal-r42.css?v=sp-20261113r47', '/assets/port
 /* r44: portal Home redesign and the client tools (follow-ups, offer check, interview practice) with their data files */
 ASSETS = ASSETS.concat(['/assets/portal-r44.css?v=sp-20261113r48', '/assets/portal-r44.js?v=sp-20261113r47', '/assets/data/followup-scripts.json', '/assets/data/interview-bank.json']);
 /* r45: training and benefits finder */
-ASSETS = ASSETS.concat(['/assets/portal-r45.css?v=sp-20261114r49', '/assets/portal-r45.js?v=sp-20261114r49', '/assets/data/training-finder.json']);
+ASSETS = ASSETS.concat(['/assets/portal-r45.css?v=sp-20261114r52', '/assets/portal-r45.js?v=sp-20261114r52', '/img/sam/sam-cheer.svg', '/img/sam/sam-wave.svg', '/assets/data/training-finder.json']);
 /* r38: the How we check every job page */
 ASSETS = ASSETS.concat(['/how-we-check/']);
 self.addEventListener('install', function (e) {

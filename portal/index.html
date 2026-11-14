@@ -902,7 +902,7 @@ window.SP_DEMO = function () {
 <link rel="stylesheet" href="/assets/theme.css?v=sp-20261113r47">
 <link rel="stylesheet" href="../assets/portal-r42.css?v=sp-20261113r47">
 <link rel="stylesheet" href="../assets/portal-r44.css?v=sp-20261113r48">
-<link rel="stylesheet" href="../assets/portal-r45.css?v=sp-20261114r49">
+<link rel="stylesheet" href="../assets/portal-r45.css?v=sp-20261114r52">
 </head>
 <body>
 <div id="app"><div class="skel">Opening your portal…</div></div>
@@ -1955,6 +1955,18 @@ function closedList(d) {
 }
 function coarse() { try { return matchMedia('(pointer: coarse)').matches; } catch (e) { return false; } }
 function hintOn() { return !lsGet('sp_swipehint') && coarse(); }
+/* r52: "This week" holds the weekly report, Due next, Find Your Fit, the match check-in, the note from Steady Path, the feedback ask and
+   the install card, under the matches. Closed by default; open state kept for the visit. Nothing inside: no fold. */
+var R52_SAM_EMPTY = '<img class="r52-sam" src="/img/sam/sam-wave.svg" alt="" width="72" height="106" loading="lazy" decoding="async">';
+function r52Week(inner) {
+  if (!inner) return '';
+  var items = dueItems(S.data), mine = items.filter(function (x) { return x.who === 'you'; }).length;
+  var soon = items.some(function (x) { var dd = x.when ? daysFrom(x.when) : null; return x.who === 'you' && dd != null && dd <= 1; }); /* overdue, today or tomorrow */
+  var open = S.tweekOpen != null ? S.tweekOpen : soon; /* something due by tomorrow opens it until the client closes it */
+  var sub = mine ? mine + (mine === 1 ? ' thing for you' : ' things for you') + ' in Due next' + (soon ? ', due soon' : '') + ', plus your weekly report' : 'Your weekly report and more';
+  return '<details class="tweek' + (soon ? ' soon' : '') + '"' + (open ? ' open' : '') + '><summary><span class="tw-h">This week</span><span class="tw-s">' + esc(sub) + '</span></summary><div class="tw-in">' + inner + '</div></details>';
+}
+document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.classList && t.classList.contains('tweek')) S.tweekOpen = t.open; }, true);
 function vJobs() {
   var d = S.data, c = counts(), cl = d.client, total = d.jobs.length, decided = total - c.wait;
   var pos = {}; (S.order || []).forEach(function (id, i) { pos[id] = i; });
@@ -1968,18 +1980,20 @@ function vJobs() {
   return shell('jobs', esc(title), 'Every job we send shows pay as the employer posted it, and is checked on the employer\'s own careers site or applicant system.' + (d.jobs.some(function (j) { return floorPill(j.floor); }) ? ' ' + esc(FLOOR_DEF) : '')) + '<div class="pband" aria-hidden="true"></div>' +
     '<main class="pmain' + (jl ? ' xl' : '') + '">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') +
     '<div class="hello"><b>' + esc(SP.greeting(cl.firstName)) + '</b>' + (billOn() ? '<span class="hl-r"><span>' + esc(billHello(cl)) + '</span><button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button></span>' : '<span>' + esc(trialText(cl)) + '</span>') + (typeof fitHello === 'function' ? fitHello() : '') + '</div>' +
-    (typeof r42WeekHtml === 'function' ? r42WeekHtml() : '') + /* r42: the weekly line, only when the API sends data.week */
-    nxCard(n) + dueCard(d) + (typeof fitJobsCard === 'function' ? fitJobsCard() : '') + /* r27 */
-    (typeof mcCard === 'function' ? mcCard(d) : '') + /* r35: weekly match check-in */
+    nxCard(n) + /* r52: the next step, then the jobs themselves; the rest of the week sits in one fold below the list */
     (total ? '<div class="prog"><div class="lbl">' + decided + ' of ' + total + ' decided</div><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + total + '" aria-valuenow="' + decided + '" aria-label="Jobs decided"><i style="width:' + Math.round(decided / total * 100) + '%"></i></div></div>' : '') +
     jmap(sorted) +
-    (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Steady Path' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
-    (fbDue(cl) ? '<div class="fbask"><p>One minute? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
-    installCard() +
     (jl ? '<div class="jl">' : '') + jfx.head + '<div class="jfres" data-jfres>' + (jl ? jlPanes(d, jfx, main, passed, hintId) : jfx.on ? jfx.body :
-    (main.length ? (jfx.show ? '' : '<h2 class="sec-h">Your matches</h2>') + '<div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs"><p class="psub" style="margin:0">' + ((d.closed || []).length ? 'No open matches right now. New ones show up here.' : 'Nothing here yet. You will get an email when your first jobs arrive.') + '</p></div>') +
+    (main.length ? (jfx.show ? '' : '<h2 class="sec-h">Your matches</h2>') + '<div class="jlist">' + main.map(function (j) { return jobCard(j, j.id === hintId); }).join('') + '</div>' : total ? '' : '<div class="card empty e-jobs">' + R52_SAM_EMPTY + '<p class="psub" style="margin:0">' + ((d.closed || []).length ? 'No open matches right now. New ones show up here.' : 'Nothing here yet. You will get an email when your first jobs arrive.') + '</p></div>') +
     closedList(d) +
     (passed.length ? '<div class="passed"><button data-passed aria-expanded="' + !!S.passedOpen + '" aria-controls="passedList">Passed (' + passed.length + ')' + IC.chev + '</button>' + (S.passedOpen ? '<div class="jlist" id="passedList">' + passed.map(function (j) { return jobCard(j, false); }).join('') + '</div>' : '') + '</div>' : '')) + '</div>' + (jl ? '</div>' : '') +
+    r52Week(
+    (typeof r42WeekHtml === 'function' ? r42WeekHtml() : '') + /* r42: the weekly line, only when the API sends data.week */
+    dueCard(d) + (typeof fitJobsCard === 'function' ? fitJobsCard() : '') + /* r27 */
+    (typeof mcCard === 'function' ? mcCard(d) : '') + /* r35: weekly match check-in */
+    (cl.weeklyNote ? '<div class="wnote' + (longNote && !S.noteOpen ? ' clamp' : '') + '"><div class="av" aria-hidden="true">S</div><div><div class="from">From Steady Path' + (cl.lastTouch && /^\d{4}-/.test(cl.lastTouch) ? ' · ' + esc(fmtDate(cl.lastTouch)) : '') + '</div><p>' + esc(cl.weeklyNote) + '</p>' + (longNote ? '<button class="more" data-morenote aria-expanded="' + !!S.noteOpen + '">' + (S.noteOpen ? 'Show less' : 'Read more') + '</button>' : '') + '</div></div>' : '') +
+    (fbDue(cl) ? '<div class="fbask"><p>One minute? Tell us how it is going.</p><button class="btn gold" data-go="feedback">Give feedback</button></div>' : '') +
+    installCard()) +
     (typeof fitJobsCredit === 'function' ? fitJobsCredit(d) : '') + /* r27: O*NET Database credit for the interest lines */
     '<footer class="help"><p><b>Need help?</b> ' + helpHtml() + '</p><button class="linkbtn" data-signout>Sign out on this device</button></footer>' +
     '</main>' + tabbar('jobs');
@@ -1998,7 +2012,7 @@ function vDocs() {
       return '<section class="dgrp' + (g.docs.some(function (x) { return x.closedJob; }) ? ' closed' : '') + '"><h2>' + (g.job ? esc(g.job.title) + '<span>' + esc(g.job.company) + '</span>' : g.k ? 'For job ' + esc(g.k) : 'General') + '</h2>' +
         (g.docs.some(function (x) { return x.closedJob; }) ? '<p class="cnote">This posting is no longer open, so these don\'t need your OK. They stay here for your records.</p>' : '') +
         (g.job && g.docs.some(needsOk) ? '<button class="kbtn solid guide" data-review="' + esc(g.job.id) + '">' + IC.docs + 'Read them here</button>' : '') + g.docs.map(docCard).join('') + '</section>';
-    }).join('') : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your resume draft will show up here for your OK.</p></div>') + '</main>' + tabbar('docs');
+    }).join('') : '<div class="card empty e-docs">' + R52_SAM_EMPTY + '<p class="psub" style="margin:0">Your resume draft will show up here for your OK.</p></div>') + '</main>' + tabbar('docs');
 }
 /* "Resume" instead of "Resume for Example Dental Arts" inside a job's group, only when the name starts with that kind,
    the job is known and no other document in the group is of the same kind; otherwise the full name */
@@ -3624,6 +3638,6 @@ document.addEventListener('click', function (e) {
 <script src="../assets/fit-r35.js?v=sp-20261113r47"></script>
 <script src="../assets/portal-r42.js?v=sp-20261113r47"></script>
 <script src="../assets/portal-r44.js?v=sp-20261113r47"></script>
-<script src="../assets/portal-r45.js?v=sp-20261114r49"></script>
+<script src="../assets/portal-r45.js?v=sp-20261114r52"></script>
 </body>
 </html>
