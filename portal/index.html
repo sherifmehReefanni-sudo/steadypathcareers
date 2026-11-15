@@ -2041,7 +2041,12 @@ function docCard(x, i, grp) {
 /* ---- applied ---- */
 /* Applied board: 0 Applied, 1 Heard back, 2 Interview, 3 Offer, 4 Closed (declined either way, withdrew, posting gone). Closed words win,
    so "Offer declined" or a rejection after an interview never sits in Offer or Interview. */
-function stageOf(x) { var t = String(x.status || '').toLowerCase(); if (/reject|declin|turned it down|not selected|closed|no longer|withdr|no offer|not hired|rescind|filled|not moving|not proceed|unsuccessful|passed on|went with another/.test(t)) return 4; if (/offer|hired|accepted/.test(t)) return 3; if (x.interview || /interview/.test(t)) return 2; if (/reply|heard|screen|call|contact/.test(t)) return 1; return 0; }
+/* Nov 15: Status is a fixed list (the backend's APP_STATUSES_, which is also the sheet's Status dropdown, plus "Offer accepted").
+   The stage comes from the exact words (any case, extra spaces ignored), never from guessing at free text: "Waiting on callback" is not
+   "Heard back". Text off the list (typed before the dropdown) counts as Closed only when it reads as closed, as Interview when an
+   interview date is set, and otherwise as Applied. An interview date lifts Applied or Heard back to Interview, as before. */
+var STAGE_BY_STATUS = { 'applied': 0, 'heard back': 1, 'interview scheduled': 2, 'interviewed, waiting to hear': 2, 'next round': 2, 'offer': 3, 'offer accepted': 3, 'hired': 3, 'employer declined': 4, 'i turned it down': 4, 'declined': 4, 'withdrew': 4 };
+function stageOf(x) { var t = String(x.status || '').replace(/\s+/g, ' ').trim().toLowerCase(); if (Object.prototype.hasOwnProperty.call(STAGE_BY_STATUS, t)) { var s = STAGE_BY_STATUS[t]; return s < 2 && x.interview ? 2 : s; } if (/reject|declin|turned it down|not selected|closed|no longer|withdr|no offer|not hired|rescind|filled|not moving|not proceed|unsuccessful|passed on|went with another/.test(t)) return 4; return x.interview ? 2 : 0; }
 function prepQs(x) { return lines(x && x.prepExpect); }
 function lines(t) { return String(t || '').split(/\n|;|(?:\s\d+\.\s)/).map(function (z) { return z.trim(); }).filter(String); }
 var APP_STATUS = ['Applied', 'Heard back', 'Interview scheduled', 'Interviewed, waiting to hear', 'Next round', 'Offer', 'Hired', 'Employer declined', 'I turned it down', 'Withdrew']; /* round 18: Hired (API v1.29) */
