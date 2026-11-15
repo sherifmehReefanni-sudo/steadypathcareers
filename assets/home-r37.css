@@ -111,18 +111,25 @@ p{margin:0}
 .sec-head .lede{margin-top:16px}
 
 /* checker */
-.chk{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:28px;align-items:start}
-.posts{display:grid;gap:10px}
+.chk{display:grid;gap:22px}
+.posts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.posts .fine{grid-column:1/-1;margin-top:0}
 .post{all:unset;box-sizing:border-box;cursor:pointer;display:block;width:100%;padding:18px 20px;border-radius:var(--r-m);background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--line)}
 .post[aria-pressed="true"]{box-shadow:inset 0 0 0 2.5px var(--accent),var(--shadow)}
 .post b{display:block;font-size:1.08rem;letter-spacing:-.01em}
 .post span{font-size:.92rem;color:var(--ink-2)}
-.ticket{background:var(--paper);border-radius:var(--r-l);padding:28px;box-shadow:var(--shadow)}
-.ticket h3{font-size:1.3rem}
-.ticket .meta{color:var(--ink-2);font-size:.95rem;margin-top:4px}
-.steps{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:4px}
-.steps li{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;padding:11px 0;border-top:1px solid var(--line);opacity:.35;transition:opacity .3s}
-.steps li.on{opacity:1}
+.ticket{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:22px;align-items:start}
+.tjob,.tlist{background:var(--paper);border-radius:var(--r-l);box-shadow:var(--shadow)}
+.tjob{padding:26px}
+.tjob .tpay{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;line-height:1.2}
+.tjob h3{font-size:1.2rem;margin-top:10px}
+.tjob .meta{color:var(--ink-2);font-size:.95rem;margin-top:4px}
+.tlist{padding:10px 26px 24px}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.steps li{display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start;padding:11px 0;border-top:1px solid var(--line)}
+.steps li:first-child{border-top:0}
+@media (prefers-reduced-motion:no-preference){.steps.live li.on i{animation:tick .32s cubic-bezier(.2,.8,.2,1)}}
+@keyframes tick{from{transform:scale(.4)}to{transform:none}}
 .steps i{width:26px;height:26px;border-radius:50%;display:grid;place-content:center;font-style:normal;font-weight:800;font-size:.85rem;background:var(--soft);color:var(--ink-2)}
 .steps li.pass i{background:var(--ok-bg);color:var(--ok)}
 .steps li.fail i{background:var(--bad-bg);color:var(--bad)}
@@ -143,9 +150,10 @@ p{margin:0}
 
 /* week */
 .week{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;counter-reset:w}
-.week li{position:relative;padding:34px 24px 0 0;counter-increment:w}
-.week li::before{content:"";position:absolute;top:8px;left:0;right:0;height:3px;background:var(--gold);border-radius:2px}
-.week li::after{content:"";position:absolute;top:0;left:0;width:19px;height:19px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--page)}
+.week li{position:relative;padding:126px 24px 0 0;counter-increment:w}
+.week li::before{content:"";position:absolute;top:92px;left:0;right:0;height:3px;background:var(--gold);border-radius:2px}
+.week li::after{content:"";position:absolute;top:84px;left:0;width:19px;height:19px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--page)}
+.week .sam-step{position:absolute;top:0;left:30px;width:64px;height:auto}
 .sec.soft .week li::after{box-shadow:0 0 0 4px var(--soft)}
 .week .when{font-family:Newsreader,serif;font-style:italic;font-size:1.12rem;color:var(--ink-2)}
 .week h3{margin:6px 0 8px}
@@ -161,7 +169,8 @@ p{margin:0}
 .price{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:48px;align-items:start}
 .pbox{background:var(--night);color:#fff;border-radius:var(--r-l);padding:36px;box-shadow:var(--shadow)}
 .pbox .big{font-size:clamp(3rem,7vw,4.6rem);font-weight:800;letter-spacing:-.05em;line-height:1}
-.pbox .then{margin-top:14px;font-size:1.12rem;color:#D5DCEA}
+.pbox .btn{margin-top:24px}
+.pbox .then{margin-top:20px;font-size:1rem;color:#E6EBF4}
 .pbox .then b{color:var(--gold-2)}
 .pbox ul{margin:22px 0 26px;padding:0;list-style:none;display:grid;gap:9px;color:#D5DCEA;font-size:.98rem}
 .pbox li::before{content:"✓";color:var(--gold-2);font-weight:800;margin-right:10px}
@@ -198,7 +207,6 @@ footer .brand{color:#fff;margin-right:auto}
 .theater{background:#10213A;color:#fff;padding:clamp(56px,8vw,104px) 0}
 .theater .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,330px);gap:64px;align-items:center}
 .theater h2{font-size:clamp(2rem,4.4vw,3.1rem)}
-.theater .lede{color:#C5CEDF;margin-top:16px}
 .chapters{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:2px}
 .chapters li{border-top:1px solid rgba(255,255,255,.14)}
 .chapters li button{display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:baseline;width:100%;padding:13px 6px;margin:0;border:0;border-radius:8px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background-color .15s}
@@ -284,6 +292,10 @@ dialog.vid .x{display:block;margin:14px auto 0;min-height:44px;padding:0 22px;bo
   .week{grid-template-columns:minmax(0,1fr);gap:0}
   .week li{padding:0 0 30px 40px}
   .week li::before{top:0;bottom:0;left:8px;right:auto;width:3px;height:auto}
+  .week li::after{top:0}
+  .week li{display:flow-root}
+  .week .sam-step{position:static;float:right;width:56px;margin:0 0 6px 12px}
+  .ticket{grid-template-columns:minmax(0,1fr);gap:14px}
   .tools{grid-template-columns:minmax(0,1fr)}
   .horizon{height:150px;margin-top:44px}
   .seg-row{border-radius:22px}
@@ -343,12 +355,13 @@ html.js .fields-text{position:absolute;width:1px;height:1px;overflow:hidden;clip
 .radar-fig{margin:0;display:grid;justify-items:center;gap:6px}
 .credit{font-size:.88rem;color:var(--ink-2);margin:0 0 24px;max-width:38em}
 .fit ul{margin-bottom:18px}
+.fit-where{font-weight:700;margin:0 0 14px}
 
 /* price box and FAQ */
-.pbox ul{margin-bottom:18px}
+.pbox ul{margin:14px 0 18px}
 .pbox li{display:grid;grid-template-columns:22px 1fr}
 .pbox li::before{margin-right:0}
-.pbox .terms{font-size:.92rem;color:#C5CEDF;margin:0 0 26px}
+.pbox .terms{font-size:.88rem;color:#C5CEDF;margin:0}
 @media (min-width:901px){.pbox{position:sticky;top:24px}}
 .faq h2{margin-bottom:22px}
 .faq details p{overflow-wrap:anywhere}
@@ -370,7 +383,6 @@ footer .brand img{width:30px;height:30px;border-radius:8px}
 .b-no{color:#8F2B21}
 .deck-btns button:disabled{opacity:1;background:#D5DCEA;color:#33415A}
 /* steps not reached yet are marked by a lighter weight, a hollow number and the words "Not checked", never by faded text */
-.steps li{opacity:1;transition:none}
 .steps li:not(.on) b{font-weight:500;color:var(--ink-2)}
 .steps li:not(.on) small{font-style:italic}
 .steps li:not(.on) i{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-2)}
@@ -387,7 +399,7 @@ footer .brand img{width:30px;height:30px;border-radius:8px}
 /* reduced motion: nothing waits, nothing slides */
 @media (prefers-reduced-motion:reduce){
   .ba.swap .after{animation:none}
-  .steps li,.btn,.tools a,.screen .play,#radarShape,.week li::before{transition:none}
+  .btn,.tools a,.screen .play,#radarShape,.week li::before{transition:none}
   .ticker::before,.ticker::after{display:none}
   .ticker div{justify-content:center;padding:0 20px}
 }
@@ -492,22 +504,12 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
 .sec.band-mint{background:var(--mint)}
 .sec.band-sky{background:var(--skyband)}
 .sec.band-gold{background:linear-gradient(160deg,var(--goldband-a),var(--goldband-b))}
-.sec.band-navy{background:var(--night);color:#fff;--focus:#E3B341}
-.band-mint .post,.band-mint .ticket{box-shadow:inset 0 0 0 1.5px var(--mint-2),var(--shadow)}
+.band-mint .post,.band-mint .tjob,.band-mint .tlist{box-shadow:inset 0 0 0 1.5px var(--mint-2),var(--shadow)}
 .band-mint .hold{border-top-color:var(--mint-2)}
 
 /* Sam */
 .sam{display:block;height:auto;max-width:none}
-.sec-head.with-sam{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;max-width:none}
-.sam-disc{flex:none;width:132px;height:132px;border-radius:50%;background:var(--gold-2);display:grid;place-items:end center;overflow:hidden;box-shadow:0 0 0 6px rgba(242,217,138,.18)}
-.sam-disc .sam{width:104px;margin-bottom:-26px}
 
-/* first week on navy */
-.band-navy .sec-head .voice{color:var(--gold-2)}
-.band-navy .week .when{color:var(--gold-2)}
-.band-navy .week p{color:#C5CEDF}
-.band-navy .week li::after{background:var(--gold);box-shadow:0 0 0 4px var(--night)}
-.band-navy .week li::before{background:rgba(242,217,138,.55)}
 
 /* price on gold, Sam presenting it */
 .band-gold .price{grid-template-columns:auto minmax(0,560px);justify-content:center;align-items:end;gap:28px}
@@ -564,7 +566,7 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
   .hold p{font-size:.9rem}
   .shot .phone{width:min(62%,220px)}
   .tailor{gap:28px}
-  .sam-disc{width:104px;height:104px}.sam-disc .sam{width:84px;margin-bottom:-20px}
+  .tjob{padding:20px 22px}.tjob .tpay{font-size:1.25rem}
   .week{gap:26px}
   .fit{gap:20px}
   .radar{max-width:340px}

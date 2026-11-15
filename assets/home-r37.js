@@ -187,22 +187,24 @@
     build();
   })();
 
-  /* checker demo: three made-up postings */
+  /* checker demo: three made-up postings. The job card shows the pay first; the checklist beside it ticks off one check at a time
+     (all at once for reduced motion). */
   (function () {
     var ol = $('tSteps'), v = $('tVerdict');
     if (!ol) return;
     var CH = ['The employer\'s own posting', 'Pay stated by the employer', 'Still open', 'In your area, or remote for your state', 'Pay that can reach your floor'];
     var POSTS = [
-      { t: 'Customer Success Manager', m: 'Example Co., Morristown, NJ', r: [[1, 'Found on the company careers page.'], [1, '$85,000 to $98,000 per year.'], [1, 'Open and taking applications.'], [1, 'Hybrid, about 35 minutes from home.'], [1, '$85,000 to $98,000. Your floor is $80,000.']], v: 'Sent to your portal, with the pay and a note on why it fits.' },
-      { t: 'Sales Associate', m: 'Sample Retail Group, Paramus, NJ', r: [[1, 'Found on the company careers page.'], [0, 'The posting says "competitive pay" and gives no number.']], v: 'Not sent. No pay posted, so it never reaches you.' },
-      { t: 'Operations Analyst', m: 'Demo Partners, Jersey City, NJ', r: [[1, 'Found on the company careers page.'], [1, '$72,000 to $84,000 per year.'], [0, 'The employer\'s page says the job is no longer accepting applications. The job board copy was still up.']], v: 'Not sent. The job board still listed it, but the employer had closed it.' }];
+      { t: 'Customer Success Manager', m: 'Example Co., Morristown, NJ', pay: '$85,000 to $98,000 a year', r: [[1, 'Found on the company careers page.'], [1, '$85,000 to $98,000 per year.'], [1, 'Open and taking applications.'], [1, 'Hybrid, about 35 minutes from home.'], [1, '$85,000 to $98,000. Your floor is $80,000.']], v: 'Passed. Sent to your portal with the pay and why it fits.' },
+      { t: 'Sales Associate', m: 'Sample Retail Group, Paramus, NJ', pay: 'No pay posted', r: [[1, 'Found on the company careers page.'], [0, 'The posting says "competitive pay" and gives no number.']], v: 'Not sent. No pay posted, so it never reaches you.' },
+      { t: 'Operations Analyst', m: 'Demo Partners, Jersey City, NJ', pay: '$72,000 to $84,000 a year', r: [[1, 'Found on the company careers page.'], [1, '$72,000 to $84,000 per year.'], [0, 'The employer\'s page says the job is no longer accepting applications. The job board copy was still up.']], v: 'Not sent. The job board still listed it, but the employer had closed it.' }];
     var timers = [];
     function run(i, now) {
       timers.forEach(clearTimeout); timers = [];
       var p = POSTS[i];
-      $('tTitle').textContent = p.t; $('tMeta').textContent = p.m; v.className = 'verdict'; v.textContent = '';
+      $('tTitle').textContent = p.t; $('tMeta').textContent = p.m; $('tPay').textContent = p.pay; v.className = 'verdict'; v.textContent = '';
       ol.innerHTML = CH.map(function (c, k) { return '<li><i>' + (k + 1) + '</i><div><b>' + esc(c) + '</b><small>Not checked yet</small></div></li>'; }).join('');
       var li = ol.children, slow = (now || still) ? 0 : 520;
+      ol.classList.toggle('live', !!slow);
       function step(k) {
         var r = p.r[k];
         li[k].className = 'on ' + (r[0] ? 'pass' : 'fail');
