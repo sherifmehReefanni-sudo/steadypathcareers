@@ -1,2 +1,4 @@
 /_tools /404.html 302
 /_tools/* /404.html 302
+/start/classic /start/ 301
+/start/classic/* /start/ 301

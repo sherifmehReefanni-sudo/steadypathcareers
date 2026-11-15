@@ -1,10 +1,10 @@
-/* r27 Find Your Fit static checks. Run: node _tools/fit/check.js
+/* Find Your Fit static checks, run against fit-r35 (the live version). Run: node _tools/fit/check.js
    1. WCAG contrast: every text color on its background is at least 4.5:1 (area colors on their tint, the cream page and white,
       white on each area color, the five answer pills both ways, the small grey text on every tint, the job line, the share card).
    2. The 30 items in the demo match fit/mini_ip_items.json (when present) and the labels are O*NET's.
    3. Required credit text is present word for word; no em dash or banned word in the fit files. */
 var fs = require('fs'), path = require('path');
-var ROOT = path.join(__dirname, '..', '..'), JS = fs.readFileSync(path.join(ROOT, 'assets/fit-r27.js'), 'utf8'), CSS = fs.readFileSync(path.join(ROOT, 'assets/fit-r27.css'), 'utf8');
+var ROOT = path.join(__dirname, '..', '..'), JS = fs.readFileSync(path.join(ROOT, 'assets/fit-r35.js'), 'utf8'), CSS = fs.readFileSync(path.join(ROOT, 'assets/fit-r35.css'), 'utf8');
 var P = 0, F = 0; function ok(c, n, i) { c ? P++ : F++; console.log((c ? 'PASS ' : 'FAIL ') + n + (c || i === undefined ? '' : '  [' + i + ']')); }
 function lum(h) { h = h.replace('#', ''); return [0, 2, 4].map(function (i) { var x = parseInt(h.substr(i, 2), 16) / 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }).reduce(function (s, x, i) { return s + x * [0.2126, 0.7152, 0.0722][i]; }, 0); }
 function cr(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
