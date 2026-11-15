@@ -3312,6 +3312,9 @@ document.addEventListener('toggle', function (e) { var t = e.target; if (t && t.
 .bl .bl-notice { background: var(--bgx-fff4dc); border: 2px solid #D9B54A; border-radius: 14px; padding: 14px 16px; }
 .bl .bl-notice h3 { margin: 0 0 6px; font: 800 17px var(--display); color: var(--bl-mid); }
 .bl .bl-notice p { margin: 0; font-size: 16px; color: var(--ink); }
+.bl .bl-notice ul { margin: 0; padding-left: 20px; font-size: 16px; color: var(--ink); }
+.bl .bl-notice li { margin: 0 0 8px; }
+.bl .bl-notice li:last-child { margin-bottom: 0; }
 .bl .bl-notice a { color: var(--navy); font-weight: 700; }
 .bl .bl-agree { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; align-items: start; font-weight: 700; color: var(--ink); cursor: pointer; padding: 4px 0; font-size: 16px; }
 .bl .bl-agree a { color: var(--navy); }
@@ -3516,6 +3519,11 @@ var BILL_ADD_ART = { linkedin: ['a1', 'li', 'Get found by recruiters.'], salary:
 function billCheck(i) { return '<svg viewBox="0 0 24 24" aria-hidden="true" style="--i:' + i + '"><circle cx="12" cy="12" r="11"/><path pathLength="1" d="M7 12.5l3.2 3.2L17.2 8.6" style="--i:' + i + '"/></svg>'; }
 function vBilling() {
   var b = S.data.billing, nj = billNJ(), x = billState(), hired = billHired(), B = S.bill;
+  /* Automatic renewal terms, shown in the box directly above the button (NY GBL 527-a style: continues until cancelled, price, how often,
+     no minimum, how to cancel online). The same terms go out by email after sign-up (backend v1.46d renewalTermsEmail_). */
+  var RENEW_TERMS = ['<b>Your plan renews automatically every month until you cancel.</b> You pay $99 today, then $99 every month on the same date, charged to the card or wallet you use.']
+    .concat(BILLING_LINKS.FOUNDING_OPEN ? ['With founding member code FOUNDING the price is $79 a month instead, for as long as you keep the plan.'] : [])
+    .concat(['There is no minimum. Cancel anytime online with Manage billing, or by emailing <a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a>. Cancelling stops all future charges.']);
   var notice = esc(CANCEL_NOTICE).replace('hello@steadypathcareers.com', '<a href="mailto:hello@steadypathcareers.com">hello@steadypathcareers.com</a>');
   var inc = ['Job matches in your portal', 'A tailored resume and cover letter for every job you say yes to', 'Answers to your questions'];
   var gate = nj ? '' : '<p class="bl-ny" role="note">' + BILL_ILL.pin + '<span>' + (b.region === 'NY' ? 'Paid plans aren\'t available in New York yet.' : 'Paid plans aren\'t available in your area yet.') + ' Your free access continues.</span></p>';
@@ -3532,8 +3540,8 @@ function vBilling() {
     (nj ? (BILLING_LINKS.FOUNDING_OPEN ? '<p class="bl-found"><b>First 10 members pay $79 a month with code FOUNDING.</b> Have a founding member code? Enter it on the next page.</p>' : '') : gate) + '</div></section>';
   var buy = '';
   if (nj) {
-    buy = '<section class="bl-agreec bl-io" aria-labelledby="blNoticeH"><div class="bl-notice" role="note"><h3 id="blNoticeH">Your right to cancel</h3><p>' + notice + '</p></div>' +
-      '<label class="bl-agree" for="billAgree"><input type="checkbox" id="billAgree" data-billagree' + (B.agree ? ' checked' : '') + (B.pop ? ' class="pop"' : '') + ' aria-describedby="blHint"><span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and the cancellation notice above.</span></label>' +
+    buy = '<section class="bl-agreec bl-io" aria-labelledby="blNoticeH"><div class="bl-notice" role="note"><h3 id="blNoticeH">How your plan renews, and how to cancel</h3><ul>' + RENEW_TERMS.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '<li>' + notice + '</li><li>We email you these terms after you sign up.</li></ul></div>' +
+      '<label class="bl-agree" for="billAgree"><input type="checkbox" id="billAgree" data-billagree' + (B.agree ? ' checked' : '') + (B.pop ? ' class="pop"' : '') + ' aria-describedby="blHint"><span>I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a> and the renewal and cancellation terms above.</span></label>' +
       '<p class="bl-hint" id="blHint">' + (B.agree ? 'Thank you. You can continue below.' : 'Tick the box to continue.') + '</p>' +
       (B.err ? '<p class="warn bl-err" role="alert" id="blErr">' + esc(B.err) + (B.re ? reauthBtn() : '') + '</p>' : '') +
       (hired || billHasPlan() ? '' : '<div class="bl-buy">' + billBtn('plan', 'Continue for $99 a month', '', 'bl-go') + billPilotNote() +
