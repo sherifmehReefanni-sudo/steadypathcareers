@@ -188,7 +188,7 @@ if (typeof document !== 'undefined') {
   function samCheer() {
     var old = document.querySelector('.r52-cheer'); if (old) old.remove();
     var d = document.createElement('div'); d.className = 'r52-cheer'; d.setAttribute('aria-hidden', 'true');
-    d.innerHTML = '<img src="/img/sam/sam-cheer.svg" alt="" width="96" height="141">';
+    d.innerHTML = '<img src="/img/sam/sam-cheer.svg?v=sp-20261115sam" alt="" width="96" height="141">';
     document.body.appendChild(d);
     setTimeout(function () { if (d.parentNode) d.remove(); }, 2300);
   }

@@ -1957,7 +1957,7 @@ function coarse() { try { return matchMedia('(pointer: coarse)').matches; } catc
 function hintOn() { return !lsGet('sp_swipehint') && coarse(); }
 /* r52: "This week" holds the weekly report, Due next, Find Your Fit, the match check-in, the note from Steady Path, the feedback ask and
    the install card, under the matches. Closed by default; open state kept for the visit. Nothing inside: no fold. */
-var R52_SAM_EMPTY = '<img class="r52-sam" src="/img/sam/sam-wave.svg" alt="" width="72" height="106" loading="lazy" decoding="async">';
+var R52_SAM_EMPTY = '<img class="r52-sam" src="/img/sam/sam-wave.svg?v=sp-20261115sam" alt="" width="72" height="106" loading="lazy" decoding="async">';
 function r52Week(week, rest) {
   var inner = week + rest; if (!inner) return '';
   var items = dueItems(S.data).filter(function (x) { return x.who === 'you'; }), mine = items.length;
