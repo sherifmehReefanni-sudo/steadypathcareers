@@ -2,17 +2,13 @@
 (function () {
   'use strict';
 
-  /* Welcome video. While WELCOME_VIDEO is empty, the hero "Watch how it works" button, the "Watch" links
-     and the whole theater section stay hidden. Set it to the mp4 path (for example '/img/welcome.mp4') and,
-     if you have one, WELCOME_POSTER to a still image, and they all appear. */
+  /* Welcome video. While WELCOME_VIDEO is empty, the "Watch" links and the whole theater section stay hidden.
+     Set it to the mp4 path and, if you have one, WELCOME_POSTER to a still image, and they appear. */
   var WELCOME_VIDEO = '/media/welcome-r49.mp4';
   var WELCOME_POSTER = '/media/welcome-r49-poster.jpg';
-  /* The video's length as words (for example '53 seconds') and its chapters as [time, what it covers] pairs
-     (for example [['0:00', 'Real jobs, with the pay right there'], ['0:10', '...']]). Fill these from the final cut.
-     While they are empty, no length and no chapter list are shown anywhere. */
+  /* The video's length as words (for example '53 seconds'), shown on the play button. Empty: no length shown. */
   var WELCOME_LENGTH = '1 minute 6 seconds';
   var WELCOME_CAPTIONS = '/media/welcome-r49.vtt';
-  var WELCOME_CHAPTERS = []; /* r50: chapter list removed from the page at the owner's request */
 
   var root = document.documentElement;
   function $(id) { return document.getElementById(id); }
@@ -290,17 +286,11 @@
     var opener = null, box = $('vidBox');
     all('[data-video-ui]').forEach(function (el) { el.hidden = false; });
     if (WELCOME_LENGTH) {
-      [['wLen', WELCOME_LENGTH], ['sLen', 'Welcome video, ' + WELCOME_LENGTH]].forEach(function (x) { var el = $(x[0]); if (el) { el.textContent = x[1]; el.hidden = false; } });
+      [['sLen', 'Welcome video, ' + WELCOME_LENGTH]].forEach(function (x) { var el = $(x[0]); if (el) { el.textContent = x[1]; el.hidden = false; } });
       var scr = document.querySelector('.screen'); if (scr) scr.setAttribute('aria-label', 'Play the welcome video, ' + WELCOME_LENGTH);
     }
     var scrn = document.querySelector('.screen');
     if (scrn && WELCOME_POSTER) { var im = new Image(); im.alt = ''; im.className = 'poster'; im.loading = 'lazy'; im.width = 720; im.height = 1280; im.src = WELCOME_POSTER; scrn.insertBefore(im, scrn.firstChild); scrn.classList.add('has-poster'); }
-    var ch = $('chapters');
-    if (ch && WELCOME_CHAPTERS.length) {
-      /* r49: each chapter is a button that opens the video at that point */
-      ch.innerHTML = WELCOME_CHAPTERS.map(function (c) { var p = c[0].split(':'), sec = (+p[0]) * 60 + (+p[1]); return '<li><button type="button" data-video data-at="' + sec + '" aria-label="Play from ' + esc(c[0]) + ', ' + esc(c[1]) + '"><b>' + esc(c[0]) + '</b><span>' + esc(c[1]) + '</span></button></li>'; }).join('');
-      ch.hidden = false;
-    }
     all('[data-video]').forEach(function (b) {
       b.addEventListener('click', function () {
         opener = b;
@@ -314,8 +304,6 @@
           box.classList.add('has-video'); box.appendChild(v);
         }
         d.showModal();
-        var at = +(b.getAttribute('data-at') || 0);
-        if (at) { if (v.readyState >= 1) { try { v.currentTime = at; } catch (e) {} } else { v.preload = 'metadata'; v.addEventListener('loadedmetadata', function () { try { v.currentTime = at; } catch (e) {} }, { once: true }); } }
         var p = v.play(); if (p && p.catch) p.catch(function () {});
       });
     });

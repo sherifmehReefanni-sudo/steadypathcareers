@@ -1186,7 +1186,7 @@ function docStatus(docId, status, request, done, quiet) {
   S.docBusy[docId] = true; render();
   post({ action: 'docStatus', t: S.token, doc: docId, status: status, request: request, seen: (S.data && S.data.serverTime) || '' }).then(function (d) {
     delete S.docBusy[docId];
-    if (d && d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } if (status === 'Changes requested') S.changesDraft = ''; if (!quiet) toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent. Thank you.'); }
+    if (d && d.ok) { var x = S.data.docs.filter(function (y) { return y.id === docId; })[0]; if (x) { x.status = status; x.request = request || ''; x.updated = todayISO(); } if (status === 'Changes requested') S.changesDraft = ''; if (!quiet) toast(status === 'Approved' ? 'Approved. Thank you.' : 'Sent. Thank you.'); if (!quiet && status === 'Approved') if (typeof r52SamCheer === 'function') r52SamCheer(); }
     else { if (d && d.error === 'expired') S.reauthMsg = true; toast(errText(d && d.error, 'document')); if (d && d.error === 'changed') { if (done) done(false); else render(); setTimeout(function () { try { location.reload(); } catch (e) { load(); } }, 2500); return; } /* a reload keeps the review screen open (history state) and shows the new version */ }
     if (done) done(!!(d && d.ok)); else render();
   }).catch(function () { delete S.docBusy[docId]; toast(errText('network')); if (done) done(false); else render(); });
@@ -1616,8 +1616,8 @@ function approveJob(jobId) {
   var step = function (k) {
     if (k >= ids.length) {
       S.rvBusy = false;
-      if (jobState(j).applyReady && !jobApp(j) && S.flow && S.flow.job === j.id) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
-      else { toast('Approved. Thank you.'); S.focusTo = '.ptitle h1'; render(); }
+      if (jobState(j).applyReady && !jobApp(j) && S.flow && S.flow.job === j.id) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); if (typeof r52SamCheer === 'function') r52SamCheer(); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); }
+      else { toast('Approved. Thank you.'); if (typeof r52SamCheer === 'function') r52SamCheer(); S.focusTo = '.ptitle h1'; render(); }
       return;
     }
     docStatus(ids[k], 'Approved', '', function (ok) { if (ok) step(k + 1); else { S.rvBusy = false; render(); } }, true);
@@ -1639,12 +1639,13 @@ function approveOne(jobId, docId) {
   docStatus(docId, 'Approved', '', function (ok) {
     S.rvBusy = false;
     if (!ok) { S.focusTo = '[data-rvok]'; render(); return; }
-    if (!S.flow || S.flow.job !== j.id) { toast(docLabel(x) + ' approved.'); S.focusTo = '.ptitle h1'; render(); return; } /* the client moved on: no hand-off */
+    if (!S.flow || S.flow.job !== j.id) { toast(docLabel(x) + ' approved.'); if (typeof r52SamCheer === 'function') r52SamCheer(); S.focusTo = '.ptitle h1'; render(); return; } /* the client moved on: no hand-off */
     var st = jobState(j), nx = st.review[0], what = docLabel(x);
     /* the last needed OK: the same hand-off to the apply screen as the main approve button */
-    if (!nx && st.applyReady && !jobApp(j)) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
+    if (!nx && st.applyReady && !jobApp(j)) { S.flow = { kind: 'apply', job: j.id, from: flowFrom() }; histPush(S.flow); toast('Approved. Now apply in three steps.'); if (typeof r52SamCheer === 'function') r52SamCheer(); S.focusTo = '.ptitle h1'; render(); window.scrollTo(0, 0); return; }
     if (nx && S.flow && S.flow.job === j.id) { S.flow.tab = nx.id; S.focusTo = '[data-rvtab="' + cssq(nx.id) + '"]'; toast(what + ' approved. Next: your ' + docNoun(nx) + '.'); }
     else { toast(what + ' approved. Thank you.'); S.focusTo = '.ptitle h1'; }
+    if (typeof r52SamCheer === 'function') r52SamCheer();
     render();
   }, true);
 }
@@ -2464,7 +2465,7 @@ function markApplied(jobId) {
     S.applyBusy = null;
     if (r.ok) { if (!jobApp(j)) S.data.apps.unshift({ id: r.id, jobId: j.id, company: j.company, role: j.title, applied: body.applied, status: 'Applied', followUpDue: '', interview: '' });
       openAppCol(jobApp(j)); /* round 12: the Applied column that got it opens, and the card is scrolled into view there */ /* on the apply screen the done card says it, so no toast on top of it */
-      if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; if (typeof r52SamCheer === 'function') r52SamCheer(); } else toast('Nice work. It is on your Applied tab.');
+      if (S.flow && S.flow.kind === 'apply' && S.flow.job === j.id) { S.flow.done = true; S.focusTo = '.ptitle h1'; if (typeof r52SamCheer === 'function') r52SamCheer(); } else { toast('Nice work. It is on your Applied tab.'); if (typeof r52SamCheer === 'function') r52SamCheer(); }
       var ax0 = jobApp(j); if (ax0 && !ax0.submittedOn) { ax0.submittedOn = todayISO(); ax0.lastUpdate = todayISO(); } r18MsCheck(false); } /* round 18 */
     else { if (r.error === 'expired') S.jobErr[j.id] = { msg: errText('expired'), re: true }; toast(errText(r.error, 'job')); }
     render();
@@ -3213,7 +3214,7 @@ function pvSave(x, body, ok) {
     if (r.ok) { Object.keys(body).forEach(function (k) { x[k] = body[k]; }); if (body.myNotes != null) S.pv.next = null; S.pv.msg = ok; }
     else { S.pv.re = r.error === 'expired'; S.pv.msg = r.error === 'expired' ? 'Your sign-in has expired. Sign in again, then save it.' : 'Sorry, that didn\'t save. Please check your connection and try again.'; }
     if (body.status) S.focusTo = '[data-pvst="' + cssq(body.status) + '"]'; else if (body.myNotes != null) S.focusTo = '[data-pvsave]'; /* buttons were disabled while saving */
-    render(); if (r.ok && body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); }
+    render(); if (r.ok && body.status === 'Offer') { celebrate(); toast('An offer! Congratulations.'); if (typeof r52SamCheer === 'function') r52SamCheer(); }
   });
 }
 document.addEventListener('click', function (e) {
@@ -3640,12 +3641,12 @@ document.addEventListener('click', function (e) {
 }, true);
 /* =================== END ROUND 25 =================== */
 </script>
-<script src="../assets/portal-r18.js?v=sp-20261113r47"></script>
+<script src="../assets/portal-r18.js?v=sp-20261114r54"></script>
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/portal.js?v=20261024e"></script>
 <script src="../assets/fit-r35.js?v=sp-20261113r47"></script>
 <script src="../assets/portal-r42.js?v=sp-20261113r47"></script>
 <script src="../assets/portal-r44.js?v=sp-20261113r47"></script>
-<script src="../assets/portal-r45.js?v=sp-20261114r52"></script>
+<script src="../assets/portal-r45.js?v=sp-20261114r54"></script>
 </body>
 </html>

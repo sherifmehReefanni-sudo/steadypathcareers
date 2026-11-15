@@ -98,7 +98,7 @@ function r18Submit(jobId) {
     if (r && r.ok) {
       var t = todayISO(), x = jobApp(j);
       if (!x) { x = { id: r.id, jobId: j.id, company: j.company, role: j.title, applied: t, status: 'Applied', followUpDue: '', interview: '', submittedOn: t, lastUpdate: t }; S.data.apps.unshift(x); }
-      r18Opened(x); toast('Moved to Submitted. Nice work.'); r18MsCheck(false);
+      r18Opened(x); toast('Moved to Submitted. Nice work.'); if (typeof r52SamCheer === 'function') r52SamCheer(); r18MsCheck(false);
     } else r18Fail(r && r.error);
     render();
   }).catch(function () { delete S.bdBusy['job:' + jobId]; r18Fail('network'); render(); });
@@ -115,7 +115,7 @@ function r18Move(id, stage, closedAs) {
       else {
         var wasIv = !!x.ivLogged || boardCol(x) === 2 || !!x.interview; x.status = r.status || (closedAs || BOARD_STATUS[stage]);
         if (stage === 'interview' && !wasIv) x.ivLogged = t;
-        r18Opened(x); toast(stage === 'hired' ? 'Marked as hired. Congratulations.' : 'Moved to ' + BOARD_COLS[boardCol(x)] + '.'); r18MsCheck(false);
+        r18Opened(x); toast(stage === 'hired' ? 'Marked as hired. Congratulations.' : 'Moved to ' + BOARD_COLS[boardCol(x)] + '.'); if (stage === 'hired' || boardCol(x) === 2 || boardCol(x) === 3) if (typeof r52SamCheer === 'function') r52SamCheer(); r18MsCheck(false); /* Interview, Offer, Hired */
       }
     } else r18Fail(r && r.error);
     render();

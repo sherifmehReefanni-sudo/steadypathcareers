@@ -187,25 +187,11 @@ footer .brand{color:#fff;margin-right:auto}
 
 /* r2: razzle + restored content */
 #sky{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.watch{display:inline-flex;align-items:center;gap:12px;margin-top:22px;padding:6px 18px 6px 6px;border-radius:999px;border:0;background:var(--hero-chip);color:#fff;font:700 .95rem/1.2 Manrope,sans-serif;cursor:pointer;min-height:56px;text-align:left}
-.watch:hover{background:var(--hero-chip-2)}
-.watch i{width:44px;height:44px;border-radius:50%;background:var(--gold);display:grid;place-content:center;flex:none;position:relative}
-.watch i::before{content:"";border-left:13px solid var(--night);border-block:8px solid transparent;margin-left:4px}
-.watch i::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--gold);opacity:.6;animation:ping 2.4s ease-out infinite}
-.watch small{display:block;font-weight:500;color:var(--hero-soft-2);font-size:.84rem}
-@keyframes ping{from{transform:scale(.85);opacity:.7}to{transform:scale(1.35);opacity:0}}
 
 .theater{background:#10213A;color:#fff;padding:clamp(56px,8vw,104px) 0}
 .theater .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,330px);gap:64px;align-items:center}
 .theater h2{font-size:clamp(2rem,4.4vw,3.1rem)}
 .theater .lede{color:#C5CEDF;margin-top:16px}
-.chapters{list-style:none;margin:28px 0 0;padding:0;display:grid;gap:2px}
-.chapters li{border-top:1px solid rgba(255,255,255,.14)}
-.chapters li button{display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:baseline;width:100%;padding:13px 6px;margin:0;border:0;border-radius:8px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;transition:background-color .15s}
-.chapters li button:hover{background:rgba(255,255,255,.07)}
-.chapters li button:focus-visible{outline:2px solid var(--gold-2);outline-offset:2px}
-.chapters li button span{text-decoration:underline;text-decoration-color:rgba(255,255,255,.25);text-underline-offset:3px}
-.chapters b{font-family:Newsreader,serif;font-style:italic;font-weight:400;color:var(--gold-2);font-size:1.05rem}
 .screen{position:relative;aspect-ratio:9/16;width:100%;max-width:330px;justify-self:center;border-radius:36px;overflow:hidden;border:0;padding:0;cursor:pointer;background:linear-gradient(180deg,#081326 0%,#1D2F5C 46%,#6A4C73 70%,#D38F6B 88%,#F0B865 100%);box-shadow:0 0 0 9px #0A1528,0 0 0 10.5px rgba(255,255,255,.16),0 50px 90px -30px rgba(0,0,0,.8);color:#fff;font:inherit}
 .screen .cap{position:absolute;left:26px;right:26px;top:16%;text-align:left;font:800 1.7rem/1.08 Manrope,sans-serif;letter-spacing:-.03em}
 .screen .cap em{display:block;font:400 1.02rem Newsreader,serif;font-style:italic;color:var(--gold-2);margin-bottom:10px;letter-spacing:0}
@@ -275,7 +261,7 @@ dialog.vid .x{display:block;margin:14px auto 0;min-height:44px;padding:0 22px;bo
 .tools a{transition:padding-left .2s ease}
 .tools a:hover{padding-left:10px}
 @media (max-width:900px){.theater .wrap,.tailor{grid-template-columns:minmax(0,1fr);gap:40px}.foryou{grid-template-columns:minmax(0,1fr)}.hold{grid-template-columns:repeat(2,minmax(0,1fr))}.week.wait li::before{transform:none}}
-@media (prefers-reduced-motion:reduce){.ticker div{animation:none;flex-wrap:wrap;width:auto}.watch i::after{animation:none}.radar.wait #radarShape,.week.wait li::before{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.ticker div{animation:none;flex-wrap:wrap;width:auto}.radar.wait #radarShape,.week.wait li::before{transform:none;opacity:1}}
 
 @media (max-width:900px){
   .hero{padding-top:108px}
@@ -431,7 +417,6 @@ footer .brand img{width:30px;height:30px;border-radius:8px}
 .deck-done{background:rgba(8,19,38,.62)}
 .deck-note{background:rgba(8,19,38,.78)}
 /* the play ring only pulses while the hero is on screen */
-.hero.off .watch i::after{animation-play-state:paused}
 
 /* r41: welcome video. Portrait 9:16 in the theater and the dialog; the poster fills the theater screen. */
 dialog.vid .box.has-video{padding:0;display:block}
@@ -440,8 +425,6 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
 .screen.has-poster .cap,.screen.has-poster svg{display:none}
 .screen.has-poster::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,19,38,.15),rgba(8,19,38,.45))}
 .screen.has-poster .play,.screen.has-poster .len{z-index:1}
-.tx{margin-top:22px;max-width:60ch}.tx summary{cursor:pointer;min-height:44px;display:inline-flex;align-items:center;font-weight:700;color:#fff}
-.tx p{margin-top:10px;color:#C5CEDF;line-height:1.6;font-size:.98rem}
 
 /* r46: on phones, a Start free bar pinned to the bottom once the hero is out of view. Hidden near the footer, while a field
    has focus, and while the menu or the video dialog is open (assets/home-r37.js). Never shown on wider screens. */
@@ -472,18 +455,13 @@ dialog.vid video{object-fit:contain;display:block;background:#0B1830}
   .hero-grid>.deck{order:5;margin-top:26px;align-self:center}
   .hero-copy>.seg{order:6;margin-top:26px}
   .hero-copy>.cta-more{order:7}
-  .hero-copy>.watch{order:8;align-self:flex-start}
 }
 @media (max-width:380px){.hero .lede{font-size:.94rem}}
 @media (max-width:359px){.hero h1{font-size:2.2rem}.hero .where{font-size:.94rem}}
 /* r48: on the smallest phones (320 wide) only a sliver of the sample card showed under the price line; a tighter stack shows 60px of it */
 @media (max-width:359px){.hero{padding-top:90px}.hero h1{font-size:2rem}.hero .cta-main{margin-top:12px}.hero .deck{margin-top:18px}}
 /* r47 finish: the theme and menu buttons are rounded squares here too, the same shape as on every other page (still 44px) */
-/* r49: chapters are buttons into the video; tighter rows on phones */
-@media (max-width:600px){.chapters{margin-top:20px}.chapters li button{grid-template-columns:48px 1fr;gap:10px;padding:9px 4px;min-height:44px;align-items:center;font-size:.95rem;line-height:1.35}}
-@media (prefers-reduced-motion:reduce){.chapters li button{transition:none}}
 
-/* r50: the watch section is the heading, one line and the video; nothing below the line */
 
 /* ===== r51: colour bands, Sam, shorter phone layout ===== */
 :root{--mint:#DDF3EC;--mint-2:#BFE8DB;--skyband:#E3ECFB;--goldband-a:#F9DE86;--goldband-b:#F2C14E;--coral:#FF6B5B;--teal:#14B8A6;--sky:#5B8DEF}
