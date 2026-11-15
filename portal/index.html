@@ -2365,10 +2365,12 @@ function saveDrafts() {
 function render() {
   /* r44: any screen that is not a signed-in portal (sign-in, link, error after an expired session) leaves nothing of the tools
      behind; the practice timer runs only on its own screen */
-  if (S.status !== 'ready' && S.status !== 'boot' && !S.token) { r44TimerStop(); r44Wipe(); } else if (S.status === 'ready' && S.view !== 'practice') r44TimerStop();
+  if (typeof r44Wipe === 'function') { /* assets/portal-app.js; without it the sign-in and error screens still draw */
+    if (S.status !== 'ready' && S.status !== 'boot' && !S.token) { r44TimerStop(); r44Wipe(); } else if (S.status === 'ready' && S.view !== 'practice') r44TimerStop();
+  }
   drawView();
   if (S.status === 'ready' && S.view === 'billing') billAfter(); /* round 25 */
-  try { r42FitHist(); } catch (e) {} /* r42: each Find Your Fit screen gets its own history entry */
+  if (typeof r42FitHist === 'function') { try { r42FitHist(); } catch (e) {} } /* r42: each Find Your Fit screen gets its own history entry */
   /* r44: the path on Home draws once, on the first Home of this page load */
   if (S.status === 'ready' && S.view === 'home' && !S.flow && !S.deck && !S.r44Drawn && !S.r44DrawT) S.r44DrawT = setTimeout(function () { S.r44Drawn = true; }, 1200); /* one timer, sets one flag, touches no screen */
 }
@@ -2428,8 +2430,10 @@ function go(view, help) {
      half-finished screen twice. Tapping the view already shown adds nothing. */
   if (view !== 'training') { S.tfSaidId = null; S.tfSaidUp = false; } /* r45: leaving the finder drops its star note */
   /* r44: leaving practice stops the timer and writes anything typed; opening it starts at its list of jobs */
-  if (S.view === 'practice' && view !== 'practice') { r44TimerStop(); r44Save(); }
-  if (view === 'practice' && S.view !== 'practice' && r44On()) { var P = r44Pr(); P.scr = 'jobs'; P.job = ''; P.edit = null; P.draft = null; P.del = null; }
+  if (typeof r44On === 'function') {
+    if (S.view === 'practice' && view !== 'practice') { r44TimerStop(); r44Save(); }
+    if (view === 'practice' && S.view !== 'practice' && r44On()) { var P = r44Pr(); P.scr = 'jobs'; P.job = ''; P.edit = null; P.draft = null; P.del = null; }
+  }
   if (view !== 'delete' || S.view !== 'delete') S.del = null; /* r43: leaving Delete my account clears what was typed */
   if (!VIEW_RE.test(view)) view = 'home';
   var here = S.view === view && !S.flow && !!help === !!S.fbHelp;
@@ -2440,7 +2444,7 @@ function go(view, help) {
   S.flowBase = null; S.fxSig = null; S.fxHn = 0;
   S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.fbHelp = view === 'feedback' && !!help; /* r36: the Help button opens this view with the urgent box */ S.focusTo = '.ptitle h1'; var sc = S.scrollApp; render(); if (!sc || S.scrollApp) window.scrollTo(0, 0); }
 function signOut(msg) {
-  r44TimerStop(); r44Wipe(); /* r44: stop the practice timer and remove what the tools kept on this device (again at the end) */
+  if (typeof r44Wipe === 'function') { r44TimerStop(); r44Wipe(); } /* r44: stop the practice timer and remove what the tools kept on this device (again at the end) */
   S.tweekOpen = null;
   flushDeferred(true);
   /* round 12: end this session on the server too (fire and forget), before the token is dropped here */
@@ -2452,7 +2456,7 @@ function signOut(msg) {
   dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.qOpen = {}; S.notes = {}; S.seenMem = null; S.colOpen = null; S.lastEmail = ''; S.linkKey = null; linkKeyDrop(); S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
   histSignOut();
-  r44Wipe();
+  if (typeof r44Wipe === 'function') r44Wipe();
 }
 /* r42: tabs, the deck and the readers add history entries. Signing out steps back off all of them and blanks the entry it lands
    on, so Back leaves the sign-in screen on the first press, as it did before tabs had entries. */
