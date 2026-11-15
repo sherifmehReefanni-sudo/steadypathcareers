@@ -364,13 +364,13 @@ body { overflow-x: hidden; }
   .board .app > .bd-fold.open + .pv-cta { margin-left: 0; max-width: 100%; }
   .board .app > .pv-cta .btn { padding: 4px 10px; font-size: 14px; line-height: 1.15; white-space: normal; }
   .board > .col.none::after { content: ""; display: block; height: 44px; margin-top: 4px; border: 1.5px dashed var(--line); border-radius: 10px; opacity: .8; }
-  /* when columns continue past the right edge the edge fades instead of cutting a column with a hard line (class set in assets/portal-r18.js) */
+  /* when columns continue past the right edge the edge fades instead of cutting a column with a hard line (class set in assets/portal-app.js) */
   .board.cut-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 56px), transparent); }
   .board.cut-l { -webkit-mask-image: linear-gradient(270deg, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(270deg, #000 calc(100% - 56px), transparent); }
   .board.cut-l.cut-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent); mask-image: linear-gradient(90deg, transparent, #000 56px, #000 calc(100% - 56px), transparent); }
 }
 /* r47: on wide screens the board's page grows so five full columns fit without sideways scroll (from about 1340 wide) */
-/* r48: the wide frame for the board now belongs to every view: see "one frame" at the end of assets/portal-r45.css */
+/* r48: the wide frame for the board now belongs to every view: see "one frame" in the r45 part of assets/portal-app.css */
 .col { background: var(--sunk); border-radius: 14px; padding: 12px; min-width: 0; }
 .col h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; cursor: pointer; user-select: none; min-height: 44px; align-items: center; } /* r47: the column toggle is a 44px target (was 32) */
 .col h3 .tw { transition: transform .15s; display: inline-block; margin-right: 6px; color: var(--gold); }
@@ -638,9 +638,7 @@ body.deck-lock { overflow: hidden; }
   .jc .ans3 button svg { display: none; }
 }
 </style>
-<link rel="stylesheet" href="../assets/portal.css?v=sp-20261113r48">
-<link rel="stylesheet" href="../assets/portal-r18.css?v=sp-20261113r47">
-<link rel="stylesheet" href="../assets/fit-r35.css?v=sp-20261112r36">
+<link rel="stylesheet" href="../assets/portal-app.css?v=sp-20261115pm">
 <style>
 /* ---- round 4: search settings, data, calendar, versions, urgent help ---- */
 /* the account menu can hang below a short header; keep the header content (and its menu) above main, which is z-index 1 */
@@ -900,9 +898,6 @@ window.SP_DEMO = function () {
 @media print { .pv-nav, .pv-st, .pv [data-pvsave], .pv textarea { display: none; } .pv-guide[hidden] { display: grid; } }
 </style>
 <link rel="stylesheet" href="/assets/theme.css?v=sp-20261113r47">
-<link rel="stylesheet" href="../assets/portal-r42.css?v=sp-20261113r47">
-<link rel="stylesheet" href="../assets/portal-r44.css?v=sp-20261113r48">
-<link rel="stylesheet" href="../assets/portal-r45.css?v=sp-20261114r52">
 </head>
 <body>
 <div id="app"><div class="skel">Opening your portal…</div></div>
@@ -1168,8 +1163,9 @@ window.addEventListener('pagehide', function () { flushDeferred(true); });
 /* ---- toasts (one at a time so they never stack) ---- */
 function toast(t) {
   document.querySelectorAll('.toast:not(.undo)').forEach(function (x) { x.remove(); });
-  if (document.querySelector('.toast.undo')) return; // the Undo toast already holds that spot
+  if (document.querySelector('.toast.undo')) return; // the Undo toast already holds that spot (and Sam does not cheer)
   SP.toast(t);
+  if (typeof r52Cheer === 'function') r52Cheer(t); /* r52: Sam after an approval, a sent application or an offer (assets/portal-app.js) */
 }
 function undoToast(msg, fn, ms) {
   document.querySelectorAll('.toast').forEach(function (t) { t.remove(); });
@@ -1434,7 +1430,7 @@ function dueItems(d) {
     var dd = daysFrom(x.interview), soon = st < 3 && dd != null && dd >= 0, mine = false;
     if (soon) { add(dd <= 1 ? -2 : dd <= 7 ? 0 : 3, x.interview, 'Interview with ' + coOr(x) + (x.ivTime ? ', ' + x.ivTime : ''), 'you', pvDueBtn(x, prepQs(x).length ? 'Practice now' : 'Open')); mine = true; }
     else if (st < 3 && outcomeDue(x)) { add(2, '', 'Tell us how the ' + coOr(x) + ' interview went', 'you', pvDueBtn(x, 'Open')); mine = true; }
-    /* r45: follow-ups come from the one rule in portal-r44.js (r44FuJob). A: the reminder to list, or null. */
+    /* r45: follow-ups come from the one rule in assets/portal-app.js (r44FuJob). A: the reminder to list, or null. */
     var A = typeof r44FuJob === 'function' ? r44FuJob(x) : undefined, fd, fu;
     if (A === undefined) { /* the r44 module did not load: the rule as it was before r44 */
       fd = daysFrom(x.followUpOn); fu = fd != null ? x.followUpOn : '';
@@ -1707,7 +1703,7 @@ function closeFlow(msg) {
 }
 /* Browser Back inside the portal. depth counts entries above the portal's first entry (the view the visit opened on: Home, or the
    view a link named). r42 (audit M2): every tab change adds an entry (go), so do the Find Your Fit steps and the swipe deck
-   (assets/portal-r42.js); review, apply and interview prep each add one as before. Each entry's state says which screen it
+   (assets/portal-app.js); review, apply and interview prep each add one as before. Each entry's state says which screen it
    stands for, so Back and Forward put that screen back. S.flowBase is the depth under the first review or apply entry: closing a
    flow drops only the flow's own entries. Back from the first entry leaves the portal, as a browser normally does. */
 S.hist = 0; S.flowBase = null;
@@ -1737,7 +1733,7 @@ window.addEventListener('popstate', function (e) {
 var installEvt = null;
 window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvt = e; if (S.status === 'ready' && S.view === 'jobs') render(); });
 function standalone() { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } }
-/* round 18: the one-time card with iPhone and Android steps (assets/portal-r18.js) */
+/* round 18: the one-time card with iPhone and Android steps (assets/portal-app.js) */
 function installCard() { return typeof r18InstallCard === 'function' ? r18InstallCard() : ''; }
 function celebrate() {
   if (REDUCED) return;
@@ -2101,11 +2097,11 @@ function isOutreach(x) { return /outreach/i.test(x.type || ''); }
 function appCard(x) {
   var hasQs = prepQs(x).length > 0, hasNotes = !hasQs && (x.prepBring || x.prepAsk), soonIv = daysFrom(x.interview) != null && daysFrom(x.interview) >= 0 && stageOf(x) < 4;
   var pj = x.jobId ? jobById(x.jobId) : null, pdoc = pj ? jobState(pj).prep : null; if (pdoc && !(isReady(pdoc) || /approved/i.test(pdoc.status || ''))) pdoc = null;
-  var pills = [ivLabel(x), typeof r44FuLine === 'function' ? '' : fuLabel(x) /* r45: one follow-up line per card, r44's (assets/portal-r44.js r44FuLine) */, isOutreach(x) ? '<span class="pill">Recruiter outreach</span>' : ''].filter(String).join(' ');
+  var pills = [ivLabel(x), typeof r44FuLine === 'function' ? '' : fuLabel(x) /* r45: one follow-up line per card, r44's (assets/portal-app.js r44FuLine) */, isOutreach(x) ? '<span class="pill">Recruiter outreach</span>' : ''].filter(String).join(' ');
   var h = '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">' + (isOutreach(x) ? 'Contacted ' : 'Applied ') + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
     (pills ? '<div class="apills">' + pills + '</div>' : '') + icsBtn(x) +
     (x.nextAction ? '<p class="nact"><span class="nl">Next:</span> ' + esc(x.nextAction) + '</p>' : '') +
-    /* r47: on the desktop board a long card folds its contact and notes text behind More (assets/portal-r18.js r47Fold); the next action and every control stay in view */
+    /* r47: on the desktop board a long card folds its contact and notes text behind More (assets/portal-app.js r47Fold); the next action and every control stay in view */
     (function () { var t = (x.contact ? '<p class="psub amore">Contact: ' + esc(x.contact) + '</p>' : '') + (x.myNotes ? '<p class="psub amore notes">Your notes: ' + esc(x.myNotes) + '</p>' : ''); if (!t) return ''; var long = String(x.contact || '').length + String(x.myNotes || '').length > 60 || (x.contact && x.myNotes) || (t && (x.nextAction || String(x.interview || '').trim())); return long && typeof r47Fold === 'function' ? r47Fold(x.id, coOr(x), t) : t; })() +
     appPrepBtn(x) + /* round 6a: opens the interview prep screen */
     (pdoc ? '<p style="margin:8px 0 0"><a class="btn ghost" href="' + esc(safeUrl(pdoc.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(pj.id) + '">Your prep sheet</a></p>' : '') +
@@ -2124,7 +2120,7 @@ function appCard(x) {
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" data-upsave="' + esc(x.id) + '"' + (S.upBusy ? ' disabled' : '') + '>' + (S.upBusy ? 'Saving…' : 'Save') + '</button><button class="btn ghost" data-upd="">Cancel</button></div></div></div>';
 }
 /* round 18: the board. Ready to submit (Yes jobs with approved documents, from the job list), then Submitted (Applied and Heard back),
-   Interview, Offer (and Hired) and Closed, from the client's applications. Cards move with one tap (assets/portal-r18.js). */
+   Interview, Offer (and Hired) and Closed, from the client's applications. Cards move with one tap (assets/portal-app.js). */
 function vApps() {
   var d = S.data, cols = BOARD_COLS, ready = r18ReadyJobs(d), by = [ready, [], [], [], []];
   d.apps.forEach(function (x) { by[boardCol(x)].push(x); });
@@ -2236,7 +2232,7 @@ function appDue(x) {
   var st = stageOf(x), iv = daysFrom(x.interview), fu = daysFrom(x.followUpOn); if (st === 4) return false;
   if (iv != null && iv >= 0) return true;
   if (outcomeDue(x)) return true;
-  if (typeof r44FuIsDue === 'function') return r44FuIsDue(x); /* r45: the one follow-up rule (assets/portal-r44.js r44FuPlan) */
+  if (typeof r44FuIsDue === 'function') return r44FuIsDue(x); /* r45: the one follow-up rule (assets/portal-app.js r44FuPlan) */
   return fu != null ? fu <= 0 : fuFlag(x);
 }
 function afApps(d) {
@@ -2365,7 +2361,18 @@ function saveDrafts() {
   if (S.updFor && document.getElementById('upStatus')) { var uv = {}; UP_FIELDS.forEach(function (f) { var el = $(f[1]); if (el) uv[f[0]] = el.value; }); S.upDraft = { id: S.updFor, v: uv }; }
   var ct = document.getElementById('changesText'); if (ct) S.changesDraft = ct.value;
 }
+/* Draws the screen for the current state, then runs what follows every draw. */
 function render() {
+  /* r44: any screen that is not a signed-in portal (sign-in, link, error after an expired session) leaves nothing of the tools
+     behind; the practice timer runs only on its own screen */
+  if (S.status !== 'ready' && S.status !== 'boot' && !S.token) { r44TimerStop(); r44Wipe(); } else if (S.status === 'ready' && S.view !== 'practice') r44TimerStop();
+  drawView();
+  if (S.status === 'ready' && S.view === 'billing') billAfter(); /* round 25 */
+  try { r42FitHist(); } catch (e) {} /* r42: each Find Your Fit screen gets its own history entry */
+  /* r44: the path on Home draws once, on the first Home of this page load */
+  if (S.status === 'ready' && S.view === 'home' && !S.flow && !S.deck && !S.r44Drawn && !S.r44DrawT) S.r44DrawT = setTimeout(function () { S.r44Drawn = true; }, 1200); /* one timer, sets one flag, touches no screen */
+}
+function drawView() {
   var app = $('#app');
   if (S.status === 'signin') { app.innerHTML = vSignin(); return; }
   if (S.status === 'link') { app.innerHTML = vLink(); var lg = S.focusTo ? document.querySelector(S.focusTo) : null; S.focusTo = null; if (lg) { try { lg.focus({ preventScroll: true }); } catch (e) { lg.focus(); } } return; }
@@ -2419,6 +2426,11 @@ function go(view, help) {
   /* r42 (audit M2): a tab change adds a history entry, so Back returns to the view before it. Leaving a review, apply or interview
      prep screen by the nav is different: that entry now stands for the new view (replaced, not added), so Back never lands on a
      half-finished screen twice. Tapping the view already shown adds nothing. */
+  if (view !== 'training') { S.tfSaidId = null; S.tfSaidUp = false; } /* r45: leaving the finder drops its star note */
+  /* r44: leaving practice stops the timer and writes anything typed; opening it starts at its list of jobs */
+  if (S.view === 'practice' && view !== 'practice') { r44TimerStop(); r44Save(); }
+  if (view === 'practice' && S.view !== 'practice' && r44On()) { var P = r44Pr(); P.scr = 'jobs'; P.job = ''; P.edit = null; P.draft = null; P.del = null; }
+  if (view !== 'delete' || S.view !== 'delete') S.del = null; /* r43: leaving Delete my account clears what was typed */
   if (!VIEW_RE.test(view)) view = 'home';
   var here = S.view === view && !S.flow && !!help === !!S.fbHelp;
   try {
@@ -2427,7 +2439,9 @@ function go(view, help) {
   } catch (e) {}
   S.flowBase = null; S.fxSig = null; S.fxHn = 0;
   S.view = view; S.flow = null; S.changesFor = null; S.flash = ''; S.menu = false; S.reauthMsg = false; if (view === 'feedback') S.fbDone = false; S.fbHelp = view === 'feedback' && !!help; /* r36: the Help button opens this view with the urgent box */ S.focusTo = '.ptitle h1'; var sc = S.scrollApp; render(); if (!sc || S.scrollApp) window.scrollTo(0, 0); }
-function signOut(msg) { S.tweekOpen = null;
+function signOut(msg) {
+  r44TimerStop(); r44Wipe(); /* r44: stop the practice timer and remove what the tools kept on this device (again at the end) */
+  S.tweekOpen = null;
   flushDeferred(true);
   /* round 12: end this session on the server too (fire and forget), before the token is dropped here */
   if (S.token) { try { post({ action: 'signout', t: S.token }, true).catch(function () {}); } catch (e) {} }
@@ -2438,6 +2452,7 @@ function signOut(msg) { S.tweekOpen = null;
   dropToken(); S.token = S.demo ? 'demo' : null; S.data = null; S.flow = null; S.pf = { draft: {} }; S.urg = {}; S.fb = {}; S.fbText = {}; S.fbDone = false; S.logDraft = {}; S.upDraft = null; S.jf = null; S.af = null; S.chgOpen = {}; S.jfShown = {}; S.jfKey = null; S.qOpen = {}; S.notes = {}; S.seenMem = null; S.colOpen = null; S.lastEmail = ''; S.linkKey = null; linkKeyDrop(); S.status = 'signin'; S.sent = false; S.err = msg || ''; S.menu = false; S.deck = null; S.reauthMsg = false;
   document.body.classList.remove('deck-lock'); render();
   histSignOut();
+  r44Wipe();
 }
 /* r42: tabs, the deck and the readers add history entries. Signing out steps back off all of them and blanks the entry it lands
    on, so Back leaves the sign-in screen on the first press, as it did before tabs had entries. */
@@ -3610,7 +3625,6 @@ function billConfetti(el) {
   }
   setTimeout(function () { box.remove(); }, 1500);
 }
-(function () { var r0 = render; render = function () { var out = r0.apply(this, arguments); if (S.status === 'ready' && S.view === 'billing') billAfter(); return out; }; })();
 function billBuy(item) {
   if (!billNJ() || !S.bill.agree || S.bill.busy || !BILL_NAMES.hasOwnProperty(item)) return;
   var url = billBuyUrl(item); if (!url) return;
@@ -3654,12 +3668,7 @@ document.addEventListener('click', function (e) {
 }, true);
 /* =================== END ROUND 25 =================== */
 </script>
-<script src="../assets/portal-r18.js?v=sp-20261113r47"></script>
 <script src="../assets/fx.js?v=20261024d"></script>
-<script src="../assets/portal.js?v=20261024e"></script>
-<script src="../assets/fit-r35.js?v=sp-20261113r47"></script>
-<script src="../assets/portal-r42.js?v=sp-20261113r47"></script>
-<script src="../assets/portal-r44.js?v=sp-20261113r47"></script>
-<script src="../assets/portal-r45.js?v=sp-20261115sam"></script>
+<script src="../assets/portal-app.js?v=sp-20261115pm2"></script>
 </body>
 </html>
