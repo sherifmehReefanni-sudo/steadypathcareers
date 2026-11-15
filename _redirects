@@ -2,3 +2,4 @@
 /_tools/* /404.html 302
 /start/classic /start/ 301
 /start/classic/* /start/ 301
+/AGENTS.md /404.html 302
