@@ -189,7 +189,7 @@
      the agreement boxes, signature, honeypot, text-message consent and any file are never restored. The backend (draftClean_ in
      Code_v1.27.gs) applies the same list before it stores a draft. */
   function blankState() { return { times: [], v2: { alsoOpen: [], titles: [], skills: {}, mod: {}, settingsPick: [], empTypes: [], standOut: [], rank: [], companyTypes: [], dream: [], avoid: [], deal: {}, style: {}, strengths: [], strengthsOwn: [], shifts: [], software: [] } }; }
-  var NOSAVE = ['agreeTrue', 'agreeTrial', 'signature', 'website', 'resume', 'textOk'];
+  var NOSAVE = ['agreeAdult', 'agreeTrue', 'agreeTrial', 'signature', 'website', 'resume', 'textOk'];
   var BADKEY = ['__proto__', 'constructor', 'prototype'];
   var ST = {
     str: ['referred', 'name', 'email', 'phone', 'contactBy', 'city', 'relocating', 'moveWhen', 'resumeName', 'jobNowTitle', 'jobNowEmployer', 'stillThere', 'endedOn', 'years', 'licenses', 'history', 'education', 'school', 'linkedin', 'start', 'workAuth', 'sponsorship', 'softwareOther', 'standOutOther', 'notWantOther', 'numbers', 'gaps', 'gapWords', 'neverMention', 'privateSearch', 'anythingElse', 'nycHybrid'],
@@ -684,8 +684,9 @@
   } });
   add({ id: 'docs', stop: 4, html: function () { return h('How should your documents sound?', '') + chips('v2.resumeStyle', 'Resume style', O.resumeStyle, { one: 1 }) + chips('v2.coverTone', 'Cover letter tone', O.coverTone, { one: 1 }); } });
   add({ id: 'review', stop: 4, html: function () { return h('Check your answers', 'Tap Edit on anything you want to change.') + review(); } });
-  add({ id: 'confirmSend', stop: 4, need: ['agreeTrue', 'agreeTrial', 'signature'], html: function () {
+  add({ id: 'confirmSend', stop: 4, need: ['agreeAdult', 'agreeTrue', 'agreeTrial', 'signature'], html: function () {
     return h('Confirm and send', 'Last step.') + reattach() +
+      '<label class="i2-agree" id="a_agreeAdult"><input type="checkbox" data-b="agreeAdult"' + (D.agreeAdult ? ' checked' : '') + '>I\'m 18 or older.</label>' +
       '<label class="i2-agree" id="a_agreeTrue"><input type="checkbox" data-b="agreeTrue"' + (D.agreeTrue ? ' checked' : '') + '>Everything I entered is true. I understand nothing goes on a document unless I said it is true, and that I approve every document before it is used.</label>' +
       '<label class="i2-agree" id="a_agreeTrial"><input type="checkbox" data-b="agreeTrial"' + (D.agreeTrial ? ' checked' : '') + '><span>I understand the pilot is free, that I submit all applications myself, and that no job, interview or pay is promised. I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>' +
       '<label class="i2-agree"><input type="checkbox" data-b2="textOk"' + (V.textOk ? ' checked' : '') + '><span>Optional: you may text me about my search at the number I gave. Message and data rates may apply. Reply STOP anytime.</span></label>' +
@@ -820,7 +821,7 @@
     return Array.isArray(v) ? !v.length : !v;
   }
   var LETTER = /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u0590-\u06FF\u3040-\u30FF\u4E00-\u9FFF\uAC00-\uD7AF]/;
-  var LABEL = { name: 'your first and last name', jobNowTitle: 'your most recent job title, or one line of work history', email: 'an email that works', phone: 'a phone number (10 digits)', contactBy: 'the best way to reach you', city: 'your city, state and ZIP', start: 'your earliest start date', workAuth: 'work authorization', sponsorship: 'visa sponsorship', 'v2.situation': 'what fits you best', 'v2.field': 'your main field', 'v2.titles': 'at least 2 job titles', 'v2.seniority': 'a level', payFloor: 'the lowest pay you would accept', 'v2.settingsPick': 'at least one work setting', 'v2.empTypes': 'at least one kind of work', agreeTrue: 'a tick in the box that starts "Everything I entered is true"', agreeTrial: 'a tick in the box that starts "I understand the pilot is free"', signature: 'your typed name as a signature (at least 2 characters, with a letter)', 'v2.mod.describe': 'a short description of your field' };
+  var LABEL = { name: 'your first and last name', jobNowTitle: 'your most recent job title, or one line of work history', email: 'an email that works', phone: 'a phone number (10 digits)', contactBy: 'the best way to reach you', city: 'your city, state and ZIP', start: 'your earliest start date', workAuth: 'work authorization', sponsorship: 'visa sponsorship', 'v2.situation': 'what fits you best', 'v2.field': 'your main field', 'v2.titles': 'at least 2 job titles', 'v2.seniority': 'a level', payFloor: 'the lowest pay you would accept', 'v2.settingsPick': 'at least one work setting', 'v2.empTypes': 'at least one kind of work', agreeAdult: 'a tick in the box that says "I\'m 18 or older"', agreeTrue: 'a tick in the box that starts "Everything I entered is true"', agreeTrial: 'a tick in the box that starts "I understand the pilot is free"', signature: 'your typed name as a signature (at least 2 characters, with a letter)', 'v2.mod.describe': 'a short description of your field' };
 
   function stopOf(i) { return S[Math.min(Math.max(i, 0), S.length - 1)].stop; }
   /* Focus (finding 4): after a full render, focus goes to the new question (or to an error); after an in-place render(false),
@@ -993,7 +994,7 @@
       numbers: D.numbers || '', software: arr(V.software), softwareOther: D.softwareOther || '', education: D.education || '', school: D.school || '', licenses: D.licenses || '',
       gaps: D.gaps || '', gapWords: D.gaps === 'Yes' ? (D.gapWords || '') : '', neverMention: D.neverMention || '', excludeEmployers: arr(V.avoid).join('\n'),
       privateSearch: D.privateSearch || '', referred: D.referred || '',
-      agreeTrue: !!D.agreeTrue, agreeTrial: !!D.agreeTrial, signature: String(D.signature || '').trim(), termsVersion: TERMS_VERSION
+      agreeAdult: !!D.agreeAdult, agreeTrue: !!D.agreeTrue, agreeTrial: !!D.agreeTrial, signature: String(D.signature || '').trim(), termsVersion: TERMS_VERSION
     };
     /* same summary lines the current form adds, so nothing is lost before the backend learns the new columns */
     var tn = typesNote();
