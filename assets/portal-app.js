@@ -525,7 +525,7 @@ function fitResults() {
       : '<p class="fx-plain">No titles stood out this time' + (top.length && s[top[0]] === s[top[2]] ? ', because your answers were spread evenly' : '') + '. That is fine: your job matches stay exactly the same.</p>') +
     (x.tErr ? '<p class="warn" role="alert">' + esc(x.tErr) + '</p>' : '') + '</div>' +
     '<div class="fx-actions"><button type="button" class="btn gold" data-fxshare>Make a share card</button><button type="button" class="btn ghost" data-go="jobs">Back to your jobs</button><button type="button" class="linkbtn" data-fxretake>Retake it' + (all60 ? ' (30 questions)' : '') + '</button>' + (all60 && fitDeepOn() ? '<button type="button" class="linkbtn" data-fxdeep>Retake the full version (60 questions)</button>' : '') + '</div>' +
-    '<p class="fx-plain fx-note">This is an interest guide. Your interests are one of many things that matter in a career, and these results never limit which jobs you see. These results show which kinds of work match your interests. They don\'t measure your qualifications or your chances of being hired.</p>' +
+    '<p class="fx-plain fx-note">This is an interest guide. It shows which kinds of work match your interests, not your qualifications or your chances of being hired, and it never limits which jobs you see.</p>' +
     '<p class="fx-credit">Your top three come from the O*NET&reg; Interest Profiler (' + (all60 ? '60-question Short Form' : '30-question version') + '). ' + FIT_CREDIT_IP + '</p><p class="fx-credit">' + fitCreditDb(f.release) + '</p></section>';
 }
 
