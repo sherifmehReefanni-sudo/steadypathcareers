@@ -448,7 +448,7 @@ function fitIntro() {
     '<p class="fx-lead">30 quick questions, ' + FIT_ABOUT + '10 minutes, no wrong answers.</p>' +
     '<p class="fx-sub">Each screen shows one activity. Tap how much you would like doing it. Don\'t worry about training or pay; just go with your gut.</p>' +
     '<button type="button" class="fx-start" data-fxstart>' + (x.ans.length ? 'Pick up where you left off' : 'Start') + '</button></div></div>' +
-    fitChips() + (fitDeepOn() ? '<p class="fx-plain fx-alt">Prefer the full version? <button type="button" class="linkbtn" data-fxdeep>Take the 60-question O*NET&reg; Interest Profiler Short Form instead (' + FIT_ABOUT + '15 to 20 minutes)</button></p>' : '') +
+    fitChips() + (fitDeepOn() ? '<p class="fx-plain fx-alt">Prefer the full version? <button type="button" class="linkbtn" data-fxdeep aria-label="Take the 60-question O*NET&reg; Interest Profiler Short Form instead (about 15 to 20 minutes)">Take the 60-question O*NET&reg; Interest Profiler Short Form instead (' + FIT_ABOUT + '15 to 20 minutes)</button></p>' : '') +
     '<div class="fx-why card"><h3>What you get</h3><ul><li>Your top three interest areas, in plain words.</li><li>Five job titles that line up with them, to say Yes or No to.</li><li>A short "why it fits you" line on job matches where we can tell.</li></ul>' +
     '<p class="fx-plain">This is an interest guide, not a test, and it is optional. It never limits which jobs you see. We keep your six area scores, not your answers.</p></div>' +
     (S.demo ? '<p class="fx-demo"><button type="button" class="linkbtn" data-fxdemo>Demo: fill in sample answers</button></p>' : '') +
