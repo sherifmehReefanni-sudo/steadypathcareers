@@ -5,13 +5,13 @@
   /* Welcome video. While WELCOME_VIDEO is empty, the hero "Watch how it works" button, the "Watch" links
      and the whole theater section stay hidden. Set it to the mp4 path (for example '/img/welcome.mp4') and,
      if you have one, WELCOME_POSTER to a still image, and they all appear. */
-  var WELCOME_VIDEO = '/media/welcome-r49.mp4';
-  var WELCOME_POSTER = '/media/welcome-r49-poster.jpg';
+  var WELCOME_VIDEO = '/media/welcome-r55.mp4';
+  var WELCOME_POSTER = '/media/welcome-r55-poster.jpg';
   /* The video's length as words (for example '53 seconds') and its chapters as [time, what it covers] pairs
      (for example [['0:00', 'Real jobs, with the pay right there'], ['0:10', '...']]). Fill these from the final cut.
      While they are empty, no length and no chapter list are shown anywhere. */
   var WELCOME_LENGTH = '1 minute 6 seconds';
-  var WELCOME_CAPTIONS = '/media/welcome-r49.vtt';
+  var WELCOME_CAPTIONS = '/media/welcome-r55.vtt';
   var WELCOME_CHAPTERS = []; /* r50: chapter list removed from the page at the owner's request */
 
   var root = document.documentElement;
