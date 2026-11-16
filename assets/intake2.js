@@ -32,7 +32,7 @@
     education: ['High school or GED', 'Some college', "Associate's degree", "Bachelor's degree", "Master's or higher", 'Doctorate', 'Trade or certificate program', 'Prefer not to show'],
     seniority: ['Entry level', 'Some experience (2 to 5 years)', 'Experienced (5 to 10 years)', 'Senior or lead', 'Manager or director'],
     settings: ['On site', 'Hybrid', 'Remote', 'Open to all'],
-    travel: ['No travel', 'Occasional', 'Up to 25%', 'Up to 50%', 'Heavy travel is fine'],
+    travel: ['No travel', 'Occasional', 'Up to 25%', 'Up to 50%', 'Heavy travel is fine', 'Open to all'],
     nycHybrid: ['Yes', 'Maybe', 'No'], getThere: ['Driving', 'Public transit', 'Either'],
     empTypes: ['Full-time', 'Part-time', 'Contract', 'Temp-to-hire', 'Per diem'],
     shifts: ['Weekday days', 'Evenings', 'Overnights', 'Weekends', 'Rotating shifts'],
