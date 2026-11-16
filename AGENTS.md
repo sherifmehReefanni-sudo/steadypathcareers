@@ -10,3 +10,7 @@ These apply to every change in this repo, whoever makes it.
 2. **Replace, do not layer.** When changing a feature, edit or replace the existing code. Do not add a new version that wraps or overrides the old one and leave the old one in place. Delete code, files and pages that nothing uses any more.
 3. **Never break live data or live links.** Client data in the Google Sheets backend is migrated, never dropped. Pages that emails or saved links point to keep working (for example /start/v2, the "finish later" link). If a path must go, redirect it.
 4. Before removing anything, search the repo for every reference to it, including test and check tools, and fix or repoint those.
+
+## Site checks (added Nov 15, 2026)
+
+`_tools/site-tests/` holds Playwright checks that GitHub runs on every push and once a day against the live site (`.github/workflows/site-checks.yml`). Before pushing, run them: `cd _tools/site-tests && python -m pytest` (about a minute). If a change is meant to alter something a check looks at (the welcome card price, a portal screen, a page path), update the check in the same commit and say so. Never delete or loosen a check just to make it pass. The checks block every POST and every outside host, so they can never send an intake, an email, a funnel ping or a Stripe session; keep it that way.

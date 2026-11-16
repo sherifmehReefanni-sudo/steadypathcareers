@@ -1,0 +1,52 @@
+# Steady Path site checks (Playwright). See _tools/site-tests/ for what each test covers.
+# - Every push and pull request: checks that commit, served from a local copy (nothing live is touched).
+# - Once a day: checks the live site at steadypathcareers.com, with every backend, Stripe and analytics call blocked.
+# - By hand: Actions tab > Site checks > Run workflow, pick "local" or "live".
+# A failed run emails whoever pushed (or, for the daily run, whoever last edited the schedule line), with GitHub's default
+# notification settings. GitHub pauses the daily run after 60 days with no commits; re-enable it from the Actions tab.
+name: Site checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 11 * * *'   # 6:17 am New York time in winter (7:17 am in summer)
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'What to check'
+        type: choice
+        options: [local, live]
+        default: local
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-checks-${{ github.event_name }}-${{ inputs.target || 'auto' }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SP_BASE_URL: ${{ (github.event_name == 'schedule' || inputs.target == 'live') && 'https://steadypathcareers.com' || '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: _tools/site-tests/requirements.txt
+
+      - name: Install test tools
+        run: |
+          pip install -r _tools/site-tests/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: Run checks (${{ env.SP_BASE_URL || 'this commit' }})
+        working-directory: _tools/site-tests
+        run: python -m pytest
