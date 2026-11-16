@@ -1,13 +1,13 @@
 /* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage, and a page opened with ?t= or ?k= is not stored at all. Assets: cache first. API calls (script.google.com) are never touched, so no client data is ever cached. */
-var V = 'sp-20261115fit';
+var V = 'sp-20261115sr';
 var ASSETS = ['/', '/offline.html', '/assets/site.css?v=sp-20261110r30', '/assets/site.js?v=sp-20261112r43', '/assets/path.css?v=sp-20261110r30', '/assets/path.js?v=20261026a', '/assets/r17.css?v=sp-20261110r30', '/assets/r17.js?v=20261106a', '/assets/fx.js?v=20261024d', '/assets/intake2.js?v=sp-20261113r47', '/assets/theme.css?v=sp-20261113r47', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
 /* r43: '/' is precached, so the home page opens offline after one visit (stored under its path, the key navigations look up). Nothing under /media/ is ever precached. */
 /* r26: new logo. Install fetches every file above past the browser's HTTP cache (cache: 'reload'), so the new mark and icons arrive fresh. */
 /* the portal's app shell: the page and its two files (Nov 15, 2026: one portal-app.css and one portal-app.js replace the round
    files). Never client data: the API is cross-origin and never touched. */
-ASSETS = ASSETS.concat(['/portal/', '/assets/portal-app.css?v=sp-20261115pm', '/assets/portal-app.js?v=sp-20261115fit']);
+ASSETS = ASSETS.concat(['/portal/', '/assets/portal-app.css?v=sp-20261115pm', '/assets/portal-app.js?v=sp-20261115sr']);
 /* r37: new home page files */
-ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261115home', '/assets/home-r37.js?v=sp-20261115vid']);
+ASSETS = ASSETS.concat(['/assets/home-r37.css?v=sp-20261115sr', '/assets/home-r37.js?v=sp-20261115vid']);
 /* the portal's data files (r44 client tools, r45 training and benefits finder) and Sam */
 ASSETS = ASSETS.concat(['/assets/data/followup-scripts.json', '/assets/data/interview-bank.json', '/img/sam/sam-cheer.svg?v=sp-20261115sam', '/img/sam/sam-wave.svg?v=sp-20261115sam', '/assets/data/training-finder.json']);
 /* r38: the How we check every job page */

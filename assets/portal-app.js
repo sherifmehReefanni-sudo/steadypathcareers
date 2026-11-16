@@ -445,10 +445,10 @@ function fitIntro() {
   var x = S.fx;
   return '<section class="fx fx-intro" aria-labelledby="fxH">' +
     '<div class="fx-hero"><span class="fx-logo">' + SP.mark('fxi') + '</span><div class="fx-herot"><h2 class="fx-big" id="fxH" tabindex="-1">' + esc(FIT_NAME) + '</h2>' +
-    '<p class="fx-lead">30 quick questions, ~10 minutes, no wrong answers.</p>' +
+    '<p class="fx-lead">30 quick questions, ' + FIT_ABOUT + '10 minutes, no wrong answers.</p>' +
     '<p class="fx-sub">Each screen shows one activity. Tap how much you would like doing it. Don\'t worry about training or pay; just go with your gut.</p>' +
     '<button type="button" class="fx-start" data-fxstart>' + (x.ans.length ? 'Pick up where you left off' : 'Start') + '</button></div></div>' +
-    fitChips() + (fitDeepOn() ? '<p class="fx-plain fx-alt">Prefer the full version? <button type="button" class="linkbtn" data-fxdeep>Take the 60-question O*NET&reg; Interest Profiler Short Form instead (~15 to 20 minutes)</button></p>' : '') +
+    fitChips() + (fitDeepOn() ? '<p class="fx-plain fx-alt">Prefer the full version? <button type="button" class="linkbtn" data-fxdeep>Take the 60-question O*NET&reg; Interest Profiler Short Form instead (' + FIT_ABOUT + '15 to 20 minutes)</button></p>' : '') +
     '<div class="fx-why card"><h3>What you get</h3><ul><li>Your top three interest areas, in plain words.</li><li>Five job titles that line up with them, to say Yes or No to.</li><li>A short "why it fits you" line on job matches where we can tell.</li></ul>' +
     '<p class="fx-plain">This is an interest guide, not a test, and it is optional. It never limits which jobs you see. We keep your six area scores, not your answers.</p></div>' +
     (S.demo ? '<p class="fx-demo"><button type="button" class="linkbtn" data-fxdemo>Demo: fill in sample answers</button></p>' : '') +
@@ -492,12 +492,14 @@ function fitRadar(s) {
 /* r35: the offer of the full Short Form (no claim about accuracy; it replaces the 30-question results) */
 function fitDeepCard() {
   var n = S.fx.dans.filter(function (v) { return v; }).length;
-  return '<div class="card fx-deep"><span class="fx-deepic" aria-hidden="true">' + fitRoad(n, 60, false) + '</span><div><h3>Want the full version?</h3><p class="fx-plain">The complete O*NET&reg; Interest Profiler Short Form has 60 questions. It takes ~15 to 20 minutes and replaces your 30-question results.</p>' +
+  return '<div class="card fx-deep"><span class="fx-deepic" aria-hidden="true">' + fitRoad(n, 60, false) + '</span><div><h3>Want the full version?</h3><p class="fx-plain">The complete O*NET&reg; Interest Profiler Short Form has 60 questions. It takes ' + FIT_ABOUT + '15 to 20 minutes and replaces your 30-question results.</p>' +
     '<button type="button" class="btn gold" data-fxdeep>' + (n ? 'Pick up where you left off' : 'Take the full version') + '</button></div></div>';
 }
 /* r36: what an Interest match number means, wherever one is shown: once above the title list on the results screen, and one small
    line under the first job card that shows a score. Which card that is gets decided in JS when the list is built: the portal calls
    fitNoteFirst(list) with the cards in the order it is about to draw them, and fitWhy adds the line to that one card only. */
+/* the visible "~" before a time, read as "about" by screen readers (.sr is in portal/index.html) */
+var FIT_ABOUT = '<span aria-hidden="true">~</span><span class="sr">about </span>';
 var FIT_SCORE_NOTE = 'This score shows how well the work matches your interests. It doesn\'t measure your qualifications or your chances of being hired.';
 function fitShowsScore(j) { return !!j && j.interestFit != null && j.interestFit !== '' && !j.closed && ansOf(j) !== 'no'; } /* the cards fitFace draws a fit line on */
 function fitNoteFirst(list) {
@@ -627,12 +629,12 @@ function fitJobsCredit(d) {
 }
 function fitHello() {
   if (!fitOn()) return '';
-  return fitDone() ? '<button type="button" class="linkbtn fx-hl" data-go="fit">Your fit: ' + esc(fitNames(S.data.fit.top3 || [])) + '</button>' : '<button type="button" class="linkbtn fx-hl" data-go="fit">Find Your Fit: ~10 minutes</button>';
+  return fitDone() ? '<button type="button" class="linkbtn fx-hl" data-go="fit">Your fit: ' + esc(fitNames(S.data.fit.top3 || [])) + '</button>' : '<button type="button" class="linkbtn fx-hl" data-go="fit">Find Your Fit: ' + FIT_ABOUT + '10 minutes</button>';
 }
 function fitJobsCard() {
   if (!fitOn() || fitDone()) return '';
   var nAns = S.fx.ans.filter(function (v) { return v; }).length;
-  return '<div class="fx-jcard"><div class="fx-jcic">' + (nAns ? fitRoad(nAns, 30, false) : '<span class="fx-logo">' + SP.mark('fxj') + '</span>') + '</div><div><b>' + esc(FIT_NAME) + '</b><p>30 quick questions, ~10 minutes. See your top interests and five titles that line up with them. Optional; your matches keep coming either way.</p><button type="button" class="btn gold" data-go="fit">Take it</button></div></div>';
+  return '<div class="fx-jcard"><div class="fx-jcic">' + (nAns ? fitRoad(nAns, 30, false) : '<span class="fx-logo">' + SP.mark('fxj') + '</span>') + '</div><div><b>' + esc(FIT_NAME) + '</b><p>30 quick questions, ' + FIT_ABOUT + '10 minutes. See your top interests and five titles that line up with them. Optional; your matches keep coming either way.</p><button type="button" class="btn gold" data-go="fit">Take it</button></div></div>';
 }
 
 document.addEventListener('click', function (e) {

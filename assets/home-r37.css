@@ -345,6 +345,8 @@ html:not(.js) .post,html:not(.js) .tabs,html:not(.js) .ticker{display:none}
 html:not(.js) .chk{grid-template-columns:minmax(0,1fr)}
 html:not(.js) .chk .posts{order:2}
 html.js .fields-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* text for screen readers only (for example "about" in place of a visible "~") */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .fields-text{color:var(--ink-2);max-width:46em}
 .fields-text b{color:var(--ink)}
 
