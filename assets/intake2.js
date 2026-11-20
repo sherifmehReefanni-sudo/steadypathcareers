@@ -253,7 +253,7 @@
     if (!plain(V.skills)) V.skills = {}; if (!plain(V.deal)) V.deal = {}; if (!plain(V.style)) V.style = {};
   }
   fixMod();
-  var cur = 0 /* set from the saved place once the screens exist (atToCur) */, file = null, parsed = null, parsing = false, readOk = false, noFileOk = false, leaving = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
+  var cur = 0 /* set from the saved place once the screens exist (atToCur) */, file = null, parsed = null, parsing = false, readOk = false, noFileOk = false, askNoRes = false /* the Send confirm when no resume is attached */, leaving = false, msg = '', msgKind = '', bad = [], busy = false, sent = null, payOk = '';
   var autoT = null, fromReview = false, laterOpen = false, laterBusy = false, laterMsg = '', laterKind = '', dealAnim = false, parseT = null;
   /* Saving (round 6). base is the saved-at stamp of the copy this tab last read or wrote. A save whose base is older than the
      stored copy (another tab or window wrote since) is refused: this tab reloads that newer copy instead, so a stale tab never
@@ -423,7 +423,7 @@
     var st = parsing ? '<p class="i2-reading" role="status"><span class="i2-dots" aria-hidden="true"><i></i><i></i><i></i></span>Reading your resume…</p>' :
       file && parsed && readOk ? '<p class="i2-okline" role="status">' + icon('shield', 'ic sm') + 'Read it. Next, you will check what we found.</p>' :
       file && parsed ? '<p class="i2-okline" role="status">' + icon('clip', 'ic sm') + 'Your file is attached. We could not read it on this device, so next you will fill in a few details yourself.</p>' : '';
-    return h('Upload your resume', 'PDF, Word (.docx or .doc), .rtf or .txt, up to 10 MB. It is read right here on your device to fill in the next screen. Any version is fine.') +
+    return h('Your resume (we need it to start your search)', 'PDF, Word (.docx or .doc), .rtf or .txt, up to 10 MB. It is read right here on your device to fill in the next screen. Any version is fine.') +
       '<label class="i2-drop" id="i2drop"><input type="file" id="i2file" accept=".pdf,.doc,.docx,.rtf,.txt"><span class="i2-dropin">' + icon('clip', 'ic') +
       '<b>' + (file ? esc(file.name) : D.resumeName ? 'Attach ' + esc(D.resumeName) + ' again' : 'Tap to choose a file') + '</b><span>' + (file ? 'Tap to change it' : 'or drag it here') + '</span></span></label>' + st +
       '<button type="button" class="i2-link" data-act="noresume">No resume? No problem. Answer a few questions instead.</button>';
@@ -577,7 +577,7 @@
   add({ id: 'docs', stop: 4, html: function () { return h('How should your documents sound?', '') + chips('v2.resumeStyle', 'Resume style', O.resumeStyle, { one: 1 }) + chips('v2.coverTone', 'Cover letter tone', O.coverTone, { one: 1 }); } });
   add({ id: 'review', stop: 4, html: function () { return h('Check your answers', 'Tap Edit on anything you want to change.') + review(); } });
   add({ id: 'confirmSend', stop: 4, need: ['agreeAdult', 'agreeTrue', 'agreeTrial', 'signature'], html: function () {
-    return h('Confirm and send', 'Last step.') + reattach() +
+    return h('Confirm and send', 'Last step.') + reattach(true) +
       '<label class="i2-agree" id="a_agreeAdult"><input type="checkbox" data-b="agreeAdult"' + (D.agreeAdult ? ' checked' : '') + '>I\'m 18 or older.</label>' +
       '<label class="i2-agree" id="a_agreeTrue"><input type="checkbox" data-b="agreeTrue"' + (D.agreeTrue ? ' checked' : '') + '>Everything I entered is true. I understand nothing goes on a document unless I said it is true, and that I approve every document before it is used.</label>' +
       '<label class="i2-agree" id="a_agreeTrial"><input type="checkbox" data-b="agreeTrial"' + (D.agreeTrial ? ' checked' : '') + '><span>I understand the pilot is free, that I submit all applications myself, and that no job, interview or pay is promised. I agree to the <a href="/terms/" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy/" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>' +
@@ -676,23 +676,28 @@
   function review() {
     var f = field(), rows = [
       [1, 'You', [D.name, D.email, D.phone, D.city, 'Reach by ' + (D.contactBy || '?'), V.situation, 'Start: ' + (D.start || '?'), 'Work authorization: ' + (D.workAuth || '?') + '; sponsorship: ' + (D.sponsorship || '?')]],
-      [1, 'Your work so far', [(file ? 'Resume: ' + file.name : V.noResume ? 'No resume (we will build one)' : lostResume() ? (noFileOk ? 'No resume (you chose to send without one, so we will build one)' : 'Resume: ' + D.resumeName + ' is NOT attached') : 'No resume attached'), [D.jobNowTitle, D.jobNowEmployer].filter(Boolean).join(', '), D.years ? D.years + ' years of experience' : '', D.education]],
+      [1, 'Your work so far', [(file ? 'Resume: ' + file.name : V.noResume ? 'No resume (we will build one)' : noFileOk ? 'No resume yet (you chose to send without it and upload it from your portal)' : lostResume() ? 'Resume: ' + D.resumeName + ' is NOT attached' : 'No resume attached yet. We need it to start your search.'), [D.jobNowTitle, D.jobNowEmployer].filter(Boolean).join(', '), D.years ? D.years + ' years of experience' : '', D.education]],
       [2, 'Your field', [f ? f.t : '?', arr(V.alsoOpen).length ? 'Also open to: ' + V.alsoOpen.map(function (k) { return F[k].t; }).join(', ') : '', 'Titles: ' + (titleList().join(', ') || '?'), V.seniority]],
       [3, 'Your ideal job', ['Pay floor: ' + (payFloorYear() ? money(payFloorYear()) + ' a year' : '?'), 'Settings: ' + (settingsOld().join(', ') || '?'), remoteOnly() ? '' : 'Commute: ' + (commuteSet() ? commuteOld(V.commuteMin) : 'not set (we use about 50 miles)'), 'Kinds of work: ' + (arr(V.empTypes).join(', ') || '?'), arr(V.rank).length ? 'Top priorities: ' + V.rank.join(', ') : '', dealList().length ? 'Deal-breakers: ' + dealList().join(', ') : '']],
       [4, 'Your story', [arr(V.strengths).length ? 'Strengths: ' + V.strengths.join(', ') : '', V.proudestWin ? 'Proudest win: ' + V.proudestWin : '', V.resumeStyle ? 'Resume style: ' + V.resumeStyle : '']]
     ];
     var jump = { 'You': idx('contact'), 'Your work so far': idx('resume'), 'Your field': idx('field'), 'Your ideal job': idx('pay'), 'Your story': idx('strengths') };
-    return reattach() + rows.map(function (r) { return '<div class="i2-rev"><div class="i2-revh"><b>' + esc(r[1]) + '</b><button type="button" class="i2-link" data-jump="' + jump[r[1]] + '" aria-label="Edit ' + esc(r[1]) + '">Edit</button></div><p>' + r[2].filter(Boolean).map(esc).join('<br>') + '</p></div>'; }).join('') + meter();
+    return reattach(false) + rows.map(function (r) { return '<div class="i2-rev"><div class="i2-revh"><b>' + esc(r[1]) + '</b><button type="button" class="i2-link" data-jump="' + jump[r[1]] + '" aria-label="Edit ' + esc(r[1]) + '">Edit</button></div><p>' + r[2].filter(Boolean).map(esc).join('<br>') + '</p></div>'; }).join('') + meter();
   }
   /* finding 8: the file itself never survives a reload (only its name does), so say so where it matters */
   function lostResume() { return !file && !!D.resumeName && !V.noResume; }
-  /* r41 (B1): a resume that was named but is no longer in this page is never sent and never reported as attached. The Review and
-     Confirm screens say so, and Send stays blocked until the client attaches it again or taps "Send without a resume". */
-  function reattach() {
-    if (!lostResume()) return '';
-    if (noFileOk) return '<div class="i2-info" id="i2nores"><b>You chose to send without a resume.</b> We will build one from your answers. <button type="button" class="i2-link" data-jump="' + idx('resume') + '">Attach a resume instead</button></div>';
-    return '<div class="i2-err" id="i2nores"><b>Your resume is not attached.</b> ' + esc(D.resumeName) + ' did not carry over when this page was reloaded or reopened, so it will not be sent. Your other answers are all here. Attach it again, or send without it and we will build a resume from your answers.' +
-      '<div class="i2-ctas" style="margin-top:10px"><button type="button" class="btn ghost" data-jump="' + idx('resume') + '">Attach it again</button><button type="button" class="btn ghost" data-act="sendnoresume">Send without a resume</button></div></div>';
+  /* One gate for sending without a resume file (it replaces the r41 lost-resume gate). "No resume? No problem" (V.noResume) is a
+     separate path and never sees it. A resume that was named but is no longer in this page is never sent and never reported as
+     attached: Review and Confirm say so. On Send with no file, the inline confirm below shows; "Submit without it" sends, "Add my
+     resume" goes back to the resume screen. The form can always be sent: a lost intake is worse than a late resume. */
+  function reattach(atSend) {
+    if (file || V.noResume) return '';
+    var add = '<button type="button" class="btn ' + (atSend ? 'gold' : 'ghost') + '" data-jump="' + idx('resume') + '">Add my resume</button>';
+    if (noFileOk) return '<div class="i2-info" id="i2nores"><b>You chose to send without your resume.</b> We can\'t start your search until we have it. Upload it from your portal any time. <button type="button" class="i2-link" data-jump="' + idx('resume') + '">Add my resume now</button></div>';
+    if (!lostResume() && !(atSend && askNoRes)) return '';
+    return '<div class="i2-err" id="i2nores">' + (lostResume() ? '<b>Your resume is not attached.</b> ' + esc(D.resumeName) + ' did not carry over when this page was reloaded or reopened, so it will not be sent. ' : '') +
+      'We can\'t start your search until we have your resume. You can submit now and upload it from your portal any time.' +
+      '<div class="i2-ctas" style="margin-top:10px">' + (atSend ? '<button type="button" class="btn ghost" data-act="sendnoresume">Submit without it</button>' : '') + add + '</div></div>';
   }
   function idx(id) { for (var i = 0; i < S.length; i++) if (S[i].id === id) return i; return 0; }
 
@@ -836,11 +841,11 @@
       for (var ti = 0; ti < typed.length; ti++) { var tv = typed[ti].value.replace(/\s+/g, ' ').trim().slice(0, 80); if (tv && ownAdd(typed[ti].getAttribute('data-own'), tv) === 'full' && typed[ti].getAttribute('data-own') === 'title') { msgKind = 'info'; msg = 'You already have 5 titles. Remove one to add another.'; render(); return; } }
       if (typed.length) save();
       var s = S[cur], m = needOf(s);
-      /* r41 (B1): a named resume that is no longer here blocks Send until it is attached again or the client chooses to send without it */
-      if (s.id === 'confirmSend' && lostResume() && !noFileOk) { bad = []; msgKind = 'err'; msg = 'Your resume is not attached, so this has not been sent. Attach it again, or tap Send without a resume.'; render(); var ng = document.getElementById('i2nores'); if (ng && ng.scrollIntoView) try { ng.scrollIntoView({ block: 'nearest' }); } catch (e) {} return; }
       if (m.length) { bad = m; msgKind = 'err'; msg = 'Please add ' + m.map(function (k) { return LABEL[k] || k; }).join(', ') + '.'; render(); return; }
       if (s.id === 'pay') { var pq = payQuestion(), pk = (V.payUnit || 'Yearly') + '|' + V.payFloor + '|' + V.payTarget; if (pq && payOk !== pk) { payOk = pk; bad = []; msgKind = 'info'; msg = esc(pq); render(); return; } }
       if (s.id === 'confirm' && parsing) { msgKind = 'info'; msg = 'Still reading your resume. One moment, and the boxes fill in.'; render(); return; }
+      /* the one resume gate: after the required answers are checked, so "Submit without it" really sends */
+      if (s.id === 'confirmSend' && !file && !V.noResume && !noFileOk) { askNoRes = true; bad = []; msg = ''; render(); var ng = document.getElementById('i2nores'); if (ng) { ng.setAttribute('tabindex', '-1'); try { ng.focus({ preventScroll: true }); } catch (e) {} if (ng.scrollIntoView) try { ng.scrollIntoView({ block: 'nearest' }); } catch (e) {} } return; }
       if (s.id === 'confirmSend') { submit(); return; }
     }
     var j = nextIdx(cur, dir); if (j < 0 || j >= S.length) return;
@@ -906,6 +911,7 @@
   }
   function modAnswers() { var f = field(), o = {}, m = modOf(); if (!f) return o; f.mod.forEach(function (sc) { sc.forEach(function (q) { var v = m[q[0]]; if (v != null && (Array.isArray(v) ? v.length : String(v).trim())) o[q[1]] = v; }); }); return o; }
   window.__i2payload = payload; /* for tests */
+  window.__i2go = function (id) { cur = idx(id); msg = ''; bad = []; render(); }; /* for tests: open one screen */
 
   function toB64(f) { return new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(',')[1]); }; r.onerror = no; r.readAsDataURL(f); }); }
   function submit() {
@@ -928,8 +934,10 @@
   }
   function finish(preview) {
     var token = !preview && sent && sent.token ? sent.token : '';
+    var noRes = !file && !V.noResume; /* sent without a resume file (not the "No resume? No problem" path) */
     ROOT.innerHTML = pathbar(4).replace('class="i2-path"', 'class="i2-path done"') + '<div class="i2-card-wrap"><section class="i2-sheet i2-done" aria-labelledby="i2title"><h2 class="i2-h" id="i2title" tabindex="-1">You\'re all set.</h2>' +
-      '<ol class="i2-next"><li><b>We go through your answers and resume</b> within 1 business day.</li><li><b>We email you any questions</b> and the job titles we suggest. You tell us which ones to keep.</li><li><b>Your search starts once the titles are agreed.</b> Matches that pass our automated checks then show up in your portal, each with pay and a link to the posting.</li></ol>' +
+      (noRes ? '<div class="i2-info" id="i2upl"><b>Your search starts once you upload your resume.</b> Open your portal and tap Upload my resume on the Home screen. You can also find it in Your search settings, under Your resume.' + (token ? '' : ' If the portal asks you to sign in, use the email you gave on this form.') + '</div>' : '') +
+      '<ol class="i2-next"><li><b>' + (noRes ? 'We go through your answers' : 'We go through your answers and resume') + '</b> within 1 business day.</li><li><b>We email you any questions</b> and the job titles we suggest. You tell us which ones to keep.</li><li><b>Your search starts once the titles are agreed.</b> Matches that pass our automated checks then show up in your portal, each with pay and a link to the posting.</li></ol>' +
       /* r46: true while the backend property FIT is on (the portal shows Find Your Fit to every client then). It was on when this shipped. */
       '<p class="i2-note i2-wait" id="i2wait">While you wait: take Find Your Fit in your portal.</p>' +
       '<div class="i2-ctas">' + (preview ? '' : '<a class="btn gold" href="/portal/' + (token ? '?t=' + encodeURIComponent(token) : '') + '">Open my portal</a>') + '<a class="btn ghost" href="' + BOOK + '" target="_blank" rel="noopener">Book an optional intro call</a></div>' + meter(true) + /* r41 (m7): the score only, no to-do list, once the form is sent */
@@ -1020,7 +1028,7 @@
     if (d.jump != null) { flushDeal(); fromReview = S[cur].id === 'review' || S[cur].id === 'confirmSend'; cur = +d.jump; msg = ''; bad = []; laterOpen = false; save(); render(); return; }
     if (d.mic) { listen(d.mic, b); return; }
     if (d.act === 'toreview') { flushDeal(); toReview(); return; }
-    if (d.act === 'sendnoresume') { noFileOk = true; msg = ''; bad = []; render(false); var nr = document.getElementById('i2nores'); if (nr) { nr.setAttribute('tabindex', '-1'); try { nr.focus({ preventScroll: true }); } catch (er) {} } return; }
+    if (d.act === 'sendnoresume') { noFileOk = true; msg = ''; bad = []; if (S[cur].id === 'confirmSend') { go(1); return; } render(false); var nr = document.getElementById('i2nores'); if (nr) { nr.setAttribute('tabindex', '-1'); try { nr.focus({ preventScroll: true }); } catch (er) {} } return; }
     if (d.act === 'noresume') { V.noResume = true; file = null; noFileOk = false; readOk = false; D.resumeName = ''; parsed = null; parsing = false; save(); cur = idx('confirm'); render(); return; }
     if (d.act === 'dealreset') { V.deal = {}; save(); render(false); return; }
     if (d.act === 'dealundo') { flushDeal(); var ks = DEAL.map(function (c) { return c.k; }).filter(function (k2) { return V.deal[k2]; }); if (ks.length) delete V.deal[ks[ks.length - 1]]; save(); render(false); return; }
@@ -1127,7 +1135,7 @@
     for (var i = 0; i < cur; i++) if (visible(i) && needOf(S[i]).length) { cur = i; break; }
     while (cur > 0 && !visible(cur)) cur--;
   }
-  function useState(st) { D = st; V = D.v2; fixMod(); file = null; parsed = null; parsing = false; readOk = false; noFileOk = false; cur = atToCur(D._at); startAt(); }
+  function useState(st) { D = st; V = D.v2; fixMod(); file = null; parsed = null; parsing = false; readOk = false; noFileOk = false; askNoRes = false; cur = atToCur(D._at); startAt(); }
   function hasLocal() { return !!(D._saved && (String(D.name || '').trim() || String(D.email || '').trim() || V.field)); }
   /* "finish later" link: /start/v2/?d=<key> (backend v1.27 intakeDraftLoad). Never in PREVIEW. The emailed answers replace the
      ones on this device as a whole; when this device already has answers, the person picks one set. The two are never mixed. */

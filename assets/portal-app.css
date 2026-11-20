@@ -1062,3 +1062,10 @@ html[data-pv="apps"] .pband::before { display: none; }
 .ru-opt span { min-width: 0; overflow-wrap: anywhere; }
 .ru-opt small { display: block; font-size: 13px; color: var(--muted, #4a5468); }
 .ru-opt:has(input:checked) { border-color: var(--navy); }
+/* v1.48: Home asks for a resume when none is on file; otherwise one quiet link */
+.ru-nudge { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 18px; padding: 16px 18px; border-left: 4px solid var(--gold); }
+.ru-nudge > div { flex: 1 1 260px; min-width: 0; }
+.ru-nudge .pf-h { margin: 0 0 4px; }
+.ru-nudge .psub { margin: 0; }
+.ru-quiet { margin: 0; color: var(--muted); font-size: 14.5px; }
+.ru-quiet .linkbtn { min-height: 44px; font-weight: 800; }

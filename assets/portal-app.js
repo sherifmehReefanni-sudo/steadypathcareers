@@ -1191,7 +1191,7 @@ function vHome() {
   ];
   var tools = r44Tools(), last = r42LastAnswer(d.jobs), plan = billOn() ? esc(billHello(cl)) : esc(trialText(cl));
   return shell('home', esc(r44Sentence(k, cl.firstName, k === 'docs' ? nd : c.wait, iv)), esc(sub)) + '<div class="pband" aria-hidden="true"></div>' +
-    '<main class="pmain wide h44-main">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') +
+    '<main class="pmain wide h44-main">' + (S.flash ? '<div class="sent">' + esc(S.flash) + '</div>' : '') + (S.reauthMsg ? '<div class="warn">Your sign-in has expired.' + reauthBtn() + '</div>' : '') + ruHomeNudge() +
     '<div class="h44-grid"><section class="h44-next" data-hnext="' + k + '" aria-label="Your next step">' + btn + '</section><div class="h44-lead">' + r42WeekHtml() +
     (last ? '<section class="card h-ans" data-hans aria-labelledby="hAnsH"><h2 class="sec-h" id="hAnsH">Your last answered question</h2><p class="h-ans-j"><b>' + esc(last.title || coName(last)) + '</b>' + (last.company && last.title ? ' at ' + esc(last.company) : '') + (realISO(last.replyDate) ? '<span> · answered ' + esc(fmtY(String(last.replyDate).slice(0, 10))) + '</span>' : '') + '</p><p class="h-ans-t">' + esc(clipWords(String(last.reply).trim(), 280)) + '</p><button type="button" class="linkbtn" data-hjob="' + esc(last.id) + '">Open this job</button></section>' : '') + '</div>' +
     '<section class="h44-path' + (S.r44Drawn ? '' : ' draw') + '" aria-labelledby="h44PathH"><h2 class="sec-h" id="h44PathH">Where your search stands</h2><div class="h44-line" aria-hidden="true"></div><ul class="h-tiles h44-stops">' +
@@ -1201,7 +1201,7 @@ function vHome() {
     /* r47: the tools sit inside the grid, right under the path on phones; each row is an icon, a name and one status line */
     (tools.length ? '<section class="h44-tools" aria-labelledby="h44ToolsH"><h2 class="sec-h" id="h44ToolsH">' + (r44Paid() ? 'Included with your plan' : 'Your tools') + '</h2><ul>' + tools.map(function (t) { return '<li>' + r44Link(t[0], 'h44-tool', '<i class="h44-ic" aria-hidden="true">' + (R47_IC[t[0]] || R47_IC.fit) + '</i><div class="h44-tx"><b>' + esc(t[1]) + '</b><span>' + esc(t[2]) + '</span></div>' + IC.chev, ' data-tool="' + t[0] + '"') + '</li>'; }).join('') + '</ul></section>' : '') + '</div>' +
     (plan ? '<section class="card h-plan" data-hplan><p>' + plan + '</p>' + (billOn() ? '<button type="button" class="linkbtn" data-go="billing">Plan &amp; billing</button>' : '') + '</section>' : '') +
-    r42Foot() + '</main>' + tabbar('home');
+    ruHomeQuiet() + r42Foot() + '</main>' + tabbar('home');
 }
 if (typeof document !== 'undefined') {
   /* links on Home and in the tools are real links (they open in a new tab like any link); a plain tap stays in the app */
@@ -2058,6 +2058,7 @@ function ruSend() {
       var me = r.me && r.me.ok ? r.me : null;
       if (me && S.data) { S.data.requests = me.requests || []; S.data.prefs = me.prefs || S.data.prefs; }
       else if (r.request && S.data) S.data.requests = [{ id: r.request, date: r.date || todayISO(), type: 'Change settings', status: 'New' }].concat(S.data.requests || []);
+      if (S.data) S.data.resume = { onFile: true, source: 'upload', date: r.date || todayISO() }; /* v1.48: the Home nudge goes without a reload */
       S.ru = { done: true, date: r.date || todayISO(), request: r.request || '', lost: r.requestSaved === false };
       S.focusTo = '#ruMsg'; render(); return;
     }
@@ -2094,6 +2095,22 @@ function ruCard() {
   return head + fileLine + body + errHtml + '<div class="pf-row"><button class="btn gold" data-rusend' + (ru.busy ? ' disabled' : '') + '>' + (ru.busy ? 'Sending…' : n ? 'Send my resume and ' + n + ' change' + (n === 1 ? '' : 's') : 'Send my resume') + '</button>' +
     '<button class="btn ghost" data-rucancel' + (ru.busy ? ' disabled' : '') + '>Cancel</button></div>' + (ru.busy ? '' : '<div class="pf-row">' + picker + '</div>') + '</section>';
 }
+/* v1.48: Home asks for a resume only when the API says none is on file (resume.onFile === false). A missing field (API v1.47),
+   null (the API could not tell) or anything else counts as unknown, and Home shows only the quiet link. Both open Search settings
+   at the Your resume card. */
+function ruOnFile() { var r = S.data && S.data.resume; return r && typeof r === 'object' && (r.onFile === true || r.onFile === false) ? r.onFile : null; }
+function ruHomeNudge() {
+  if (ruOnFile() !== false) return '';
+  return '<section class="card ru-nudge" data-runudge aria-labelledby="ruNudgeH"><div><h2 class="pf-h" id="ruNudgeH">Your search starts with your resume</h2>' +
+    '<p class="psub">Upload it here and we\'ll get your first matches going. It takes about a minute.</p></div><button type="button" class="btn gold" data-ruopen>Upload my resume</button></section>';
+}
+function ruHomeQuiet() { return ruOnFile() === false ? '' : '<p class="ru-quiet" data-ruquiet>Have a newer resume? <button type="button" class="linkbtn" data-ruopen>Update it</button></p>'; }
+if (typeof document !== 'undefined') document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-ruopen]'); if (!b || S.status !== 'ready') return;
+  e.preventDefault(); if (S.view !== 'prefs') { pfReset(); go('prefs'); }
+  S.focusTo = '#ruH'; render();
+  var h = document.getElementById('ruH'); if (h) { try { h.scrollIntoView({ block: 'start', behavior: 'auto' }); } catch (x) { h.scrollIntoView(); } }
+});
 /* Demo mode (?demo=1): answers like the API, never sends anything. */
 function ruDemoApi(b) {
   var d = window.SP_DEMO(), any = !!(b.confirm || b.targets);
