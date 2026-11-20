@@ -382,7 +382,10 @@
   function titleList() { return uniq(arr(V.titles).map(function (s) { return String(s).trim(); }).filter(String)); }
 
   /* ---------------- resume reading (on this device only): assets/resume-read.js, shared with the portal ---------------- */
-  var fileText = window.SPResume.fileText, parseResume = window.SPResume.parse;
+  /* review L7: if resume-read.js did not load, the form still works without reading the resume (as when pdf.js failed to load) */
+  var RR = window.SPResume || {};
+  var fileText = typeof RR.fileText === 'function' ? RR.fileText : function () { return Promise.reject(new Error('reader')); };
+  var parseResume = typeof RR.parse === 'function' ? RR.parse : function () { return {}; };
   window.__i2parse = parseResume; /* for tests */
 
   /* ---------------- screens ---------------- */

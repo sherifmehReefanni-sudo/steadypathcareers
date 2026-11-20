@@ -2039,6 +2039,7 @@ function ruToB64(f) { return new Promise(function (ok, no) { var r = new FileRea
 var RU_ERR = {
   expired: 'Your sign-in has expired. Sign in again, then send your resume.',
   limit: 'You can send up to 3 resumes a day. Please try again tomorrow.',
+  paused: 'Uploads are paused for today. Please try again tomorrow, or email your resume to hello@steadypathcareers.com.', /* review L2: the 60 a day cap for everyone */
   'bad type': 'That file does not look like a PDF, Word, RTF or text file. Please check it and try again.',
   'bad file': 'That file does not look like a PDF, Word, RTF or text file. Please check it and try again.',
   'too large': 'That file is over 10 MB. Please choose a smaller file.',

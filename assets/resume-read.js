@@ -1,7 +1,8 @@
 /* Steady Path Careers: the resume reader, shared by the intake (assets/intake2.js) and the portal's "Your resume" card
    (assets/portal-app.js). Nov 19, 2026: moved here from intake2.js unchanged, so both read a resume the same way. The file is
-   read on this device only; pdf.js and mammoth load from cdnjs when a PDF or DOCX is chosen. .doc and .rtf have no reader here
-   (fileText rejects them), so callers upload them without suggestions.
+   read on this device only; pdf.js and mammoth load from this site (assets/vendor/, see its README for versions and sha256) only
+   when a PDF or DOCX is chosen, never from another host. .doc and .rtf have no reader here (fileText rejects them), so callers
+   upload them without suggestions.
    window.SPResume = { fileText(file) -> Promise<text>, parse(text) -> profile, parseFull(text) -> { profile, jobs } }
    parse(text) is the intake's parseResume (same output); parseFull also returns every job it found ({ title, employer, from, to,
    current }, newest first as written), which the portal uses for "titles held". Nothing here sends anything anywhere. */
@@ -9,10 +10,11 @@
   'use strict';
   function uniq(a) { var o = []; a.forEach(function (x) { if (x && o.indexOf(x) < 0) o.push(x); }); return o; }
 
+  /* self-hosted (review M1); isEvalSupported: false below keeps pdf.js from compiling fonts with eval (review L1, CVE-2024-4367) */
   var LIBS = {
-    pdf: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-    pdfw: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
-    docx: 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js'
+    pdf: '/assets/vendor/pdfjs-3.11.174/pdf.min.js',
+    pdfw: '/assets/vendor/pdfjs-3.11.174/pdf.worker.min.js',
+    docx: '/assets/vendor/mammoth-1.6.0/mammoth.browser.min.js'
   };
   var loaded = {};
   function load(src) {
@@ -26,7 +28,7 @@
     if (/\.pdf$/.test(name) || f.type === 'application/pdf') {
       return load(LIBS.pdf).then(function () {
         var lib = window.pdfjsLib; lib.GlobalWorkerOptions.workerSrc = LIBS.pdfw;
-        return buf().then(function (b) { return lib.getDocument({ data: new Uint8Array(b) }).promise; }).then(function (doc) {
+        return buf().then(function (b) { return lib.getDocument({ data: new Uint8Array(b), isEvalSupported: false }).promise; }).then(function (doc) {
           var pages = []; for (var i = 1; i <= Math.min(doc.numPages, 6); i++) pages.push(i);
           return Promise.all(pages.map(function (p) { return doc.getPage(p).then(function (pg) { return pg.getTextContent(); }).then(function (tc) {
             var lines = [], y = null, line = '';
