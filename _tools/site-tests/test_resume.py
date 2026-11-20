@@ -36,7 +36,10 @@ def test_portal_uses_the_same_reader(open_page):
 
 
 def open_card(open_page, width=1280):
-    page = open_page('/portal/?demo=1&v=prefs', width=width, wait=1000)
+    page = open_page(None, width=width)
+    page.clock.set_fixed_time(NOW)  # the suggestions count years to "Present"
+    page.goto(page.base + '/portal/?demo=1&v=prefs', wait_until='load')
+    page.wait_for_timeout(1000)
     assert page.locator('#ruH').is_visible(), '"Your resume" card missing from Search settings'
     return page
 

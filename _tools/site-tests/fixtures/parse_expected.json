@@ -1,4 +1,18 @@
 {
+ "dash_edges": {
+  "certs": [],
+  "current": "No",
+  "education": "Bachelor's degree",
+  "employer": "Sample Group",
+  "employers": [
+   "Sample Group",
+   "Example Clinic"
+  ],
+  "linkedin": "",
+  "school": "BA, Example College, Smalltown, NJ 07001 \u2014 2010",
+  "title": "Office Manager",
+  "years": "8"
+ },
  "dashes_present": {
   "certs": [
    "NJ Notary Public",
@@ -48,9 +62,9 @@
   "certs": [],
   "current": "Yes",
   "education": "Doctorate",
-  "employer": "Sample Dental Associates, Hicksville, NY 11801",
+  "employer": "Sample Dental Associates, Smalltown, NY 10001",
   "employers": [
-   "Sample Dental Associates, Hicksville, NY 11801",
+   "Sample Dental Associates, Smalltown, NY 10001",
    "Example Dental Care"
   ],
   "linkedin": "",
@@ -97,6 +111,19 @@
   "school": "B.S. in Biology, Sample College 2010",
   "title": "Dental Hygienist",
   "years": "13"
+ },
+ "state_ma_dash": {
+  "certs": [],
+  "current": "No",
+  "education": "High school or GED",
+  "employer": "Example Logistics",
+  "employers": [
+   "Example Logistics"
+  ],
+  "linkedin": "",
+  "school": "High school diploma",
+  "title": "Warehouse Associate",
+  "years": "11"
  },
  "title_comma": {
   "certs": [
