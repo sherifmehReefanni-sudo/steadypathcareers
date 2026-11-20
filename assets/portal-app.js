@@ -2104,7 +2104,8 @@ function ruHomeNudge() {
   return '<section class="card ru-nudge" data-runudge aria-labelledby="ruNudgeH"><div><h2 class="pf-h" id="ruNudgeH">Your search starts with your resume</h2>' +
     '<p class="psub">Upload it here and we\'ll get your first matches going. It takes about a minute.</p></div><button type="button" class="btn gold" data-ruopen>Upload my resume</button></section>';
 }
-function ruHomeQuiet() { return ruOnFile() === false ? '' : '<p class="ru-quiet" data-ruquiet>Have a newer resume? <button type="button" class="linkbtn" data-ruopen>Update it</button></p>'; }
+function ruHomeQuiet() { var r = S.data && S.data.resume; if (r && r.source === 'build') return ''; /* build: we are writing their resume, so no "newer resume" line */
+  return ruOnFile() === false ? '' : '<p class="ru-quiet" data-ruquiet>Have a newer resume? <button type="button" class="linkbtn" data-ruopen>Update it</button></p>'; }
 if (typeof document !== 'undefined') document.addEventListener('click', function (e) {
   var b = e.target.closest && e.target.closest('[data-ruopen]'); if (!b || S.status !== 'ready') return;
   e.preventDefault(); if (S.view !== 'prefs') { pfReset(); go('prefs'); }

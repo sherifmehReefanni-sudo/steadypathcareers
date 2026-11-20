@@ -207,3 +207,23 @@ def test_reminder_link_opens_the_resume_card(open_page):
     assert page.evaluate("document.activeElement && document.activeElement.id") == 'ruH', 'the Your resume card did not take focus'
     top = page.evaluate("document.getElementById('ruH').getBoundingClientRect().top")
     assert 0 <= top < 900, 'the Your resume card is not on screen (top %s)' % top
+
+
+def test_intake_sends_which_no_resume_path(open_page):
+    """v1.48: "No resume? No problem" sends resumePlan build (we build it); Skip for now sends later; a file sends attached."""
+    page = intake(open_page)
+    plan = lambda: page.evaluate('[window.__i2payload().v2.resumePlan, window.__i2payload().v2.needsResumeBuild]')
+    assert plan() == ['later', False], 'no file, no choice: %s' % plan()
+    at(page, 'resume')
+    page.click('#i2 [data-act="noresume"]')
+    page.wait_for_timeout(300)
+    assert plan() == ['build', True], 'No resume? No problem: %s' % plan()
+    at(page, 'resume')
+    page.set_input_files('#i2file', files=[{'name': 'resume.txt', 'mimeType': 'text/plain', 'buffer': b'Paralegal, Smith Law\n'}])
+    page.wait_for_timeout(800)
+    assert plan() == ['attached', False], 'with a file: %s' % plan()
+
+
+def test_home_build_path_shows_no_nudge_and_no_link(open_page):
+    page = home(open_page, {'onFile': True, 'source': 'build', 'date': '2026-10-14'})
+    assert not page.locator('[data-runudge]').count() and not page.locator('[data-ruquiet]').count(), 'a client whose resume we build was asked for one'

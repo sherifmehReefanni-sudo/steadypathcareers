@@ -904,7 +904,7 @@
       travel: V.travel || '', commuteMinutes: remoteOnly() || !commuteSet() ? '' : String(V.commuteMin), employmentTypes: et, topPriorities: arr(V.rank), companyTypes: arr(V.companyTypes),
       dreamCompanies: arr(V.dream), dealBreakers: dealList(), workStyle: STYLE.map(function (p, i) { return V.style[i] || ''; }).filter(Boolean),
       strengths: arr(V.strengths), proudestWin: V.proudestWin || '', whyLooking: V.whyLooking || '', accommodations: V.accommodations || '',
-      resumeStyle: V.resumeStyle || '', coverTone: V.coverTone || '', textOk: !!V.textOk, linkedinMakeover: !!V.linkedinMakeover, needsResumeBuild: !file && (!!V.noResume || !!D.resumeName || !String(D.history || '').trim()), resumeAttached: !!file, /* r41 (B1): true only when a file is really in this page to send; a name alone is not a resume */
+      resumeStyle: V.resumeStyle || '', coverTone: V.coverTone || '', textOk: !!V.textOk, linkedinMakeover: !!V.linkedinMakeover, resumePlan: file ? 'attached' : V.noResume ? 'build' : 'later', needsResumeBuild: !file && !!V.noResume, resumeAttached: !!file, /* r41 (B1): true only when a file is really in this page to send; a name alone is not a resume. v1.48: resumePlan tells "No resume? No problem" (build: we build it) from Skip for now or Submit without it (later: they upload it from the portal) */
       profileStrength: strength().score, fieldAnswers: modAnswers()
     };
     return b;
@@ -920,7 +920,7 @@
     busy = true; msg = ''; render(false);
     (file ? toB64(file) : Promise.resolve(null)).then(function (data) {
       if (data) b.resume = { name: file.name, type: file.type, data: data };
-      else { b.v2.resumeAttached = false; b.v2.needsResumeBuild = true; } /* r41 (B1): never say attached without a resume object */
+      else { b.v2.resumeAttached = false; if (b.v2.resumePlan === 'attached') b.v2.resumePlan = 'later'; b.v2.needsResumeBuild = b.v2.resumePlan === 'build'; } /* r41 (B1): never say attached without a resume object */
       return post(b, 120000);
     }).then(function (d) {
       busy = false;
