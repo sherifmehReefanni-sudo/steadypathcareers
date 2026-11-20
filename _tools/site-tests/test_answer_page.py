@@ -50,7 +50,7 @@ def test_job_card_link_sends_its_session_link_details(open_page):
 
 
 def test_refused_links_say_nothing_was_saved(open_page):
-    for err, want in (('used or expired', 'This link has expired or was already used. Nothing was saved.'),
+    for err, want in (('used or expired', 'This link was already used or has expired. Check your portal for your answer.'),
                       ('expired', 'Your sign-in link has expired. Nothing was saved.'),
                       ('closed', 'This job posting has closed, so nothing was saved.'),
                       ('answered', 'You already answered this one. You can change it in your portal.'),
@@ -93,3 +93,26 @@ def test_answer_page_fits_a_phone(open_page):
     page = answer(open_page, '#k=' + K, width=390)
     over = page.evaluate('document.documentElement.scrollWidth - window.innerWidth')
     assert over <= 1, '/answer/ scrolls sideways on a phone by %dpx' % over
+
+
+def test_already_saved_shows_saved_not_nothing_saved(open_page):
+    """Review L1: the link was opened again, or the reply to a save was lost; the server says the same answer is already saved."""
+    page = answer(open_page, '#k=' + K, reply="{ answerLook: { ok: false, error: 'already', answer: 'yes', job: { title: 'Paralegal', company: 'Smith Law', pay: '$60,000' } } }")
+    t = page.inner_text('main')
+    assert 'Saved. You said yes to Paralegal at Smith Law ($60,000).' in t and 'Nothing was saved' not in t, t
+    assert not page.locator('#ansGo').count()
+
+
+def test_lost_reply_then_try_again_shows_saved(open_page):
+    page = answer(open_page, '#k=' + K)
+    page.evaluate("""() => { const orig = window.__spAnswerPost; let n = 0;
+      window.__spAnswerPost = b => { if (b.action === 'answerSave') { window.__calls.push(b); return Promise.reject(new Error('lost')); }
+        if (n++ > -1 && window.__calls.some(c => c.action === 'answerSave')) { window.__calls.push(b); return { ok: false, error: 'already', answer: 'yes', job: { title: 'Paralegal', company: 'Smith Law', pay: '' } }; }
+        return orig(b); }; }""")
+    page.click('#ansGo')
+    page.wait_for_timeout(300)
+    assert 'We could not reach Steady Path' in page.inner_text('main')
+    page.click('#ansRetry')
+    page.wait_for_timeout(300)
+    t = page.inner_text('main')
+    assert 'Saved. You said yes to Paralegal at Smith Law.' in t and 'Nothing was saved' not in t, t

@@ -131,8 +131,10 @@ def test_thank_you_unchanged_with_a_file_or_no_resume_path(open_page):
 
 
 # ---------------- portal Home ----------------
-def home(open_page, resume='unset', width=1280):
+def home(open_page, resume='unset', width=1280, jobs=True):
     page = open_page('/portal/?demo=1&v=home', width=width, wait=1000)
+    if not jobs:  # a new client: no job cards yet (the demo client has some)
+        page.evaluate('() => { S.data.jobs = []; S.data.closed = []; render(); }')
     if resume != 'unset':
         page.evaluate('r => { S.data.resume = r; render(); }', resume)
         page.wait_for_timeout(200)
@@ -149,7 +151,7 @@ def opens_resume_card(page, sel):
 
 
 def test_home_nudge_when_no_resume_on_file(open_page):
-    page = home(open_page, {'onFile': False, 'source': '', 'date': ''})
+    page = home(open_page, {'onFile': False, 'source': '', 'date': ''}, jobs=False)
     card = page.locator('[data-runudge]')
     assert card.is_visible(), 'no nudge with onFile false'
     t = card.inner_text()
@@ -177,7 +179,7 @@ def test_home_unknown_shows_only_the_quiet_link(open_page):
 
 
 def test_nudge_goes_after_an_upload_without_a_reload(open_page):
-    page = home(open_page, {'onFile': False, 'source': '', 'date': ''})
+    page = home(open_page, {'onFile': False, 'source': '', 'date': ''}, jobs=False)
     page.click('[data-runudge] [data-ruopen]')
     page.wait_for_timeout(500)
     page.set_input_files('#ruFile', files=[{'name': 'resume.txt', 'mimeType': 'text/plain', 'buffer': b'Paralegal, Smith Law\nJan 2019 to Present\n'}])
@@ -194,7 +196,7 @@ def test_nudge_goes_after_an_upload_without_a_reload(open_page):
 
 
 def test_home_nudge_fits_a_phone(open_page):
-    page = home(open_page, {'onFile': False, 'source': '', 'date': ''}, width=390)
+    page = home(open_page, {'onFile': False, 'source': '', 'date': ''}, width=390, jobs=False)
     over = page.evaluate('document.documentElement.scrollWidth - window.innerWidth')
     assert over <= 1, 'Home with the nudge scrolls sideways on a phone by %dpx' % over
     assert page.locator('[data-runudge] [data-ruopen]').is_visible()
@@ -227,3 +229,11 @@ def test_intake_sends_which_no_resume_path(open_page):
 def test_home_build_path_shows_no_nudge_and_no_link(open_page):
     page = home(open_page, {'onFile': True, 'source': 'build', 'date': '2026-10-14'})
     assert not page.locator('[data-runudge]').count() and not page.locator('[data-ruquiet]').count(), 'a client whose resume we build was asked for one'
+
+
+def test_home_no_nudge_once_there_are_job_cards(open_page):
+    """Review M1: a client with matches already is past the first step; even with onFile false, Home shows only the quiet link."""
+    page = home(open_page, {'onFile': False, 'source': '', 'date': ''})
+    assert page.evaluate('S.data.jobs.length') > 0
+    assert not page.locator('[data-runudge]').count(), 'nudge shown to a client with job cards'
+    assert page.locator('[data-ruquiet]').is_visible()

@@ -2095,17 +2095,21 @@ function ruCard() {
   return head + fileLine + body + errHtml + '<div class="pf-row"><button class="btn gold" data-rusend' + (ru.busy ? ' disabled' : '') + '>' + (ru.busy ? 'Sending…' : n ? 'Send my resume and ' + n + ' change' + (n === 1 ? '' : 's') : 'Send my resume') + '</button>' +
     '<button class="btn ghost" data-rucancel' + (ru.busy ? ' disabled' : '') + '>Cancel</button></div>' + (ru.busy ? '' : '<div class="pf-row">' + picker + '</div>') + '</section>';
 }
-/* v1.48: Home asks for a resume only when the API says none is on file (resume.onFile === false). A missing field (API v1.47),
+/* v1.48: Home asks for a resume only when the API says none is on file (resume.onFile === false) and the client has no job cards
+   yet. A missing field (API v1.47),
    null (the API could not tell) or anything else counts as unknown, and Home shows only the quiet link. Both open Search settings
    at the Your resume card. */
 function ruOnFile() { var r = S.data && S.data.resume; return r && typeof r === 'object' && (r.onFile === true || r.onFile === false) ? r.onFile : null; }
+/* review M1: a client who already has job cards is past the first step, so only the quiet link shows */
+function ruHasJobs() { var d = S.data || {}; return (d.jobs || []).length > 0 || (d.closed || []).length > 0; }
+function ruNudgeOn() { return ruOnFile() === false && !ruHasJobs(); }
 function ruHomeNudge() {
-  if (ruOnFile() !== false) return '';
+  if (!ruNudgeOn()) return '';
   return '<section class="card ru-nudge" data-runudge aria-labelledby="ruNudgeH"><div><h2 class="pf-h" id="ruNudgeH">Your search starts with your resume</h2>' +
     '<p class="psub">Upload it here and we\'ll get your first matches going. It takes about a minute.</p></div><button type="button" class="btn gold" data-ruopen>Upload my resume</button></section>';
 }
 function ruHomeQuiet() { var r = S.data && S.data.resume; if (r && r.source === 'build') return ''; /* build: we are writing their resume, so no "newer resume" line */
-  return ruOnFile() === false ? '' : '<p class="ru-quiet" data-ruquiet>Have a newer resume? <button type="button" class="linkbtn" data-ruopen>Update it</button></p>'; }
+  return ruNudgeOn() ? '' : '<p class="ru-quiet" data-ruquiet>Have a newer resume? <button type="button" class="linkbtn" data-ruopen>Update it</button></p>'; }
 if (typeof document !== 'undefined') document.addEventListener('click', function (e) {
   var b = e.target.closest && e.target.closest('[data-ruopen]'); if (!b || S.status !== 'ready') return;
   e.preventDefault(); if (S.view !== 'prefs') { pfReset(); go('prefs'); }

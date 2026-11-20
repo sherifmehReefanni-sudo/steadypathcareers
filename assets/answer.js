@@ -19,7 +19,7 @@
   function show(h, html) { if (head) head.textContent = h; root.innerHTML = html; try { head.focus({ preventScroll: true }); } catch (e) {} }
   var SIGNIN = '<p>Please sign in to your portal to answer: <a href="' + PORTAL + '">steadypathcareers.com/portal/</a></p>';
   var WHY = {
-    'used or expired': 'This link has expired or was already used. Nothing was saved.',
+    'used or expired': 'This link was already used or has expired. Check your portal for your answer.',
     expired: 'Your sign-in link has expired. Nothing was saved.',
     closed: 'This job posting has closed, so nothing was saved.',
     answered: 'You already answered this one. You can change it in your portal.',
@@ -37,9 +37,17 @@
     show('We could not reach Steady Path', '<p class="err">Please check your connection and try again. Nothing was saved.</p><p><button type="button" class="btn" id="ansRetry">Try again</button></p>' + SIGNIN);
     var b = document.getElementById('ansRetry'); if (b) b.addEventListener('click', retry);
   }
+  /* the answer is already saved (a reply that never arrived, or the link opened again): show it as saved (review L1) */
+  function saved(d) {
+    var said = /^yes/i.test(String(d.answer || '')) ? 'yes' : 'no';
+    show('Saved', '<p class="job">Saved. You said ' + said + ' to ' + esc(line(d.job) || 'this job') + '.</p>' +
+      (said === 'yes' ? '<p>We will tailor your resume and cover letter to this job. They show up in your portal for your OK.</p>' : '') +
+      '<p><a class="btn" href="' + PORTAL + '">Open your portal</a></p>');
+  }
   function look() {
     show('Confirm your answer', '<p class="soft">Checking your link…</p>');
     call('answerLook').then(function (d) {
+      if (d && d.error === 'already') { saved(d); return; }
       if (!d || !d.ok) { fail(d && d.error); return; }
       var yes = d.answer === 'yes';
       show(yes ? 'Say yes to this job?' : 'Pass on this job?', '<p class="job">' + esc(line(d.job)) + '</p>' +
@@ -52,11 +60,8 @@
   function saveIt(btn, yes) {
     btn.disabled = true; btn.textContent = 'Saving…';
     call('answerSave').then(function (d) {
-      if (!d || !d.ok) { fail(d && d.error); return; }
-      var said = /^yes/i.test(String(d.answer || '')) ? 'yes' : 'no';
-      show('Saved', '<p class="job">Saved. You said ' + said + ' to ' + esc(line(d.job) || 'this job') + '.</p>' +
-        (said === 'yes' ? '<p>We will tailor your resume and cover letter to this job. They show up in your portal for your OK.</p>' : '') +
-        '<p><a class="btn" href="' + PORTAL + '">Open your portal</a></p>');
+      if (d && (d.ok || d.error === 'already')) { saved(d); return; }
+      fail(d && d.error);
     }).catch(function () { btn.disabled = false; btn.textContent = yes ? 'Yes, save my answer' : 'No, save my answer'; offline(function () { look(); }); });
   }
   if (!body) { show('Nothing was saved', '<p class="err">This link is missing its details. Nothing was saved.</p>' + SIGNIN); return; }
