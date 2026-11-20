@@ -958,7 +958,8 @@ function linkKeyDrop() { try { sessionStorage.removeItem('sp_linkkey'); } catch 
   if (q.get('v') || q.get('view')) S.view = q.get('v') || q.get('view'); /* r42: ?view= works like ?v= */
   else if (q.get('answered') || q.get('closed') || q.get('ask') || q.get('review')) S.view = 'jobs'; /* r42: an email link about a job still opens Jobs, not Home */
   if (q.get('review') && !q.get('expired')) S.wantReview = q.get('review'); /* from the "documents ready" email: open the review screen for that job */
-  if (t || k || q.get('ask') || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review')) history.replaceState({}, '', location.pathname);
+  if (q.get('resume') === '1' && !q.get('expired')) S.wantResume = true; /* v1.48: the resume reminder email opens Search settings at Your resume */
+  if (t || k || q.get('ask') || q.get('expired') || q.get('answered') || q.get('closed') || q.get('review') || q.get('resume')) history.replaceState({}, '', location.pathname);
 })();
 /* r42: Home is the landing view. Anything that is not a known view opens Home. */
 if (!/^(home|jobs|docs|apps|iv|more|feedback|prefs|fit|billing|delete|practice|fu|offer|training)$/.test(S.view)) S.view = 'home';
@@ -1030,6 +1031,7 @@ function load() {
     else if (hs.flow && jobById(hs.flow.job)) { S.flow = { kind: hs.flow.kind === 'apply' ? 'apply' : 'review', job: jobById(hs.flow.job).id, from: hs.flow.from === 'docs' || hs.flow.from === 'home' ? hs.flow.from : 'jobs' }; S.view = S.flow.from; S.hist = hs.depth || 0; S.flowBase = hs.fb != null ? hs.fb : Math.max(0, S.hist - 1); S.focusTo = '.ptitle h1'; } /* reload on a review or apply screen: stay there */
     else if (hs.view === 'prep' && hs.prep && appById(hs.prep)) { S.pv = { id: String(appById(hs.prep).id), from: /^(jobs|docs|apps|iv|home)$/.test(hs.from || '') ? hs.from : 'apps', i: 0, show: false, next: null, msg: '' }; S.view = 'prep'; S.hist = hs.depth || 0; S.focusTo = '.ptitle h1'; } /* round 8: reload on the prep screen stays there */
     else { S.hist = hs.depth || 0; if (VIEW_RE.test(hs.view || '')) { S.view = hs.view; if (typeof navRestore === 'function') navRestore(hs, hs.view, true); } } /* r42: a reload stays on the tab (and Find Your Fit step) it was on */
+    if (S.wantResume) { S.wantResume = false; S.view = 'prefs'; S.view0 = 'prefs'; S.focusTo = '#ruH'; S.scrollRu = true; } /* v1.48 */
     if (S.wantReview) {
       var rj = jobById(S.wantReview); S.wantReview = null;
       if (rj && rj.closed && !jobApp(rj)) S.flash = 'The ' + coName(rj) + ' posting is no longer open, so those documents don\'t need your OK. It is under Closed postings in your Jobs list.';
@@ -1038,6 +1040,7 @@ function load() {
       else S.flash = 'We couldn\'t find that job. Here are all your jobs.';
     }
     render();
+    if (S.scrollRu) { S.scrollRu = false; var ruh = document.getElementById('ruH'); if (ruh) { try { ruh.scrollIntoView({ block: 'start', behavior: 'auto' }); } catch (e) { ruh.scrollIntoView(); } } }
     if (typeof r18AfterLoad === 'function') r18AfterLoad(); /* round 18: a milestone not celebrated yet on any device */
   }).catch(function (x) {
     if (x && x.spNet) { try { console.error('Portal: could not reach the server.', x.cause); } catch (e) {} S.errKind = navigator.onLine === false ? 'offline' : 'network'; } /* round 18: offline has its own screen */
