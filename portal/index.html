@@ -942,6 +942,7 @@ function linkKeyDrop() { try { sessionStorage.removeItem('sp_linkkey'); } catch 
   if (q.get('demo') === '1') {
     S.demo = true; S.token = 'demo'; if (q.get('v') || q.get('view')) S.view = q.get('v') || q.get('view');
     if (q.get('review')) { S.wantReview = q.get('review'); if (!(q.get('v') || q.get('view'))) S.view = 'jobs'; } /* r42: a review link is about a job, so it opens over Jobs, as for a real client */
+    if (q.get('resume') === '1') S.wantResume = true; /* v1.48: as for a real client, so the site checks can open it */
     if (q.get('rvload')) S.rvDemoLoad = true; /* r36: &rvload=1 shows the reader's loading message in the demo (screenshots) */
     if (q.get('t') || q.get('review')) { q.delete('t'); q.delete('review'); history.replaceState({}, '', location.pathname + '?' + q.toString()); }
     return;

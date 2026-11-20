@@ -198,3 +198,12 @@ def test_home_nudge_fits_a_phone(open_page):
     over = page.evaluate('document.documentElement.scrollWidth - window.innerWidth')
     assert over <= 1, 'Home with the nudge scrolls sideways on a phone by %dpx' % over
     assert page.locator('[data-runudge] [data-ruopen]').is_visible()
+
+
+def test_reminder_link_opens_the_resume_card(open_page):
+    """The v1.48 reminder email links to /portal/?t=...&v=prefs&resume=1 (here in demo mode, which reads the same parameter)."""
+    page = open_page('/portal/?demo=1&v=prefs&resume=1', wait=1200)
+    assert page.evaluate('S.view') == 'prefs'
+    assert page.evaluate("document.activeElement && document.activeElement.id") == 'ruH', 'the Your resume card did not take focus'
+    top = page.evaluate("document.getElementById('ruH').getBoundingClientRect().top")
+    assert 0 <= top < 900, 'the Your resume card is not on screen (top %s)' % top
