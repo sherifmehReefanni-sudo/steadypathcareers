@@ -1048,3 +1048,17 @@ html[data-pv="apps"] .pband::before { display: none; }
 @media (min-width: 1024px) { .r52-cheer { bottom: 28px; right: 28px; } }
 @media (prefers-reduced-motion: reduce) { .r52-cheer { animation: r52fade 1.8s linear forwards; } @keyframes r52fade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } } }
 .tweek.soon { border-color: var(--gold, #C9A227); box-shadow: 0 0 0 3px rgba(201,162,39,.15); }
+
+/* ================================ PART: v1.47, Your resume card (Search settings) ================================ */
+.ru .psub { margin: 8px 0 0; }
+.ru-pick { position: relative; cursor: pointer; }
+.ru-pick:focus-within { outline: 3px solid var(--gold); outline-offset: 2px; }
+.ru-file { margin: 10px 0 0; overflow-wrap: anywhere; }
+.ru-file span { color: var(--muted, #4a5468); font-size: 14px; }
+.ru-g { border: 0; margin: 14px 0 0; padding: 0; min-width: 0; }
+.ru-g legend { font-weight: 800; font-size: 15px; color: var(--navy); padding: 0; margin-bottom: 6px; }
+.ru-opt { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--bdx-cfd6e3); border-radius: 10px; margin-top: 6px; background: var(--surface); cursor: pointer; min-height: 44px; }
+.ru-opt input { width: 20px; height: 20px; margin: 2px 0 0; flex: none; accent-color: var(--navy); }
+.ru-opt span { min-width: 0; overflow-wrap: anywhere; }
+.ru-opt small { display: block; font-size: 13px; color: var(--muted, #4a5468); }
+.ru-opt:has(input:checked) { border-color: var(--navy); }

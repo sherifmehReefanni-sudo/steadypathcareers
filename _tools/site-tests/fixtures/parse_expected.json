@@ -1,0 +1,117 @@
+{
+ "dashes_present": {
+  "certs": [
+   "NJ Notary Public",
+   "Certified Paralegal (CP)"
+  ],
+  "current": "Yes",
+  "education": "Bachelor's degree",
+  "employer": "Example Law Group LLC",
+  "employers": [
+   "Example Law Group LLC",
+   "Sample & Co.",
+   "Placeholder Partners"
+  ],
+  "linkedin": "https://www.linkedin.com/in/jordan-sample",
+  "school": "Bachelor of Arts, Example State University, Trenton, NJ 2014",
+  "title": "Senior Paralegal",
+  "years": "12"
+ },
+ "empty": {
+  "certs": [],
+  "current": "",
+  "education": "",
+  "employer": "",
+  "employers": [],
+  "linkedin": "",
+  "school": "",
+  "title": "",
+  "years": ""
+ },
+ "en_dash_tight": {
+  "certs": [
+   "Certification: CompTIA A+"
+  ],
+  "current": "No",
+  "education": "High school or GED",
+  "employer": "Example Systems Corp",
+  "employers": [
+   "Example Systems Corp",
+   "Sample Solutions"
+  ],
+  "linkedin": "",
+  "school": "High school diploma",
+  "title": "IT Support Specialist",
+  "years": "5"
+ },
+ "mba_doctor": {
+  "certs": [],
+  "current": "Yes",
+  "education": "Doctorate",
+  "employer": "Sample Dental Associates, Hicksville, NY 11801",
+  "employers": [
+   "Sample Dental Associates, Hicksville, NY 11801",
+   "Example Dental Care"
+  ],
+  "linkedin": "",
+  "school": "D.D.S., Example University School of Dental Medicine, 2012",
+  "title": "Associate Dentist",
+  "years": "14"
+ },
+ "no_dates": {
+  "certs": [],
+  "current": "",
+  "education": "High school or GED",
+  "employer": "",
+  "employers": [],
+  "linkedin": "",
+  "school": "GED",
+  "title": "",
+  "years": ""
+ },
+ "place_degree": {
+  "certs": [],
+  "current": "Yes",
+  "education": "Master's or higher",
+  "employer": "Example Health Network",
+  "employers": [
+   "Example Health Network"
+  ],
+  "linkedin": "",
+  "school": "MS in Data Science, Sample Institute",
+  "title": "Data Analyst",
+  "years": "4"
+ },
+ "skills_first": {
+  "certs": [
+   "License #: RDH-12345"
+  ],
+  "current": "No",
+  "education": "Bachelor's degree",
+  "employer": "Bright Smile Dental",
+  "employers": [
+   "Bright Smile Dental",
+   "Example Dental Group"
+  ],
+  "linkedin": "",
+  "school": "B.S. in Biology, Sample College 2010",
+  "title": "Dental Hygienist",
+  "years": "13"
+ },
+ "title_comma": {
+  "certs": [
+   "Licensed in New Jersey and New York"
+  ],
+  "current": "Yes",
+  "education": "Associate's degree",
+  "employer": "Sample Telecom Inc",
+  "employers": [
+   "Sample Telecom Inc",
+   "Example Payroll Services"
+  ],
+  "linkedin": "https://www.linkedin.com/in/casey-p",
+  "school": "Associate's degree in Business, Example County College",
+  "title": "Account Executive",
+  "years": "10"
+ }
+}

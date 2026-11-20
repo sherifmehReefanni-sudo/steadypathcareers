@@ -638,7 +638,7 @@ body.deck-lock { overflow: hidden; }
   .jc .ans3 button svg { display: none; }
 }
 </style>
-<link rel="stylesheet" href="../assets/portal-app.css?v=sp-20261115pm">
+<link rel="stylesheet" href="../assets/portal-app.css?v=sp-20261119resume">
 <style>
 /* ---- round 4: search settings, data, calendar, versions, urgent help ---- */
 /* the account menu can hang below a short header; keep the header content (and its menu) above main, which is z-index 1 */
@@ -972,6 +972,7 @@ function demoApi(b) {
   var r = { ok: true };
   if (b.action === 'me') r = window.SP_DEMO();
   else if (typeof fitDemoApi === 'function' && fitDemoApi(b)) r = fitDemoApi(b); /* r27 */
+  else if (b.action === 'resumeUpload' && typeof ruDemoApi === 'function') r = ruDemoApi(b); /* v1.47 */
   else if (b.action === 'answer') r = { ok: true, job: b.job, answer: { yes: 'Yes', no: 'No', q: 'Question' }[b.a] || '' };
   else if (b.action === 'app') r = b.id ? { ok: true, id: b.id } : { ok: true, id: 'A-D' + (++demoN) };
   else if (b.action === 'redeem') r = { ok: true, t: 'demo' };
@@ -2941,7 +2942,7 @@ function vPrefs() {
     '<dl class="pf-dl">' + row('Target roles', P.roles.join(', ')) + (!P.roles.length && P.searchTerms.length ? row('What your search looks for now', P.searchTerms.join(', ')) : '') + row('Minimum pay', payWords(P.payFloor)) + row('Commute limit', P.commute) + row('Remote or hybrid', P.setting) + row('How we contact you', P.contact) +
     '<div class="pf-r"><dt>Search status</dt><dd>' + (st ? '<span class="pill ' + (P.status === 'active' ? 'ok' : P.status === 'paused' ? 'attn' : 'info') + '">' + st + '</span>' : dash) + '</dd></div></dl>' +
     (F.edit ? pfForm(P) : '<div class="pf-row"><button class="btn gold" data-pfedit="open">Request a change</button>' + (/^(active|paused)$/.test(P.status) && !F.pause ? '<button class="btn ghost" data-pfpause="open">' + (P.status === 'paused' ? 'Ask to resume my search' : 'Ask to pause my search') + '</button>' : '') + '</div>') +
-    pausePanel + '</section>' +
+    pausePanel + '</section>' + (typeof ruCard === 'function' ? ruCard() : '') + /* v1.47: Your resume (assets/portal-app.js) */
     '<section class="card" aria-labelledby="pfDataH"><h2 id="pfDataH" class="pf-h">Your data</h2><p class="psub">Download a copy of what is in your portal: your jobs, documents with their links, applications and your own notes. It is made on this device; nothing is sent anywhere.</p>' + legalLinks() +
     '<div class="pf-row"><button class="btn" data-export="json">Download my data (JSON)</button><button class="btn ghost" data-export="csv">Download applications (CSV)</button></div>' +
     (F.del ? del : '<p style="margin:14px 0 0"><button class="linkbtn pf-delbtn" data-pfdel="open">Ask to delete my data</button></p>') + '</section>' +
@@ -3673,6 +3674,7 @@ document.addEventListener('click', function (e) {
 /* =================== END ROUND 25 =================== */
 </script>
 <script src="../assets/fx.js?v=20261024d"></script>
-<script src="../assets/portal-app.js?v=sp-20261115sr"></script>
+<script src="../assets/resume-read.js?v=sp-20261119resume"></script>
+<script src="../assets/portal-app.js?v=sp-20261119resume"></script>
 </body>
 </html>
