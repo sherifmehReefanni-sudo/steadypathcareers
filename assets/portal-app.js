@@ -1226,6 +1226,7 @@ function r44Save() { var k = r44Key(); if (!k) return false; try { localStorage.
 function r44Wipe() {
   S.tf = null; /* r45: the training filter choices too (the stars go with the store) */
   S.r44Mem = null; S.fu = null; S.pr = null; S.of = null;
+  if (S.ru && S.ru.timer) clearTimeout(S.ru.timer); S.ru = null; /* v1.47: a chosen resume file and its suggestions */
   try { for (var i = localStorage.length - 1; i >= 0; i--) { var k = localStorage.key(i); if (/^(spdemo_)?sp_r44_/.test(k || '')) localStorage.removeItem(k); } } catch (e) {}
 }
 var R44_DEVICE = 'Saved on this device only for now.';
@@ -1972,3 +1973,139 @@ if (typeof document !== 'undefined') {
   window.r52Cheer = function (t) { try { var tt = String(t || ''); if (CHEER.test(tt) && !NOT.test(tt)) samCheer(); } catch (e) {} };
   window.r52SamCheer = samCheer;
 })();
+
+/* ================================ PART: v1.47, Your resume card (Search settings) ================================ */
+/* A signed-in client uploads or replaces their resume (API v1.47, action resumeUpload). The file is read on this device by the
+   intake's own reader (assets/resume-read.js, window.SPResume), which suggests updates (titles held, level, years, licenses) and
+   job titles to target. Every suggestion starts unticked and nothing is sent until the client taps Send; only the file and the
+   ticked items go. Target titles never change the search: the API turns them into one "Change settings" request, which then
+   shows under "Waiting for review". The same limits as the intake: PDF, DOC, DOCX, RTF or TXT, at most 10 MB. No timers. */
+var RU_MAX = 10 * 1024 * 1024, RU_TYPES = /\.(pdf|docx|doc|txt|rtf)$/i, RU_READ_MS = 20000;
+var RU_LEVELS = ['Entry level', 'Some experience (2 to 5 years)', 'Experienced (5 to 10 years)', 'Senior or lead', 'Manager or director'];
+S.ru = null;
+/* Pure: the level a resume suggests, from the newest title, then the years. '' when there is nothing to go on. */
+function ruLevel(title, years) {
+  var t = String(title || ''), y = parseInt(years, 10);
+  if (/\b(manager|director|head of|vice president|vp|chief|owner|founder|president|principal)\b/i.test(t)) return RU_LEVELS[4];
+  if (/\b(senior|sr\.?|lead|supervisor|team lead)\b/i.test(t)) return RU_LEVELS[3];
+  if (!(y >= 0)) return '';
+  return y < 2 ? RU_LEVELS[0] : y < 5 ? RU_LEVELS[1] : y < 10 ? RU_LEVELS[2] : RU_LEVELS[3];
+}
+/* Pure: suggestions from SPResume.parseFull(text), the client's current target roles and their Find Your Fit titles. Each list
+   is unique (ignoring case); targets leave out roles already in the search. */
+function ruSuggest(full, roles, fitTitles) {
+  full = full || {}; var p = full.profile || {}, jobs = Array.isArray(full.jobs) ? full.jobs : [];
+  var key = function (s) { return String(s || '').replace(/\s+/g, ' ').trim().toLowerCase(); };
+  var uniqI = function (a, max, len) { var out = [], seen = {}; a.forEach(function (x) { x = String(x == null ? '' : x).replace(/\s+/g, ' ').trim().slice(0, len); if (x && !seen[key(x)] && out.length < max) { seen[key(x)] = 1; out.push(x); } }); return out; };
+  var held = uniqI(jobs.map(function (j) { return j && j.title; }), 5, 80);
+  var have = {}; (roles || []).forEach(function (r) { have[key(r)] = 1; });
+  var fitYes = (fitTitles || []).filter(function (x) { return x && x.a === 'yes'; }).map(function (x) { return x.t; });
+  var targets = uniqI(held.concat(fitYes), 20, 100).filter(function (x) { return !have[key(x)]; }).slice(0, 5);
+  var years = /^\d{1,2}$/.test(String(p.years || '')) ? String(p.years) : '';
+  return { held: held, level: ruLevel(held[0] || p.title, years), years: years, licenses: uniqI(Array.isArray(p.certs) ? p.certs : [], 6, 160), targets: targets };
+}
+/* Pure: the request body from the suggestions and the ticks. Only ticked items are in it; nothing ticked sends the file alone. */
+function ruBody(sug, tick, file) {
+  var pick = function (list, k) { return (list || []).filter(function (x, i) { return !!tick[k + i]; }); };
+  var confirm = {}, held = pick(sug.held, 'h'), lic = pick(sug.licenses, 'l');
+  if (held.length) confirm.titlesHeld = held;
+  if (sug.level && tick.level) confirm.seniority = sug.level;
+  if (sug.years && tick.years) confirm.years = sug.years;
+  if (lic.length) confirm.licenses = lic;
+  var b = { action: 'resumeUpload', t: S.token, resume: file };
+  if (Object.keys(confirm).length) b.confirm = confirm;
+  var targets = pick(sug.targets, 't'); if (targets.length) b.targets = targets;
+  return b;
+}
+function ruKb(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
+function ruPick(f) {
+  if (!f) return;
+  if (!RU_TYPES.test(String(f.name || ''))) { S.ru = { err: 'That kind of file will not work here. Please choose a PDF, a Word file (.docx or .doc), or a .rtf or .txt file.' }; S.focusTo = '#ruErr'; render(); return; }
+  if (f.size > RU_MAX) { S.ru = { err: 'That file is over 10 MB. Please choose a smaller file.' }; S.focusTo = '#ruErr'; render(); return; }
+  var ru = S.ru = { file: f, reading: true, tick: {} }; render();
+  var done = false, fin = function (full, read) {
+    if (done || S.ru !== ru) return; done = true; clearTimeout(ru.timer); ru.timer = null;
+    ru.reading = false; ru.read = !!read;
+    ru.sug = read ? ruSuggest(full, prefsOf().roles, S.data && S.data.fit && Array.isArray(S.data.fit.titles) ? S.data.fit.titles : []) : { held: [], level: '', years: '', licenses: [], targets: [] };
+    S.focusTo = '#ruH'; render();
+  };
+  /* a file that takes too long counts as unreadable, as on the intake; the one timer stops when the reading ends */
+  ru.timer = setTimeout(function () { fin(null, false); }, RU_READ_MS);
+  var R = window.SPResume;
+  if (!R) { fin(null, false); return; }
+  R.fileText(f).then(function (t) { fin(R.parseFull(t), !!String(t || '').trim()); }).catch(function () { fin(null, false); });
+}
+function ruToB64(f) { return new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(',')[1] || ''); }; r.onerror = no; r.readAsDataURL(f); }); }
+var RU_ERR = {
+  expired: 'Your sign-in has expired. Sign in again, then send your resume.',
+  limit: 'You can send up to 3 resumes a day. Please try again tomorrow.',
+  'bad type': 'That file does not look like a PDF, Word, RTF or text file. Please check it and try again.',
+  'bad file': 'That file does not look like a PDF, Word, RTF or text file. Please check it and try again.',
+  'too large': 'That file is over 10 MB. Please choose a smaller file.',
+  'unknown action': 'Uploading here is not switched on yet. Please email your resume to hello@steadypathcareers.com.'
+};
+function ruSend() {
+  var ru = S.ru; if (!ru || !ru.file || ru.busy || ru.reading) return;
+  ru.busy = true; ru.err = ''; render();
+  var f = ru.file;
+  ruToB64(f).then(function (data) {
+    return post(ruBody(ru.sug || {}, ru.tick, { name: f.name, type: f.type, data: data }));
+  }).then(function (r) {
+    if (S.ru !== ru) return;
+    ru.busy = false;
+    if (r && r.ok) {
+      var me = r.me && r.me.ok ? r.me : null;
+      if (me && S.data) { S.data.requests = me.requests || []; S.data.prefs = me.prefs || S.data.prefs; }
+      else if (r.request && S.data) S.data.requests = [{ id: r.request, date: r.date || todayISO(), type: 'Change settings', status: 'New' }].concat(S.data.requests || []);
+      S.ru = { done: true, date: r.date || todayISO(), request: r.request || '', lost: r.requestSaved === false };
+      S.focusTo = '#ruMsg'; render(); return;
+    }
+    var e = r && r.error; ru.re = e === 'expired';
+    ru.err = RU_ERR[e] || 'Sorry, that did not send. Please try again in a minute.';
+    S.focusTo = '#ruErr'; render();
+  }).catch(function () { if (S.ru !== ru) return; ru.busy = false; ru.err = 'That did not send. Please check your connection and try again.'; S.focusTo = '#ruErr'; render(); });
+}
+function ruBox(k, label, sub) {
+  var on = !!(S.ru && S.ru.tick[k]);
+  return '<label class="ru-opt"><input type="checkbox" data-rutick="' + esc(k) + '"' + (on ? ' checked' : '') + '><span>' + esc(label) + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</span></label>';
+}
+function ruGroup(title, items) { return items.length ? '<fieldset class="ru-g"><legend>' + esc(title) + '</legend>' + items.join('') + '</fieldset>' : ''; }
+/* The card on the Search settings screen. */
+function ruCard() {
+  var ru = S.ru || {}, picker = '<label class="btn ' + (ru.file ? 'ghost' : 'gold') + ' ru-pick"><input type="file" id="ruFile" class="sr" accept=".pdf,.doc,.docx,.rtf,.txt">' + (ru.file ? 'Choose a different file' : 'Upload a new resume') + '</label>';
+  var head = '<section class="card ru" aria-labelledby="ruH"><h2 id="ruH" class="pf-h" tabindex="-1">Your resume</h2>';
+  var errHtml = ru.err ? '<p class="err" role="alert" id="ruErr" tabindex="-1">' + esc(ru.err) + (ru.re ? reauthBtn() : '') + '</p>' : '';
+  if (ru.done) return head + '<div class="pf-msg" role="status" tabindex="-1" id="ruMsg">' + IC.checkc + '<span>Got it. Your new resume is saved' + (ru.request ? ', and the changes you ticked are waiting for review.' : '.') + (ru.lost ? ' Your ticked changes did not reach us, so please send them with Request a change above.' : '') + '</span></div>' +
+    '<p class="psub">Your search keeps its current titles until a change is approved. Your earlier resume stays on file.</p><div class="pf-row">' + picker + '</div></section>';
+  if (!ru.file) return head + '<p class="psub">Changed jobs, earned a license, or have a better version? Upload it here. We read it on this device and suggest updates; nothing changes until you tick it and send. PDF, Word (.docx or .doc), .rtf or .txt, up to 10 MB.</p>' + errHtml + '<div class="pf-row">' + picker + '</div></section>';
+  var fileLine = '<p class="ru-file"><b>' + esc(ru.file.name) + '</b> <span>' + esc(ruKb(ru.file.size)) + '</span></p>';
+  if (ru.reading) return head + fileLine + '<p class="psub" role="status">Reading your resume on this device…</p></section>';
+  var g = ru.sug || {}, body;
+  var groups = ruGroup('Titles you have held', g.held.map(function (x, i) { return ruBox('h' + i, x); })) +
+    ruGroup('Your level', g.level ? [ruBox('level', g.level)] : []) +
+    ruGroup('Years of experience', g.years ? [ruBox('years', g.years + (g.years === '1' ? ' year' : ' years'))] : []) +
+    ruGroup('Licenses and certifications', g.licenses.map(function (x, i) { return ruBox('l' + i, x); })) +
+    ruGroup('Job titles to look for', g.targets.map(function (x, i) { return ruBox('t' + i, x, 'Sent as a request. Your search changes only after it is approved.'); }));
+  if (!ru.read) body = '<p class="psub">We could not read this file on your device, so there are no suggestions. You can still send it, and we will read it ourselves.</p>';
+  else if (!groups) body = '<p class="psub">We read your resume but found nothing to suggest. You can still send it.</p>';
+  else body = '<p class="psub">Here is what we found. Tick only what is right; anything you leave unticked is not sent.</p>' + groups;
+  var n = Object.keys(ru.tick).filter(function (k) { return ru.tick[k]; }).length;
+  return head + fileLine + body + errHtml + '<div class="pf-row"><button class="btn gold" data-rusend' + (ru.busy ? ' disabled' : '') + '>' + (ru.busy ? 'Sending…' : n ? 'Send my resume and ' + n + ' change' + (n === 1 ? '' : 's') : 'Send my resume') + '</button>' +
+    '<button class="btn ghost" data-rucancel' + (ru.busy ? ' disabled' : '') + '>Cancel</button></div>' + (ru.busy ? '' : '<div class="pf-row">' + picker + '</div>') + '</section>';
+}
+/* Demo mode (?demo=1): answers like the API, never sends anything. */
+function ruDemoApi(b) {
+  var d = window.SP_DEMO(), any = !!(b.confirm || b.targets);
+  if (any) d.requests = [{ id: 'R-DEMO', date: todayISO(), type: 'Change settings', status: 'New' }].concat(d.requests || []);
+  return { ok: true, date: todayISO(), request: any ? 'R-DEMO' : '', requestSaved: true, rescore: 2, me: d };
+}
+document.addEventListener('change', function (e) {
+  var t = e.target; if (!t || S.view !== 'prefs') return;
+  if (t.id === 'ruFile') { ruPick(t.files && t.files[0]); return; }
+  if (t.dataset && t.dataset.rutick != null && S.ru && S.ru.sug) { S.ru.tick[t.dataset.rutick] = !!t.checked; S.focusTo = '[data-rutick="' + cssq(t.dataset.rutick) + '"]'; render(); }
+});
+document.addEventListener('click', function (e) {
+  if (S.view !== 'prefs' || !e.target.closest) return;
+  if (e.target.closest('[data-rusend]')) { ruSend(); return; }
+  if (e.target.closest('[data-rucancel]')) { if (S.ru && S.ru.timer) clearTimeout(S.ru.timer); S.ru = null; S.focusTo = '#ruH'; render(); }
+});
