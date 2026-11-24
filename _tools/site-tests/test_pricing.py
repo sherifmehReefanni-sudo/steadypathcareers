@@ -1,13 +1,17 @@
 """Prices, trial length and billing wording come from one place: _tools/pricing.json (see _tools/pricing.py).
-1. Every page, script and page builder in this repo says only the prices, trial length and billing sentences in pricing.json.
-2. The guard itself works: a hand edit, an unapplied pricing.json change and a by-hand item left behind all fail it.
-3. What each page shows (served, after its scripts run; locally or on the live site) states the same numbers."""
+1. Every page, script and page builder in this repo states only the prices and trial length in pricing.json, every billing
+   sentence (refunds, renewal, charges, cancelling, billing stopping, paid plans, the free pilot, cards, the founding offer)
+   is one of its sentences, and each sentence is still in the places it was recorded.
+2. The guard itself works: a hand edit of a number or of a billing sentence, an unapplied pricing.json change and a by-hand
+   item left behind all fail it; applying a change gives a changed script a new ?v= and sw.js a new V.
+3. What each page holds once served and its scripts have run (all text, closed FAQ answers and meta descriptions included;
+   locally or on the live site) states the same numbers."""
 import copy
 import re
 
 import pytest
 
-from conftest import ROOT, pricing, sitemap_paths, visible_text
+from conftest import ROOT, pricing, sitemap_paths
 
 CFG = pricing.load_config(ROOT)
 V = CFG['values']
@@ -24,16 +28,24 @@ def test_guard_catches_drift():
     bad = dict(files)
     bad['questions/index.html'] = bad['questions/index.html'].replace('Free for %s days while' % V['trial_days'], 'Free for 21 days while', 1)
     bad['about/index.html'] = bad['about/index.html'].replace('No card needed.', 'No card needed. Then $5 a month.', 1)
+    bad['delete-account/index.html'] = bad['delete-account/index.html'].replace('does not cancel a paid plan or stop charges', 'does not stop charges', 1)
+    bad['portal/index.html'] = bad['portal/index.html'].replace('Cancelling stops all future charges.', 'Cancelling stops future charges.', 1)
+    bad['index.html'] = bad['index.html'].replace('Tell us you&#39;re hired and billing stops.', 'Tell us when you&#39;re hired.', 1)
     found = '\n'.join(pricing.problems(CFG, applied, bad))
     assert 'questions/index.html' in found and 'Free for 21 days' in found, found
     assert 'about/index.html' in found and '$5 a month' in found, found
+    assert 'delete-account/index.html:' in found and 'portal/index.html:' in found and '(hired_stops) is there 2 time(s), 3 expected' in found, found
     # pricing.json changed but not applied: fails
     cfg = copy.deepcopy(CFG)
     cfg['values']['plan_monthly'] = str(int(V['plan_monthly']) - 10)
     assert any('run  python3 _tools/pricing.py' in p for p in pricing.problems(cfg, applied, files))
     # applied: every page that is not by hand now says the new price, and only the by-hand items are left
-    changed, new = pricing.apply(cfg, applied, files)
+    changed, new = pricing.apply(cfg, applied, files, stamp='sp-test')
     assert {'index.html', 'questions/index.html', 'assets/intake2.js', 'portal/index.html'} <= set(changed), sorted(changed)
+    # the changed intake script is loaded with a new ?v= everywhere, and the service worker that precaches it gets a new V
+    for f in ('start/index.html', 'start/v2/index.html', 'sw.js'):
+        assert '/assets/intake2.js?v=sp-test' in changed[f], f
+    assert "var V = 'sp-test';" in changed['sw.js']
     after = dict(files, **changed)
     left = pricing.problems(cfg, new, after)
     home = files['index.html']
@@ -43,9 +55,14 @@ def test_guard_catches_drift():
     # a trial change leaves the legal terms to a person, and says so
     cfg = copy.deepcopy(CFG)
     cfg['values']['trial_days'] = '7'
-    changed, new = pricing.apply(cfg, applied, files)
+    changed, new = pricing.apply(cfg, applied, files, stamp='sp-test')
     left = '\n'.join(pricing.problems(cfg, new, dict(files, **changed)))
     assert 'terms/index.html' not in changed and 'terms_trial' in left and '_tools/make-og.js' in left, left
+    # a billing sentence reworded in pricing.json reaches every page that says it, and nothing else is left over
+    cfg = copy.deepcopy(CFG)
+    cfg['phrases']['hired_stops'] = "Tell us when you're hired and we stop billing"
+    changed, new = pricing.apply(cfg, applied, files, stamp='sp-test')
+    assert set(changed) == {'index.html', 'questions/index.html'} and not pricing.problems(cfg, new, dict(files, **changed)), sorted(changed)
 
 
 # Visible text, after scripts run. Our prices only: "$N a month" (the plan or the founding price), "$N today" (the plan),
@@ -67,7 +84,11 @@ def test_page_shows_prices_from_pricing_json(open_page, path):
     page = open_page(path)
     if 'v=billing' in path:
         page.wait_for_selector('.bl-status')
-    text = visible_text(page)
+    # every text node (closed <details> answers and hidden bars too), plus the description tags; not scripts or styles
+    text = page.evaluate("""() => { const b = document.body.cloneNode(true);
+        b.querySelectorAll('script, style, template, noscript').forEach((e) => e.remove());
+        const meta = [...document.querySelectorAll('meta[name=description], meta[property="og:description"], meta[name="twitter:description"]')].map((m) => m.content);
+        return [b.textContent].concat(meta).join(' ').replace(/\\s+/g, ' '); }""")
     for s in CFG['not_ours']:
         text = text.replace(s, '')
     wrong = ['"%s"' % m.group(0) for rx, ok in SEEN for m in re.finditer(rx, text) if m.group(1) not in ok]

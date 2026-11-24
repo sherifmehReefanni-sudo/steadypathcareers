@@ -1,5 +1,5 @@
 {
- "_read_me": "Written by _tools/pricing.py: each phrase as the pages say it now. Do not edit by hand.",
+ "_read_me": "Written by _tools/pricing.py: each phrase as the pages say it now, and where. Do not edit by hand.",
  "phrases": {
   "free_for": "Free for 14 days.",
   "free_for_heading": "Free for 14 days",
@@ -25,7 +25,6 @@
   "faq_cancel_pilot": "During the free pilot there is nothing to cancel.",
   "faq_cancel_card": "No card is on file, nothing renews or charges on its own, and you only pay if you choose to continue at $99 a month.",
   "faq_cancel_after": "If you keep going after the pilot, refunds and how to cancel are set out in a written agreement before any charge, and nothing is charged without your OK in writing.",
-  "privacy_not_all": "Paid plans are not available to every client yet.",
   "guide_pay_after_pilot": "You pay (after a free pilot here).",
   "portal_how_free": "Try everything, no card needed.",
   "portal_how_plan": "$99 a month while you search.",
@@ -47,6 +46,57 @@
   "portal_addon_linkedin": "['linkedin', 'LinkedIn Profile Makeover', '$129']",
   "portal_addon_salary": "['salary', 'Salary Negotiation Session', '$99']",
   "portal_addon_call": "['call', 'One-on-One Call', '$59']",
+  "faq_q_cost": "What does it cost?",
+  "faq_q_after_pilot": "What happens after your free pilot?",
+  "faq_q_cancel": "Can I cancel anytime?",
+  "faq_extra_fee": "It isn't part of the standard service and may carry a separate fee; you'll know the price before any work starts.",
+  "services_extra_fee": "It may carry a separate fee, and you'll know the price before any work starts.",
+  "intake_nothing_charged": "Nothing is added or charged.",
+  "delete_page_records": "If you bought a paid plan or add-on, we keep the record of what you agreed to buy, when, and which terms you were shown.",
+  "delete_page_heading": "If you have a paid plan",
+  "delete_page_not_cancel": "Asking us to delete your account does not cancel a paid plan or stop charges.",
+  "delete_page_cancel_first": "Cancel it first: in your portal, open More, then Plan &amp; billing, then Manage billing.",
+  "portal_delete_paid_plan": "You have a paid plan. Sending this request does not cancel your plan or stop charges.",
+  "portal_delete_to_cancel": "To cancel, use Plan &amp; billing.",
+  "portal_join_pilot": "Join the free pilot",
+  "portal_feedback_pay": "Would you pay to keep going after your free pilot?",
+  "portal_pilot_ended": "Free pilot ended",
+  "portal_pilot_left": "left in your free pilot",
+  "portal_on_pilot": "You are on the free pilot.",
+  "portal_state_billing_ends": "Billing ends on",
+  "portal_state_cancel_confirmed": "Your cancel is confirmed.",
+  "portal_state_billing_ending": "Billing is ending.",
+  "portal_state_billing_stopped": "Billing stopped: you told us you were hired. Congratulations.",
+  "portal_state_billing_has_stopped": "Billing has stopped.",
+  "portal_state_hired_pending": "You told us you were hired. Congratulations. Billing stops when you confirm the cancel in Manage billing.",
+  "portal_state_hired_pending_short": "Billing stops when you confirm the cancel in Plan & billing",
+  "portal_state_hired_stopping": "Billing is stopping. Last step: confirm the cancel in Manage billing so no more charges are made.",
+  "portal_state_plan_ends": "Your plan ends on",
+  "portal_state_plan_ending": "Your plan is ending",
+  "portal_state_not_charged_again": "You won't be charged again.",
+  "portal_state_plan_ended": "Your plan ended on",
+  "portal_state_plan_has_ended": "Your plan has ended",
+  "portal_state_active": "Your plan is active",
+  "portal_state_past_due": "Your last payment did not go through. Please update your card in Manage billing.",
+  "portal_state_past_due_short": "Your last payment did not go through",
+  "portal_state_other": "Your plan details are in Manage billing.",
+  "portal_state_other_short": "See Plan & billing for your plan details",
+  "portal_pilot_one_day": "You have 1 free day left. Starting your plan now ends it, and your first charge is today.",
+  "portal_pilot_days": "free days left. Starting your plan now ends them, and your first charge is today.",
+  "portal_pilot_no_days": "Starting your plan now ends your free days. Your first charge is today.",
+  "portal_how_free_heading": "Free days",
+  "portal_founding_ribbon": "Founding member offer",
+  "portal_founding_code_hint": "Have a founding member code? Enter it on the next page.",
+  "portal_renew_heading": "How your plan renews, and how to cancel",
+  "portal_no_minimum": "There is no minimum. Cancel anytime online with Manage billing, or by emailing",
+  "portal_cancelling_stops": "Cancelling stops all future charges.",
+  "portal_terms_emailed": "We email you these terms after you sign up.",
+  "portal_cancel_heading": "Your right to cancel",
+  "portal_agree_terms": "renewal and cancellation terms",
+  "portal_hired_confirm": "We'll stop your billing. Confirm?",
+  "portal_paid_banner": "Payment received. It can take up to 30 minutes to show here.",
+  "portal_consent_failed": "We couldn't record your agreement, so the payment page did not open.",
+  "portal_payment_not_opened": "The payment page did not open.",
   "video_transcript_price": "Free for 14 days. Then $99 a month, only if you choose to continue.",
   "video_caption_price": "Then $99 a month, only if you choose to continue.",
   "video_no_card": "It takes about fifteen minutes, and there is no card.",
@@ -55,6 +105,415 @@
   "terms_price_in_writing": "Before your pilot ends, you'll get the price in writing, and you only pay if you say yes.",
   "terms_no_renew": "Nothing renews or charges on its own.",
   "terms_paid_service": "If you choose to keep going after the pilot, the fees, refunds and how to cancel are set out in a written agreement before any charge.",
-  "terms_ok_in_writing": "Nothing is charged without your OK in writing."
+  "terms_ok_in_writing": "Nothing is charged without your OK in writing.",
+  "portal_cancel_notice": "You may cancel within 3 business days of signing up and get a full refund. To cancel, use Manage billing below or email hello@steadypathcareers.com.",
+  "terms_earlier_pilots": "If you signed up earlier, you keep the free pilot you signed up under: 60 days if you signed up before November 1, 2026, or 30 days if you signed up from November 1 to November 9, 2026.",
+  "terms_pilot_counted": "Every free pilot is counted from the day your first job matches arrive, not the day you sign up.",
+  "terms_heading": "The free pilot",
+  "terms_meta": "the free pilot, how AI is used, and your rights.",
+  "privacy_not_all": "Paid plans are not available to every client yet.",
+  "privacy_payments_record": "if you buy a paid plan or add-on in your portal: before the payment page opens, we record what you agreed to buy, the time, and the date of the terms you were shown.",
+  "privacy_hired_record": "If you tell us in your portal that you were hired, we record that date and get a note, so your plan can end.",
+  "privacy_stripe": "handles payments for paid plans and add-ons.",
+  "privacy_manage_cancel": "You manage or cancel a plan on Stripe's billing page.",
+  "privacy_kept_records": "If you bought a paid plan or add-on, we keep the record of what you agreed to buy, and Stripe keeps its own payment records."
+ },
+ "where": {
+  "free_for": {
+   "_tools/build-free.py": 1,
+   "_tools/make-og.js": 1,
+   "assets/intake2.js": 1,
+   "free/follow-up-scripts/index.html": 1,
+   "free/ghost-check/index.html": 1,
+   "free/index.html": 1,
+   "free/laid-off-72-hours/index.html": 1,
+   "index.html": 4,
+   "media/welcome-r49.vtt": 1,
+   "media/welcome-r55.vtt": 1,
+   "questions/index.html": 1
+  },
+  "free_for_heading": {
+   "index.html": 1
+  },
+  "free_for_pilot": {
+   "_tools/build-app.py": 1,
+   "_tools/build-free.py": 1,
+   "about/index.html": 1,
+   "app/index.html": 1,
+   "free/follow-up-scripts/index.html": 1,
+   "free/index.html": 1,
+   "free/laid-off-72-hours/index.html": 1,
+   "free/tracker/index.html": 1,
+   "guides/fake-job-postings/index.html": 1,
+   "guides/free-career-help/index.html": 1,
+   "guides/index.html": 1,
+   "guides/laid-off/index.html": 1,
+   "guides/numbers-on-your-resume/index.html": 1,
+   "guides/pay-transparency/index.html": 1,
+   "guides/reverse-recruiter/index.html": 1,
+   "how-we-check/index.html": 1,
+   "level-up/index.html": 1,
+   "pay/index.html": 1,
+   "questions/index.html": 1,
+   "sample/index.html": 1,
+   "services/index.html": 1
+  },
+  "no_card_needed": {
+   "_tools/build-app.py": 1,
+   "about/index.html": 1,
+   "app/index.html": 1,
+   "how-we-check/index.html": 1,
+   "questions/index.html": 1
+  },
+  "no_card": {
+   "assets/intake2.js": 1
+  },
+  "start_button": {
+   "index.html": 1
+  },
+  "days_no_card": {
+   "index.html": 1
+  },
+  "start_meta": {
+   "start/index.html": 2
+  },
+  "start_v2_meta": {
+   "start/v2/index.html": 2
+  },
+  "then_only_if": {
+   "assets/intake2.js": 1,
+   "index.html": 1
+  },
+  "hero_then": {
+   "index.html": 1
+  },
+  "card_then": {
+   "index.html": 1
+  },
+  "card_no_card": {
+   "index.html": 1
+  },
+  "card_no_renew": {
+   "index.html": 1
+  },
+  "hired_stops": {
+   "index.html": 3,
+   "questions/index.html": 2
+  },
+  "card_terms": {
+   "index.html": 1
+  },
+  "faq_then": {
+   "index.html": 1,
+   "questions/index.html": 1
+  },
+  "faq_not_open": {
+   "index.html": 1,
+   "questions/index.html": 1
+  },
+  "faq_no_renew": {
+   "index.html": 1,
+   "questions/index.html": 1
+  },
+  "faq_keep_length": {
+   "index.html": 1,
+   "questions/index.html": 1
+  },
+  "faq_after_pilot": {
+   "questions/index.html": 1
+  },
+  "faq_cancel_pilot": {
+   "index.html": 1,
+   "questions/index.html": 1
+  },
+  "faq_cancel_card": {
+   "index.html": 1,
+   "questions/index.html": 1
+  },
+  "faq_cancel_after": {
+   "index.html": 1,
+   "questions/index.html": 1
+  },
+  "guide_pay_after_pilot": {
+   "guides/reverse-recruiter/index.html": 1
+  },
+  "portal_how_free": {
+   "portal/index.html": 1
+  },
+  "portal_how_plan": {
+   "portal/index.html": 1
+  },
+  "portal_hired_step": {
+   "portal/index.html": 1
+  },
+  "portal_one_plan": {
+   "portal/index.html": 1
+  },
+  "portal_price_digits": {
+   "portal/index.html": 1
+  },
+  "portal_price_sr": {
+   "portal/index.html": 1
+  },
+  "portal_hired_stops": {
+   "portal/index.html": 1
+  },
+  "portal_founding_offer": {
+   "portal/index.html": 1
+  },
+  "portal_continue": {
+   "portal/index.html": 1
+  },
+  "portal_renews": {
+   "portal/index.html": 1
+  },
+  "portal_pay_today": {
+   "portal/index.html": 1
+  },
+  "portal_founding_today": {
+   "portal/index.html": 1
+  },
+  "portal_same_amount": {
+   "portal/index.html": 1
+  },
+  "portal_founding_stays": {
+   "portal/index.html": 1
+  },
+  "portal_not_ny": {
+   "portal/index.html": 1
+  },
+  "portal_not_area": {
+   "portal/index.html": 1
+  },
+  "portal_free_continues": {
+   "portal/index.html": 1
+  },
+  "portal_addon_linkedin": {
+   "portal/index.html": 1
+  },
+  "portal_addon_salary": {
+   "portal/index.html": 1
+  },
+  "portal_addon_call": {
+   "portal/index.html": 1
+  },
+  "faq_q_cost": {
+   "index.html": 1,
+   "questions/index.html": 1
+  },
+  "faq_q_after_pilot": {
+   "questions/index.html": 1
+  },
+  "faq_q_cancel": {
+   "index.html": 1,
+   "questions/index.html": 1
+  },
+  "faq_extra_fee": {
+   "questions/index.html": 1
+  },
+  "services_extra_fee": {
+   "services/index.html": 1
+  },
+  "intake_nothing_charged": {
+   "assets/intake2.js": 1
+  },
+  "delete_page_records": {
+   "delete-account/index.html": 1
+  },
+  "delete_page_heading": {
+   "delete-account/index.html": 1
+  },
+  "delete_page_not_cancel": {
+   "delete-account/index.html": 1
+  },
+  "delete_page_cancel_first": {
+   "delete-account/index.html": 1
+  },
+  "portal_delete_paid_plan": {
+   "assets/portal-app.js": 1
+  },
+  "portal_delete_to_cancel": {
+   "assets/portal-app.js": 1
+  },
+  "portal_join_pilot": {
+   "portal/index.html": 1
+  },
+  "portal_feedback_pay": {
+   "portal/index.html": 1
+  },
+  "portal_pilot_ended": {
+   "portal/index.html": 1
+  },
+  "portal_pilot_left": {
+   "portal/index.html": 1
+  },
+  "portal_on_pilot": {
+   "portal/index.html": 1
+  },
+  "portal_state_billing_ends": {
+   "portal/index.html": 3
+  },
+  "portal_state_cancel_confirmed": {
+   "portal/index.html": 3
+  },
+  "portal_state_billing_ending": {
+   "portal/index.html": 1
+  },
+  "portal_state_billing_stopped": {
+   "portal/index.html": 1
+  },
+  "portal_state_billing_has_stopped": {
+   "portal/index.html": 2
+  },
+  "portal_state_hired_pending": {
+   "portal/index.html": 1
+  },
+  "portal_state_hired_pending_short": {
+   "portal/index.html": 1
+  },
+  "portal_state_hired_stopping": {
+   "portal/index.html": 1
+  },
+  "portal_state_plan_ends": {
+   "portal/index.html": 2
+  },
+  "portal_state_plan_ending": {
+   "portal/index.html": 2
+  },
+  "portal_state_not_charged_again": {
+   "portal/index.html": 1
+  },
+  "portal_state_plan_ended": {
+   "portal/index.html": 1
+  },
+  "portal_state_plan_has_ended": {
+   "portal/index.html": 2
+  },
+  "portal_state_active": {
+   "portal/index.html": 2
+  },
+  "portal_state_past_due": {
+   "portal/index.html": 1
+  },
+  "portal_state_past_due_short": {
+   "portal/index.html": 1
+  },
+  "portal_state_other": {
+   "portal/index.html": 1
+  },
+  "portal_state_other_short": {
+   "portal/index.html": 1
+  },
+  "portal_pilot_one_day": {
+   "portal/index.html": 1
+  },
+  "portal_pilot_days": {
+   "portal/index.html": 1
+  },
+  "portal_pilot_no_days": {
+   "portal/index.html": 1
+  },
+  "portal_how_free_heading": {
+   "portal/index.html": 1
+  },
+  "portal_founding_ribbon": {
+   "portal/index.html": 1
+  },
+  "portal_founding_code_hint": {
+   "portal/index.html": 1
+  },
+  "portal_renew_heading": {
+   "portal/index.html": 1
+  },
+  "portal_no_minimum": {
+   "portal/index.html": 1
+  },
+  "portal_cancelling_stops": {
+   "portal/index.html": 1
+  },
+  "portal_terms_emailed": {
+   "portal/index.html": 1
+  },
+  "portal_cancel_heading": {
+   "portal/index.html": 1
+  },
+  "portal_agree_terms": {
+   "portal/index.html": 1
+  },
+  "portal_hired_confirm": {
+   "portal/index.html": 1
+  },
+  "portal_paid_banner": {
+   "portal/index.html": 1
+  },
+  "portal_consent_failed": {
+   "portal/index.html": 1
+  },
+  "portal_payment_not_opened": {
+   "portal/index.html": 1
+  },
+  "video_transcript_price": {
+   "index.html": 1
+  },
+  "video_caption_price": {
+   "media/welcome-r49.vtt": 1,
+   "media/welcome-r55.vtt": 1
+  },
+  "video_no_card": {
+   "index.html": 1,
+   "media/welcome-r49.vtt": 1,
+   "media/welcome-r55.vtt": 1
+  },
+  "terms_trial": {
+   "terms/index.html": 1
+  },
+  "terms_no_card": {
+   "terms/index.html": 1
+  },
+  "terms_price_in_writing": {
+   "terms/index.html": 1
+  },
+  "terms_no_renew": {
+   "terms/index.html": 1
+  },
+  "terms_paid_service": {
+   "terms/index.html": 1
+  },
+  "terms_ok_in_writing": {
+   "terms/index.html": 1
+  },
+  "portal_cancel_notice": {
+   "portal/index.html": 1
+  },
+  "terms_earlier_pilots": {
+   "terms/index.html": 1
+  },
+  "terms_pilot_counted": {
+   "terms/index.html": 1
+  },
+  "terms_heading": {
+   "terms/index.html": 1
+  },
+  "terms_meta": {
+   "terms/index.html": 2
+  },
+  "privacy_not_all": {
+   "privacy/index.html": 1
+  },
+  "privacy_payments_record": {
+   "privacy/index.html": 1
+  },
+  "privacy_hired_record": {
+   "privacy/index.html": 1
+  },
+  "privacy_stripe": {
+   "privacy/index.html": 1
+  },
+  "privacy_manage_cancel": {
+   "privacy/index.html": 1
+  },
+  "privacy_kept_records": {
+   "privacy/index.html": 1
+  }
  }
 }

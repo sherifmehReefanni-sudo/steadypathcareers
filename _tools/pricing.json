@@ -1,12 +1,13 @@
 {
   "_read_me": [
-    "The one place for the site's price, trial length and billing wording.",
-    "To change a price or the trial length: edit 'values', then run  python3 _tools/pricing.py  from the site root.",
-    "To change billing wording: edit the sentence under 'phrases', then run the same command. Every page, script and page builder that says it is updated.",
-    "Write each phrase exactly as it appears in the page source, with a plain apostrophe ('). The tool also finds and keeps the forms &#39;, &#x27; and \\'.",
-    "'by_hand' phrases and 'by_hand_files' are never edited by the tool (legal terms, the recorded welcome video, the social images). The site check fails until they are updated by hand, so they cannot be forgotten.",
-    "The site check (_tools/site-tests/test_pricing.py) fails if any page states a price or trial length that is not from this file.",
-    "Not in this repo, so not covered here: Stripe prices and the FOUNDING coupon, and the renewal-terms email in the Apps Script backend (renewalTermsEmail_)."
+    "The one place for the site's prices, trial length and billing wording: every sentence on the site, in the portal and in the intake form that states a price, the trial length, or how paying, renewing, refunds, cancelling, charges, paid plans, the free pilot, cards or the founding offer work.",
+    "To change a price or the trial length: edit 'values', then run  python3 _tools/pricing.py  from the site root. To change billing wording: edit the sentence here and run the same command. It rewrites every page, script and page builder that says it, gives a changed script a new ?v= wherever it is loaded (and sw.js a new V when it lists it), and records where each sentence is in pricing.applied.json.",
+    "Write each phrase exactly as it is in the source (HTML entities such as &amp; included), with a plain apostrophe ('). The tool also finds and keeps the forms &#39;, &#x27; and \\'. Portal phrases are the literal pieces of its script strings, so a few are fragments (the date or day count is joined on by the script).",
+    "'by_hand' phrases and 'by_hand_files' are never edited by the tool: the legal terms and privacy policy, the attorney-reviewed cancellation notice, the recorded welcome video (transcript and captions) and the social images. The site check fails until a person updates them.",
+    "The site check (_tools/site-tests/test_pricing.py) fails when: pricing.json was edited and the tool was not run; any file states a trial length or one of our prices ($N a month, $N today, $N with code, the add-on prices) that is not inside a phrase here; any billing wording (refund, renew, charge, cancel anytime or within, billing stops or ends, paid plan, payment page, free pilot or days, no card, founding, subscription, first charge) is not inside a phrase here or in 'not_ours'; a phrase is no longer where it was recorded; or a served page (all its text, closed FAQ answers and meta descriptions included) states another number.",
+    "Not caught: a reworded billing sentence that uses none of those words and no number, unless it replaced a recorded phrase (then the place check fails); weekly prices outside the phrases here; text inside images or the video's sound.",
+    "'not_ours' lists text about other people's prices or charges (third-party fees, EEOC charges, job titles) that the check must not read as ours.",
+    "Not in this repo, so not covered: Stripe prices and the FOUNDING coupon, the renewal-terms email in the Apps Script backend (renewalTermsEmail_), and the store listings. The Steady Path app states no prices or trial length on purpose; its own test keeps it that way."
   ],
   "values": {
     "trial_days": "14",
@@ -43,7 +44,6 @@
     "faq_cancel_pilot": "During the free pilot there is nothing to cancel.",
     "faq_cancel_card": "No card is on file, nothing renews or charges on its own, and you only pay if you choose to continue at ${plan_monthly} a month.",
     "faq_cancel_after": "If you keep going after the pilot, refunds and how to cancel are set out in a written agreement before any charge, and nothing is charged without your OK in writing.",
-    "privacy_not_all": "Paid plans are not available to every client yet.",
     "guide_pay_after_pilot": "You pay (after a free pilot here).",
     "portal_how_free": "Try everything, no card needed.",
     "portal_how_plan": "${plan_monthly} a month while you search.",
@@ -64,7 +64,58 @@
     "portal_free_continues": "Your free access continues.",
     "portal_addon_linkedin": "['linkedin', 'LinkedIn Profile Makeover', '${addon_linkedin}']",
     "portal_addon_salary": "['salary', 'Salary Negotiation Session', '${addon_salary}']",
-    "portal_addon_call": "['call', 'One-on-One Call', '${addon_call}']"
+    "portal_addon_call": "['call', 'One-on-One Call', '${addon_call}']",
+    "faq_q_cost": "What does it cost?",
+    "faq_q_after_pilot": "What happens after your free pilot?",
+    "faq_q_cancel": "Can I cancel anytime?",
+    "faq_extra_fee": "It isn't part of the standard service and may carry a separate fee; you'll know the price before any work starts.",
+    "services_extra_fee": "It may carry a separate fee, and you'll know the price before any work starts.",
+    "intake_nothing_charged": "Nothing is added or charged.",
+    "delete_page_records": "If you bought a paid plan or add-on, we keep the record of what you agreed to buy, when, and which terms you were shown.",
+    "delete_page_heading": "If you have a paid plan",
+    "delete_page_not_cancel": "Asking us to delete your account does not cancel a paid plan or stop charges.",
+    "delete_page_cancel_first": "Cancel it first: in your portal, open More, then Plan &amp; billing, then Manage billing.",
+    "portal_delete_paid_plan": "You have a paid plan. Sending this request does not cancel your plan or stop charges.",
+    "portal_delete_to_cancel": "To cancel, use Plan &amp; billing.",
+    "portal_join_pilot": "Join the free pilot",
+    "portal_feedback_pay": "Would you pay to keep going after your free pilot?",
+    "portal_pilot_ended": "Free pilot ended",
+    "portal_pilot_left": "left in your free pilot",
+    "portal_on_pilot": "You are on the free pilot.",
+    "portal_state_billing_ends": "Billing ends on",
+    "portal_state_cancel_confirmed": "Your cancel is confirmed.",
+    "portal_state_billing_ending": "Billing is ending.",
+    "portal_state_billing_stopped": "Billing stopped: you told us you were hired. Congratulations.",
+    "portal_state_billing_has_stopped": "Billing has stopped.",
+    "portal_state_hired_pending": "You told us you were hired. Congratulations. Billing stops when you confirm the cancel in Manage billing.",
+    "portal_state_hired_pending_short": "Billing stops when you confirm the cancel in Plan & billing",
+    "portal_state_hired_stopping": "Billing is stopping. Last step: confirm the cancel in Manage billing so no more charges are made.",
+    "portal_state_plan_ends": "Your plan ends on",
+    "portal_state_plan_ending": "Your plan is ending",
+    "portal_state_not_charged_again": "You won't be charged again.",
+    "portal_state_plan_ended": "Your plan ended on",
+    "portal_state_plan_has_ended": "Your plan has ended",
+    "portal_state_active": "Your plan is active",
+    "portal_state_past_due": "Your last payment did not go through. Please update your card in Manage billing.",
+    "portal_state_past_due_short": "Your last payment did not go through",
+    "portal_state_other": "Your plan details are in Manage billing.",
+    "portal_state_other_short": "See Plan & billing for your plan details",
+    "portal_pilot_one_day": "You have 1 free day left. Starting your plan now ends it, and your first charge is today.",
+    "portal_pilot_days": "free days left. Starting your plan now ends them, and your first charge is today.",
+    "portal_pilot_no_days": "Starting your plan now ends your free days. Your first charge is today.",
+    "portal_how_free_heading": "Free days",
+    "portal_founding_ribbon": "Founding member offer",
+    "portal_founding_code_hint": "Have a founding member code? Enter it on the next page.",
+    "portal_renew_heading": "How your plan renews, and how to cancel",
+    "portal_no_minimum": "There is no minimum. Cancel anytime online with Manage billing, or by emailing",
+    "portal_cancelling_stops": "Cancelling stops all future charges.",
+    "portal_terms_emailed": "We email you these terms after you sign up.",
+    "portal_cancel_heading": "Your right to cancel",
+    "portal_agree_terms": "renewal and cancellation terms",
+    "portal_hired_confirm": "We'll stop your billing. Confirm?",
+    "portal_paid_banner": "Payment received. It can take up to 30 minutes to show here.",
+    "portal_consent_failed": "We couldn't record your agreement, so the payment page did not open.",
+    "portal_payment_not_opened": "The payment page did not open."
   },
   "by_hand": {
     "video_transcript_price": {
@@ -102,15 +153,68 @@
     "terms_ok_in_writing": {
       "text": "Nothing is charged without your OK in writing.",
       "why": "Legal terms: update by hand and change 'Last updated' on the terms page."
+    },
+    "portal_cancel_notice": {
+      "text": "You may cancel within 3 business days of signing up and get a full refund. To cancel, use Manage billing below or email hello@steadypathcareers.com.",
+      "why": "Attorney-reviewed NJ cancellation notice (portal/index.html, CANCEL_NOTICE): change only with the attorney's wording."
+    },
+    "terms_earlier_pilots": {
+      "text": "If you signed up earlier, you keep the free pilot you signed up under: 60 days if you signed up before November 1, 2026, or 30 days if you signed up from November 1 to November 9, 2026.",
+      "why": "Legal terms: update by hand and change 'Last updated' on the terms page."
+    },
+    "terms_pilot_counted": {
+      "text": "Every free pilot is counted from the day your first job matches arrive, not the day you sign up.",
+      "why": "Legal terms: update by hand and change 'Last updated' on the terms page."
+    },
+    "terms_heading": {
+      "text": "The free pilot",
+      "why": "Legal terms: update by hand and change 'Last updated' on the terms page."
+    },
+    "terms_meta": {
+      "text": "the free pilot, how AI is used, and your rights.",
+      "why": "Legal terms: update by hand and change 'Last updated' on the terms page."
+    },
+    "privacy_not_all": {
+      "text": "Paid plans are not available to every client yet.",
+      "why": "Privacy policy: update by hand and change its 'Last updated' date."
+    },
+    "privacy_payments_record": {
+      "text": "if you buy a paid plan or add-on in your portal: before the payment page opens, we record what you agreed to buy, the time, and the date of the terms you were shown.",
+      "why": "Privacy policy: update by hand and change its 'Last updated' date."
+    },
+    "privacy_hired_record": {
+      "text": "If you tell us in your portal that you were hired, we record that date and get a note, so your plan can end.",
+      "why": "Privacy policy: update by hand and change its 'Last updated' date."
+    },
+    "privacy_stripe": {
+      "text": "handles payments for paid plans and add-ons.",
+      "why": "Privacy policy: update by hand and change its 'Last updated' date."
+    },
+    "privacy_manage_cancel": {
+      "text": "You manage or cancel a plan on Stripe's billing page.",
+      "why": "Privacy policy: update by hand and change its 'Last updated' date."
+    },
+    "privacy_kept_records": {
+      "text": "If you bought a paid plan or add-on, we keep the record of what you agreed to buy, and Stripe keeps its own payment records.",
+      "why": "Privacy policy: update by hand and change its 'Last updated' date."
     }
   },
   "by_hand_files": {
     "terms/index.html": "Legal terms: never rewritten by a script. Edit by hand and change 'Last updated'.",
+    "privacy/index.html": "Privacy policy: never rewritten by a script. Edit by hand and change its 'Last updated' date.",
     "media/welcome-r49.vtt": "Captions of the recorded welcome video: they must match the voice, so re-record first.",
     "media/welcome-r55.vtt": "Captions of the recorded welcome video: they must match the voice, so re-record first.",
     "_tools/make-og.js": "Text drawn into the social share images in img/og/: edit it, then rebuild the images with node _tools/make-og.js."
   },
   "not_ours": [
-    "$49 a month on Coursera"
+    "$49 a month on Coursera",
+    "file a charge",
+    "how it charges",
+    "how they charge",
+    "Some charge a monthly fee",
+    "does it renew on its own",
+    "you can be charged up to 102%",
+    "claim or renewal conversation",
+    "charge nurse"
   ]
 }
