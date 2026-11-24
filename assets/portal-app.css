@@ -1027,11 +1027,13 @@ html[data-pv="apps"] .pband::before { display: none; }
 .tweek .tw-in > * { margin-top: 0; margin-bottom: 0; }
 @media (prefers-reduced-motion: reduce) { .tweek > summary::after { transition: none; } }
 
-/* approved documents: one compact row each (Open stays); documents that need an OK keep the full card */
+/* approved documents: one compact row each; documents that need an OK keep the full card. Nov 23: a row with its PDF and Word
+   downloads beside Open in Google Docs puts the buttons on their own line under the name. */
 #app .dc.ok { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; padding: 10px 12px; }
 #app .dc.ok .top { grid-column: 1; }
 #app .dc.ok .acts { grid-column: 2; grid-row: 1; margin: 0; }
 #app .dc.ok .acts .kbtn { min-height: 44px; padding: 0 14px; width: auto; }
+#app .dc.ok .acts.files { grid-column: 1 / -1; grid-row: auto; }
 #app .dc.ok > :not(.top):not(.acts) { grid-column: 1 / -1; font-size: 14px; margin: 0; }
 #app .dc.ok .nm { font-size: 16px; }
 #app .dc.ok .nm svg { width: 22px; height: 22px; }
