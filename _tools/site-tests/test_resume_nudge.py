@@ -7,7 +7,7 @@
    (API v1.47); both open Search settings at the Your resume card; the nudge goes after an upload without a reload.
 Nothing is sent: the conftest blocks every POST. The thank-you screen is checked in the form's preview mode (served here with
 data-preview removed), where the form makes no backend call at all."""
-from conftest import visible_text
+from conftest import backend_post, visible_text
 
 ASK = "We can't start your search until we have your resume. You can submit now and upload it from your portal any time."
 
@@ -86,7 +86,7 @@ def test_submit_without_it_really_sends(open_page):
     page.click('#i2nores [data-act="sendnoresume"]')
     page.wait_for_timeout(1500)
     sent = posts(page)[before:]
-    assert sent and all('script.google.com' in b for b in sent), 'Submit without it did not send: %s' % sent
+    assert sent and all(backend_post(b) for b in sent), 'Submit without it did not send to the live backend: %s' % sent
 
 
 def test_thank_you_without_a_resume_says_how(open_page):

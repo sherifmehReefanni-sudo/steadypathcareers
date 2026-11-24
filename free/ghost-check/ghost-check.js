@@ -1,14 +1,15 @@
 /* Steady Path Careers: Ghost Job Checker (r19c).
    Greenhouse and Lever links are checked here in the browser, straight against their public job APIs (both answer any origin).
-   Workable and Ashby links go to our Apps Script checker (action ghostCheck, v1.33). Until it is live, the old API answers
-   "unknown action" and the page says the check is coming soon.
+   Workable and Ashby links go to our backend's checker (action ghostCheck; Apps Script v1.33, and the Supabase api, which runs the
+   same rules). A backend without it answers "unknown action" and the page says the check is coming soon.
    Privacy: the pasted link is never put in the address bar, localStorage, sessionStorage, cookies or analytics. The input has no
    name, so the form can never send it anywhere by itself. The rules below copy the live posting check (postingSource_ and
    postingVerdict_ in Code_v1.29.gs) so both give the same answer for the same job-system reply. */
 (function (root) {
   'use strict';
   var GC = {};
-  GC.API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
+  /* assets/backend.js (loaded just before this file), read once through the callers' check: '' sends nothing */
+  GC.API = (function (w) { var d = w && Object.getOwnPropertyDescriptor(w, 'SP_BACKEND'), v = d && d.value, no = Object.freeze({ url: '', kind: '' }); if (!d || !('value' in d) || d.writable !== false || d.configurable !== false || Object.prototype.hasOwnProperty.call(w, 'SP_BACKEND_REFUSED') || !v || typeof v !== 'object' || !Object.isFrozen(v)) return no; var du = Object.getOwnPropertyDescriptor(v, 'url'), dk = Object.getOwnPropertyDescriptor(v, 'kind'), u = du && du.value, k = dk && dk.value; if (typeof u !== 'string' || typeof k !== 'string') return no; if (k === 'apps-script' && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]{20,}\/exec$/.test(u)) return Object.freeze({ url: u, kind: k }); if (k === 'supabase' && /^https:\/\/[a-z]{20}\.supabase\.co\/functions\/v1\/api$/.test(u)) return Object.freeze({ url: u, kind: k }); return no; })(root).url;
   GC.HOSTS = ['boards.greenhouse.io', 'job-boards.greenhouse.io', 'jobs.lever.co', 'jobs.ashbyhq.com', 'jobs.workable.com', 'apply.workable.com'];
   GC.NAMES = { greenhouse: 'Greenhouse', lever: 'Lever', ashby: 'Ashby', workable: 'Workable', workableAts: 'Workable' };
   GC.BROWSER = { greenhouse: true, lever: true };
@@ -151,8 +152,9 @@
     if (!GC.city(res.place) || !GC.state(res.place)) return Promise.resolve(-2);   /* no city and state: nothing fair to compare, so no request */
     return get(fetchFn, GC.listUrl(src, src.kind === 'lever' ? res.place : '')).then(function (list) { return GC.repeats(src, { title: res.title, place: res.place }, list); });
   };
-  /* Server check through our Apps Script. The body is sent as text/plain, like every other call to that API (no preflight). */
+  /* Server check through our backend (assets/backend.js). The body is sent as text/plain, like every other call to it (no preflight). */
   GC.checkThere = function (src, fetchFn, sid) {
+    if (!GC.API) return Promise.resolve({ ats: src.kind === 'workableAts' ? 'workable' : src.kind, status: 'unknown', reason: 'down' }); /* assets/backend.js did not load: send nothing, anywhere */
     var ctl = typeof AbortController === 'function' ? new AbortController() : null, timer = ctl ? setTimeout(function () { ctl.abort(); }, 25000) : 0;
     return fetchFn(GC.API, { method: 'POST', body: JSON.stringify({ action: 'ghostCheck', url: src.url, sid: sid }), headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       redirect: 'follow', credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal: ctl ? ctl.signal : undefined })

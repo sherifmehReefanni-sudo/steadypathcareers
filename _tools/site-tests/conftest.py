@@ -132,3 +132,49 @@ def html_files():
 
 def visible_text(page):
     return re.sub(r'\s+', ' ', page.inner_text('body'))
+
+
+# ---- the backend the site calls live (assets/backend.js), for every check that looks at backend calls ----
+DEV_REF_SHA256 = '416b0f88a64bc299ac63f290ca1e5f2b9b0292c4e2a4f31544d44d4e87cf0bf5'  # the dev project's ref, hashed: never live
+APPS_HOSTS = 'https://script.google.com https://script.googleusercontent.com'
+ANSWER_CSP_TODAY = ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src " + APPS_HOSTS +
+                    "; base-uri 'none'; form-action 'none'; object-src 'none'")
+
+
+def real_ref(ref):
+    """a production project ref: 20 lowercase letters, and never the dev project"""
+    import hashlib
+    return bool(re.fullmatch(r'[a-z]{20}', ref or '')) and hashlib.sha256(ref.encode()).hexdigest() != DEV_REF_SHA256
+
+
+def backend_file():
+    """what assets/backend.js says: apps (the /exec URL), ref, supabase (the api URL), kind and url (the live one)"""
+    js = open(os.path.join(ROOT, 'assets', 'backend.js'), encoding='utf-8').read()
+    apps = re.search(r"var APPS_SCRIPT = '([^']+)';", js).group(1)
+    ref = re.search(r"var PRODUCTION_REF = '([^']+)';", js).group(1)
+    live = re.search(r'^  var LIVE = (APPS_SCRIPT|SUPABASE);$', js, re.M).group(1)
+    sup = 'https://%s.supabase.co/functions/v1/api' % ref
+    kind = 'supabase' if live == 'SUPABASE' else 'apps-script'
+    return {'apps': apps, 'ref': ref, 'supabase': sup, 'kind': kind, 'url': sup if kind == 'supabase' else apps}
+
+
+def answer_csp_flipped(ref):
+    return ANSWER_CSP_TODAY.replace('connect-src ', 'connect-src https://%s.supabase.co ' % ref)
+
+
+def answer_csps():
+    """the /answer/ CSPs allowed for the live backend, exactly: Apps Script live: today's, or (after a rollback that kept it) the
+    flipped one with a real ref; Supabase live: only the flipped one, with a real ref"""
+    b = backend_file()
+    flipped = {answer_csp_flipped(b['ref'])} if real_ref(b['ref']) else set()
+    return ({ANSWER_CSP_TODAY} | flipped) if b['kind'] == 'apps-script' else flipped
+
+
+def backend_post(blocked_entry):
+    """True when a conftest-blocked entry is a POST to exactly the live backend URL"""
+    return blocked_entry == 'POST ' + backend_file()['url'][:120]
+
+
+# The one-line check every caller (portal, answer.js, intake2.js, ghost-check.js) runs once on window.SP_BACKEND. Each caller holds
+# exactly this text; test_backend_switch.py checks that, so the four can never drift apart.
+CALLER_CHECK = "function (w) { var d = w && Object.getOwnPropertyDescriptor(w, 'SP_BACKEND'), v = d && d.value, no = Object.freeze({ url: '', kind: '' }); if (!d || !('value' in d) || d.writable !== false || d.configurable !== false || Object.prototype.hasOwnProperty.call(w, 'SP_BACKEND_REFUSED') || !v || typeof v !== 'object' || !Object.isFrozen(v)) return no; var du = Object.getOwnPropertyDescriptor(v, 'url'), dk = Object.getOwnPropertyDescriptor(v, 'kind'), u = du && du.value, k = dk && dk.value; if (typeof u !== 'string' || typeof k !== 'string') return no; if (k === 'apps-script' && /^https:\\/\\/script\\.google\\.com\\/macros\\/s\\/[\\w-]{20,}\\/exec$/.test(u)) return Object.freeze({ url: u, kind: k }); if (k === 'supabase' && /^https:\\/\\/[a-z]{20}\\.supabase\\.co\\/functions\\/v1\\/api$/.test(u)) return Object.freeze({ url: u, kind: k }); return no; }"

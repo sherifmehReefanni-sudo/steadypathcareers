@@ -1,6 +1,6 @@
-/* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage, and a page opened with ?t= or ?k= is not stored at all. Assets: cache first. API calls (script.google.com) are never touched, so no client data is ever cached. */
-var V = 'sp-20261124word4';
-var ASSETS = ['/', '/offline.html', '/assets/site.css?v=sp-20261110r30', '/assets/site.js?v=sp-20261112r43', '/assets/path.css?v=sp-20261110r30', '/assets/path.js?v=20261026a', '/assets/r17.css?v=sp-20261110r30', '/assets/r17.js?v=20261106a', '/assets/fx.js?v=20261024d', '/assets/resume-read.js?v=sp-20261119resume', '/assets/intake2.js?v=sp-20261120nudge3', '/assets/theme.css?v=sp-20261113r47', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
+/* Steady Path Careers service worker. Pages: network first, offline fallback; page cache keys drop the query string so sign-in tokens never land in Cache Storage, and a page opened with ?t= or ?k= is not stored at all. Assets: cache first. Backend calls (Apps Script or Supabase, both on other hosts) are never touched, so no client data is ever cached. assets/backend.js (the backend address) always comes from the network first. */
+var V = 'sp-20261124cut';
+var ASSETS = ['/', '/offline.html', '/assets/site.css?v=sp-20261110r30', '/assets/site.js?v=sp-20261112r43', '/assets/path.css?v=sp-20261110r30', '/assets/path.js?v=20261026a', '/assets/r17.css?v=sp-20261110r30', '/assets/r17.js?v=20261106a', '/assets/fx.js?v=20261024d', '/assets/resume-read.js?v=sp-20261119resume', '/assets/intake2.js?v=sp-20261124cut', '/assets/backend.js', '/assets/theme.css?v=sp-20261113r47', '/assets/favicon.svg', '/img/icon-192.png', '/manifest.webmanifest'];
 /* r43: '/' is precached, so the home page opens offline after one visit (stored under its path, the key navigations look up). Nothing under /media/ is ever precached. */
 /* r26: new logo. Install fetches every file above past the browser's HTTP cache (cache: 'reload'), so the new mark and icons arrive fresh. */
 /* the portal's app shell: the page and its two files (Nov 15, 2026: one portal-app.css and one portal-app.js replace the round
@@ -40,6 +40,15 @@ self.addEventListener('fetch', function (e) {
   }
   /* data files (testimonials, pay data) always come from the network, so a change or a withdrawn quote shows on the next visit */
   if (/\.json$/i.test(url.pathname)) { e.respondWith(fetch(req).catch(function () { return caches.match(req); })); return; }
+  /* the backend address (assets/backend.js, no ?v=): network first, so the cutover flip reaches every page on its next load; each
+     fresh copy replaces the stored one, so offline the portal keeps the newest address, not the one from install */
+  if (url.pathname === '/assets/backend.js') {
+    e.respondWith(fetch(req).then(function (res) {
+      if (res && res.ok) { var copy = res.clone(); caches.open(V).then(function (c) { c.put('/assets/backend.js', copy); }); }
+      return res;
+    }).catch(function () { return caches.match('/assets/backend.js'); }));
+    return;
+  }
   e.respondWith(caches.match(req).then(function (hit) {
     if (hit) return hit;
     return fetch(req).then(function (res) {

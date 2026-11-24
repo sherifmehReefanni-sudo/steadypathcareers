@@ -5,7 +5,8 @@
    nothing. Only the button calls answerSave. The page loads nothing from another host, sends no Referer, and sets no cookie. */
 (function () {
   'use strict';
-  var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
+  /* assets/backend.js (loaded just before this file), read once through the callers' check: '' sends nothing */
+  var API = (function (w) { var d = w && Object.getOwnPropertyDescriptor(w, 'SP_BACKEND'), v = d && d.value, no = Object.freeze({ url: '', kind: '' }); if (!d || !('value' in d) || d.writable !== false || d.configurable !== false || Object.prototype.hasOwnProperty.call(w, 'SP_BACKEND_REFUSED') || !v || typeof v !== 'object' || !Object.isFrozen(v)) return no; var du = Object.getOwnPropertyDescriptor(v, 'url'), dk = Object.getOwnPropertyDescriptor(v, 'kind'), u = du && du.value, k = dk && dk.value; if (typeof u !== 'string' || typeof k !== 'string') return no; if (k === 'apps-script' && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]{20,}\/exec$/.test(u)) return Object.freeze({ url: u, kind: k }); if (k === 'supabase' && /^https:\/\/[a-z]{20}\.supabase\.co\/functions\/v1\/api$/.test(u)) return Object.freeze({ url: u, kind: k }); return no; })(window).url;
   var root = document.getElementById('ans'), head = document.getElementById('ansH');
   if (!root) return;
   var q = new URLSearchParams(String(location.hash || '').replace(/^#/, ''));
@@ -30,6 +31,7 @@
   function call(action) {
     var b = { action: action }; Object.keys(body).forEach(function (k) { b[k] = body[k]; });
     if (typeof window.__spAnswerPost === 'function') return Promise.resolve(window.__spAnswerPost(b)); /* the site checks only: they never reach the API */
+    if (!API) return Promise.reject(new Error('no backend')); /* assets/backend.js did not load: send nothing, anywhere */
     return fetch(API, { method: 'POST', body: JSON.stringify(b), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', referrerPolicy: 'no-referrer', credentials: 'omit', cache: 'no-store' })
       .then(function (r) { return r.json(); });
   }
