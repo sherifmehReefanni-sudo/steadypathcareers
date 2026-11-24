@@ -1034,8 +1034,11 @@ html[data-pv="apps"] .pband::before { display: none; }
 #app .dc.ok .acts { grid-column: 2; grid-row: 1; margin: 0; }
 #app .dc.ok .acts .kbtn { min-height: 44px; padding: 0 14px; width: auto; }
 #app .dc.ok .acts.files { grid-column: 1 / -1; grid-row: auto; }
-/* Nov 24: tighter buttons in a row with downloads, so "Google Docs" stays on one line on a 360px phone */
-#app .dc .acts.files .kbtn { padding: 0 8px; gap: 6px; font-size: 15px; }
+/* Nov 24: a row with downloads wraps whole BUTTONS, never the words inside one, whatever font the phone uses. Each button starts
+   at its one-line width (flex-basis auto) and grows to share the spare room; one that does not fit moves to the next row and fills it.
+   Only a label wider than the whole row (huge text zoom) wraps its words, so the page never scrolls sideways. */
+#app .dc .acts.files { display: flex; flex-wrap: wrap; gap: 8px; }
+#app .dc .acts.files .kbtn { flex: 1 1 auto; min-width: 0; padding: 0 12px; gap: 6px; font-size: 15px; }
 #app .dc.ok > :not(.top):not(.acts) { grid-column: 1 / -1; font-size: 14px; margin: 0; }
 #app .dc.ok .nm { font-size: 16px; }
 #app .dc.ok .nm svg { width: 22px; height: 22px; }

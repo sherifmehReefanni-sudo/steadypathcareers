@@ -309,11 +309,35 @@ def test_apply_step_word_download_ticks_the_step(open_page):
     assert page.locator('.ap-steps > li:nth-child(2).done').count() == 1, 'the Word download did not tick the cover letter step'
 
 
-def test_documents_tab_buttons_stay_on_one_line_at_360(open_page):
-    page = open_demo(open_page, width=360)
-    wrapped = page.evaluate("""[...document.querySelectorAll('.dc .acts.files a')].map(a => { var t = [...a.childNodes].filter(n => n.nodeType === 3).pop(), r = document.createRange(); r.selectNodeContents(t);
-      return [a.textContent.trim(), new Set([...r.getClientRects()].map(x => Math.round(x.top))).size]; }).filter(x => x[1] > 1)""")
-    assert not wrapped, 'button words wrap at 360px: %s' % wrapped
+# The page's own font (Manrope) may not load, and each machine falls back to a different font (GitHub's ubuntu runner draws wider
+# than a Mac), so the row is also checked with a wide font forced and with extra letter spacing on whatever font is there.
+WIDE_FONTS = {
+    'page font': '',
+    'wide font': '#app .dc .acts.files .kbtn { font-family: "DejaVu Sans", Verdana, sans-serif !important; }',
+    'spaced font': '#app .dc .acts.files .kbtn { letter-spacing: 1.5px !important; }',
+}
+
+
+@pytest.mark.parametrize('font', list(WIDE_FONTS))
+@pytest.mark.parametrize('width', [320, 360, 390])
+def test_documents_tab_buttons_stay_on_one_line(open_page, width, font):
+    """Documents tab rows with downloads (PDF, Word, Google Docs, Ask for changes): no label's words wrap inside its button, at any
+    phone width and in any font; the row wraps whole buttons instead. Tap targets stay 44px tall, text 14px or more, no sideways scroll."""
+    page = open_demo(open_page, width=width)
+    if WIDE_FONTS[font]:
+        page.add_style_tag(content=WIDE_FONTS[font])
+        page.wait_for_timeout(100)
+    btns = page.evaluate("""[...document.querySelectorAll('.dc .acts.files .kbtn')].map(a => { var t = [...a.childNodes].filter(n => n.nodeType === 3).pop(), r = document.createRange(); r.selectNodeContents(t);
+      var b = a.getBoundingClientRect(); return [a.textContent.trim(), new Set([...r.getClientRects()].map(x => Math.round(x.top))).size, b.height, parseFloat(getComputedStyle(a).fontSize)]; })""")
+    assert len(btns) >= 10 and any(b[0] == 'Google Docs' for b in btns), 'the demo Documents tab lost its download rows: %s' % btns
+    wrapped = [[b[0], b[1]] for b in btns if b[1] > 1]
+    assert not wrapped, 'button words wrap at %dpx (%s): %s' % (width, font, wrapped)
+    short = [[b[0], round(b[2])] for b in btns if b[2] < 44]
+    assert not short, 'buttons under 44px tall at %dpx (%s): %s' % (width, font, short)
+    small = [[b[0], b[3]] for b in btns if b[3] < 14]
+    assert not small, 'button text under 14px at %dpx (%s): %s' % (width, font, small)
+    over = page.evaluate('document.documentElement.scrollWidth - window.innerWidth')
+    assert over <= 1, 'Documents tab scrolls sideways at %dpx (%s) by %dpx' % (width, font, over)
 
 
 @pytest.mark.parametrize('screen', ['docs', 'review', 'apply'])
