@@ -92,7 +92,7 @@ def test_helpers(open_page):
 
 # ---- not ready: nothing anywhere ----
 
-@pytest.mark.parametrize('status', ['Ready for your review', 'Changes requested', 'In progress', '', 'Not approved', 'Unapproved'])
+@pytest.mark.parametrize('status', ['Ready for your review', 'Changes requested', 'In progress', '', 'Not approved', 'Unapproved', 'Not ready'])
 @pytest.mark.parametrize('place', PLACES)
 def test_open_job_document_not_ready_has_no_download(open_page, place, status):
     """D-2 is on an open posting (J-103); while it waits for an OK, has changes asked, or is a draft, nothing can be saved"""
@@ -152,6 +152,8 @@ def test_held_means_no_download_even_with_frozen_copies(open_page, place):
     assert not [h for _, h, _, _ in got if is_download(h)], '%s offers a download while the approved copy is held: %s' % (place, got)
     scope = {'review': '#rvp-D-2 .rv-pacts', 'docs': '[data-doc="D-2"]', 'kit': '[data-jc="J-103"] .kit', 'apply': '.ap-steps > li:nth-child(1)'}[place]
     assert 'is being updated. We will let you know when it is ready.' in page.inner_text(scope), '%s shows no held message' % place
+    assert not [t for t, _, _, _ in got if t.startswith('Open your')], '%s offers an Open link while held: %s' % (place, got)
+    assert 'save it from there' not in page.inner_text('body'), '%s says to save it from the link while held' % place
 
 
 @pytest.mark.parametrize('place', PLACES)
@@ -172,6 +174,68 @@ def test_approved_drive_file_link_gets_one_open_link(open_page, place):
     scope = '[data-jc="J-103"] .kit' if place == 'kit' else '.ap-steps > li:nth-child(1)'
     txt = page.inner_text(scope)
     assert 'Open your resume and save it from there.' in txt and 'Not ready yet' not in txt, txt
+
+
+def test_open_link_copy_says_file_not_pdf(open_page):
+    """with only an Open link for the resume (a Drive file), the steps and the kit checklist say "file", never "PDF", for it"""
+    patch = "S.data.docs.forEach(function (x) { if (x.id === 'D-2') x.link = 'https://drive.google.com/file/d/abcdefghijk/view'; if (x.id === 'D-3') delete x.approvedDocx; }); render();"
+    page = open_demo(open_page, 'jobs')
+    page.evaluate(patch + " S.open['J-103'] = true; render();")
+    page.wait_for_timeout(200)
+    steps = page.inner_text('[data-jc="J-103"] .kcheck')
+    assert 'Upload your resume file' in steps and 'Upload your resume PDF' not in steps and 'Upload your cover letter PDF' in steps, steps
+    flow(page, 'apply', 'J-103')
+    one, two, three = (page.inner_text('.ap-steps > li:nth-child(%d)' % n) for n in (1, 2, 3))
+    assert 'Save the file. You upload it in step 3.' in one and 'Save the PDF' not in one, one
+    assert 'Save this PDF too.' in two, two
+    assert 'Upload both files.' in three and 'Upload both PDFs' not in three, three
+
+
+def test_prep_not_ready_has_no_download(open_page):
+    page = open_demo(open_page)
+    page.evaluate("S.data.docs.forEach(function (x) { if (x.id === 'D-2p') x.status = 'Not ready'; }); render();")
+    page.wait_for_timeout(200)
+    assert not [h for _, h, _, _ in links(page, '[data-doc="D-2p"] a') if is_download(h)]
+    flow(page, 'review', 'J-103')
+    assert not [h for _, h, _, _ in links(page, '#rvp-D-2p a') if is_download(h)]
+
+
+# ---- one Approved rule everywhere (the backend's: the status starts with "Approved") ----
+
+NOT_APPROVED = "S.data.docs.forEach(function (x) { if (x.id === 'D-2' || x.id === 'D-3') x.status = 'Not approved'; }); render();"
+
+
+def test_not_approved_is_never_shown_as_approved(open_page):
+    page = open_demo(open_page)
+    page.evaluate(NOT_APPROVED)
+    page.wait_for_timeout(200)
+    for d in ('D-2', 'D-3'):
+        assert page.locator('[data-doc="%s"].ok, [data-doc="%s"] .pill.ok' % (d, d)).count() == 0, '%s "Not approved" gets the green Approved look' % d
+        assert '\u2713' not in page.inner_text('[data-doc="%s"] .pill' % d)
+    flow(page, 'review', 'J-103')
+    tabs = page.evaluate("[...document.querySelectorAll('.rv-tab')].map(b => b.dataset.rvtab + ':' + b.querySelector('small').textContent)")
+    assert 'D-2:Approved' not in tabs and 'D-3:Approved' not in tabs, tabs
+
+
+def test_not_approved_does_not_open_applying(open_page):
+    page = open_demo(open_page, 'jobs')
+    page.evaluate(NOT_APPROVED + " S.open['J-103'] = true; render();")
+    page.wait_for_timeout(200)
+    assert page.locator('[data-applyflow="J-103"]').count() == 0, '"Apply step by step" shows for documents that are not approved'
+    kit = page.inner_text('[data-jc="J-103"] .kit')
+    assert 'Resume (PDF)' not in kit and 'Cover letter (PDF)' not in kit and 'Open your' not in kit, kit
+    flow(page, 'apply', 'J-103')
+    assert page.locator('.ap-steps').count() == 0 and 'Approve your documents first' in page.inner_text('main'), 'the apply steps open for documents that are not approved'
+
+
+def test_an_older_not_approved_row_does_not_win(open_page):
+    """a "Not approved" resume listed before the Approved one: the kit and the apply steps use the Approved one"""
+    page = open_demo(open_page, 'jobs')
+    page.evaluate("S.data.docs.unshift({ id: 'D-2old', jobId: 'J-103', name: 'Resume for Example Dental Arts', link: '%sdemo-resume-103-old/edit', status: 'Not approved', request: '', updated: '' }); S.open['J-103'] = true; render();" % GD)
+    page.wait_for_timeout(200)
+    assert [h for t, h, _, _ in links(page, '[data-jc="J-103"] .kit .pdfs a') if t.startswith('Resume')] == [pdf('demo-resume-103')]
+    flow(page, 'apply', 'J-103')
+    assert [h for _, h, _, _ in links(page, '.ap-steps > li:nth-child(1) a')] == [pdf('demo-resume-103')]
 
 
 def test_review_frozen_cover_letter(open_page):

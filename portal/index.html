@@ -638,7 +638,7 @@ body.deck-lock { overflow: hidden; }
   .jc .ans3 button svg { display: none; }
 }
 </style>
-<link rel="stylesheet" href="../assets/portal-app.css?v=sp-20261124word2">
+<link rel="stylesheet" href="../assets/portal-app.css?v=sp-20261124word3">
 <style>
 /* ---- round 4: search settings, data, calendar, versions, urgent help ---- */
 /* the account menu can hang below a short header; keep the header content (and its menu) above main, which is z-index 1 */
@@ -1223,7 +1223,12 @@ var IC = {
 function mailsOn() { return !!(S.data && S.data.notify === true); }
 function whenReady(they) { return mailsOn() ? 'We\'ll email you when ' + (!they ? 'they\'re' : they === 'it' ? 'it\'s' : they + ' are') + ' ready.' : 'Check back here. ' + (they === 'it' ? 'It' : 'They') + ' will show up on this page when ready.'; }
 function counts() { var j = (S.data && S.data.jobs) || []; var c = { yes: 0, no: 0, q: 0, wait: 0 }; j.forEach(function (x) { if (x.closed) return; var a = ansOf(x); if (a) c[a]++; else c.wait++; }); return c; }
-function isReady(x) { var st = String(x.status || ''); return !x.closedJob && /ready|review/i.test(st) && !/approved/i.test(st); }
+/* Ready to read: the status starts with "Ready" or "In review" (the backend writes "Ready for your review"), so "Not ready" never counts */
+function isReadySt(st) { return /^\s*(ready|in review|review)\b/i.test(String(st == null ? '' : st)); }
+function isReady(x) { return !x.closedJob && isReadySt(x.status); }
+/* Approved the way the backend decides it (isApproved_): the status starts with "Approved", so "Not approved" never counts.
+   The one Approved test in the portal (portal-app.js uses it too). */
+function isApprovedSt(st) { return /^\s*approved\b/i.test(String(st == null ? '' : st)); }
 function docsReady() { return ((S.data && S.data.docs) || []).filter(needsOk).length; }
 /* r42: five primary destinations. Applied lives inside Interviews (view 'apps'); Find Your Fit, Help, Plan & billing, Search
    settings and Feedback live under More. navOf maps any view to the destination that is lit for it. */
@@ -1328,7 +1333,7 @@ function sendFeedback() {
    The review and apply screens reuse the existing endpoints only (docStatus, app, track). */
 function needsOk(x) { return isReady(x) && docKind(x.name) !== 'prep'; }
 function jobState(j) {
-  var docs = jobDocs(j), ok = function (x) { return /approved/i.test(x.status || ''); };
+  var docs = jobDocs(j), ok = function (x) { return isApprovedSt(x.status); };
   var of = function (k) { return docs.filter(function (x) { return docKind(x.name) === k; }); };
   var res = of('resume'), cov = of('cover');
   var s = { docs: docs, resume: res.filter(ok)[0] || null, cover: cov.filter(ok)[0] || null, prep: of('prep').filter(function (x) { return safeUrl(x.link); })[0] || null,
@@ -1387,7 +1392,7 @@ function flowStep(d) {
   var soon = (d.apps || []).filter(function (x) { var n = daysFrom(x.interview); return n != null && n >= 0 && stageOf(x) < 4; }).sort(function (x, y) { return daysFrom(x.interview) - daysFrom(y.interview); })[0];
   var ivStep = function (soon) {
     var dd = daysFrom(soon.interview), sj = soon.jobId ? jobById(soon.jobId) : null, prep = sj ? jobState(sj).prep : null;
-    var hasQs = prepQs(soon).length > 0; if (prep && !(isReady(prep) || /approved/i.test(prep.status || ''))) prep = null;
+    var hasQs = prepQs(soon).length > 0; if (prep && !(isReady(prep) || isApprovedSt(prep.status))) prep = null;
     return { k: 'interview', t: 'Interview ' + (dd === 0 ? 'today' : dd === 1 ? 'tomorrow' : 'in ' + dd + ' days') + ' with ' + soon.company, s: fmtDate(soon.interview) + '. ' + (hasQs ? 'Practice the questions they are likely to ask.' : prep ? 'Read your prep sheet before you go.' : 'Your interview prep is in progress' + prepDueText(soon) + '. It will appear here.'),
       act: '<button class="btn gold" data-nxprep="' + esc(soon.id) + '">' + (hasQs ? 'Practice now' : 'Interview details') + '</button>' + (prep ? '<a class="btn ghost" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(sj.id) + '">Your prep sheet</a>' : '') };
   };
@@ -1525,7 +1530,7 @@ function approveLabel(list) {
   if (n === 2 && w[0] !== w[1]) return 'Approve ' + w[0] + ' and ' + w[1];
   return 'Approve all ' + n + ' documents';
 }
-function docWord(x) { var st = String(x.status || ''); return /approved/i.test(st) ? 'Approved' : needsOk(x) ? 'Needs your OK' : /changes/i.test(st) ? 'Changes asked' : docKind(x.name) === 'prep' ? 'To read' : st || 'In progress'; }
+function docWord(x) { var st = String(x.status || ''); return isApprovedSt(st) ? 'Approved' : needsOk(x) ? 'Needs your OK' : /changes/i.test(st) ? 'Changes asked' : docKind(x.name) === 'prep' ? 'To read' : st || 'In progress'; }
 function sampleDoc(x, j) {
   var k = docKind(x.name), L = function (w) { return '<i style="width:' + w + '%"></i>'; };
   return '<div class="rv-sample" role="img" aria-label="Sample preview of ' + esc(docLabel(x).toLowerCase()) + '"><b>' + esc(k === 'cover' ? 'Dear hiring team at ' + j.company + ',' : k === 'prep' ? 'Interview prep: ' + j.company : (S.data.client.name || 'Your name')) + '</b>' +
@@ -1551,7 +1556,7 @@ function vReview() {
   S.rvSig = docs.map(function (x) { return x.id + ' ' + x.link; }).join('|');
   var busy = !!S.rvBusy, words = docWords(st.review), okLabel = approveLabel(st.review), side;
   /* "Then you can apply" only when approving what is on screen leaves both the resume and the cover letter approved */
-  var nRv = st.review.length, okOrOnScreen = function (k) { return st.docs.some(function (x) { return docKind(x.name) === k && (/approved/i.test(x.status || '') || needsOk(x)); }); };
+  var nRv = st.review.length, okOrOnScreen = function (k) { return st.docs.some(function (x) { return docKind(x.name) === k && (isApprovedSt(x.status) || needsOk(x)); }); };
   var willApply = !st.app && okOrOnScreen('resume') && okOrOnScreen('cover') && !st.changes.some(function (x) { return /^(resume|cover)$/.test(docKind(x.name)); });
   var ask = nRv === 1 ? 'Happy with it?' : nRv === 2 ? 'Happy with both?' : nRv === 3 ? 'Happy with all three?' : 'Happy with all of them?';
   if (nRv) side = '<div class="rv-card"><h2>' + ask + '</h2><p>' + (nRv === 1 ? 'Tap ' + esc(okLabel) + ' when you are happy with it.' : nRv === 2 ? 'Tap ' + esc(okLabel) + ' to approve both at once.' : 'Tap ' + esc(okLabel) + ' to approve your ' + esc(words) + ' at once.') + (willApply ? ' Then you can apply.' : '') + '</p>' +
@@ -1688,11 +1693,11 @@ function vApply() {
   } else if (!st.applyReady) {
     body = '<div class="rv-card"><h2>Approve your documents first</h2><p>' + (st.review.length ? 'Your ' + esc(docWords(st.review)) + ' ' + (st.review.length > 1 ? 'are' : 'is') + ' ready to read.' : whenReady('your documents')) + '</p>' + (st.review.length ? '<button class="btn gold" data-review="' + id + '">Read them now</button>' : '<button class="btn ghost" data-flowclose>' + backWord() + '</button>') + '</div>';
   } else {
-    var fr = docFiles(st.resume), fc = docFiles(st.cover), anyWord = !!((fr && fr.word) || (fc && fc.word));
+    var fr = docFiles(st.resume), fc = docFiles(st.cover), oR = openOnly(st.resume), oC = openOnly(st.cover), anyFile = notJustPdf(st.resume, fr) || notJustPdf(st.cover, fc);
     body = '<p class="ap-intro">Do these in order. Each one opens in a new tab, so this page stays right here.</p><ol class="ap-steps">' +
-      step(0, 'Download your resume', fr && fr.word ? 'Save the PDF. If a form asks for a Word file, save the Word copy instead. You upload it in step 3.' : 'Save the PDF. You upload it in step 3.', dl(st.resume, fr, 'resume', 'resume_pdf', 0)) +
-      step(1, 'Download your cover letter', fc && fc.word ? 'Save this PDF too, or the Word copy if a form asks for one.' : 'Save this PDF too.', dl(st.cover, fc, 'cover letter', 'cover_pdf', 1)) +
-      step(2, 'Open the posting and apply', link ? 'Upload both ' + (anyWord ? 'files' : 'PDFs') + '. When the form asks a question, copy your ready answer below.' : 'The posting link is missing. Email hello@steadypathcareers.com and we will send it.',
+      step(0, 'Download your resume', oR ? 'Save the file. You upload it in step 3.' : fr && fr.word ? 'Save the PDF. If a form asks for a Word file, save the Word copy instead. You upload it in step 3.' : 'Save the PDF. You upload it in step 3.', dl(st.resume, fr, 'resume', 'resume_pdf', 0)) +
+      step(1, 'Download your cover letter', oC ? 'Save this file too.' : fc && fc.word ? 'Save this PDF too, or the Word copy if a form asks for one.' : 'Save this PDF too.', dl(st.cover, fc, 'cover letter', 'cover_pdf', 1)) +
+      step(2, 'Open the posting and apply', link ? 'Upload both ' + (anyFile ? 'files' : 'PDFs') + '. When the form asks a question, copy your ready answer below.' : 'The posting link is missing. Email hello@steadypathcareers.com and we will send it.',
         (link ? '<a class="kbtn solid" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" data-track="posting" data-job="' + id + '" data-apstep="2">' + IC.ext + 'Open the posting</a>' : '') +
         (answers.length ? '<h3 class="ap-ah">Your ready answers</h3>' + kansHtml(answers) : '')) + '</ol>' +
       '<section class="ap-ask" aria-labelledby="ap-q"><h2 id="ap-q">Did you submit it?</h2><p>Tell us once you have sent it, so it shows on your Applied tab.</p><div class="row"><button class="kdone" data-applied="' + id + '"' + (S.applyBusy === j.id ? ' disabled' : '') + '>' + IC.check + (S.applyBusy === j.id ? 'Saving…' : 'Yes, I submitted it') + '</button><button class="btn ghost" data-notyet>Not yet</button></div></section>';
@@ -1766,7 +1771,7 @@ function stageFor(j) {
   var app = jobApp(j);
   if (app && (app.interview || /interview/i.test(app.status || ''))) return 4;
   if (app) return 3;
-  if (jobDocs(j).some(function (x) { return /approved/i.test(x.status || '') || /ready|review/i.test(x.status || ''); })) return 2;
+  if (jobDocs(j).some(function (x) { return isApprovedSt(x.status) || isReadySt(x.status); })) return 2;
   return 1;
 }
 function tracker(st) {
@@ -1787,8 +1792,6 @@ function apprPdf(doc) { var u = doc && String(doc.approvedPdf || ''); return /^h
 function docxLink(link) { var id = gdocId(link); return id ? 'https://docs.google.com/document/d/' + id + '/export?format=docx' : ''; }
 /* an approved document's frozen Word copy (Drive download link), made by the backend at approval; anything else is ignored */
 function apprDocx(doc) { var u = doc && String(doc.approvedDocx || ''); return /^https:\/\/drive\.google\.com\/uc\?export=download&id=[\w-]{10,}$/.test(u) ? u : ''; }
-/* Approved the way the backend decides it (isApproved_): the status starts with "Approved", so "Not approved" never counts */
-function isApprovedSt(st) { return /^\s*approved\b/i.test(String(st == null ? '' : st)); }
 /* held (the backend is remaking the approved copy, or the Doc changed after approval): no file at all, frozen or live.
    Each of the two helpers below checks it on its own, so neither can ever hand out a file while held. */
 function isHeld(x) { return !!x && x.pdfState === 'held'; }
@@ -1839,11 +1842,12 @@ function docKind(n) {
 /* "Label: answer", one per line (colon then a space, so times like 4:30 stay whole). Max 12. */
 function qaLines(t) { return String(t || '').split(/\r?\n/).map(function (l) { var m = l.match(/^\s*([^:]{1,60}?):\s+(.+?)\s*$/); return m ? [m[1].trim(), m[2]] : null; }).filter(Boolean).slice(0, 12); }
 function kitChecks(id) { try { var v = JSON.parse(lsGet('sp_kit_' + id) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
-/* steps 2 and 3 say "file" when that document offers a frozen Word copy too (kitSteps) */
+/* steps 2 and 3 say "file" when that document may not be a PDF: it offers a frozen Word copy too, or only an Open link (kitSteps) */
 var KIT_STEPS = ['Open the posting', 'Upload your resume PDF', 'Upload your cover letter PDF', 'Paste your ready answers', 'Submit, then come back here'];
-function kitSteps(fRes, fCov) { var k = KIT_STEPS.slice(); if (fRes && fRes.word) k[1] = 'Upload your resume file'; if (fCov && fCov.word) k[2] = 'Upload your cover letter file'; return k; }
+function notJustPdf(d, f) { return !!((f && f.word) || openOnly(d)); }
+function kitSteps(res, fRes, cov, fCov) { var k = KIT_STEPS.slice(); if (notJustPdf(res, fRes)) k[1] = 'Upload your resume file'; if (notJustPdf(cov, fCov)) k[2] = 'Upload your cover letter file'; return k; }
 function applyKit(j) {
-  var docs = jobDocs(j), ok = function (x) { return /approved/i.test(x.status || ''); };
+  var docs = jobDocs(j), ok = function (x) { return isApprovedSt(x.status); };
   var cover = docs.filter(function (x) { return docKind(x.name) === 'cover' && ok(x); })[0];
   var resume = docs.filter(function (x) { return docKind(x.name) === 'resume' && ok(x); })[0];
   var pending = docs.some(function (x) { return isReady(x) && /^(resume|cover)$/.test(docKind(x.name)); });
@@ -1870,7 +1874,7 @@ function applyKit(j) {
   if (link) h += '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" data-track="posting" data-job="' + esc(j.id) + '">' + IC.ext + 'Open the posting</a>';
   if (prep) h += '<a class="kbtn" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + esc(j.id) + '">' + IC.docs + 'Interview prep</a>';
   if (answers.length) h += kansHtml(answers);
-  h += '<ol class="kcheck">' + kitSteps(fRes, fCov).map(function (s, i) { var id = 'kc-' + esc(j.id) + '-' + i; return '<li><label for="' + id + '"><input type="checkbox" id="' + id + '" data-kc="' + esc(j.id) + '" data-i="' + i + '"' + (checks[i] ? ' checked' : '') + '><span>' + (i + 1) + '. ' + s + '</span></label></li>'; }).join('') + '</ol>';
+  h += '<ol class="kcheck">' + kitSteps(resume, fRes, cover, fCov).map(function (s, i) { var id = 'kc-' + esc(j.id) + '-' + i; return '<li><label for="' + id + '"><input type="checkbox" id="' + id + '" data-kc="' + esc(j.id) + '" data-i="' + i + '"' + (checks[i] ? ' checked' : '') + '><span>' + (i + 1) + '. ' + s + '</span></label></li>'; }).join('') + '</ol>';
   h += app ? '<p class="kapplied">' + IC.check.replace('<svg', '<svg width="18" height="18" style="vertical-align:-3px"') + ' Applied ' + esc(fmtDate(app.applied)) + '. It is on your Applied tab.</p>'
     : '<button class="kdone" data-applied="' + esc(j.id) + '"' + (S.applyBusy === j.id ? ' disabled' : '') + '>' + IC.check + (S.applyBusy === j.id ? 'Saving…' : 'I applied') + '</button>';
   return h + '</section>';
@@ -1933,7 +1937,7 @@ function jobNext(j) {
   if (s.review.length) return b('data-review="' + id + '"', IC.docs, 'Read and approve documents');
   if (s.applyReady && !app) return b('data-applyflow="' + id + '"', IC.check, 'Apply step by step');
   if (app) {
-    var live = stageOf(app) < 4, prep = s.prep && (isReady(s.prep) || /approved/i.test(s.prep.status || '')) ? s.prep : null;
+    var live = stageOf(app) < 4, prep = s.prep && (isReady(s.prep) || isApprovedSt(s.prep.status)) ? s.prep : null;
     var when = '<p>' + (isOutreach(app) ? 'Contacted ' : 'Applied ') + esc(fmtDate(app.applied)) + (app.status ? ' · ' + esc(app.status) : '') + '</p>';
     if (live && prepQs(app).length) return '<div class="jnext">' + when + '<button class="kbtn solid" data-nxprep="' + esc(app.id) + '">' + IC.docs + 'Interview prep</button></div>';
     if (live && prep) return '<div class="jnext">' + when + '<a class="kbtn solid" href="' + esc(safeUrl(prep.link)) + '" target="_blank" rel="noopener noreferrer" data-track="prep" data-job="' + id + '">' + IC.docs + 'Interview prep</a></div>';
@@ -2080,7 +2084,7 @@ function shortDocName(x, grp) {
   return (grp || []).filter(function (y) { return docKind(y.name) === k; }).length > 1 ? x.name : KIND_LABEL[k];
 }
 function docCard(x, i, grp) {
-  var st = String(x.status || ''), ok = /approved/i.test(st), ready = needsOk(x), prepRd = isReady(x) && docKind(x.name) === 'prep', link = safeUrl(x.link), id = esc(x.id), busy = S.docBusy[x.id], f = docFiles(x), noun = docNoun(x);
+  var st = String(x.status || ''), ok = isApprovedSt(st), ready = needsOk(x), prepRd = isReady(x) && docKind(x.name) === 'prep', link = safeUrl(x.link), id = esc(x.id), busy = S.docBusy[x.id], f = docFiles(x), noun = docNoun(x);
   if (prepRd) st = 'Ready to read';
   if (x.closedJob && !ok) st = 'Posting closed';
   var pillCls = ok ? 'ok' : /changes/i.test(st) ? 'info' : ready ? 'gold' : 'info';
@@ -2154,7 +2158,7 @@ function upShown(x) { return { status: x.status || 'Applied', interview: ISO_RE.
 function isOutreach(x) { return /outreach/i.test(x.type || ''); }
 function appCard(x) {
   var hasQs = prepQs(x).length > 0, hasNotes = !hasQs && (x.prepBring || x.prepAsk), soonIv = daysFrom(x.interview) != null && daysFrom(x.interview) >= 0 && stageOf(x) < 4;
-  var pj = x.jobId ? jobById(x.jobId) : null, pdoc = pj ? jobState(pj).prep : null; if (pdoc && !(isReady(pdoc) || /approved/i.test(pdoc.status || ''))) pdoc = null;
+  var pj = x.jobId ? jobById(x.jobId) : null, pdoc = pj ? jobState(pj).prep : null; if (pdoc && !(isReady(pdoc) || isApprovedSt(pdoc.status))) pdoc = null;
   var pills = [ivLabel(x), typeof r44FuLine === 'function' ? '' : fuLabel(x) /* r45: one follow-up line per card, r44's (assets/portal-app.js r44FuLine) */, isOutreach(x) ? '<span class="pill">Recruiter outreach</span>' : ''].filter(String).join(' ');
   var h = '<div class="app" data-app="' + esc(x.id) + '"><b>' + esc(x.company) + '</b><div class="psub">' + esc(x.role) + '</div><div class="psub" style="margin-top:4px">' + (isOutreach(x) ? 'Contacted ' : 'Applied ') + esc(fmtDate(x.applied)) + (x.status ? ' · ' + esc(x.status) : '') + '</div>' +
     (pills ? '<div class="apills">' + pills + '</div>' : '') + icsBtn(x) +
@@ -3732,6 +3736,6 @@ document.addEventListener('click', function (e) {
 </script>
 <script src="../assets/fx.js?v=20261024d"></script>
 <script src="../assets/resume-read.js?v=sp-20261119resume"></script>
-<script src="../assets/portal-app.js?v=sp-20261120nudge3"></script>
+<script src="../assets/portal-app.js?v=sp-20261124word3"></script>
 </body>
 </html>

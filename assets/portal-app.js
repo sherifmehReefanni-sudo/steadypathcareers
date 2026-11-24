@@ -311,7 +311,7 @@ document.addEventListener('keydown', function (e) {
       if (a === 'yes') { try { s.stage[j.id] = window.stageFor(j); } catch (e) {} }
     });
     (d.apps || []).forEach(function (x) { s.apps[x.id] = x.jobId || ''; if (x.interview) s.iv[x.id] = String(x.interview); });
-    (d.docs || []).forEach(function (x) { if (/approved/i.test(x.status || '')) s.ok[x.id] = 1; });
+    (d.docs || []).forEach(function (x) { if (window.isApprovedSt(x.status)) s.ok[x.id] = 1; });
     return s;
   }
   function grow(el, from) {
