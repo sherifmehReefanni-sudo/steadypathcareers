@@ -7,13 +7,14 @@
 How it works: _tools/pricing.applied.json records each phrase exactly as the pages say it now, and how many times each file
 says it. When pricing.json changes, apply finds each old sentence (also in its &#39;, &#x27; and \\' forms) and writes the new
 one in the same form, longest phrase first, in one pass; a changed script gets a new ?v= wherever it is loaded, and sw.js a
-new V when it lists it. 'by_hand' phrases and 'by_hand_files' are left alone, and the check fails until a person updates them.
+new V when it lists it (a stamp not used before: sp-YYYYMMDDprice, then b, c, d... on later runs). 'by_hand' phrases and
+'by_hand_files' are left alone, version references in by_hand_files included, and the check fails until a person updates them.
 
 The check fails when:
   - pricing.json was edited but apply was not run;
   - a file states a trial length or one of our prices that is not inside a phrase from pricing.json (a hand edit, a new
     page, or a by-hand item that still says the old price);
-  - a file has billing wording (see WORDS) outside the phrases and 'not_ours' (comments are not read);
+  - a file has billing wording (see WORDS) outside the phrases and that file's 'not_ours' entries (comments are not read);
   - a phrase is not in the files, or not as many times, as recorded (a sentence edited by hand);
   - a phrase or value in pricing.json is no longer used anywhere (delete it, or put the sentence back)."""
 import datetime
@@ -36,7 +37,7 @@ TRIAL = [r'(?i:\bfree for (\d+) days?\b)', r'(?i:\b(\d+) days?, no card\b)', r'(
          r'(?i:\bfree (\d+)[- ]day\b)']
 MONEY = [r'\$(\d+(?:\.\d\d)?)(?![\d,.])(?:</b>)?\s*(?:a|per|/)\s*(?:month|mo)\b', r'\$(\d+(?:\.\d\d)?)(?![\d,.]) (?:today|one time|with code)\b',
          r"\['\w+', '[^'<]+', '\$(\d+)'\]", r'<span class="n[vw]">(\d+)</span>']
-# Billing wording: any of these in page text (comments aside) must be inside a sentence from pricing.json or in 'not_ours'.
+# Billing wording: any of these in page text (comments aside) must be inside a sentence from pricing.json or in the file's 'not_ours'.
 WORDS = re.compile(r"(?i)\brefund|\brenew(?:s|al|ed|ing)?\b|\bcharg(?:e|es|ed|ing)\b|\bcancel(?:l?ing|s)? (?:anytime|within|your|a paid|it|the plan|stops)"
                    r"|\bto cancel\b|confirm the cancel|\bbilling (?:stops|ends|is|has|stopped)|stop (?:your )?billing|\bpaid plans?\b"
                    r"|\bpayments? (?:received|page|did)|\bfree (?:pilot|days?|access)\b|\bno card\b|\bcard (?:is )?(?:on file|needed)|\bfounding\b"
@@ -120,18 +121,32 @@ def where(phrases, files):
     return {k: dict(sorted(v.items())) for k, v in out.items()}
 
 
-def bump_versions(changed, files, stamp):
+def next_stamp(current, base):
+    """A ?v= or V value that no earlier run today used: the base stamp, then base + b, c ... z, zb, zc ... on later runs."""
+    if not current.startswith(base):
+        return base
+    tail = current[len(base):]
+    if not tail or not re.fullmatch('[a-z]+', tail):
+        return base + 'b'
+    return base + (tail[:-1] + chr(ord(tail[-1]) + 1) if tail[-1] < 'z' else tail + 'b')
+
+
+def bump_versions(changed, files, base, hold=()):
     """A changed script or stylesheet gets a new ?v= wherever it is loaded, and sw.js a new V when it lists the file, so no
-    browser or service worker keeps the old copy."""
+    browser or service worker keeps the old copy. Files in hold (the by-hand files) are not touched."""
     out = dict(changed)
+    listed = False
     for path in [p for p in changed if p.startswith('assets/')]:
         ref = re.compile(r'(/' + re.escape(path) + r'\?v=)([\w.-]+)')
         for f, text in list(dict(files, **out).items()):
-            t = ref.sub(lambda m: m.group(1) + (stamp if m.group(2) != stamp else stamp + 'b'), text)
-            if f == 'sw.js' and t != text:
-                t = re.sub(r"^var V = '([^']+)';", lambda m: "var V = '%s';" % (stamp if m.group(1) != stamp else stamp + 'b'), t, count=1, flags=re.M)
+            if f in hold:
+                continue
+            t = ref.sub(lambda m: m.group(1) + next_stamp(m.group(2), base), text)
             if t != text:
                 out[f] = t
+                listed = listed or f == 'sw.js'
+    if listed:
+        out['sw.js'] = re.sub(r"^var V = '([^']+)';", lambda m: "var V = '%s';" % next_stamp(m.group(1), base), out['sw.js'], count=1, flags=re.M)
     return out
 
 
@@ -154,7 +169,7 @@ def apply(cfg, applied, files, stamp=None):
         t = rx.sub(swap, text)
         if t != text:
             changed[path] = t
-    changed = bump_versions(changed, files, stamp or 'sp-' + datetime.date.today().strftime('%Y%m%d') + 'price')
+    changed = bump_versions(changed, files, stamp or 'sp-' + datetime.date.today().strftime('%Y%m%d') + 'price', cfg['by_hand_files'])
     before, after = where(old, files), where(new, dict(files, **changed))
     # a by-hand sentence that changed is expected where the old one is, once a person has rewritten it
     seen = {k: (before.get(k, {}) if k in by_hand and k in old and old[k] != new[k] else after[k]) for k in new}
@@ -179,11 +194,10 @@ def problems(cfg, applied, files):
         if v not in used_vals:
             out.append('pricing.json: value %s is not used by any phrase; delete it' % v)
     rx, table = tokenizer(phrases)
-    ours = re.compile('|'.join(re.escape(s) for s in cfg['not_ours'])) if cfg['not_ours'] else None
     for path, text in sorted(files.items()):
         spans = [(m.start(), m.end()) for m in rx.finditer(text)]
-        if ours:
-            spans += [(m.start(), m.end()) for m in ours.finditer(text)]
+        for s in cfg['not_ours'].get(path, []):
+            spans += [(m.start(), m.end()) for m in re.finditer(re.escape(s), text)]
         inside = lambda m: any(a <= m.start() and m.end() <= b for a, b in spans)
         hint = cfg['by_hand_files'].get(path, 'Use a phrase from _tools/pricing.json (add one if needed) and run python3 _tools/pricing.py.')
         for m in MENTION.finditer(text):
@@ -225,6 +239,9 @@ def main(argv):
                   f, indent=1, ensure_ascii=False)
         f.write('\n')
     print('Updated %d file(s): %s' % (len(changed), ', '.join(sorted(changed)) or 'none'))
+    held = sorted(f for f in cfg['by_hand_files'] if f in files and any('/%s?v=' % p in files[f] for p in changed if p.startswith('assets/')))
+    if held:
+        print('\nThese by-hand files load a changed script or stylesheet and keep its old ?v= until a person edits them: ' + ', '.join(held))
     left = problems(cfg, record, load_files())
     if left:
         print('\nStill to do by hand (the site check fails until these are done):\n  ' + '\n  '.join(left))
