@@ -1,12 +1,12 @@
 """Home page promises and the free tools. Tools that need outside sites (the ghost job checker reads job boards) are only
 checked for opening, because the tests block every outside call."""
-from conftest import visible_text
+from conftest import PRICES as V, visible_text
 
 
 def test_home_page(open_page):
     page = open_page('/')
     text = visible_text(page)
-    assert '$99' in text, 'price missing from the home page'
+    assert '$%s a month' % V['plan_monthly'] in text, 'price from _tools/pricing.json missing from the home page'
     assert page.locator('a[href^="/start"]').count() >= 1, 'no button to start on the home page'
     assert page.locator('a[href^="/portal"]').count() >= 1, 'no way to sign in from the home page'
 

@@ -1,8 +1,6 @@
 """The intake form (/start/) opens, shows the honest price, and a person can move forward and back.
 Nothing is ever submitted: the conftest blocks every POST, so no intake, funnel ping or "finish later" email can go out."""
-import re
-
-from conftest import visible_text
+from conftest import PRICES as V, visible_text
 
 
 def screen_title(page):
@@ -13,8 +11,8 @@ def test_welcome_screen(open_page):
     page = open_page('/start/')
     text = visible_text(page)
     assert 'Hi, welcome.' in text
-    assert re.search(r'Free for 14 days', text), 'trial length missing from the welcome card'
-    assert '$99 a month' in text, 'price missing from the welcome card'
+    assert 'Free for %s days' % V['trial_days'] in text, 'trial length from _tools/pricing.json missing from the welcome card'
+    assert '$%s a month' % V['plan_monthly'] in text, 'price from _tools/pricing.json missing from the welcome card'
     assert page.locator('#i2 [data-nav=next]').is_visible(), "Let's go button missing"
 
 

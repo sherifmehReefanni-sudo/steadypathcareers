@@ -17,6 +17,7 @@ Where it runs:
 """
 import os
 import re
+import sys
 import xml.etree.ElementTree as ET
 from urllib.parse import urljoin, urlparse
 
@@ -26,6 +27,11 @@ from playwright.sync_api import sync_playwright
 import server
 
 ROOT = server.ROOT
+# the one place for prices, trial length and billing wording (_tools/pricing.json), read by the checks that look at them
+sys.dont_write_bytecode = True  # no __pycache__ beside _tools/pricing.py
+sys.path.insert(0, os.path.join(ROOT, '_tools'))
+import pricing  # noqa: E402
+PRICES = pricing.load_config(ROOT)['values']
 LIVE_URL = os.environ.get('SP_BASE_URL', '').rstrip('/')
 
 
