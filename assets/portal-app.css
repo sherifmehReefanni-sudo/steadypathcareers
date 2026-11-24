@@ -1034,6 +1034,8 @@ html[data-pv="apps"] .pband::before { display: none; }
 #app .dc.ok .acts { grid-column: 2; grid-row: 1; margin: 0; }
 #app .dc.ok .acts .kbtn { min-height: 44px; padding: 0 14px; width: auto; }
 #app .dc.ok .acts.files { grid-column: 1 / -1; grid-row: auto; }
+/* Nov 24: tighter buttons in a row with downloads, so "Google Docs" stays on one line on a 360px phone */
+#app .dc .acts.files .kbtn { padding: 0 8px; gap: 6px; font-size: 15px; }
 #app .dc.ok > :not(.top):not(.acts) { grid-column: 1 / -1; font-size: 14px; margin: 0; }
 #app .dc.ok .nm { font-size: 16px; }
 #app .dc.ok .nm svg { width: 22px; height: 22px; }

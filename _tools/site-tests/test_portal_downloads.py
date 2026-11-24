@@ -62,7 +62,7 @@ def resume_links(open_page, place, patch=None):
         page = open_demo(open_page, 'jobs', patch)
         page.evaluate("S.open['J-103'] = true; render();")  # the kit sits in the job card's details
         page.wait_for_timeout(200)
-        return page, [l for l in links(page, '[data-jc="J-103"] .kit .pdfs a') if l[0].startswith('Resume')]
+        return page, [l for l in links(page, '[data-jc="J-103"] .kit .pdfs a') if l[0].startswith('Resume') or l[0] == 'Open your resume']
     page = open_demo(open_page, 'jobs', patch)
     flow(page, 'apply', 'J-103')
     return page, links(page, '.ap-steps > li:nth-child(1) a')
@@ -76,16 +76,23 @@ def test_helpers(open_page):
     assert page.evaluate("docxLink('https://docs.google.com/document/u/1/d/abc/edit?usp=sharing')") == docx('abc')
     for other in ('https://example.com/resume.pdf', 'https://drive.google.com/file/d/abc/view', 'javascript:alert(1)', ''):
         assert page.evaluate('u => docxLink(u)', other) == '', 'a Word link was made for a link that is not a Google Doc: %s' % other
-    assert page.evaluate("apprDocx({ approvedDocx: '%sabc_D-1' })" % DRIVE) == DRIVE + 'abc_D-1'
-    for bad in ('https://evil.example/uc?export=download&id=abc', 'https://drive.google.com.evil.example/uc?export=download&id=abc',
+    assert page.evaluate("apprDocx({ approvedDocx: '%sabcdefgh_D-1' })" % DRIVE) == DRIVE + 'abcdefgh_D-1'
+    for bad in ('https://DRIVE.GOOGLE.COM/uc?export=download&id=abcdefghijk', 'HTTPS://drive.google.com/uc?export=download&id=abcdefghijk',
+                DRIVE + 'short', 'https://evil.example/uc?export=download&id=abc', 'https://drive.google.com.evil.example/uc?export=download&id=abc',
                 'http://drive.google.com/uc?export=download&id=abc', DRIVE + 'abc&confirm=1', DRIVE + 'abc"><b>', DRIVE,
                 docx('abc'), 'https://drive.google.com/file/d/abc/view'):
         assert page.evaluate('u => apprDocx({ approvedDocx: u })', bad) == '', 'apprDocx accepted %s' % bad
+    # held: each helper refuses on its own, frozen copies included, prep included
+    held = {'pdfState': 'held', 'approvedPdf': DRIVE + 'frozen-pdf-1234', 'approvedDocx': DRIVE + 'frozen-docx-1234', 'link': GD + 'abcdefghijk/edit'}
+    for prep in (False, True):
+        assert page.evaluate('([x, p]) => filePdf(x, p)', [held, prep]) == '', 'filePdf gave a file while held (prep=%s)' % prep
+        assert page.evaluate('([x, p]) => fileWord(x, p)', [held, prep]) == '', 'fileWord gave a file while held (prep=%s)' % prep
+    assert page.evaluate("isApprovedSt('Approved') && isApprovedSt(' approved by client') && !isApprovedSt('Not approved') && !isApprovedSt('Unapproved')")
 
 
 # ---- not ready: nothing anywhere ----
 
-@pytest.mark.parametrize('status', ['Ready for your review', 'Changes requested', 'In progress', ''])
+@pytest.mark.parametrize('status', ['Ready for your review', 'Changes requested', 'In progress', '', 'Not approved', 'Unapproved'])
 @pytest.mark.parametrize('place', PLACES)
 def test_open_job_document_not_ready_has_no_download(open_page, place, status):
     """D-2 is on an open posting (J-103); while it waits for an OK, has changes asked, or is a draft, nothing can be saved"""
@@ -129,7 +136,8 @@ def test_approved_resume_with_frozen_word(open_page, place):
     assert OLD_NOTE not in page.inner_text('body')
 
 
-@pytest.mark.parametrize('bad', ['https://evil.example/uc?export=download&id=fake', DRIVE + 'fake&x=1', 'http://drive.google.com/uc?export=download&id=fake', docx('demo-resume-103')])
+@pytest.mark.parametrize('bad', ['https://evil.example/uc?export=download&id=fake-resume-docx', DRIVE + 'fake-resume-docx&x=1', 'http://drive.google.com/uc?export=download&id=fake-resume-docx',
+                                 'https://DRIVE.GOOGLE.COM/uc?export=download&id=fake-resume-docx', DRIVE + 'short', docx('demo-resume-103')])
 @pytest.mark.parametrize('place', PLACES)
 def test_approved_resume_ignores_a_bad_frozen_word_link(open_page, place, bad):
     page, got = resume_links(open_page, place, {'approvedDocx': bad})
@@ -139,9 +147,11 @@ def test_approved_resume_ignores_a_bad_frozen_word_link(open_page, place, bad):
 
 
 @pytest.mark.parametrize('place', PLACES)
-def test_held_pdf_means_no_word_either(open_page, place):
-    page, got = resume_links(open_page, place, {'pdfState': 'held', 'approvedDocx': DRIVE + 'fake-resume-docx'})
-    assert not [h for _, h, _, _ in got if is_download(h)], '%s offers a download while the approved PDF is held: %s' % (place, got)
+def test_held_means_no_download_even_with_frozen_copies(open_page, place):
+    page, got = resume_links(open_page, place, {'pdfState': 'held', 'approvedPdf': DRIVE + 'fake-resume-pdf', 'approvedDocx': DRIVE + 'fake-resume-docx'})
+    assert not [h for _, h, _, _ in got if is_download(h)], '%s offers a download while the approved copy is held: %s' % (place, got)
+    scope = {'review': '#rvp-D-2 .rv-pacts', 'docs': '[data-doc="D-2"]', 'kit': '[data-jc="J-103"] .kit', 'apply': '.ap-steps > li:nth-child(1)'}[place]
+    assert 'is being updated. We will let you know when it is ready.' in page.inner_text(scope), '%s shows no held message' % place
 
 
 @pytest.mark.parametrize('place', PLACES)
@@ -151,6 +161,17 @@ def test_link_that_is_not_a_google_doc_or_pdf_gets_no_pdf(open_page, place):
     page, got = resume_links(open_page, place, {'link': 'https://example.com/files/resume.pdf'})
     # (the Documents card's own Open link points at the same .pdf, so it is left out here)
     assert [h for t, h, _, _ in got if is_download(h) and t != 'Open'] == ['https://example.com/files/resume.pdf'], '%s: %s' % (place, got)
+
+
+@pytest.mark.parametrize('place', ['kit', 'apply'])
+def test_approved_drive_file_link_gets_one_open_link(open_page, place):
+    """an approved resume whose link is a Drive file (no export): one Open link and a line saying to save it from there"""
+    view = 'https://drive.google.com/file/d/abcdefghijk/view'
+    page, got = resume_links(open_page, place, {'link': view})
+    assert [(t, h, a, r) for t, h, a, r in got] == [('Open your resume', view, 'Open Resume for Example Dental Arts', 'noopener noreferrer')], got
+    scope = '[data-jc="J-103"] .kit' if place == 'kit' else '.ap-steps > li:nth-child(1)'
+    txt = page.inner_text(scope)
+    assert 'Open your resume and save it from there.' in txt and 'Not ready yet' not in txt, txt
 
 
 def test_review_frozen_cover_letter(open_page):
@@ -222,6 +243,13 @@ def test_apply_step_word_download_ticks_the_step(open_page):
     page.evaluate("(() => { var a = document.querySelectorAll('.ap-steps > li:nth-child(2) a')[1]; a.removeAttribute('href'); a.click(); })()")
     page.wait_for_timeout(200)
     assert page.locator('.ap-steps > li:nth-child(2).done').count() == 1, 'the Word download did not tick the cover letter step'
+
+
+def test_documents_tab_buttons_stay_on_one_line_at_360(open_page):
+    page = open_demo(open_page, width=360)
+    wrapped = page.evaluate("""[...document.querySelectorAll('.dc .acts.files a')].map(a => { var t = [...a.childNodes].filter(n => n.nodeType === 3).pop(), r = document.createRange(); r.selectNodeContents(t);
+      return [a.textContent.trim(), new Set([...r.getClientRects()].map(x => Math.round(x.top))).size]; }).filter(x => x[1] > 1)""")
+    assert not wrapped, 'button words wrap at 360px: %s' % wrapped
 
 
 @pytest.mark.parametrize('screen', ['docs', 'review', 'apply'])

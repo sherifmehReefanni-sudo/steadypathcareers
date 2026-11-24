@@ -638,7 +638,7 @@ body.deck-lock { overflow: hidden; }
   .jc .ans3 button svg { display: none; }
 }
 </style>
-<link rel="stylesheet" href="../assets/portal-app.css?v=sp-20261123word">
+<link rel="stylesheet" href="../assets/portal-app.css?v=sp-20261124word2">
 <style>
 /* ---- round 4: search settings, data, calendar, versions, urgent help ---- */
 /* the account menu can hang below a short header; keep the header content (and its menu) above main, which is z-index 1 */
@@ -1576,7 +1576,7 @@ function vReview() {
         (card ? '<div class="rv-open"><p><b>Read your ' + esc(docNoun(x)) + ' in Google Docs.</b> It opens in a new tab. ' + (needsOk(x) ? 'When you are done, come back to this tab to approve it or ask for a change.' : 'Come back to this tab when you are done.') + '</p><a class="kbtn solid" href="' + u + '" target="_blank" rel="noopener noreferrer">' + IC.ext + 'Open your ' + esc(docNoun(x)) + '</a></div>'
           : S.demo ? (S.rvDemoLoad ? '<div class="rv-sample" aria-hidden="true"></div>' : sampleDoc(x, j)) : '<iframe src="https://docs.google.com/document/d/' + g + '/preview" title="' + esc('Preview: ' + x.name) + '" loading="lazy"></iframe>') + '</div>' +
         '<div class="rv-pacts" data-live="pa' + i + '">' + docVerHtml(x) +
-          (f ? fileBtns(f, { pdf: f.prep ? 'Download PDF' : 'Download approved PDF', word: 'Download Word (.docx)' }) : (x.pdfState === 'held' && docKind(x.name) !== 'prep' ? '<p class="meta">Your approved PDF is being updated. We will let you know when it is ready.</p>' : '')) +
+          (f ? fileBtns(f, { pdf: f.prep ? 'Download PDF' : 'Download approved PDF', word: 'Download Word (.docx)' }) : heldNote(x, 'meta')) +
           (card || S.demo ? '' : '<p class="meta">Preview blank or asking you to sign in? Tap Open in Google Docs above the preview.</p>') + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') + '</div></section>';
     }).join('') + '</div><aside class="rv-side" data-live="side">' + side + '</aside></div>' : '<div class="card empty e-docs"><p class="psub" style="margin:0">Your documents for this job are not ready yet. ' + whenReady() + '</p></div>') +
     '</main>' + tabbar(flowFrom());
@@ -1679,7 +1679,8 @@ function vApply() {
     return '<li class="ap-st' + (ck ? ' done' : '') + '"><span class="ap-n" aria-hidden="true">' + (ck ? IC.check : i + 1) + '</span><div class="ap-b"><h2>' + title + (ck ? '<span class="ap-ok"> Done</span>' : '') + '</h2><p>' + desc + '</p>' + a + '</div></li>';
   };
   /* each step's downloads come from docFiles (the one rule); a Word download ticks its step too (no data-track: see fileBtns) */
-  var dl = function (doc, f, what, k, i) { return f ? fileBtns(f, { pdf: 'Download ' + what + ' PDF', word: 'Download Word (.docx)', solid: true, track: k, job: j.id, step: i }) : (doc && doc.pdfState === 'held' ? '<p class="wait">Your approved ' + what + ' is being updated. We will let you know when it is ready.</p>' : '<p class="wait">Not ready yet.</p>'); };
+  var dl = function (doc, f, what, k, i) { return f ? fileBtns(f, { pdf: 'Download ' + what + ' PDF', word: 'Download Word (.docx)', solid: true, track: k, job: j.id, step: i }) : isHeld(doc) ? '<p class="wait">Your approved ' + what + ' is being updated. We will let you know when it is ready.</p>' :
+    openOnly(doc) ? '<p class="wait">Open your ' + what + ' and save it from there.</p>' + openOnlyBtn(doc, what, 'kbtn solid', { job: j.id, step: i }) : '<p class="wait">Not ready yet.</p>'; };
   if (done) {
     var app = st.app;
     body = '<section class="ap-done"><div class="ap-doneic" aria-hidden="true">' + IC.checkc + '</div><h2>It is on your Applied tab.</h2><p>' + (app && app.applied ? 'Applied ' + esc(fmtDate(app.applied)) + '. ' : '') + 'When ' + esc(j.company) + ' replies, update it there. Good luck.</p>' +
@@ -1775,31 +1776,46 @@ function tracker(st) {
     return '<li class="' + cls + '"' + (i === st ? ' aria-current="step"' : '') + '><span class="d">' + (i < st ? '<span style="color:#fff">' + IC.check + '</span>' : '') + '</span><span class="full">' + s + '</span><span class="short">' + STAGES_SHORT[i] + '</span></li>';
   }).join('') + '</ol>';
 }
-function pdfLink(link) { var id = gdocId(link); return id ? 'https://docs.google.com/document/d/' + id + '/export?format=pdf' : safeUrl(link); }
+/* Google's live PDF export of a Google Doc; '' for any other link (truePdf is its only caller and handles .pdf links) */
+function pdfLink(link) { var id = gdocId(link); return id ? 'https://docs.google.com/document/d/' + id + '/export?format=pdf' : ''; }
 /* a real PDF: a Google Doc export or a link to a .pdf file; anything else is not offered as a PDF */
-/* v1.24 API: an approved document's frozen PDF (Drive download link), else the live export */
-/* the PDF to offer for an approved document: the frozen copy, nothing while the API holds it (edited after approval), else the live export */
-function docPdf(doc, live) { return apprPdf(doc) || (doc && doc.pdfState === 'held' ? '' : live || ''); }
-function apprPdf(doc) { var u = doc && String(doc.approvedPdf || ''); return /^https:\/\/drive\.google\.com\/uc\?export=download&id=[\w-]{10,}$/.test(u) ? u : ''; }
 function truePdf(link) { return gdocId(link) ? pdfLink(link) : /^https:\/\/[^?#]+\.pdf([?#]|$)/i.test(String(link || '')) ? safeUrl(link) : ''; }
+/* v1.24 API: an approved document's frozen PDF (Drive download link) */
+function apprPdf(doc) { var u = doc && String(doc.approvedPdf || ''); return /^https:\/\/drive\.google\.com\/uc\?export=download&id=[\w-]{10,}$/.test(u) ? u : ''; }
 /* Nov 23, 2026: a Word copy (.docx) of a Google Doc, Google's own export like the PDF. Any other link has no Word copy.
    Used only for interview prep: Reef (Nov 24) wants approved documents to offer Word only as a frozen copy (apprDocx). */
 function docxLink(link) { var id = gdocId(link); return id ? 'https://docs.google.com/document/d/' + id + '/export?format=docx' : ''; }
 /* an approved document's frozen Word copy (Drive download link), made by the backend at approval; anything else is ignored */
-function apprDocx(doc) { var u = doc && String(doc.approvedDocx || ''); return /^https:\/\/drive\.google\.com\/uc\?export=download&id=[\w-]+$/.test(u) ? u : ''; }
+function apprDocx(doc) { var u = doc && String(doc.approvedDocx || ''); return /^https:\/\/drive\.google\.com\/uc\?export=download&id=[\w-]{10,}$/.test(u) ? u : ''; }
+/* Approved the way the backend decides it (isApproved_): the status starts with "Approved", so "Not approved" never counts */
+function isApprovedSt(st) { return /^\s*approved\b/i.test(String(st == null ? '' : st)); }
+/* held (the backend is remaking the approved copy, or the Doc changed after approval): no file at all, frozen or live.
+   Each of the two helpers below checks it on its own, so neither can ever hand out a file while held. */
+function isHeld(x) { return !!x && x.pdfState === 'held'; }
+/* the PDF: prep, Google's live export; anything else, the frozen approved copy, else the live export of a real PDF link */
+function filePdf(x, prep) { if (isHeld(x)) return ''; return prep ? truePdf(x.link) : apprPdf(x) || truePdf(x.link); }
+/* the Word file: prep, Google's live export; anything else, only the frozen approved copy */
+function fileWord(x, prep) { if (isHeld(x)) return ''; return prep ? docxLink(x.link) : apprDocx(x); }
 /* The one rule for what a client can save, used by the review screen, Documents cards, apply steps and apply kit. null: nothing.
-   Nothing for a closed posting or a document not ready (waiting for an OK, changes asked, a draft). Approved documents (not
-   interview prep): the approved PDF (docPdf: the frozen copy, nothing while held, else the live export of a real PDF link) and
-   the frozen Word copy only (apprDocx; none while held). Interview prep never needs an OK and never goes to an employer, so the
-   backend freezes nothing for it (pdfInfo_ skips prep): once it is ready to read, both files are Google's live exports.
-   No Word file wherever there is no PDF. */
+   Nothing for a closed posting, while held, or for a document not ready (waiting for an OK, changes asked, a draft). Approved
+   documents (not interview prep): the approved PDF and the frozen Word copy only. Interview prep never needs an OK and never goes
+   to an employer, so the backend freezes nothing for it (pdfInfo_ skips prep): once it is ready to read, both files are Google's
+   live exports. No Word file wherever there is no PDF. */
 function docFiles(x) {
   if (!x) return null;
-  var prep = docKind(x.name) === 'prep', ok = /approved/i.test(x.status || '');
-  if (x.closedJob || !(ok || (prep && isReady(x)))) return null;
-  var pdf = prep ? truePdf(x.link) : docPdf(x, truePdf(x.link)); if (!pdf) return null;
-  return { pdf: pdf, word: prep ? docxLink(x.link) : x.pdfState === 'held' ? '' : apprDocx(x), prep: prep };
+  var prep = docKind(x.name) === 'prep';
+  if (x.closedJob || !(isApprovedSt(x.status) || (prep && isReady(x)))) return null;
+  var pdf = filePdf(x, prep); if (!pdf) return null;
+  return { pdf: pdf, word: fileWord(x, prep), prep: prep };
 }
+/* An approved document with nothing to download only because its link is neither a Google Doc nor a PDF (a Drive file, say):
+   the apply steps and kit offer one Open link instead, so it never reads "Not ready yet" or vanishes */
+function openOnly(x) { return !!x && !x.closedJob && !isHeld(x) && isApprovedSt(x.status) && !!safeUrl(x.link) && !docFiles(x); }
+function openOnlyBtn(x, what, cls, o) {
+  return '<a class="' + cls + '" href="' + esc(safeUrl(x.link)) + '" target="_blank" rel="noopener noreferrer"' + (o && o.job ? ' data-job="' + esc(o.job) + '"' : '') + (o && o.step != null ? ' data-apstep="' + o.step + '"' : '') + ' aria-label="' + esc('Open ' + x.name) + '">' + IC.ext + 'Open your ' + what + '</a>';
+}
+/* held wording, as the review screen has always put it */
+function heldNote(x, cls) { return isHeld(x) ? '<p class="' + cls + '">Your ' + (docKind(x.name) === 'prep' ? '' : 'approved ') + 'PDF is being updated. We will let you know when it is ready.</p>' : ''; }
 /* The PDF button, then the Word button, each in a new tab (the file arrives as a download). o: pdf and word (the words), pdfAria
    and wordAria (aria-labels, for short words), solid (the PDF is the main button), track (the PDF's data-track; Word downloads
    are not tracked, the backend's TRACK_WHAT_ has no Word event), job and step (data-job, data-apstep: a download ticks its step). */
@@ -1839,9 +1855,11 @@ function applyKit(j) {
   if (js.review.length) h += '<button class="kbtn solid guide" data-review="' + esc(j.id) + '">' + IC.docs + 'Read and approve your documents</button>';
   else if (js.applyReady && !app) h += '<button class="kbtn solid guide" data-applyflow="' + esc(j.id) + '">' + IC.check + 'Apply step by step</button>';
   if (resume || cover) {
-    /* each approved document's downloads, from docFiles (the one rule) */
-    var kd = function (f, what, k) { return fileBtns(f, { pdf: what + ' (PDF)', word: what + ' (Word)', solid: true, track: k, job: j.id }); };
-    h += '<div class="pdfs">' + kd(fRes, 'Resume', 'resume_pdf') + kd(fCov, 'Cover letter', 'cover_pdf') + '</div>' +
+    /* each approved document's downloads, from docFiles (the one rule); a link that cannot be exported gets one Open link */
+    var kd = function (d, f, what, k) { return f ? fileBtns(f, { pdf: what + ' (PDF)', word: what + ' (Word)', solid: true, track: k, job: j.id }) : openOnly(d) ? openOnlyBtn(d, what.toLowerCase(), 'kbtn solid', { job: j.id }) : ''; };
+    var opens = [resume, cover].filter(openOnly).map(function (d) { return d === resume ? 'resume' : 'cover letter'; });
+    h += '<div class="pdfs">' + kd(resume, fRes, 'Resume', 'resume_pdf') + kd(cover, fCov, 'Cover letter', 'cover_pdf') + '</div>' +
+      (opens.length ? '<p class="wait">Open your ' + opens.join(' and ') + ' and save ' + (opens.length > 1 ? 'them' : 'it') + ' from there.</p>' : '') +
       ([resume, cover].some(function (d) { return d && d.pdfState === 'held'; }) ? '<p class="wait">Your approved ' + ([resume, cover].filter(function (d) { return d && d.pdfState === 'held'; }).map(function (d) { return d === resume ? 'resume' : 'cover letter'; }).join(' and ')) + ' PDF is being updated. We will let you know when it is ready.</p>' : '');
     if (!resume || !cover) h += '<p class="wait">' + (resume ? 'Your cover letter' : 'Your resume') + (pending ? ' is ready to check in Documents.' : ' is still in progress.') + '</p>';
   } else if (pending) {
@@ -2070,7 +2088,7 @@ function docCard(x, i, grp) {
     docVerHtml(x) + (x.request ? '<p class="meta">Your note: ' + esc(x.request) + '</p>' : '') +
     '<div class="acts' + (f ? ' files' : '') + '">' + fileBtns(f, { pdf: 'PDF', word: 'Word', pdfAria: 'Download ' + noun + ' as PDF', wordAria: 'Download ' + noun + ' as Word' }) +
       (link ? '<a class="kbtn" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer"' + (f && gdocId(x.link) ? ' aria-label="' + esc('Open ' + noun + ' in Google Docs') + '">' + IC.ext + 'Google Docs' : '>' + IC.ext + 'Open') + '</a>' : '') +
-    (ready ? '<button class="kbtn ok" data-approve="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Approve') + '</button>' : '') + (ready || prepRd ? '<button class="kbtn" data-changes="' + id + '"' + (busy ? ' disabled' : '') + '>Ask for changes</button>' : '') + '</div>' +
+    (ready ? '<button class="kbtn ok" data-approve="' + id + '"' + (busy ? ' disabled' : '') + '>' + IC.check + (busy ? 'Saving…' : 'Approve') + '</button>' : '') + (ready || prepRd ? '<button class="kbtn" data-changes="' + id + '"' + (busy ? ' disabled' : '') + '>Ask for changes</button>' : '') + '</div>' + (x.closedJob ? '' : heldNote(x, 'meta')) +
     (S.changesFor === x.id ? '<div class="notebox"><label class="sr" for="changesText">What should change?</label>' + (S.changesErr ? '<p class="err" role="alert" id="chErr">' + esc(S.changesErr) + '</p>' : '') + '<textarea placeholder="What should change?" id="changesText"' + (S.changesErr ? ' aria-invalid="true" aria-describedby="chErr"' : '') + '>' + esc(S.changesDraft || '') + '</textarea><button class="btn" data-sendchanges="' + id + '"' + (busy ? ' disabled' : '') + '>' + (busy ? 'Sending…' : 'Send') + '</button></div>' : '') + '</div>';
 }
 
