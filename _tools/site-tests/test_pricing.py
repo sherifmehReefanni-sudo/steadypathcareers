@@ -15,6 +15,7 @@ from conftest import ROOT, pricing, sitemap_paths
 
 CFG = pricing.load_config(ROOT)
 V = CFG['values']
+STAMPS = re.compile(r'\?v=[\w.-]+|^var V = \'[^\']+\';', re.M)  # cache stamps, which the tool may change in any file
 
 
 def test_repo_matches_pricing_json():
@@ -51,7 +52,7 @@ def test_guard_catches_drift():
     home = files['index.html']
     tline = home.count('\n', 0, home.index(pricing.render(CFG)['video_transcript_price'])) + 1  # the video transcript
     assert left and all(p.startswith(('by hand:', 'index.html:%d ' % tline, 'media/')) for p in left), left
-    assert not any(t in CFG['by_hand_files'] for t in changed), 'a by-hand file was rewritten'
+    assert not any(STAMPS.sub('', changed[t]) != STAMPS.sub('', files[t]) for t in changed if t in CFG['by_hand_files']), 'a by-hand file was rewritten'
     # a trial change leaves the legal terms to a person, and says so
     cfg = copy.deepcopy(CFG)
     cfg['values']['trial_days'] = '7'
@@ -89,16 +90,36 @@ def test_each_bump_gets_a_stamp_never_used_before():
     assert len(set(refs)) == len(refs) and len(set(vs)) == len(vs), (refs, vs)
 
 
-def test_bump_leaves_by_hand_files_alone():
-    # a changed script that the terms and privacy pages load: other pages get the new ?v=, the by-hand pages do not
+def test_bump_reaches_by_hand_files_but_not_their_sentences():
+    # a changed script that the terms and privacy pages load gets its new ?v= there too (a stamp is not legal text), and
+    # nothing else on those pages changes
     files, applied = pricing.load_files(ROOT), pricing.load_applied(ROOT)
     files = dict(files, **{'assets/site.js': files['assets/site.js'] + '\n// ' + pricing.render(CFG)['free_for'] + '\n'})
-    assert '/assets/site.js?v=' in files['privacy/index.html'] and '/assets/site.js?v=' in files['terms/index.html']
     cfg = copy.deepcopy(CFG)
     cfg['values']['trial_days'] = '7'
     changed, _ = pricing.apply(cfg, applied, files, stamp='sp-test')
     assert 'assets/site.js' in changed and '/assets/site.js?v=sp-test' in changed['about/index.html']
-    assert not set(changed) & set(CFG['by_hand_files']), sorted(set(changed) & set(CFG['by_hand_files']))
+    for f in ('privacy/index.html', 'terms/index.html'):
+        assert f in changed and '/assets/site.js?v=sp-test' in changed[f], f
+        assert STAMPS.sub('', changed[f]) == STAMPS.sub('', files[f]), f + ' changed beyond its ?v= stamps'
+
+
+def test_check_catches_mixed_version_stamps():
+    files, applied = pricing.load_files(ROOT), pricing.load_applied(ROOT)
+    bad = dict(files)
+    bad['about/index.html'] = re.sub(r'(/assets/site\.js\?v=)[\w.-]+', r'\g<1>sp-stale', bad['about/index.html'], count=1)
+    assert bad['about/index.html'] != files['about/index.html']
+    found = '\n'.join(pricing.problems(CFG, applied, bad))
+    assert 'assets/site.js' in found and 'sp-stale' in found and 'about/index.html' in found, found
+
+
+def test_check_catches_dead_not_ours_entries():
+    files, applied = pricing.load_files(ROOT), pricing.load_applied(ROOT)
+    cfg = copy.deepcopy(CFG)
+    cfg['not_ours']['no-such-page/index.html'] = ['file a charge']
+    cfg['not_ours']['about/index.html'] = ['a phrase that is not on the about page']
+    found = '\n'.join(pricing.problems(cfg, applied, files))
+    assert 'no-such-page/index.html' in found and 'a phrase that is not on the about page' in found, found
 
 
 # Visible text, after scripts run. Our prices only: "$N a month" (the plan or the founding price), "$N today" (the plan),

@@ -8,7 +8,7 @@ How it works: _tools/pricing.applied.json records each phrase exactly as the pag
 says it. When pricing.json changes, apply finds each old sentence (also in its &#39;, &#x27; and \\' forms) and writes the new
 one in the same form, longest phrase first, in one pass; a changed script gets a new ?v= wherever it is loaded, and sw.js a
 new V when it lists it (a stamp not used before: sp-YYYYMMDDprice, then b, c, d... on later runs). 'by_hand' phrases and
-'by_hand_files' are left alone, version references in by_hand_files included, and the check fails until a person updates them.
+the text of 'by_hand_files' are left alone (only their ?v= stamps are bumped), and the check fails until a person updates them.
 
 The check fails when:
   - pricing.json was edited but apply was not run;
@@ -16,7 +16,9 @@ The check fails when:
     page, or a by-hand item that still says the old price);
   - a file has billing wording (see WORDS) outside the phrases and that file's 'not_ours' entries (comments are not read);
   - a phrase is not in the files, or not as many times, as recorded (a sentence edited by hand);
-  - a phrase or value in pricing.json is no longer used anywhere (delete it, or put the sentence back)."""
+  - a phrase or value in pricing.json is no longer used anywhere (delete it, or put the sentence back);
+  - a 'not_ours' entry's file is gone or no longer has that text;
+  - one of our files is loaded with different ?v= stamps in different places."""
 import datetime
 import json
 import os
@@ -131,17 +133,21 @@ def next_stamp(current, base):
     return base + (tail[:-1] + chr(ord(tail[-1]) + 1) if tail[-1] < 'z' else tail + 'b')
 
 
-def bump_versions(changed, files, base, hold=()):
-    """A changed script or stylesheet gets a new ?v= wherever it is loaded, and sw.js a new V when it lists the file, so no
-    browser or service worker keeps the old copy. Files in hold (the by-hand files) are not touched."""
+VREF = re.compile(r'/((?:assets|img)/[\w./-]+?)\?v=([\w.-]+)')  # a cache-stamped reference to one of our files
+
+
+def bump_versions(changed, files, base):
+    """A changed script or stylesheet gets one new ?v= wherever it is loaded (by-hand files too: a stamp is not their text),
+    and sw.js a new V when it lists the file, so no browser or service worker keeps the old copy."""
     out = dict(changed)
     listed = False
     for path in [p for p in changed if p.startswith('assets/')]:
         ref = re.compile(r'(/' + re.escape(path) + r'\?v=)([\w.-]+)')
-        for f, text in list(dict(files, **out).items()):
-            if f in hold:
-                continue
-            t = ref.sub(lambda m: m.group(1) + next_stamp(m.group(2), base), text)
+        now = dict(files, **out)
+        olds = {m.group(2) for text in now.values() for m in ref.finditer(text)}
+        new = max((next_stamp(v, base) for v in olds), key=lambda v: (len(v), v), default=base)
+        for f, text in now.items():
+            t = ref.sub(lambda m: m.group(1) + new, text)
             if t != text:
                 out[f] = t
                 listed = listed or f == 'sw.js'
@@ -169,7 +175,7 @@ def apply(cfg, applied, files, stamp=None):
         t = rx.sub(swap, text)
         if t != text:
             changed[path] = t
-    changed = bump_versions(changed, files, stamp or 'sp-' + datetime.date.today().strftime('%Y%m%d') + 'price', cfg['by_hand_files'])
+    changed = bump_versions(changed, files, stamp or 'sp-' + datetime.date.today().strftime('%Y%m%d') + 'price')
     before, after = where(old, files), where(new, dict(files, **changed))
     # a by-hand sentence that changed is expected where the old one is, once a person has rewritten it
     seen = {k: (before.get(k, {}) if k in by_hand and k in old and old[k] != new[k] else after[k]) for k in new}
@@ -207,6 +213,18 @@ def problems(cfg, applied, files):
             for m in WORDS.finditer(strip_comments(path, text)):
                 if not inside(m):
                     out.append('%s:%d has billing wording ("%s") that is not a sentence in pricing.json. %s' % (path, text.count('\n', 0, m.start()) + 1, m.group(0), hint))
+    for path, texts in sorted(cfg['not_ours'].items()):
+        for s in texts:
+            if s not in files.get(path, ''):
+                out.append('pricing.json: not_ours entry "%s" is not in %s (%s); delete it or fix its file' % (s, path, 'no such file' if path not in files else 'text not found'))
+    stamps = {}
+    for path, text in sorted(files.items()):
+        for m in VREF.finditer(text):
+            stamps.setdefault(m.group(1), {}).setdefault(m.group(2), []).append(path)
+    for ref, vals in sorted(stamps.items()):
+        if len(vals) > 1:
+            out.append('%s is loaded with different ?v= stamps: %s. Give every reference the same one.' % (
+                ref, '; '.join('?v=%s in %s' % (v, ', '.join(sorted(set(fs)))) for v, fs in sorted(vals.items()))))
     now = where(phrases, files)
     for k in phrases:
         if not now[k]:
@@ -239,9 +257,6 @@ def main(argv):
                   f, indent=1, ensure_ascii=False)
         f.write('\n')
     print('Updated %d file(s): %s' % (len(changed), ', '.join(sorted(changed)) or 'none'))
-    held = sorted(f for f in cfg['by_hand_files'] if f in files and any('/%s?v=' % p in files[f] for p in changed if p.startswith('assets/')))
-    if held:
-        print('\nThese by-hand files load a changed script or stylesheet and keep its old ?v= until a person edits them: ' + ', '.join(held))
     left = problems(cfg, record, load_files())
     if left:
         print('\nStill to do by hand (the site check fails until these are done):\n  ' + '\n  '.join(left))
