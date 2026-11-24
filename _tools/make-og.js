@@ -1,6 +1,6 @@
 /* Builds the 1200x630 link-preview images in img/og/ (and img/og.jpg from home) by rendering HTML with Playwright.
    Run from the site root: node _tools/make-og.js
-   (Folders starting with "_" are left out of the GitHub Pages build, so this file is never published.)
+   (_redirects sends every /_tools/ address to the 404 page, so this file is never served.)
    Fonts: real Manrope and Newsreader from npm, used only here at build time and embedded in the render.
      npm install --prefix <some build folder> @fontsource/manrope @fontsource/newsreader
      FONTSOURCE_DIR=<some build folder> node _tools/make-og.js
