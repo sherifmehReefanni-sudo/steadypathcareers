@@ -23,7 +23,7 @@
      and it is never the dev project's ref (the site checks refuse both once LIVE is SUPABASE). */
   var PRODUCTION_REF = 'fwztwmsujyvijmupfjta';
   var SUPABASE = 'https://' + PRODUCTION_REF + '.supabase.co/functions/v1/api';
-  var LIVE = APPS_SCRIPT;
+  var LIVE = SUPABASE;
   var API_URL = /^https:\/\/[a-z]{20}\.supabase\.co\/functions\/v1\/api$/;
   var VALUE = Object.freeze({ url: LIVE, kind: LIVE === SUPABASE ? 'supabase' : 'apps-script' });
   /* only this file's own object, and only its own two addresses */
