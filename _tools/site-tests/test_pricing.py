@@ -15,6 +15,7 @@ from conftest import ROOT, pricing, sitemap_paths
 
 CFG = pricing.load_config(ROOT)
 V = CFG['values']
+STAMPS = re.compile(r'\?v=[\w.-]+|^var V = \'[^\']+\';', re.M)  # cache stamps, which the tool may change in any file
 
 
 def test_repo_matches_pricing_json():
@@ -51,7 +52,7 @@ def test_guard_catches_drift():
     home = files['index.html']
     tline = home.count('\n', 0, home.index(pricing.render(CFG)['video_transcript_price'])) + 1  # the video transcript
     assert left and all(p.startswith(('by hand:', 'index.html:%d ' % tline, 'media/')) for p in left), left
-    assert not any(t in CFG['by_hand_files'] for t in changed), 'a by-hand file was rewritten'
+    assert not any(STAMPS.sub('', changed[t]) != STAMPS.sub('', files[t]) for t in changed if t in CFG['by_hand_files']), 'a by-hand file was rewritten'
     # a trial change leaves the legal terms to a person, and says so
     cfg = copy.deepcopy(CFG)
     cfg['values']['trial_days'] = '7'
@@ -63,6 +64,62 @@ def test_guard_catches_drift():
     cfg['phrases']['hired_stops'] = "Tell us when you're hired and we stop billing"
     changed, new = pricing.apply(cfg, applied, files, stamp='sp-test')
     assert set(changed) == {'index.html', 'questions/index.html'} and not pricing.problems(cfg, new, dict(files, **changed)), sorted(changed)
+
+
+def test_not_ours_covers_only_its_own_file():
+    # wording allowed on one guide page is still caught on any other page
+    files, applied = pricing.load_files(ROOT), pricing.load_applied(ROOT)
+    bad = dict(files)
+    bad['about/index.html'] = bad['about/index.html'].replace('</main>', '<p>Some charge a monthly fee.</p></main>', 1)
+    assert bad['about/index.html'] != files['about/index.html']
+    found = '\n'.join(pricing.problems(CFG, applied, bad))
+    assert 'about/index.html:' in found and 'charge' in found, found
+    # and the served-page check strips a page's allowed text only on that page
+    assert '$49 a month on Coursera' in page_not_ours('/level-up/') and '$49 a month on Coursera' not in page_not_ours('/about/')
+
+
+def test_each_bump_gets_a_stamp_never_used_before():
+    files = {'assets/a.js': 'x', 'index.html': '<script src="/assets/a.js?v=old"></script>',
+             'sw.js': "var V = 'old';\nvar ASSETS = ['/assets/a.js?v=old'];\n"}
+    refs, vs = ['old'], ['old']
+    for run in range(5):
+        files = dict(files, **pricing.bump_versions({'assets/a.js': 'y%d' % run}, files, 'sp-20261124price'))
+        refs.append(re.search(r'a\.js\?v=([\w.-]+)', files['index.html']).group(1))
+        vs.append(re.search(r"var V = '([^']+)'", files['sw.js']).group(1))
+        assert re.search(r'a\.js\?v=([\w.-]+)', files['sw.js']).group(1) == refs[-1]
+    assert len(set(refs)) == len(refs) and len(set(vs)) == len(vs), (refs, vs)
+
+
+def test_bump_reaches_by_hand_files_but_not_their_sentences():
+    # a changed script that the terms and privacy pages load gets its new ?v= there too (a stamp is not legal text), and
+    # nothing else on those pages changes
+    files, applied = pricing.load_files(ROOT), pricing.load_applied(ROOT)
+    files = dict(files, **{'assets/site.js': files['assets/site.js'] + '\n// ' + pricing.render(CFG)['free_for'] + '\n'})
+    cfg = copy.deepcopy(CFG)
+    cfg['values']['trial_days'] = '7'
+    changed, _ = pricing.apply(cfg, applied, files, stamp='sp-test')
+    assert 'assets/site.js' in changed and '/assets/site.js?v=sp-test' in changed['about/index.html']
+    for f in ('privacy/index.html', 'terms/index.html'):
+        assert f in changed and '/assets/site.js?v=sp-test' in changed[f], f
+        assert STAMPS.sub('', changed[f]) == STAMPS.sub('', files[f]), f + ' changed beyond its ?v= stamps'
+
+
+def test_check_catches_mixed_version_stamps():
+    files, applied = pricing.load_files(ROOT), pricing.load_applied(ROOT)
+    bad = dict(files)
+    bad['about/index.html'] = re.sub(r'(/assets/site\.js\?v=)[\w.-]+', r'\g<1>sp-stale', bad['about/index.html'], count=1)
+    assert bad['about/index.html'] != files['about/index.html']
+    found = '\n'.join(pricing.problems(CFG, applied, bad))
+    assert 'assets/site.js' in found and 'sp-stale' in found and 'about/index.html' in found, found
+
+
+def test_check_catches_dead_not_ours_entries():
+    files, applied = pricing.load_files(ROOT), pricing.load_applied(ROOT)
+    cfg = copy.deepcopy(CFG)
+    cfg['not_ours']['no-such-page/index.html'] = ['file a charge']
+    cfg['not_ours']['about/index.html'] = ['a phrase that is not on the about page']
+    found = '\n'.join(pricing.problems(cfg, applied, files))
+    assert 'no-such-page/index.html' in found and 'a phrase that is not on the about page' in found, found
 
 
 # Visible text, after scripts run. Our prices only: "$N a month" (the plan or the founding price), "$N today" (the plan),
@@ -79,6 +136,14 @@ SEEN = [
 PAGES = sorted(set(sitemap_paths() + ['/start/', '/start/v2/', '/portal/?demo=1&v=billing&region=nj']))
 
 
+def page_not_ours(path):
+    """The 'not_ours' text a served page may show: from its own file, files in its folder (its data) and assets/ (shared scripts
+    and data any page may load)."""
+    p = path.split('?')[0].strip('/')
+    own = lambda f: f == (p + '/index.html' if p else 'index.html') or (p and f.startswith(p + '/')) or f.startswith('assets/')
+    return [s for f, texts in CFG['not_ours'].items() if own(f) for s in texts]
+
+
 @pytest.mark.parametrize('path', PAGES)
 def test_page_shows_prices_from_pricing_json(open_page, path):
     page = open_page(path)
@@ -89,7 +154,7 @@ def test_page_shows_prices_from_pricing_json(open_page, path):
         b.querySelectorAll('script, style, template, noscript').forEach((e) => e.remove());
         const meta = [...document.querySelectorAll('meta[name=description], meta[property="og:description"], meta[name="twitter:description"]')].map((m) => m.content);
         return [b.textContent].concat(meta).join(' ').replace(/\\s+/g, ' '); }""")
-    for s in CFG['not_ours']:
+    for s in page_not_ours(path):
         text = text.replace(s, '')
     wrong = ['"%s"' % m.group(0) for rx, ok in SEEN for m in re.finditer(rx, text) if m.group(1) not in ok]
     assert not wrong, '%s shows %s; _tools/pricing.json says %s days free, $%s a month' % (path, ', '.join(wrong), V['trial_days'], V['plan_monthly'])

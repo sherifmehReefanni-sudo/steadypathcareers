@@ -3,10 +3,10 @@
     "The one place for the site's prices, trial length and billing wording: every sentence on the site, in the portal and in the intake form that states a price, the trial length, or how paying, renewing, refunds, cancelling, charges, paid plans, the free pilot, cards or the founding offer work.",
     "To change a price or the trial length: edit 'values', then run  python3 _tools/pricing.py  from the site root. To change billing wording: edit the sentence here and run the same command. It rewrites every page, script and page builder that says it, gives a changed script a new ?v= wherever it is loaded (and sw.js a new V when it lists it), and records where each sentence is in pricing.applied.json.",
     "Write each phrase exactly as it is in the source (HTML entities such as &amp; included), with a plain apostrophe ('). The tool also finds and keeps the forms &#39;, &#x27; and \\'. Portal phrases are the literal pieces of its script strings, so a few are fragments (the date or day count is joined on by the script).",
-    "'by_hand' phrases and 'by_hand_files' are never edited by the tool: the legal terms and privacy policy, the attorney-reviewed cancellation notice, the recorded welcome video (transcript and captions) and the social images. The site check fails until a person updates them.",
-    "The site check (_tools/site-tests/test_pricing.py) fails when: pricing.json was edited and the tool was not run; any file states a trial length or one of our prices ($N a month, $N today, $N with code, the add-on prices) that is not inside a phrase here; any billing wording (refund, renew, charge, cancel anytime or within, billing stops or ends, paid plan, payment page, free pilot or days, no card, founding, subscription, first charge) is not inside a phrase here or in 'not_ours'; a phrase is no longer where it was recorded; or a served page (all its text, closed FAQ answers and meta descriptions included) states another number.",
+    "'by_hand' phrases and 'by_hand_files' are never edited by the tool (apart from the ?v= cache stamps in those files): the legal terms and privacy policy, the attorney-reviewed cancellation notice, the recorded welcome video (transcript and captions) and the social images. The site check fails until a person updates them.",
+    "The site check (_tools/site-tests/test_pricing.py) fails when: pricing.json was edited and the tool was not run; any file states a trial length or one of our prices ($N a month, $N today, $N with code, the add-on prices) that is not inside a phrase here; any billing wording (refund, renew, charge, cancel anytime or within, billing stops or ends, paid plan, payment page, free pilot or days, no card, founding, subscription, first charge) is not inside a phrase here or in that file's 'not_ours'; a phrase is no longer where it was recorded; a 'not_ours' entry's file is gone or no longer has that text; one of our files is loaded with different ?v= stamps in different places; or a served page (all its text, closed FAQ answers and meta descriptions included) states another number.",
     "Not caught: a reworded billing sentence that uses none of those words and no number, unless it replaced a recorded phrase (then the place check fails); weekly prices outside the phrases here; text inside images or the video's sound.",
-    "'not_ours' lists text about other people's prices or charges (third-party fees, EEOC charges, job titles) that the check must not read as ours.",
+    "'not_ours' maps a file to text in it about other people's prices or charges (third-party fees, EEOC charges, job titles) that the check must not read as ours. Each entry counts only in its own file, so the same words on any other page are still checked.",
     "Not in this repo, so not covered: Stripe prices and the FOUNDING coupon, the renewal-terms email in the Apps Script backend (renewalTermsEmail_), and the store listings. The Steady Path app states no prices or trial length on purpose; its own test keeps it that way."
   ],
   "values": {
@@ -206,15 +206,15 @@
     "media/welcome-r55.vtt": "Captions of the recorded welcome video: they must match the voice, so re-record first.",
     "_tools/make-og.js": "Text drawn into the social share images in img/og/: edit it, then rebuild the images with node _tools/make-og.js."
   },
-  "not_ours": [
-    "$49 a month on Coursera",
-    "file a charge",
-    "how it charges",
-    "how they charge",
-    "Some charge a monthly fee",
-    "does it renew on its own",
-    "you can be charged up to 102%",
-    "claim or renewal conversation",
-    "charge nurse"
-  ]
+  "not_ours": {
+    "_tools/build-free.py": ["file a charge"],
+    "_tools/build-levelup.py": ["$49 a month on Coursera"],
+    "assets/data/interview-bank.json": ["claim or renewal conversation"],
+    "free/laid-off-72-hours/index.html": ["file a charge"],
+    "guides/index.html": ["how it charges"],
+    "guides/laid-off/index.html": ["you can be charged up to 102%"],
+    "guides/reverse-recruiter/index.html": ["how they charge", "Some charge a monthly fee", "does it renew on its own"],
+    "level-up/index.html": ["$49 a month on Coursera"],
+    "pay/data.json": ["charge nurse"]
+  }
 }
