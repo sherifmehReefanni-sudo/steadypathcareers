@@ -8,7 +8,8 @@
   var ROOT = document.getElementById('i2');
   if (!ROOT) return;
   var PREVIEW = ROOT.getAttribute('data-preview') !== 'off';
-  var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
+  /* assets/backend.js (loaded just before this file on /start/ and /start/v2/), read once through the callers' check: '' sends nothing */
+  var BACKEND = (function (w) { var d = w && Object.getOwnPropertyDescriptor(w, 'SP_BACKEND'), v = d && d.value, no = Object.freeze({ url: '', kind: '' }); if (!d || !('value' in d) || d.writable !== false || d.configurable !== false || Object.prototype.hasOwnProperty.call(w, 'SP_BACKEND_REFUSED') || !v || typeof v !== 'object' || !Object.isFrozen(v)) return no; var du = Object.getOwnPropertyDescriptor(v, 'url'), dk = Object.getOwnPropertyDescriptor(v, 'kind'), u = du && du.value, k = dk && dk.value; if (typeof u !== 'string' || typeof k !== 'string') return no; if (k === 'apps-script' && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]{20,}\/exec$/.test(u)) return Object.freeze({ url: u, kind: k }); if (k === 'supabase' && /^https:\/\/[a-z]{20}\.supabase\.co\/functions\/v1\/api$/.test(u)) return Object.freeze({ url: u, kind: k }); return no; })(window), API = BACKEND.url;
   var KEY = PREVIEW ? 'sp_intake2_preview' : 'sp_intake2';
   var TERMS_VERSION = '2026-11-12';
   var BOOK = 'https://calendar.app.google/8wyFoDK5k6k1iamT9';
@@ -293,6 +294,7 @@
   var TIMEOUT = 15000, TEST_TIMEOUT = Math.max(0, Number(ROOT.getAttribute('data-timeout')) || 0); /* data-timeout: tests only */
   function post(body, ms) {
     if (PREVIEW) return Promise.reject(new Error('preview'));
+    if (!API) return Promise.reject(new Error('no backend')); /* assets/backend.js did not load: send nothing, anywhere */
     var ac = null, tm = null; try { ac = new AbortController(); } catch (e) {}
     var opts = { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' };
     if (ac) { opts.signal = ac.signal; tm = setTimeout(function () { ac.abort(); }, TEST_TIMEOUT || ms || TIMEOUT); }
@@ -934,13 +936,16 @@
   }
   function finish(preview) {
     var token = !preview && sent && sent.token ? sent.token : '';
+    /* Supabase (C1-B): the session is already saved on this device, so "Open my portal" carries no token in its address; the ?t=
+       link stays only where the device could not keep it. Apps Script: unchanged. */
+    var tokenUrl = token && !(BACKEND.kind === 'supabase' && (function () { try { return localStorage.getItem('sp_token') === token; } catch (e) { return false; } })()) ? token : '';
     var noRes = !file && !V.noResume; /* sent without a resume file (not the "No resume? No problem" path) */
     ROOT.innerHTML = pathbar(4).replace('class="i2-path"', 'class="i2-path done"') + '<div class="i2-card-wrap"><section class="i2-sheet i2-done" aria-labelledby="i2title"><h2 class="i2-h" id="i2title" tabindex="-1">You\'re all set.</h2>' +
       (noRes ? '<div class="i2-info" id="i2upl"><b>Your search starts once you upload your resume.</b> Open your portal and tap Upload my resume on the Home screen. You can also find it in Your search settings, under Your resume.' + (token ? '' : ' If the portal asks you to sign in, use the email you gave on this form.') + '</div>' : '') +
       '<ol class="i2-next"><li><b>' + (noRes ? 'We go through your answers' : 'We go through your answers and resume') + '</b> within 1 business day.</li><li><b>We email you any questions</b> and the job titles we suggest. You tell us which ones to keep.</li><li><b>Your search starts once the titles are agreed.</b> Matches that pass our automated checks then show up in your portal, each with pay and a link to the posting.</li></ol>' +
       /* r46: true while the backend property FIT is on (the portal shows Find Your Fit to every client then). It was on when this shipped. */
       '<p class="i2-note i2-wait" id="i2wait">While you wait: take Find Your Fit in your portal.</p>' +
-      '<div class="i2-ctas">' + (preview ? '' : '<a class="btn gold" href="/portal/' + (token ? '?t=' + encodeURIComponent(token) : '') + '">Open my portal</a>') + '<a class="btn ghost" href="' + BOOK + '" target="_blank" rel="noopener">Book an optional intro call</a></div>' + meter(true) + /* r41 (m7): the score only, no to-do list, once the form is sent */
+      '<div class="i2-ctas">' + (preview ? '' : '<a class="btn gold" href="/portal/' + (tokenUrl ? '?t=' + encodeURIComponent(tokenUrl) : '') + '">Open my portal</a>') + '<a class="btn ghost" href="' + BOOK + '" target="_blank" rel="noopener">Book an optional intro call</a></div>' + meter(true) + /* r41 (m7): the score only, no to-do list, once the form is sent */
       (preview ? '<details class="i2-sent" open><summary>Preview: what this would send</summary><p class="i2-note">Every field the current form sends is here with the same name. The new answers are under "v2". The resume file itself is attached only when it is really sent.</p><pre>' + esc(JSON.stringify(sent, null, 2)) + '</pre><button type="button" class="btn ghost" data-act="restart">Start the preview over</button></details>' : '') +
       '</section></div>';
     try { document.getElementById('i2title').focus({ preventScroll: true }); } catch (e) {}

@@ -1,6 +1,6 @@
 """The intake form (/start/) opens, shows the honest price, and a person can move forward and back.
 Nothing is ever submitted: the conftest blocks every POST, so no intake, funnel ping or "finish later" email can go out."""
-from conftest import PRICES as V, visible_text
+from conftest import PRICES as V, backend_post, visible_text
 
 
 def screen_title(page):
@@ -48,7 +48,7 @@ def test_nothing_was_sent(open_page):
     page.wait_for_timeout(500)
     posts = [b for b in page.blocked if b.startswith('POST')]
     assert posts, 'expected the funnel ping to be blocked (has the form stopped calling the backend?)'
-    assert all('script.google.com' in b for b in posts), 'unexpected POST target: %s' % posts
+    assert all(backend_post(b) for b in posts), 'unexpected POST target (not the live backend in assets/backend.js): %s' % posts
 
 
 def test_works_on_a_phone(open_page):

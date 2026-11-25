@@ -902,9 +902,14 @@ window.SP_DEMO = function () {
 <body>
 <div id="app"><div class="skel">Opening your portal…</div></div>
 <script src="../assets/site.js?v=sp-20261112r43"></script>
+<script src="../assets/backend.js"></script>
 <script>
-/* Set after the Apps Script web app is deployed. */
-var API = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
+/* The backend address and kind come from assets/backend.js, the one place they live (see the private cutover doc). They are
+   read once, here, through the same check every caller uses: anything unexpected (no file, a malformed or mismatched value, a
+   value another script set first) gives url '', and then get() and post() send nothing at all: each call is refused as a
+   connection problem and the page shows its usual error screen. Nothing reads the global again. */
+var BACKEND = (function (w) { var d = w && Object.getOwnPropertyDescriptor(w, 'SP_BACKEND'), v = d && d.value, no = Object.freeze({ url: '', kind: '' }); if (!d || !('value' in d) || d.writable !== false || d.configurable !== false || Object.prototype.hasOwnProperty.call(w, 'SP_BACKEND_REFUSED') || !v || typeof v !== 'object' || !Object.isFrozen(v)) return no; var du = Object.getOwnPropertyDescriptor(v, 'url'), dk = Object.getOwnPropertyDescriptor(v, 'kind'), u = du && du.value, k = dk && dk.value; if (typeof u !== 'string' || typeof k !== 'string') return no; if (k === 'apps-script' && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]{20,}\/exec$/.test(u)) return Object.freeze({ url: u, kind: k }); if (k === 'supabase' && /^https:\/\/[a-z]{20}\.supabase\.co\/functions\/v1\/api$/.test(u)) return Object.freeze({ url: u, kind: k }); return no; })(window);
+var API = BACKEND.url;
 /* Help line. SP_TEXT_NUMBER: Google Voice number goes here (for example '+17325550100'). While it is empty, the help line shows
    only the email link. */
 var SP_EMAIL = 'hello@steadypathcareers.com';
@@ -984,8 +989,10 @@ function demoApi(b) {
 
 /* ---- API ---- */
 /* round 18: cache 'no-store', so no API answer (client data) is ever kept in the browser's HTTP cache */
-function get(params) { if (S.demo) return demoApi(params); var u = API + '?' + new URLSearchParams(params).toString(); return fetch(u, { redirect: 'follow', cache: 'no-store' }).then(function (r) { return r.json(); }); }
-function post(body, keepalive) { if (S.demo) return demoApi(body); return fetch(API, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', keepalive: !!keepalive, cache: 'no-store' }).then(function (r) { return r.json(); }); }
+/* GET is the Apps Script way to read me (the token rides in the URL). The Supabase api takes every action as a POST, so there the
+   token only ever travels in the body (cutover item M2 and C1-B). */
+function get(params) { if (S.demo) return demoApi(params); if (!API) return Promise.reject(new Error('no backend')); if (BACKEND.kind !== 'apps-script') return post(params); var u = API + '?' + new URLSearchParams(params).toString(); return fetch(u, { redirect: 'follow', cache: 'no-store' }).then(function (r) { return r.json(); }); }
+function post(body, keepalive) { if (S.demo) return demoApi(body); if (!API) return Promise.reject(new Error('no backend')); return fetch(API, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', keepalive: !!keepalive, cache: 'no-store' }).then(function (r) { return r.json(); }); }
 /* Whole-word match: "Yes" / "yes, apply" are Yes, "No" / "No, too far" are No; any other text (Question, Maybe, None, Not sure) is a question. */
 function ansOf(j) { var a = String((j && j.answer) || '').trim(); if (!a) return ''; if (/^yes\b/i.test(a)) return 'yes'; if (/^no\b/i.test(a)) return 'no'; return 'q'; }
 function errText(e, thing) {
@@ -1060,7 +1067,9 @@ function redeemLink() {
     S.linkKey = null; linkKeyDrop();
     if (S.token) { S.linkFlash = e || 'bad'; load(); return; } /* a saved session on this device keeps working */
     S.status = 'signin';
-    S.err = e === 'used' ? 'That sign-in link was already used. Each link works once. Enter your email and we\'ll send you a new one.' : e === 'expired' ? 'That link has expired. Links work for 30 minutes. Enter your email and we\'ll send you a new one.' : 'That link didn\'t work. Enter your email and we\'ll send you a new one.';
+    /* on Supabase a ?k= key is either a sign-in link (30 minutes) or a job or welcome email button (7 days, C2-B), so the notes name
+       neither "sign-in" nor a length */
+    S.err = e === 'used' ? 'That ' + (BACKEND.kind === 'supabase' ? '' : 'sign-in ') + 'link was already used. Each link works once. Enter your email and we\'ll send you a new one.' : e === 'expired' ? 'That link has expired. ' + (BACKEND.kind === 'supabase' ? '' : 'Links work for 30 minutes. ') + 'Enter your email and we\'ll send you a new one.' : 'That link didn\'t work. Enter your email and we\'ll send you a new one.';
     render();
   }).catch(function (e) { try { console.error('Portal: could not check the sign-in link.', e); } catch (x) {} S.linkBusy = false; S.linkMsg = 'We couldn\'t reach the server. Please check your connection and tap the button again.'; S.focusTo = '#linkGo'; render(); });
 }

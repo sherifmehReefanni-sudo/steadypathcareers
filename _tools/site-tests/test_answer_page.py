@@ -3,7 +3,7 @@ The checks replace the API with window.__spAnswerPost (set before the page runs)
 blocks every POST and every outside host anyway."""
 import re
 
-from conftest import ROOT
+from conftest import CALLER_CHECK, ROOT, answer_csps, backend_post
 
 K = 'a' * 40
 JOB = {'title': 'Paralegal', 'company': 'Smith Law', 'pay': '$60,000'}
@@ -69,7 +69,7 @@ def test_without_the_stub_it_calls_only_the_api_and_says_when_it_cannot(open_pag
     page.goto(page.base + '/answer/#k=' + K, wait_until='load')
     page.wait_for_timeout(1500)
     posts = [b for b in page.blocked if b.startswith('POST')]
-    assert posts and all(b.startswith('POST https://script.google.com/macros/s/') for b in posts), page.blocked
+    assert posts and all(backend_post(b) for b in posts), page.blocked  # exactly the live backend (assets/backend.js)
     assert not [b for b in page.blocked if not b.startswith('POST')], 'the page loaded something from another host: %s' % page.blocked
     assert 'We could not reach Steady Path' in page.inner_text('main')
 
@@ -77,15 +77,19 @@ def test_without_the_stub_it_calls_only_the_api_and_says_when_it_cannot(open_pag
 def test_page_locks_down_scripts_styles_and_referrer():
     html = open(ROOT + '/answer/index.html', encoding='utf-8').read()
     csp = re.search(r'http-equiv="Content-Security-Policy" content="([^"]+)"', html).group(1)
-    assert csp == ("default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://script.google.com "
-                   "https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'"), csp
+    # today exactly: connect-src https://script.google.com https://script.googleusercontent.com (answer_csps in conftest gives the
+    # exact strings the live backend allows; with Apps Script live and no production ref it is only this one)
+    assert csp in answer_csps(), csp
     assert '<meta name="referrer" content="no-referrer">' in html
     assert not re.search(r'<script>|<script(?![^>]*\bsrc=)[^>]*>|<style|\sstyle=|\son[a-z]+=', html), 'inline script or style on /answer/'
     assert not re.search(r'(src|href)="(https?:)?//', html), 'the page loads something from another host'
     js = open(ROOT + '/assets/answer.js', encoding='utf-8').read()
-    api = re.search(r"var API = '([^']+)'", js).group(1)
+    # Nov 24, 2026: the address moved to assets/backend.js, which the portal loads too, so both call the same API
+    # (test_backend_switch.py checks that no other file holds a backend address)
+    assert "var API = (" + CALLER_CHECK + ")(window).url;" in js, '/answer/ does not take its address from assets/backend.js through the callers\' check'
+    assert html.index('<script src="/assets/backend.js" defer></script>') < html.index('/assets/answer.js'), 'backend.js must load before answer.js'
     portal = open(ROOT + '/portal/index.html', encoding='utf-8').read()
-    assert "var API = '%s'" % api in portal, '/answer/ calls a different API than the portal'
+    assert '<script src="../assets/backend.js"></script>' in portal and "var BACKEND = (" + CALLER_CHECK + ")(window);" in portal, '/answer/ calls a different API than the portal'
     assert "referrerPolicy: 'no-referrer'" in js and "credentials: 'omit'" in js
 
 
