@@ -21,7 +21,7 @@
   var APPS_SCRIPT = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec';
   /* the production project's ref (20 lowercase letters). It stays 'production-ref-not-set' until the production project exists,
      and it is never the dev project's ref (the site checks refuse both once LIVE is SUPABASE). */
-  var PRODUCTION_REF = 'production-ref-not-set';
+  var PRODUCTION_REF = 'fwztwmsujyvijmupfjta';
   var SUPABASE = 'https://' + PRODUCTION_REF + '.supabase.co/functions/v1/api';
   var LIVE = APPS_SCRIPT;
   var API_URL = /^https:\/\/[a-z]{20}\.supabase\.co\/functions\/v1\/api$/;
