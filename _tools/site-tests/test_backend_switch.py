@@ -23,7 +23,7 @@ from conftest import CALLER_CHECK, ROOT, ANSWER_CSP_TODAY, APPS_HOSTS, DEV_REF_S
 
 # Which backend the site is meant to call live. THE FLIP COMMIT CHANGES THIS LINE to 'supabase' (and a rollback changes it
 # back), so a flip made by accident, or a half flip, fails the checks.
-EXPECTED_LIVE = 'apps-script'
+EXPECTED_LIVE = 'supabase'
 
 # The Apps Script deployment the site calls today (the forwarder after cutover). Pinned: a changed deployment ID fails here.
 APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbywIXNDqOMhCuyNx9px8cKGQy4zsuDwxihOF_jMr_jTxv8QOy2OxBrlXC9WffPWZcU/exec'
